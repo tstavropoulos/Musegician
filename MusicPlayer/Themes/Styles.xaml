@@ -136,6 +136,15 @@
         <Setter Property="FontFamily" Value="Calibri light"/>
         <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
         <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}"/>
+        <!--
+        <Setter Property="shell:WindowChrome.WindowChrome">
+            <Setter.Value>
+                <shell:WindowChrome GlassFrameThickness="-1"
+                                    ResizeBorderThickness="4"
+                                    CaptionHeight="36"/>
+            </Setter.Value>
+        </Setter>
+        -->
     </Style>
     <!-- Necessary for Blend designer for UserControls -->
     <Style TargetType="{x:Type UserControl}">

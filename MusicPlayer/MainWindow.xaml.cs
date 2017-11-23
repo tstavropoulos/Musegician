@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace MusicPlayer
 {
@@ -27,16 +28,43 @@ namespace MusicPlayer
         {
             InitializeComponent();
 
+            Loaded += new RoutedEventHandler(MainWindow_Loaded);
+
             fileMan = new FileManager();
             fileMan.Initialize();
-
+            
             artistWindow.Rebuild(fileMan.GenerateArtistList());
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            
         }
 
         private void MenuOpenClick(object sender, RoutedEventArgs e)
         {
-            fileMan.OpenDirectory("C:\\Users\\Trevor Stavropoulos\\Music");
-            artistWindow.Rebuild(fileMan.GenerateArtistList());
+            CommonOpenFileDialog dialog = new CommonOpenFileDialog()
+            {
+                Title = "Select Directory to add to Library",
+                IsFolderPicker = true,
+                InitialDirectory = "C:\\",
+
+                AddToMostRecentlyUsedList = false,
+                AllowNonFileSystemItems = false,
+                DefaultDirectory = "C:\\",
+                EnsureFileExists = true,
+                EnsurePathExists = true,
+                EnsureValidNames = true,
+                Multiselect = false,
+                ShowPlacesList = true
+            };
+
+            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                fileMan.OpenDirectory(dialog.FileName);
+                artistWindow.Rebuild(fileMan.GenerateArtistList());
+            }
+
         }
 
         private void MenuQuitClick(object sender, RoutedEventArgs e)

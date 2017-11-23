@@ -206,7 +206,7 @@ namespace MusicPlayer
                     string albumPath = Path.Combine(bandPath, albumDirectory);
                     foreach (string extension in supportedFileTypes)
                     {
-                        foundMusic.AddRange(Directory.GetFiles(bandPath, extension));
+                        foundMusic.AddRange(Directory.GetFiles(albumPath, extension));
                     }
                 }
             }
