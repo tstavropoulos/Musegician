@@ -4,9 +4,31 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MusicPlayer"
+        xmlns:player="clr-namespace:MusicPlayer.Player"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
-    </Grid>
+        Title="Musegician" Height="350" Width="525"
+        Closing="WindowClosing"
+        Style="{StaticResource {x:Type Window}}">
+    <DockPanel>
+        <Menu 
+            DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem 
+                    x:Name="MenuOpen" 
+                    Header="_Open Directory" 
+                    Click="MenuOpenClick"/>
+                <Separator />
+                <MenuItem 
+                    x:Name="AppExit" 
+                    Header="E_xit"
+                    Click="MenuQuitClick"/>
+            </MenuItem>
+        </Menu>
+        <player:PlayerPanel 
+            x:Name="playerPanel" 
+            DockPanel.Dock="Bottom"/>
+        <local:ArtistTreeControl 
+            x:Name="artistWindow" 
+            SongDoubleClicked="SongDoubleClicked"/>
+    </DockPanel>
 </Window>
