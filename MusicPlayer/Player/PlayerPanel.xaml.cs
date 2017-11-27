@@ -104,7 +104,7 @@ namespace MusicPlayer.Player
                 return;
             }
 
-            songLabel.Content = String.Format("{0} - {1}", playData.artistName, playData.songName);
+            songLabel.Content = String.Format("{0} - {1}", playData.artistName, playData.songTitle);
 
             waveOut.Initialize(new CSCore.Codecs.MP3.DmoMp3Decoder(System.IO.File.OpenRead(playData.fileName)));
             waveOut.Play();

@@ -19,8 +19,12 @@
             </TreeView.ItemContainerStyle>
 
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type local:ArtistViewModel}" ItemsSource="{Binding Songs}">
+                <HierarchicalDataTemplate DataType="{x:Type local:ArtistViewModel}" ItemsSource="{Binding Albums}">
                     <TextBlock Text="{Binding Name}"/>
+                </HierarchicalDataTemplate>
+
+                <HierarchicalDataTemplate DataType="{x:Type local:AlbumViewModel}" ItemsSource="{Binding Songs}">
+                    <TextBlock Text="{Binding Title}"/>
                 </HierarchicalDataTemplate>
 
                 <HierarchicalDataTemplate DataType="{x:Type local:SongViewModel}">

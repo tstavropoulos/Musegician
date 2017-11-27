@@ -80,10 +80,12 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ArtistTree\AlbumDTO.cs" />
     <Compile Include="ArtistTree\ArtistDTO.cs" />
     <Compile Include="ArtistTree\ArtistTreeControl.xaml.cs">
       <DependentUpon>ArtistTreeControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ArtistTree\AlbumViewModel.cs" />
     <Compile Include="ArtistTree\MusicTreeViewModel.cs" />
     <Compile Include="ArtistTree\ArtistViewModel.cs" />
     <Compile Include="ArtistTree\SongDTO.cs" />

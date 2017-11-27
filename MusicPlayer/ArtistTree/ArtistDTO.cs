@@ -5,17 +5,17 @@ namespace MusicPlayer
 {
     public class ArtistDTO
     {
-        readonly List<SongDTO> _songs = new List<SongDTO>();
-        public IList<SongDTO> Songs
+        readonly List<AlbumDTO> _albums = new List<AlbumDTO>();
+        public IList<AlbumDTO> Albums
         {
-            get { return _songs; }
+            get { return _albums; }
         }
 
-        public ArtistDTO(int id, string name, List<SongDTO> songs)
+        public ArtistDTO(int id, string name, List<AlbumDTO> albums)
         {
             ArtistID = id;
             Name = name;
-            _songs = songs;
+            _albums = albums;
         }
 
         public string Name { get; set; }

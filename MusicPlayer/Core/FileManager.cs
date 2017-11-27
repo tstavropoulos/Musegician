@@ -18,16 +18,25 @@ namespace MusicPlayer
 
         private SQLiteConnection dbConnection = null;
 
-        private Dictionary<int, Artist> artistDict = new Dictionary<int, Artist>();
+        private Dictionary<int, ArtistData> artistDict = new Dictionary<int, ArtistData>();
         private Dictionary<string, int> artistReverseLookupDict = new Dictionary<string, int>();
 
         private Dictionary<int, SongData> songDict = new Dictionary<int, SongData>();
         private Dictionary<string, int> songFilenameReverseLookupDict = new Dictionary<string, int>();
 
+        private Dictionary<int, AlbumData> albumDict = new Dictionary<int, AlbumData>();
+        private Dictionary<Tuple<int, string>, int> albumTitleReverseLookupDict = new Dictionary<Tuple<int, string>, int>();
+
+        private Dictionary<int, TrackData> trackDict = new Dictionary<int, TrackData>();
+
         private int lastArtistIDAssigned = 1;
         private int lastSongIDAssigned = 0;
+        private int lastAlbumIDAssigned = 0;
+        private int lastTrackIDAssigned = 0;
 
-        private List<Artist> pendingArtistAdditions = new List<Artist>();
+        private List<ArtistData> pendingArtistAdditions = new List<ArtistData>();
+        private List<AlbumData> pendingAlbumAdditions = new List<AlbumData>();
+        private List<TrackData> pendingTrackAdditions = new List<TrackData>();
         private List<SongData> pendingSongAdditions = new List<SongData>();
 
         public List<ArtistDTO> artistList = new List<ArtistDTO>();
@@ -60,30 +69,26 @@ namespace MusicPlayer
                         "artist_name TEXT);";
 
                 string makeAlbumTable =
-                    "CREATE TABLE album_simple (" +
+                    "CREATE TABLE album (" +
                         "album_id INTEGER, " +
                         "artist_id INTEGER REFERENCES artist, " +
                         "album_name TEXT, " +
                         "album_year TEXT);";
 
                 string makeSongTable =
-                    "CREATE TABLE song_simple (" +
+                    "CREATE TABLE song (" +
                         "song_id INTEGER, " +
                         "artist_id INTEGER REFERENCES artist, " +
                         "song_filename TEXT, " +
-                        "song_name TEXT, " +
+                        "song_title TEXT, " +
                         "live BOOLEAN);";
 
                 string makeTrackTable =
-                    "CREATE TABLE track_simple (" +
-                        "track_simple_id INTEGER, " +
-                        "song_id INTEGER REFERENCES song_simple, " +
-                        "album_id INTEGER REFERENCES album_simple, " +
-                        "songNumber INTEGER);";
-
-                string addUndefiniedArtist =
-                    "INSERT INTO artist (artist_id, artist_name) VALUES " +
-                        "(1, 'UNDEFINED');";
+                    "CREATE TABLE track (" +
+                        "track_id INTEGER, " +
+                        "song_id INTEGER REFERENCES song, " +
+                        "album_id INTEGER REFERENCES album, " +
+                        "track_number INTEGER);";
 
                 dbConnection.Open();
                 //Set Up Tables
@@ -92,15 +97,11 @@ namespace MusicPlayer
                 new SQLiteCommand(makeSongTable, dbConnection).ExecuteNonQuery();
                 new SQLiteCommand(makeTrackTable, dbConnection).ExecuteNonQuery();
 
-                //Add Null Entries
-                new SQLiteCommand(addUndefiniedArtist, dbConnection).ExecuteNonQuery();
-
-
                 dbConnection.Close();
             }
             else
             {
-                //Load up artists
+                //Load Artists
                 string getArtists = "SELECT * FROM artist ORDER BY artist_id ASC;";
 
                 artistDict.Clear();
@@ -114,11 +115,10 @@ namespace MusicPlayer
                     {
 
                         string artistName = (string)reader["artist_name"];
-                        var temp = reader["artist_id"];
                         int artistID = (int)(long)reader["artist_id"];
 
                         artistDict.Add(artistID,
-                            new Artist()
+                            new ArtistData()
                             {
                                 artistID = artistID,
                                 artistName = artistName
@@ -141,13 +141,43 @@ namespace MusicPlayer
                     }
                 }
 
-                //Load up songs
-                string getSongs = "SELECT * FROM song_simple ORDER BY song_id ASC;";
+                //Load Albums
+                string getAlbums = "SELECT * FROM album;";
+
+                albumDict.Clear();
+                albumTitleReverseLookupDict.Clear();
+
+                using (SQLiteDataReader reader = new SQLiteCommand(getAlbums, dbConnection).ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int albumID = (int)(long)reader["album_id"];
+                        int artistID = (int)(long)reader["artist_id"];
+                        string albumTitle = (string)reader["album_name"];
+
+                        albumDict.Add(albumID,
+                            new AlbumData()
+                            {
+                                albumID = albumID,
+                                artistID = artistID,
+                                albumTitle = albumTitle,
+                                albumYear = (string)reader["album_year"]
+                            });
+
+                        albumTitleReverseLookupDict.Add(new Tuple<int, string>(artistID, albumTitle), albumID);
+
+                        if (albumID > lastAlbumIDAssigned)
+                        {
+                            lastAlbumIDAssigned = albumID;
+                        }
+                    }
+                }
+
+                //Load Songs
+                string getSongs = "SELECT * FROM song ORDER BY song_id ASC;";
 
                 songFilenameReverseLookupDict.Clear();
                 songDict.Clear();
-
-                string lastFile = "";
 
                 using (SQLiteDataReader reader = new SQLiteCommand(getSongs, dbConnection).ExecuteReader())
                 {
@@ -155,18 +185,17 @@ namespace MusicPlayer
                     {
                         int songID = (int)(long)reader["song_id"];
                         string fileName = (string)reader["song_filename"];
-                        int artistID = (int)(long)reader["artist_id"];
-                        string songName = (string)reader["song_name"];
-                        bool live = (bool)reader["live"];
+                        bool valid = File.Exists(fileName);
 
                         songDict.Add(songID,
                             new SongData()
                             {
                                 songID = songID,
-                                artistID = artistID,
+                                artistID = (int)(long)reader["artist_id"],
                                 fileName = fileName,
-                                songName = songName,
-                                live = live
+                                songTitle = (string)reader["song_title"],
+                                live = (bool)reader["live"],
+                                valid = valid
                             });
 
                         songFilenameReverseLookupDict.Add(fileName, songID);
@@ -175,8 +204,33 @@ namespace MusicPlayer
                         {
                             lastSongIDAssigned = songID;
                         }
+                    }
+                }
 
-                        lastFile = fileName;
+                //Load up Tracks
+                string getTracks = "SELECT * FROM track;";
+
+                trackDict.Clear();
+
+                using (SQLiteDataReader reader = new SQLiteCommand(getTracks, dbConnection).ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int trackID = (int)(long)reader["track_id"];
+
+                        trackDict.Add(trackID,
+                            new TrackData()
+                            {
+                                trackID = trackID,
+                                songID = (int)(long)reader["song_id"],
+                                albumID = (int)(long)reader["album_id"],
+                                trackNumber = (int)(long)reader["track_number"]
+                            });
+
+                        if (trackID > lastTrackIDAssigned)
+                        {
+                            lastTrackIDAssigned = trackID;
+                        }
                     }
                 }
 
@@ -217,51 +271,108 @@ namespace MusicPlayer
             }
 
 
-            if (pendingArtistAdditions.Count > 0 || pendingSongAdditions.Count > 0)
+            if (pendingArtistAdditions.Count > 0 ||
+                pendingAlbumAdditions.Count > 0 ||
+                pendingTrackAdditions.Count > 0 ||
+                pendingSongAdditions.Count > 0)
             {
                 dbConnection.Open();
 
-                SQLiteCommand writeArtist = dbConnection.CreateCommand();
-                writeArtist.CommandType = System.Data.CommandType.Text;
-                writeArtist.CommandText = "INSERT INTO artist (artist_id, artist_name) VALUES " +
-                    "(@artistID, @artistName);";
-                writeArtist.Parameters.Add(new SQLiteParameter("@artistID", -1));
-                writeArtist.Parameters.Add(new SQLiteParameter("@artistName", ""));
-
-                foreach (Artist artist in pendingArtistAdditions)
+                //Add Artists
                 {
-                    writeArtist.Parameters["@artistID"].Value = artist.artistID;
-                    writeArtist.Parameters["@artistName"].Value = artist.artistName;
-                    writeArtist.ExecuteNonQuery();
+                    SQLiteCommand writeArtist = dbConnection.CreateCommand();
+                    writeArtist.CommandType = System.Data.CommandType.Text;
+                    writeArtist.CommandText = "INSERT INTO artist " +
+                        "(artist_id, artist_name) VALUES " +
+                        "(@artistID, @artistName);";
+                    writeArtist.Parameters.Add(new SQLiteParameter("@artistID", -1));
+                    writeArtist.Parameters.Add(new SQLiteParameter("@artistName", ""));
+
+                    foreach (ArtistData artist in pendingArtistAdditions)
+                    {
+                        writeArtist.Parameters["@artistID"].Value = artist.artistID;
+                        writeArtist.Parameters["@artistName"].Value = artist.artistName;
+                        writeArtist.ExecuteNonQuery();
+                    }
+
+                    pendingArtistAdditions.Clear();
                 }
 
-                SQLiteCommand writeSong = dbConnection.CreateCommand();
-                writeSong.CommandType = System.Data.CommandType.Text;
-                writeSong.CommandText = "INSERT INTO song_simple " +
-                    "(song_id, artist_id, song_filename, song_name, live) VALUES " +
-                    "(@songID, @artistID, @songFilename, @songName, @live);";
-                writeSong.Parameters.Add(new SQLiteParameter("@songID", -1));
-                writeSong.Parameters.Add(new SQLiteParameter("@artistID", -1));
-                writeSong.Parameters.Add(new SQLiteParameter("@songFilename", ""));
-                writeSong.Parameters.Add(new SQLiteParameter("@songName", ""));
-                writeSong.Parameters.Add(new SQLiteParameter("@live", false));
-                foreach (SongData song in pendingSongAdditions)
+                //Add Albums
                 {
-                    writeSong.Parameters["@songID"].Value = song.songID;
-                    writeSong.Parameters["@artistID"].Value = song.artistID;
-                    writeSong.Parameters["@songFilename"].Value = song.fileName;
-                    writeSong.Parameters["@songName"].Value = song.songName;
-                    writeSong.Parameters["@live"].Value = song.live;
-                    writeSong.ExecuteNonQuery();
+                    SQLiteCommand writeAlbum = dbConnection.CreateCommand();
+                    writeAlbum.CommandType = System.Data.CommandType.Text;
+                    writeAlbum.CommandText = "INSERT INTO album " +
+                        "(album_id, artist_id, album_name, album_year) VALUES " +
+                        "(@albumID, @artistID, @albumTitle, @albumYear);";
+                    writeAlbum.Parameters.Add(new SQLiteParameter("@albumID", -1));
+                    writeAlbum.Parameters.Add(new SQLiteParameter("@artistID", -1));
+                    writeAlbum.Parameters.Add(new SQLiteParameter("@albumTitle", ""));
+                    writeAlbum.Parameters.Add(new SQLiteParameter("@albumYear", ""));
+
+                    foreach (AlbumData album in pendingAlbumAdditions)
+                    {
+                        writeAlbum.Parameters["@albumID"].Value = album.albumID;
+                        writeAlbum.Parameters["@artistID"].Value = album.artistID;
+                        writeAlbum.Parameters["@albumTitle"].Value = album.albumTitle;
+                        writeAlbum.Parameters["@albumYear"].Value = album.albumYear;
+                        writeAlbum.ExecuteNonQuery();
+                    }
+
+                    pendingAlbumAdditions.Clear();
                 }
 
-                pendingArtistAdditions.Clear();
-                pendingSongAdditions.Clear();
+                //Add Tracks
+                {
+                    SQLiteCommand writeTrack = dbConnection.CreateCommand();
+                    writeTrack.CommandType = System.Data.CommandType.Text;
+                    writeTrack.CommandText = "INSERT INTO track " +
+                        "(track_id, song_id, album_id, track_number) VALUES " +
+                        "(@trackID, @songID, @albumID, @trackNumber);";
+                    writeTrack.Parameters.Add(new SQLiteParameter("@trackID", -1));
+                    writeTrack.Parameters.Add(new SQLiteParameter("@songID", -1));
+                    writeTrack.Parameters.Add(new SQLiteParameter("@albumID", -1));
+                    writeTrack.Parameters.Add(new SQLiteParameter("@trackNumber", -1));
+
+                    foreach (TrackData track in pendingTrackAdditions)
+                    {
+                        writeTrack.Parameters["@trackID"].Value = track.trackID;
+                        writeTrack.Parameters["@songID"].Value = track.songID;
+                        writeTrack.Parameters["@albumID"].Value = track.albumID;
+                        writeTrack.Parameters["@trackNumber"].Value = track.trackNumber;
+                        writeTrack.ExecuteNonQuery();
+                    }
+
+                    pendingTrackAdditions.Clear();
+                }
+
+                //Add Songs
+                {
+                    SQLiteCommand writeSong = dbConnection.CreateCommand();
+                    writeSong.CommandType = System.Data.CommandType.Text;
+                    writeSong.CommandText = "INSERT INTO song " +
+                        "(song_id, artist_id, song_filename, song_title, live) VALUES " +
+                        "(@songID, @artistID, @songFilename, @songTitle, @live);";
+                    writeSong.Parameters.Add(new SQLiteParameter("@songID", -1));
+                    writeSong.Parameters.Add(new SQLiteParameter("@artistID", -1));
+                    writeSong.Parameters.Add(new SQLiteParameter("@songFilename", ""));
+                    writeSong.Parameters.Add(new SQLiteParameter("@songTitle", ""));
+                    writeSong.Parameters.Add(new SQLiteParameter("@live", false));
+                    foreach (SongData song in pendingSongAdditions)
+                    {
+                        writeSong.Parameters["@songID"].Value = song.songID;
+                        writeSong.Parameters["@artistID"].Value = song.artistID;
+                        writeSong.Parameters["@songFilename"].Value = song.fileName;
+                        writeSong.Parameters["@songTitle"].Value = song.songTitle;
+                        writeSong.Parameters["@live"].Value = song.live;
+                        writeSong.ExecuteNonQuery();
+                    }
+
+                    pendingSongAdditions.Clear();
+                }
 
                 dbConnection.Close();
             }
-
-
         }
 
         private void LoadFileData(string path)
@@ -297,32 +408,30 @@ namespace MusicPlayer
                 return;
             }
 
-            int artistID = 1;
-
             //Handle Artist
+            string artistName = "UNDEFINED";
             if (musicFile.Tag.JoinedPerformers != "")
             {
-                if (!artistReverseLookupDict.ContainsKey(musicFile.Tag.JoinedPerformers))
-                {
-                    artistID = ++lastArtistIDAssigned;
-                    Artist newArtist = new Artist()
-                    {
-                        artistID = artistID,
-                        artistName = musicFile.Tag.JoinedPerformers
-                    };
+                artistName = musicFile.Tag.JoinedPerformers;
+            }
 
-                    artistReverseLookupDict.Add(musicFile.Tag.JoinedPerformers, artistID);
-                    artistDict.Add(lastArtistIDAssigned, newArtist);
-                    pendingArtistAdditions.Add(newArtist);
-                }
-                else
+            int artistID = -1;
+            if (!artistReverseLookupDict.ContainsKey(artistName))
+            {
+                artistID = ++lastArtistIDAssigned;
+                ArtistData newArtist = new ArtistData()
                 {
-                    artistID = artistReverseLookupDict[musicFile.Tag.JoinedPerformers];
-                }
+                    artistID = artistID,
+                    artistName = artistName
+                };
+
+                artistReverseLookupDict.Add(artistName, artistID);
+                artistDict.Add(lastArtistIDAssigned, newArtist);
+                pendingArtistAdditions.Add(newArtist);
             }
             else
             {
-                Console.WriteLine("Track does not have a performer: " + musicFile.Name);
+                artistID = artistReverseLookupDict[artistName];
             }
 
             int songID = ++lastSongIDAssigned;
@@ -332,13 +441,48 @@ namespace MusicPlayer
                 songID = songID,
                 artistID = artistID,
                 fileName = path,
-                songName = musicFile.Tag.Title,
+                songTitle = musicFile.Tag.Title,
                 live = false
             });
-
             songFilenameReverseLookupDict.Add(path, songID);
-
             pendingSongAdditions.Add(songDict[songID]);
+
+            string albumTitle = "UNDEFINED";
+            if (musicFile.Tag.Album != "")
+            {
+                albumTitle = musicFile.Tag.Album;
+            }
+
+            int albumID = -1;
+            Tuple<int, string> albumTuple = new Tuple<int, string>(artistID, albumTitle);
+            if (albumTitleReverseLookupDict.ContainsKey(albumTuple))
+            {
+                albumID = albumTitleReverseLookupDict[albumTuple];
+            }
+            else
+            {
+                albumID = ++lastAlbumIDAssigned;
+                albumDict.Add(albumID, new AlbumData()
+                {
+                    albumID = albumID,
+                    artistID = artistID,
+                    albumTitle = albumTitle,
+                    albumYear = musicFile.Tag.Year.ToString()
+                });
+                albumTitleReverseLookupDict.Add(albumTuple, albumID);
+                pendingAlbumAdditions.Add(albumDict[albumID]);
+            }
+
+            int trackID = ++lastTrackIDAssigned;
+
+            trackDict.Add(trackID, new TrackData
+            {
+                trackID = trackID,
+                songID = songID,
+                albumID = albumID,
+                trackNumber = (int)musicFile.Tag.Track
+            });
+            pendingTrackAdditions.Add(trackDict[trackID]);
         }
 
         public List<ArtistDTO> GenerateArtistList()
@@ -347,35 +491,19 @@ namespace MusicPlayer
 
             dbConnection.Open();
 
-            SQLiteCommand readSongs = dbConnection.CreateCommand();
-            readSongs.CommandType = System.Data.CommandType.Text;
-            readSongs.CommandText = "SELECT * FROM song_simple WHERE artist_id = @artistID ORDER BY song_name ASC;";
-            readSongs.Parameters.Add(new SQLiteParameter("@artistID", -1));
-
-            foreach (Artist artist in artistDict.Values)
+            SQLiteCommand readArtists = dbConnection.CreateCommand();
+            readArtists.CommandType = System.Data.CommandType.Text;
+            readArtists.CommandText =
+                "SELECT artist_id, artist_name " +
+                "FROM artist ORDER BY artist_name ASC;";
+            using (SQLiteDataReader reader = readArtists.ExecuteReader())
             {
-                readSongs.Parameters["@artistID"].Value = artist.artistID;
-
-                List<SongDTO> songList = new List<SongDTO>();
-
-                using (SQLiteDataReader reader = readSongs.ExecuteReader())
+                while (reader.Read())
                 {
-                    while (reader.Read())
-                    {
-                        songList.Add(new SongDTO()
-                        {
-                            SongID = (int)(long)reader["song_id"],
-                            Title = (string)reader["song_name"]
-                        });
-                    }
+                    artistList.Add(GenerateArtist(
+                        artistID: (int)(long)reader["artist_id"],
+                        artistName: (string)reader["artist_name"]));
                 }
-
-                if (artist.artistID == 1 && songList.Count == 0)
-                {
-                    //Skip adding UNDEFINED if it's not used
-                    continue;
-                }
-                artistList.Add(new ArtistDTO(artist.artistID, artist.artistName, songList));
             }
 
             dbConnection.Close();
@@ -383,6 +511,62 @@ namespace MusicPlayer
             return artistList;
         }
 
+        private ArtistDTO GenerateArtist(int artistID, string artistName)
+        {
+            List<AlbumDTO> albumList = new List<AlbumDTO>();
+
+            SQLiteCommand readAlbums = dbConnection.CreateCommand();
+            readAlbums.CommandType = System.Data.CommandType.Text;
+            readAlbums.CommandText =
+                "SELECT album_id, album_name, album_year " +
+                "FROM album " +
+                "WHERE artist_id = @artistID ORDER BY album_year ASC;";
+            readAlbums.Parameters.Add(new SQLiteParameter("@artistID", artistID));
+
+            using (SQLiteDataReader reader = readAlbums.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    string albumName = (string)reader["album_name"];
+                    string albumYear = (string)reader["album_year"];
+
+                    albumList.Add(GenerateAlbum(
+                        albumID: (int)(long)reader["album_id"],
+                        albumTitle: String.Format("{0} ({1})", albumName, albumYear)));
+                }
+            }
+
+            return new ArtistDTO(artistID, artistName, albumList);
+        }
+
+        private AlbumDTO GenerateAlbum(int albumID, string albumTitle)
+        {
+            List<SongDTO> songList = new List<SongDTO>();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.CommandText =
+                "SELECT song.song_id as song_id, song.song_title AS song_title " +
+                "FROM track " +
+                "LEFT JOIN album ON track.album_id=album.album_id " +
+                "LEFT JOIN song ON track.song_id=song.song_id " +
+                "WHERE track.album_id = @albumID ORDER BY track.track_number ASC;";
+            readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    songList.Add(new SongDTO()
+                    {
+                        SongID = (int)(long)reader["song_id"],
+                        Title = (string)reader["song_title"]
+                    });
+                }
+            }
+
+            return new AlbumDTO(albumID, albumTitle, songList);
+        }
 
         public PlayData GetPlayData(int songID)
         {
@@ -390,7 +574,7 @@ namespace MusicPlayer
             {
                 return new PlayData
                 {
-                    songName = songDict[songID].songName,
+                    songTitle = songDict[songID].songTitle,
                     artistName = artistDict[songDict[songID].artistID].artistName,
                     fileName = songDict[songID].fileName
                 };

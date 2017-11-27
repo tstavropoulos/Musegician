@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 
 namespace MusicPlayer.DataStructures
 {
-    public struct Artist
+    public struct ArtistData
     {
         public int artistID;
         public string artistName;
     }
 
-    public struct Album_Simple
+    public struct AlbumData
     {
         public int albumID;
         public int artistID;
-        public string albumName;
+        public string albumTitle;
         public string albumYear;
     }
 
@@ -25,22 +25,23 @@ namespace MusicPlayer.DataStructures
         public int songID;
         public int artistID;
         public string fileName;
-        public string songName;
+        public string songTitle;
         public bool live;
+        public bool valid;
     }
 
-    public struct Track_Simple
+    public struct TrackData
     {
         public int trackID;
         public int songID;
         public int albumID;
-        public int songNumber;
+        public int trackNumber;
     }
 
     public struct PlayData
     {
         public string fileName;
-        public string songName;
+        public string songTitle;
         public string artistName;
     }
 }

@@ -12,7 +12,7 @@ namespace MusicPlayer
     {
         #region Data
 
-        readonly ReadOnlyCollection<SongViewModel> _songs;
+        readonly ReadOnlyCollection<AlbumViewModel> _albums;
         readonly ArtistDTO _artist;
 
         bool _isExpanded;
@@ -26,9 +26,9 @@ namespace MusicPlayer
         {
             _artist = artist;
 
-            _songs = new ReadOnlyCollection<SongViewModel>(
-                    (from song in artist.Songs
-                     select new SongViewModel(song, this))
+            _albums = new ReadOnlyCollection<AlbumViewModel>(
+                    (from album in artist.Albums
+                     select new AlbumViewModel(album, this))
                      .ToList());
         }
 
@@ -36,9 +36,9 @@ namespace MusicPlayer
 
         #region Artist Properties
 
-        public ReadOnlyCollection<SongViewModel> Songs
+        public ReadOnlyCollection<AlbumViewModel> Albums
         {
-            get { return _songs; }
+            get { return _albums; }
         }
 
         public string Name

@@ -160,6 +160,7 @@ namespace MusicPlayer
                 }
             }
         }
+
         IEnumerable<SongViewModel> FindMatchingSongs(string searchText)
         {
             foreach (ArtistViewModel artist in _artistViewModels)
@@ -173,11 +174,14 @@ namespace MusicPlayer
 
         IEnumerable<SongViewModel> FindMatchingSongs(string searchText, ArtistViewModel artist)
         {
-            foreach (SongViewModel song in artist.Songs)
+            foreach (AlbumViewModel album in artist.Albums)
             {
-                if (song.NameContainsText(searchText))
+                foreach (SongViewModel song in album.Songs)
                 {
-                    yield return song;
+                    if (song.NameContainsText(searchText))
+                    {
+                        yield return song;
+                    }
                 }
             }
         }
