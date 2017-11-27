@@ -92,6 +92,10 @@
     <Compile Include="ArtistTree\SongViewModel.cs" />
     <Compile Include="Core\DataStructures.cs" />
     <Compile Include="Core\FileUtility.cs" />
+    <Compile Include="Playlist\PlaylistControl.xaml.cs">
+      <DependentUpon>PlaylistControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Playlist\PlaylistItemViewModel.cs" />
     <Compile Include="Themes\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Themes\TreeViewItemExtensions.cs" />
     <Page Include="ArtistTree\ArtistTreeControl.xaml">
@@ -112,6 +116,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Player\PlayerPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Playlist\PlaylistControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,54 +1,46 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows;
 
-namespace MusicPlayer
+namespace MusicPlayer.Playlist
 {
-    public class ArtistViewModel : INotifyPropertyChanged
+    class PlaylistItemViewModel : INotifyPropertyChanged
     {
         #region Data
 
-        readonly ReadOnlyCollection<AlbumViewModel> _albums;
-        readonly ArtistDTO _artist;
+        readonly SongDTO _song;
 
         bool _isExpanded;
         bool _isSelected;
 
         #endregion // Data
 
-        #region Constructors
+        #region Constructor
 
-        public ArtistViewModel(ArtistDTO artist)
+        public PlaylistItemViewModel(SongDTO song)
         {
-            _artist = artist;
-
-            _albums = new ReadOnlyCollection<AlbumViewModel>(
-                    (from album in artist.Albums
-                     select new AlbumViewModel(album, this))
-                     .ToList());
+            _song = song;
         }
 
-        #endregion // Constructors
+        #endregion // Constructor
 
-        #region Artist Properties
+        #region PlaylistItem Properties
 
-        public ReadOnlyCollection<AlbumViewModel> Albums
+        public string Title
         {
-            get { return _albums; }
+            get { return _song.Title; }
         }
 
-        public string Name
+        public int ID
         {
-            get { return _artist.Name; }
+            get { return _song.SongID; }
         }
 
-        #endregion // Artist Properties
+        #endregion
 
         #region Presentation Members
 
@@ -94,18 +86,6 @@ namespace MusicPlayer
 
         #endregion // IsSelected
 
-        #region NameContainsText
-
-        public bool NameContainsText(string text)
-        {
-            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(this.Name))
-                return false;
-
-            return this.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
-        }
-
-        #endregion // NameContainsText
-
         #endregion // Presentation Members
 
         #region INotifyPropertyChanged Members
@@ -122,4 +102,5 @@ namespace MusicPlayer
 
         #endregion // INotifyPropertyChanged Members
     }
+
 }

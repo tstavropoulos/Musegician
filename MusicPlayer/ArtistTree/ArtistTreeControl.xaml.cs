@@ -54,51 +54,73 @@ namespace MusicPlayer
             }
         }
 
+        private void Play(object sender, System.Windows.RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+
+            if (menuItem.DataContext is ArtistViewModel)
+            {
+
+            }
+            else if (menuItem.DataContext is AlbumViewModel)
+            {
+
+            }
+            else if (menuItem.DataContext is SongViewModel)
+            {
+
+            }
+            else
+            {
+                Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+            }
+        }
+
+        private void Add(object sender, System.Windows.RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+
+            if (menuItem.DataContext is ArtistViewModel)
+            {
+
+            }
+            else if (menuItem.DataContext is AlbumViewModel)
+            {
+
+            }
+            else if (menuItem.DataContext is SongViewModel)
+            {
+
+            }
+            else
+            {
+                Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+            }
+        }
+
+        private void Edit(object sender, System.Windows.RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+
+            if (menuItem.DataContext is ArtistViewModel)
+            {
+
+            }
+            else if (menuItem.DataContext is AlbumViewModel)
+            {
+
+            }
+            else if (menuItem.DataContext is SongViewModel)
+            {
+
+            }
+            else
+            {
+                Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+            }
+        }
+
         #endregion // Callbacks
 
-        private void PlayArtist(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
-
-        private void AddArtist(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
-
-        private void EditArtist(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
-
-        private void EditSong(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
-
-        private void PlaySong(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
-
-        private void AddSong(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
-
-        private void EditAlbum(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
-
-        private void PlayAlbum(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
-
-        private void AddAlbum(object sender, System.Windows.RoutedEventArgs e)
-        {
-
-        }
     }
 }
