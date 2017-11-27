@@ -19,16 +19,42 @@
             </TreeView.ItemContainerStyle>
 
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type local:ArtistViewModel}" ItemsSource="{Binding Albums}">
-                    <TextBlock Text="{Binding Name}"/>
+                <HierarchicalDataTemplate DataType="{x:Type local:ArtistViewModel}"
+                                          ItemsSource="{Binding Albums}">
+                    <TextBlock Text="{Binding Name}">
+                        <TextBlock.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add Artist To Playlist" Click="AddArtist"/>
+                                <MenuItem Header="Play Artist" Click="PlayArtist"/>
+                                <MenuItem Header="Edit Artist Information" Click="EditArtist"/>
+                            </ContextMenu>
+                        </TextBlock.ContextMenu>
+                    </TextBlock>
                 </HierarchicalDataTemplate>
 
-                <HierarchicalDataTemplate DataType="{x:Type local:AlbumViewModel}" ItemsSource="{Binding Songs}">
-                    <TextBlock Text="{Binding Title}"/>
+                <HierarchicalDataTemplate DataType="{x:Type local:AlbumViewModel}"
+                                          ItemsSource="{Binding Songs}">
+                    <TextBlock Text="{Binding Title}">
+                        <TextBlock.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add Album To Playlist" Click="AddAlbum"/>
+                                <MenuItem Header="Play Album" Click="PlayAlbum"/>
+                                <MenuItem Header="Edit Album Information" Click="EditAlbum"/>
+                            </ContextMenu>
+                        </TextBlock.ContextMenu>
+                    </TextBlock>
                 </HierarchicalDataTemplate>
 
                 <HierarchicalDataTemplate DataType="{x:Type local:SongViewModel}">
-                    <TextBlock Text="{Binding Title}"/>
+                    <TextBlock Text="{Binding Title}">
+                        <TextBlock.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add Song To Playlist" Click="AddSong"/>
+                                <MenuItem Header="Play Song" Click="PlaySong"/>
+                                <MenuItem Header="Edit Song Information" Click="EditSong"/>
+                            </ContextMenu>
+                        </TextBlock.ContextMenu>
+                    </TextBlock>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
         </TreeView>

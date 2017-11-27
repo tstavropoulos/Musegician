@@ -55,5 +55,50 @@ namespace MusicPlayer
         }
 
         #endregion // Callbacks
+
+        private void PlayArtist(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void AddArtist(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void EditArtist(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void EditSong(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void PlaySong(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void AddSong(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void EditAlbum(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void PlayAlbum(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
+
+        private void AddAlbum(object sender, System.Windows.RoutedEventArgs e)
+        {
+
+        }
     }
 }

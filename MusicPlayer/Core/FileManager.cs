@@ -29,7 +29,7 @@ namespace MusicPlayer
 
         private Dictionary<int, TrackData> trackDict = new Dictionary<int, TrackData>();
 
-        private int lastArtistIDAssigned = 1;
+        private int lastArtistIDAssigned = 0;
         private int lastSongIDAssigned = 0;
         private int lastAlbumIDAssigned = 0;
         private int lastTrackIDAssigned = 0;

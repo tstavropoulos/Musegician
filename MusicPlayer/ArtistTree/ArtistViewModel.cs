@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Windows;
 
 namespace MusicPlayer
 {
@@ -103,8 +105,17 @@ namespace MusicPlayer
         }
 
         #endregion // NameContainsText
-        
-        #endregion // Presentation Members        
+
+        #endregion // Presentation Members      
+
+        #region Callbacks
+
+        public void PlayArtist(object sender, RoutedEventArgs e)
+        {
+            
+        }
+
+        #endregion //Callbacks
 
         #region INotifyPropertyChanged Members
 
