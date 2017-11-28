@@ -65,6 +65,18 @@ namespace MusicPlayer.Playlist
             });
         }
 
+        public void AddBack(IList<DataStructures.PlaylistData> songs)
+        {
+            foreach(DataStructures.PlaylistData song in songs)
+            {
+                _playlistTree.Add(new PlaylistItemDTO()
+                {
+                    SongID = song.songID,
+                    Title = String.Format("{0} - {1}", song.artistName, song.songTitle)
+                });
+            }
+        }
+
         public void PlayPrevious()
         {
             if (CurrentIndex > 0)
@@ -120,9 +132,8 @@ namespace MusicPlayer.Playlist
         {
             MenuItem menuItem = sender as MenuItem;
 
-            if (menuItem.DataContext is PlaylistItemViewModel)
+            if (menuItem.DataContext is PlaylistItemViewModel song)
             {
-                PlaylistItemViewModel song = (PlaylistItemViewModel)menuItem.DataContext;
                 CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(song);
                 Request_PlaySong.Invoke(song.ID);
             }

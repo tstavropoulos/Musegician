@@ -31,7 +31,7 @@
                                 <MenuItem Header="Edit Song Information" Click="Edit"/>
                             </ContextMenu>
                         </StackPanel.ContextMenu>
-                        <TextBlock Text="{Binding PlayingString}"/>
+                        <TextBlock Text="{Binding PlayingString}" MinWidth="10"/>
                         <TextBlock Text="{Binding Title}">
                         </TextBlock>
                     </StackPanel>

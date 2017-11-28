@@ -595,6 +595,74 @@ namespace MusicPlayer
             return new PlaylistData();
         }
 
+        public List<PlaylistData> GetAlbumData(int albumID)
+        {
+            List<PlaylistData> albumData = new List<PlaylistData>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.CommandText =
+                "SELECT song.song_id as song_id, song.song_title AS song_title, artist.artist_name AS artist_name " +
+                "FROM track " +
+                "LEFT JOIN album ON track.album_id=album.album_id " +
+                "LEFT JOIN song ON track.song_id=song.song_id " +
+                "LEFT JOIN artist ON album.artist_id=artist.artist_id " +
+                "WHERE track.album_id = @albumID ORDER BY track.track_number ASC;";
+            readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    albumData.Add(new PlaylistData()
+                    {
+                        songTitle = (string)reader["song_title"],
+                        artistName = (string)reader["artist_name"],
+                        songID = (int)(long)reader["song_id"]
+                    });
+                }
+            }
+
+            dbConnection.Close();
+
+            return albumData;
+        }
+
+        public List<PlaylistData> GetArtistData(int artistID)
+        {
+            List<PlaylistData> artistData = new List<PlaylistData>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.CommandText =
+                "SELECT song.song_id as song_id, song.song_title AS song_title, artist.artist_name AS artist_name " +
+                "FROM song " +
+                "LEFT JOIN artist ON song.artist_id=artist.artist_id " +
+                "WHERE song.artist_id = @artistID ORDER BY song.song_title ASC;";
+            readTracks.Parameters.Add(new SQLiteParameter("@artistID", artistID));
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    artistData.Add(new PlaylistData()
+                    {
+                        songTitle = (string)reader["song_title"],
+                        artistName = (string)reader["artist_name"],
+                        songID = (int)(long)reader["song_id"]
+                    });
+                }
+            }
+
+            dbConnection.Close();
+
+            return artistData;
+        }
+
         public PlayData GetPlayData(int songID)
         {
             if (songDict.ContainsKey(songID))

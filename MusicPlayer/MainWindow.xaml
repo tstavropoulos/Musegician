@@ -22,10 +22,11 @@
                           Click="MenuQuitClick"/>
             </MenuItem>
         </Menu>
-        <player:PlayerPanel x:Name="playerPanel"
+        <player:PlaybackPanel x:Name="playbackPanel"
                             DockPanel.Dock="Bottom"
-                            BackClicked="PlayerPanel_BackClicked"
-                            NextClicked="PlayerPanel_NextClicked"/>
+                            BackClicked="PlaybackPanel_BackClicked"
+                            NextClicked="PlaybackPanel_NextClicked"
+                            PlaybackFinished="PlaybackPanel_PlaybackFinished"/>
         <Grid>
             <Grid.Resources >
                 <Style TargetType="Border" >
@@ -38,12 +39,17 @@
             </Grid.ColumnDefinitions>
             
             <playlist:PlaylistControl x:Name="playlistControl"
-                                      Request_PlaySong="Request_PlaySong"
-                                      Grid.Column="0" Grid.Row="0"/>
+                                      Grid.Column="0" Grid.Row="0"
+                                      Request_PlaySong="Request_PlaySong"/>
             
             <local:ArtistTreeControl x:Name="artistWindow"
+                                     Grid.Column="1" Grid.Row="0"
                                      Request_PlaySong="Library_Request_PlaySong"
-                                     Grid.Column="1" Grid.Row="0"/>
+                                     Request_PlayAlbum="Library_Request_PlayAlbum"
+                                     Request_PlayArtist="Library_Request_PlayArtist"
+                                     Request_AddSong="Library_Request_AddSong"
+                                     Request_AddAlbum="Library_Request_AddAlbum"
+                                     Request_AddArtist="Library_Request_AddArtist"/>
         </Grid>
     </DockPanel>
 </Window>

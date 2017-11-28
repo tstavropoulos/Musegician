@@ -117,7 +117,7 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Player\PlayerPanel.xaml">
+    <Page Include="Player\PlaybackPanel.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -131,8 +131,8 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Player\PlayerPanel.xaml.cs">
-      <DependentUpon>PlayerPanel.xaml</DependentUpon>
+    <Compile Include="Player\PlaybackPanel.xaml.cs">
+      <DependentUpon>PlaybackPanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

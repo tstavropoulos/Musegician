@@ -5,29 +5,33 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Threading;
+using System.Threading;
 
 namespace MusicPlayer.Player
 {
     /// <summary>
-    /// Interaction logic for PlayerPanel.xaml
+    /// Interaction logic for PlaybackPanel.xaml
     /// </summary>
-    public partial class PlayerPanel : UserControl
+    public partial class PlaybackPanel : UserControl
     {
         CSCore.SoundOut.WaveOut waveOut = null;
 
         DataStructures.PlayData lastPlay;
 
+        DispatcherTimer playTimer;
+
+        bool prepareNext = false;
+
         string playString;
         string pauseString;
 
-        public PlayerPanel()
+        public PlaybackPanel()
         {
             playString = "▶";
             pauseString = "||";
@@ -40,25 +44,38 @@ namespace MusicPlayer.Player
             stopButton.Foreground = new SolidColorBrush(Colors.Black);
 
             waveOut.Stopped += SongFinished;
+
+            playTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(0.25)
+            };
+            playTimer.Tick += new EventHandler(Tick_ProgressTimer);
+            playTimer.Start();
+
+            progressSlider.Minimum = 0.0;
         }
 
-        public delegate void ClickEvent();
+        public delegate void SimpleEvent();
 
-        public event ClickEvent NextClicked;
-        public event ClickEvent BackClicked;
+        public event SimpleEvent NextClicked;
+        public event SimpleEvent BackClicked;
+        public event SimpleEvent PlaybackFinished;
 
-        private bool reentryBlock = false;
+        private int reentryBlock = 0;
 
         public void SongFinished(object sender, CSCore.SoundOut.PlaybackStoppedEventArgs e)
         {
-            if(!reentryBlock)
+            if (reentryBlock == 0)
             {
+                ++reentryBlock;
                 Dispatcher.Invoke(() =>
                 {
                     playButton.Content = playString;
                     playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
                     stopButton.Foreground = new SolidColorBrush(Colors.Black);
+                    prepareNext = true;
                 });
+                --reentryBlock;
             }
         }
 
@@ -105,13 +122,15 @@ namespace MusicPlayer.Player
             }
 
             songLabel.Content = String.Format("{0} - {1}", playData.artistName, playData.songTitle);
-
             waveOut.Initialize(new CSCore.Codecs.MP3.DmoMp3Decoder(System.IO.File.OpenRead(playData.fileName)));
             waveOut.Play();
 
             stopButton.Foreground = new SolidColorBrush(Colors.Red);
             playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
             playButton.Content = pauseString;
+
+            progressSlider.TickFrequency = 0.25 * waveOut.WaveSource.WaveFormat.BytesPerSecond;
+            progressSlider.Maximum = waveOut.WaveSource.Length;
         }
 
         public void OnPlayClick(object sender, RoutedEventArgs e)
@@ -178,9 +197,49 @@ namespace MusicPlayer.Player
 
         private void ManualStop()
         {
-            reentryBlock = true;
+            ++reentryBlock;
             waveOut.Stop();
-            reentryBlock = false;
+            --reentryBlock;
+        }
+
+        private void Tick_ProgressTimer(object s, EventArgs e)
+        {
+            switch (waveOut.PlaybackState)
+            {
+                case CSCore.SoundOut.PlaybackState.Stopped:
+                    //Do nothing
+                    break;
+                case CSCore.SoundOut.PlaybackState.Playing:
+                case CSCore.SoundOut.PlaybackState.Paused:
+                    progressSlider.Value = waveOut.WaveSource.Position;
+                    break;
+                default:
+                    Console.WriteLine("Unexpeted playbackState: " + waveOut.PlaybackState);
+                    return;
+            }
+
+            if(prepareNext)
+            {
+                prepareNext = false;
+                PlaybackFinished?.Invoke();
+            }
+        }
+
+        private void Slider_Drag(object s, DragDeltaEventArgs e)
+        {
+            switch (waveOut.PlaybackState)
+            {
+                case CSCore.SoundOut.PlaybackState.Stopped:
+                    //Do nothing
+                    break;
+                case CSCore.SoundOut.PlaybackState.Playing:
+                case CSCore.SoundOut.PlaybackState.Paused:
+                    waveOut.WaveSource.Position = (long)progressSlider.Value;
+                    break;
+                default:
+                    Console.WriteLine("Unexpeted playbackState: " + waveOut.PlaybackState);
+                    return;
+            }
         }
     }
 }

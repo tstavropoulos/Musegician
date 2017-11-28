@@ -80,28 +80,62 @@ namespace MusicPlayer
 
         private void Quitting()
         {
-            playerPanel.CleanUp();
+            playbackPanel.CleanUp();
         }
 
         public void Request_PlaySong(int songID)
         {
-            playerPanel.PlaySong(fileMan.GetPlayData(songID));
+            playbackPanel.PlaySong(fileMan.GetPlayData(songID));
         }
 
-        public void Library_Request_PlaySong(int songID)
-        {
-            playlistControl.AddBack(fileMan.GetSongData(songID));
-            playlistControl.PlayBack();
-        }
-
-        private void PlayerPanel_BackClicked()
+        private void PlaybackPanel_BackClicked()
         {
             playlistControl.PlayPrevious();
         }
 
-        private void PlayerPanel_NextClicked()
+        private void PlaybackPanel_NextClicked()
         {
             playlistControl.PlayNext();
+        }
+
+        private void PlaybackPanel_PlaybackFinished()
+        {
+            playlistControl.PlayNext();
+        }
+
+        public void Library_Request_PlaySong(int songID)
+        {
+            Library_Request_AddSong(songID);
+            playlistControl.PlayBack();
+        }
+
+        private void Library_Request_PlayAlbum(int albumID)
+        {
+            int firstNewSong = playlistControl.ItemCount;
+            Library_Request_AddAlbum(albumID);
+            playlistControl.PlayIndex(firstNewSong);
+        }
+
+        private void Library_Request_PlayArtist(int artistID)
+        {
+            int firstNewSong = playlistControl.ItemCount;
+            Library_Request_AddArtist(artistID);
+            playlistControl.PlayIndex(firstNewSong);
+        }
+
+        private void Library_Request_AddSong(int songID)
+        {
+            playlistControl.AddBack(fileMan.GetSongData(songID));
+        }
+
+        private void Library_Request_AddAlbum(int albumID)
+        {
+            playlistControl.AddBack(fileMan.GetAlbumData(albumID));
+        }
+
+        private void Library_Request_AddArtist(int artistID)
+        {
+            playlistControl.AddBack(fileMan.GetArtistData(artistID));
         }
     }
 }
