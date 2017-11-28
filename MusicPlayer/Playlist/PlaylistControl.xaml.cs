@@ -21,6 +21,7 @@ namespace MusicPlayer.Playlist
     public partial class PlaylistControl : UserControl
     {
         PlaylistTreeViewModel _playlistTree;
+        Random random = new Random();
 
         public delegate void PassID(int id);
         public event PassID Request_PlaySong;
@@ -42,12 +43,39 @@ namespace MusicPlayer.Playlist
             get { return _playlistTree.PlaylistViewModels.Count; }
         }
 
+        private List<int> shuffleList = new List<int>();
+
+        public static readonly DependencyProperty _shuffle = DependencyProperty.Register(
+            "Shuffle",
+            typeof(bool),
+            typeof(PlaylistControl),
+            new UIPropertyMetadata(false));
+
+        public bool Shuffle
+        {
+            get { return (bool)GetValue(_shuffle); }
+            set { SetValue(_shuffle, value); }
+        }
+
+        public static readonly DependencyProperty _repeat = DependencyProperty.Register(
+            "Repeat",
+            typeof(bool),
+            typeof(PlaylistControl),
+            new UIPropertyMetadata(false));
+
+        public bool Repeat
+        {
+            get { return (bool)GetValue(_repeat); }
+            set { SetValue(_repeat, value); }
+        }
+
         public PlaylistControl()
         {
             InitializeComponent();
 
             _playlistTree = new PlaylistTreeViewModel(new List<PlaylistItemDTO>());
             base.DataContext = _playlistTree;
+            PrepareShuffleList();
         }
 
         public void Rebuild(IList<PlaylistItemDTO> songs)
@@ -55,10 +83,13 @@ namespace MusicPlayer.Playlist
             _currentIndex = -1;
             _playlistTree = new PlaylistTreeViewModel(songs);
             base.DataContext = _playlistTree;
+            PrepareShuffleList();
         }
 
         public void AddBack(DataStructures.PlaylistData song)
         {
+            shuffleList.Add(ItemCount);
+
             _playlistTree.Add(new PlaylistItemDTO()
             {
                 SongID = song.songID,
@@ -68,6 +99,8 @@ namespace MusicPlayer.Playlist
 
         public void AddBack(IList<DataStructures.PlaylistData> songs)
         {
+            int originalItemCount = ItemCount;
+
             foreach (DataStructures.PlaylistData song in songs)
             {
                 _playlistTree.Add(new PlaylistItemDTO()
@@ -75,6 +108,11 @@ namespace MusicPlayer.Playlist
                     SongID = song.songID,
                     Title = String.Format("{0} - {1}", song.artistName, song.songTitle)
                 });
+            }
+
+            for (int i = originalItemCount; i < ItemCount; i++)
+            {
+                shuffleList.Add(i);
             }
         }
 
@@ -94,10 +132,33 @@ namespace MusicPlayer.Playlist
 
         public void PlayNext()
         {
-            if (ItemCount > CurrentIndex + 1)
+            if (ItemCount == 0)
             {
-                ++CurrentIndex;
-                Request_PlaySong?.Invoke(_playlistTree.PlaylistViewModels[CurrentIndex].ID);
+                return;
+            }
+
+            if (Shuffle)
+            {
+                if (shuffleList.Count == 0 && Repeat)
+                {
+                    PrepareShuffleList();
+                }
+
+                if (shuffleList.Count > 0)
+                {
+                    int nextIndex = random.Next(0, shuffleList.Count);
+                    CurrentIndex = shuffleList[nextIndex];
+                    shuffleList.RemoveAt(nextIndex);
+                    Request_PlaySong?.Invoke(_playlistTree.PlaylistViewModels[CurrentIndex].ID);
+                }
+            }
+            else
+            {
+                if (ItemCount > CurrentIndex + 1)
+                {
+                    ++CurrentIndex;
+                    Request_PlaySong?.Invoke(_playlistTree.PlaylistViewModels[CurrentIndex].ID);
+                }
             }
         }
 
@@ -162,9 +223,17 @@ namespace MusicPlayer.Playlist
 
                 _playlistTree.PlaylistViewModels.RemoveAt(indexToRemove);
 
-                if (indexToRemove > CurrentIndex)
+                if (indexToRemove < CurrentIndex)
                 {
                     --_currentIndex;
+                }
+
+                for (int i = 0; i < shuffleList.Count; i++)
+                {
+                    if (indexToRemove < shuffleList[i])
+                    {
+                        --shuffleList[i];
+                    }
                 }
             }
             else
@@ -201,6 +270,16 @@ namespace MusicPlayer.Playlist
             if (index >= 0 && index < ItemCount)
             {
                 _playlistTree.PlaylistViewModels[index].Playing = true;
+            }
+        }
+
+        public void PrepareShuffleList()
+        {
+            shuffleList.Clear();
+
+            for (int i = 0; i < ItemCount; i++)
+            {
+                shuffleList.Add(i);
             }
         }
     }

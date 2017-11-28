@@ -29,6 +29,17 @@
                           Header="_Load Playlist"
                           Click="Menu_LoadPlaylist"/>
                 <Separator />
+                <MenuItem x:Name="MenuPlaylistShuffle"
+                          Header="Shu_ffle Playlist"
+                          Click="Menu_ShufflePlaylist"
+                          IsCheckable="True"
+                          IsChecked="{Binding ElementName=playlistControl, Path=Shuffle}"/>
+                <MenuItem x:Name="MenuPlaylistRepeat"
+                          Header="_Repeat Playlist"
+                          Click="Menu_RepeatPlaylist"
+                          IsCheckable="True"
+                          IsChecked="{Binding ElementName=playlistControl, Path=Repeat}"/>
+                <Separator />
                 <MenuItem x:Name="MenuPlaylistClear"
                           Header="_Clear Playlist"
                           Click="Menu_ClearPlaylist"/>

@@ -97,6 +97,21 @@ namespace MusicPlayer
             MessageBox.Show("Not Yet Implemented.");
         }
 
+        private void Menu_RepeatPlaylist(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+        }
+
+        private void Menu_ShufflePlaylist(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            if (playlistControl.Shuffle)
+            {
+                playlistControl.PrepareShuffleList();
+            }
+
+        }
+
         private void WindowClosing(object sender, CancelEventArgs e)
         {
             Quitting();
