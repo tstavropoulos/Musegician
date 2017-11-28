@@ -28,6 +28,7 @@
                         <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Play Song" Click="Play"/>
+                                <MenuItem Header="Remove Song" Click="Remove"/>
                                 <MenuItem Header="Edit Song Information" Click="Edit"/>
                             </ContextMenu>
                         </StackPanel.ContextMenu>

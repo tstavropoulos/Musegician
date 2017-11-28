@@ -52,6 +52,7 @@ namespace MusicPlayer.Playlist
 
         public void Rebuild(IList<PlaylistItemDTO> songs)
         {
+            _currentIndex = -1;
             _playlistTree = new PlaylistTreeViewModel(songs);
             base.DataContext = _playlistTree;
         }
@@ -67,7 +68,7 @@ namespace MusicPlayer.Playlist
 
         public void AddBack(IList<DataStructures.PlaylistData> songs)
         {
-            foreach(DataStructures.PlaylistData song in songs)
+            foreach (DataStructures.PlaylistData song in songs)
             {
                 _playlistTree.Add(new PlaylistItemDTO()
                 {
@@ -75,6 +76,11 @@ namespace MusicPlayer.Playlist
                     Title = String.Format("{0} - {1}", song.artistName, song.songTitle)
                 });
             }
+        }
+
+        public void ClearPlaylist()
+        {
+            Rebuild(new List<PlaylistItemDTO>());
         }
 
         public void PlayPrevious()
@@ -117,6 +123,7 @@ namespace MusicPlayer.Playlist
         {
             if (sender is TreeViewItem && ((TreeViewItem)sender).Header is PlaylistItemViewModel)
             {
+                args.Handled = true;
                 PlaylistItemViewModel song = (PlaylistItemViewModel)((TreeViewItem)sender).Header;
                 if (!song.IsSelected)
                 {
@@ -134,6 +141,7 @@ namespace MusicPlayer.Playlist
 
             if (menuItem.DataContext is PlaylistItemViewModel song)
             {
+                e.Handled = true;
                 CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(song);
                 Request_PlaySong.Invoke(song.ID);
             }
@@ -143,9 +151,41 @@ namespace MusicPlayer.Playlist
             }
         }
 
+        private void Remove(object sender, RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+
+            if (menuItem.DataContext is PlaylistItemViewModel song)
+            {
+                e.Handled = true;
+                int indexToRemove = _playlistTree.PlaylistViewModels.IndexOf(song);
+
+                _playlistTree.PlaylistViewModels.RemoveAt(indexToRemove);
+
+                if (indexToRemove > CurrentIndex)
+                {
+                    --_currentIndex;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+            }
+        }
+
         private void Edit(object sender, RoutedEventArgs e)
         {
+            MenuItem menuItem = sender as MenuItem;
 
+            if (menuItem.DataContext is PlaylistItemViewModel song)
+            {
+                e.Handled = true;
+                MessageBox.Show("Not Yet Implemented.");
+            }
+            else
+            {
+                Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+            }
         }
 
         private void UnmarkIndex(int index)

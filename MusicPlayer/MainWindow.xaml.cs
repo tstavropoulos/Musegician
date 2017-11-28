@@ -38,11 +38,13 @@ namespace MusicPlayer
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            
+
         }
 
         private void MenuOpenClick(object sender, RoutedEventArgs e)
         {
+            e.Handled = true;
+
             CommonOpenFileDialog dialog = new CommonOpenFileDialog()
             {
                 Title = "Select Directory to add to Library",
@@ -69,8 +71,30 @@ namespace MusicPlayer
 
         private void MenuQuitClick(object sender, RoutedEventArgs e)
         {
+            e.Handled = true;
             Quitting();
             Application.Current.Shutdown();
+        }
+
+        private void Menu_ClearPlaylist(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            playlistControl.ClearPlaylist();
+        }
+
+        private void Menu_LoadPlaylist(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            MessageBox.Show("Not Yet Implemented.");
+        }
+
+        private void Menu_SavePlaylist(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            MessageBox.Show("Not Yet Implemented.");
         }
 
         private void WindowClosing(object sender, CancelEventArgs e)

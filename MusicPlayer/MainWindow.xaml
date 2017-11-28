@@ -21,6 +21,18 @@
                           Header="E_xit"
                           Click="MenuQuitClick"/>
             </MenuItem>
+            <MenuItem Header="_Playlist">
+                <MenuItem x:Name="MenuPlaylistSave"
+                          Header="_Save Playlist"
+                          Click="Menu_SavePlaylist"/>
+                <MenuItem x:Name="MenuPlaylistLoad"
+                          Header="_Load Playlist"
+                          Click="Menu_LoadPlaylist"/>
+                <Separator />
+                <MenuItem x:Name="MenuPlaylistClear"
+                          Header="_Clear Playlist"
+                          Click="Menu_ClearPlaylist"/>
+            </MenuItem>
         </Menu>
         <player:PlaybackPanel x:Name="playbackPanel"
                             DockPanel.Dock="Bottom"
