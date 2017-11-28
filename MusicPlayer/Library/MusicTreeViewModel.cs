@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Threading.Tasks;
 
-namespace MusicPlayer
+namespace MusicPlayer.Library
 {
     public class MusicTreeViewModel
     {

@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using LibraryContext = MusicPlayer.Library.LibraryControl.LibraryContext;
 
 namespace MusicPlayer
 {
@@ -32,8 +33,8 @@ namespace MusicPlayer
 
             fileMan = new FileManager();
             fileMan.Initialize();
-            
-            artistWindow.Rebuild(fileMan.GenerateArtistList());
+
+            libraryControl.Rebuild(fileMan.GenerateArtistList());
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -64,7 +65,7 @@ namespace MusicPlayer
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 fileMan.OpenDirectory(dialog.FileName);
-                artistWindow.Rebuild(fileMan.GenerateArtistList());
+                libraryControl.Rebuild(fileMan.GenerateArtistList());
             }
 
         }
@@ -109,7 +110,6 @@ namespace MusicPlayer
             {
                 playlistControl.PrepareShuffleList();
             }
-
         }
 
         private void WindowClosing(object sender, CancelEventArgs e)
@@ -142,39 +142,79 @@ namespace MusicPlayer
             playlistControl.PlayNext();
         }
 
-        public void Library_Request_PlaySong(int songID)
+        private void Library_Request_Play(LibraryContext context, int id)
         {
-            Library_Request_AddSong(songID);
-            playlistControl.PlayBack();
+            switch (context)
+            {
+                case LibraryContext.Artist:
+                case LibraryContext.Album:
+                case LibraryContext.Song:
+                    {
+                        int firstNewSong = playlistControl.ItemCount;
+                        Library_Request_Add(context, id);
+                        playlistControl.PlayIndex(firstNewSong);
+                    }
+                    break;
+                case LibraryContext.MAX:
+                default:
+                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
+                    break;
+            }
         }
 
-        private void Library_Request_PlayAlbum(int albumID)
+        private void Library_Request_Add(LibraryContext context, int id)
         {
-            int firstNewSong = playlistControl.ItemCount;
-            Library_Request_AddAlbum(albumID);
-            playlistControl.PlayIndex(firstNewSong);
+            switch (context)
+            {
+                case LibraryContext.Artist:
+                    {
+                        playlistControl.AddBack(fileMan.GetArtistData(id));
+                    }
+                    break;
+                case LibraryContext.Album:
+                    {
+                        playlistControl.AddBack(fileMan.GetAlbumData(id));
+                    }
+                    break;
+                case LibraryContext.Song:
+                    {
+                        playlistControl.AddBack(fileMan.GetSongData(id));
+                    }
+                    break;
+                case LibraryContext.MAX:
+                default:
+                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
+                    break;
+            }
         }
 
-        private void Library_Request_PlayArtist(int artistID)
+        private void Library_Request_Edit(LibraryContext context, int id)
         {
-            int firstNewSong = playlistControl.ItemCount;
-            Library_Request_AddArtist(artistID);
-            playlistControl.PlayIndex(firstNewSong);
-        }
-
-        private void Library_Request_AddSong(int songID)
-        {
-            playlistControl.AddBack(fileMan.GetSongData(songID));
-        }
-
-        private void Library_Request_AddAlbum(int albumID)
-        {
-            playlistControl.AddBack(fileMan.GetAlbumData(albumID));
-        }
-
-        private void Library_Request_AddArtist(int artistID)
-        {
-            playlistControl.AddBack(fileMan.GetArtistData(artistID));
+            switch (context)
+            {
+                case LibraryContext.Artist:
+                    {
+                        Editors.ArtistEditor artistEditor = new Editors.ArtistEditor();
+                        artistEditor.Show();
+                    }
+                    break;
+                case LibraryContext.Album:
+                    {
+                        Editors.ArtistEditor artistEditor = new Editors.ArtistEditor();
+                        artistEditor.Show();
+                    }
+                    break;
+                case LibraryContext.Song:
+                    {
+                        Editors.ArtistEditor artistEditor = new Editors.ArtistEditor();
+                        artistEditor.Show();
+                    }
+                    break;
+                case LibraryContext.MAX:
+                default:
+                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
+                    break;
+            }
         }
     }
 }

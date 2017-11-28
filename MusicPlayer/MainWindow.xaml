@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MusicPlayer"
+        xmlns:library="clr-namespace:MusicPlayer.Library"
         xmlns:player="clr-namespace:MusicPlayer.Player"
         xmlns:playlist="clr-namespace:MusicPlayer.Playlist"
         mc:Ignorable="d"
@@ -46,10 +47,10 @@
             </MenuItem>
         </Menu>
         <player:PlaybackPanel x:Name="playbackPanel"
-                            DockPanel.Dock="Bottom"
-                            BackClicked="PlaybackPanel_BackClicked"
-                            NextClicked="PlaybackPanel_NextClicked"
-                            PlaybackFinished="PlaybackPanel_PlaybackFinished"/>
+                              DockPanel.Dock="Bottom"
+                              BackClicked="PlaybackPanel_BackClicked"
+                              NextClicked="PlaybackPanel_NextClicked"
+                              PlaybackFinished="PlaybackPanel_PlaybackFinished"/>
         <Grid>
             <Grid.Resources >
                 <Style TargetType="Border" >
@@ -64,15 +65,12 @@
             <playlist:PlaylistControl x:Name="playlistControl"
                                       Grid.Column="0" Grid.Row="0"
                                       Request_PlaySong="Request_PlaySong"/>
-            
-            <local:ArtistTreeControl x:Name="artistWindow"
+
+            <library:LibraryControl x:Name="libraryControl"
                                      Grid.Column="1" Grid.Row="0"
-                                     Request_PlaySong="Library_Request_PlaySong"
-                                     Request_PlayAlbum="Library_Request_PlayAlbum"
-                                     Request_PlayArtist="Library_Request_PlayArtist"
-                                     Request_AddSong="Library_Request_AddSong"
-                                     Request_AddAlbum="Library_Request_AddAlbum"
-                                     Request_AddArtist="Library_Request_AddArtist"/>
+                                     ContextMenu_Play="Library_Request_Play"
+                                     ContextMenu_Add="Library_Request_Add"
+                                     ContextMenu_Edit="Library_Request_Edit"/>
         </Grid>
     </DockPanel>
 </Window>

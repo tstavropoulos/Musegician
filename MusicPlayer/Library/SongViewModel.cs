@@ -2,19 +2,18 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Windows.Input;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
-namespace MusicPlayer
+namespace MusicPlayer.Library
 {
-    public class AlbumViewModel : INotifyPropertyChanged
+    public class SongViewModel : INotifyPropertyChanged
     {
         #region Data
 
-        readonly ReadOnlyCollection<SongViewModel> _songs;
-        readonly AlbumDTO _album;
-        readonly ArtistViewModel _artist;
+        readonly AlbumViewModel _album;
+        readonly SongDTO _song;
 
         bool _isExpanded;
         bool _isSelected;
@@ -23,37 +22,27 @@ namespace MusicPlayer
 
         #region Constructors
 
-        public AlbumViewModel(AlbumDTO album, ArtistViewModel artist)
+        public SongViewModel(SongDTO song, AlbumViewModel album)
         {
+            _song = song;
             _album = album;
-            _artist = artist;
-
-            _songs = new ReadOnlyCollection<SongViewModel>(
-                    (from song in _album.Songs
-                     select new SongViewModel(song, this))
-                     .ToList());
         }
 
         #endregion // Constructors
 
-        #region Artist Properties
-
-        public ReadOnlyCollection<SongViewModel> Songs
-        {
-            get { return _songs; }
-        }
+        #region Song Properties
 
         public string Title
         {
-            get { return _album.Title; }
+            get { return _song.Title; }
         }
 
         public int ID
         {
-            get { return _album.AlbumID; }
+            get { return _song.SongID; }
         }
 
-        #endregion // Artist Properties
+        #endregion // Song Properties
 
         #region Presentation Members
 
@@ -75,9 +64,9 @@ namespace MusicPlayer
                 }
 
                 // Expand all the way up to the root.
-                if (_isExpanded && _artist != null)
+                if (_isExpanded && _album != null)
                 {
-                    _artist.IsExpanded = true;
+                    _album.IsExpanded = true;
                 }
             }
         }
@@ -109,15 +98,24 @@ namespace MusicPlayer
 
         public bool NameContainsText(string text)
         {
-            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(this.Title))
+            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(Title))
                 return false;
 
-            return this.Title.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
+            return Title.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
         }
 
         #endregion // NameContainsText
-        
-        #endregion // Presentation Members        
+
+        #region Parent
+
+        public AlbumViewModel Album
+        {
+            get { return _album; }
+        }
+
+        #endregion // Parent
+
+        #endregion // Presentation Members
 
         #region INotifyPropertyChanged Members
 

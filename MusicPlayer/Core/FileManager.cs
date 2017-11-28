@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Data.SQLite;
 using MusicPlayer.DataStructures;
+using MusicPlayer.Library;
 
 namespace MusicPlayer
 {
@@ -38,8 +39,6 @@ namespace MusicPlayer
         private List<AlbumData> pendingAlbumAdditions = new List<AlbumData>();
         private List<TrackData> pendingTrackAdditions = new List<TrackData>();
         private List<SongData> pendingSongAdditions = new List<SongData>();
-
-        public List<ArtistDTO> artistList = new List<ArtistDTO>();
 
         public FileManager()
         {

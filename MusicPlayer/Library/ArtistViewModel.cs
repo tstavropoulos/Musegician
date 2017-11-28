@@ -2,18 +2,20 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Collections.Generic;
-using System.Windows.Input;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows;
 
-namespace MusicPlayer
+namespace MusicPlayer.Library
 {
-    public class SongViewModel : INotifyPropertyChanged
+    public class ArtistViewModel : INotifyPropertyChanged
     {
         #region Data
 
-        readonly AlbumViewModel _album;
-        readonly SongDTO _song;
+        readonly ReadOnlyCollection<AlbumViewModel> _albums;
+        readonly ArtistDTO _artist;
 
         bool _isExpanded;
         bool _isSelected;
@@ -22,27 +24,36 @@ namespace MusicPlayer
 
         #region Constructors
 
-        public SongViewModel(SongDTO song, AlbumViewModel album)
+        public ArtistViewModel(ArtistDTO artist)
         {
-            _song = song;
-            _album = album;
+            _artist = artist;
+
+            _albums = new ReadOnlyCollection<AlbumViewModel>(
+                    (from album in artist.Albums
+                     select new AlbumViewModel(album, this))
+                     .ToList());
         }
 
         #endregion // Constructors
 
-        #region Song Properties
+        #region Artist Properties
 
-        public string Title
+        public ReadOnlyCollection<AlbumViewModel> Albums
         {
-            get { return _song.Title; }
+            get { return _albums; }
+        }
+
+        public string Name
+        {
+            get { return _artist.Name; }
         }
 
         public int ID
         {
-            get { return _song.SongID; }
+            get { return _artist.ArtistID; }
         }
 
-        #endregion // Song Properties
+        #endregion // Artist Properties
 
         #region Presentation Members
 
@@ -60,13 +71,7 @@ namespace MusicPlayer
                 if (value != _isExpanded)
                 {
                     _isExpanded = value;
-                    OnPropertyChanged("IsExpanded");
-                }
-
-                // Expand all the way up to the root.
-                if (_isExpanded && _album != null)
-                {
-                    _album.IsExpanded = true;
+                    this.OnPropertyChanged("IsExpanded");
                 }
             }
         }
@@ -87,7 +92,7 @@ namespace MusicPlayer
                 if (value != _isSelected)
                 {
                     _isSelected = value;
-                    OnPropertyChanged("IsSelected");
+                    this.OnPropertyChanged("IsSelected");
                 }
             }
         }
@@ -98,22 +103,13 @@ namespace MusicPlayer
 
         public bool NameContainsText(string text)
         {
-            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(Title))
+            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(this.Name))
                 return false;
 
-            return Title.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
+            return this.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
         }
 
         #endregion // NameContainsText
-
-        #region Parent
-
-        public AlbumViewModel Album
-        {
-            get { return _album; }
-        }
-
-        #endregion // Parent
 
         #endregion // Presentation Members
 
