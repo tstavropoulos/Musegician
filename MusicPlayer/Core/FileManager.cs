@@ -70,14 +70,14 @@ namespace MusicPlayer
 
                 string makeAlbumTable =
                     "CREATE TABLE album (" +
-                        "album_id INTEGER, " +
+                        "album_id INTEGER PRIMARY KEY, " +
                         "artist_id INTEGER REFERENCES artist, " +
                         "album_name TEXT, " +
                         "album_year TEXT);";
 
                 string makeSongTable =
                     "CREATE TABLE song (" +
-                        "song_id INTEGER, " +
+                        "song_id INTEGER PRIMARY KEY, " +
                         "artist_id INTEGER REFERENCES artist, " +
                         "song_filename TEXT, " +
                         "song_title TEXT, " +
@@ -85,7 +85,7 @@ namespace MusicPlayer
 
                 string makeTrackTable =
                     "CREATE TABLE track (" +
-                        "track_id INTEGER, " +
+                        "track_id INTEGER PRIMARY KEY, " +
                         "song_id INTEGER REFERENCES song, " +
                         "album_id INTEGER REFERENCES album, " +
                         "track_number INTEGER);";
@@ -279,8 +279,10 @@ namespace MusicPlayer
                 dbConnection.Open();
 
                 //Add Artists
+                using (var writeTransaction = dbConnection.BeginTransaction())
                 {
                     SQLiteCommand writeArtist = dbConnection.CreateCommand();
+                    writeArtist.Transaction = writeTransaction;
                     writeArtist.CommandType = System.Data.CommandType.Text;
                     writeArtist.CommandText = "INSERT INTO artist " +
                         "(artist_id, artist_name) VALUES " +
@@ -295,12 +297,15 @@ namespace MusicPlayer
                         writeArtist.ExecuteNonQuery();
                     }
 
+                    writeTransaction.Commit();
                     pendingArtistAdditions.Clear();
                 }
 
                 //Add Albums
+                using (var writeTransaction = dbConnection.BeginTransaction())
                 {
                     SQLiteCommand writeAlbum = dbConnection.CreateCommand();
+                    writeAlbum.Transaction = writeTransaction;
                     writeAlbum.CommandType = System.Data.CommandType.Text;
                     writeAlbum.CommandText = "INSERT INTO album " +
                         "(album_id, artist_id, album_name, album_year) VALUES " +
@@ -319,12 +324,15 @@ namespace MusicPlayer
                         writeAlbum.ExecuteNonQuery();
                     }
 
+                    writeTransaction.Commit();
                     pendingAlbumAdditions.Clear();
                 }
 
                 //Add Tracks
+                using (var writeTransaction = dbConnection.BeginTransaction())
                 {
                     SQLiteCommand writeTrack = dbConnection.CreateCommand();
+                    writeTrack.Transaction = writeTransaction;
                     writeTrack.CommandType = System.Data.CommandType.Text;
                     writeTrack.CommandText = "INSERT INTO track " +
                         "(track_id, song_id, album_id, track_number) VALUES " +
@@ -343,12 +351,15 @@ namespace MusicPlayer
                         writeTrack.ExecuteNonQuery();
                     }
 
+                    writeTransaction.Commit();
                     pendingTrackAdditions.Clear();
                 }
 
                 //Add Songs
+                using (var writeTransaction = dbConnection.BeginTransaction())
                 {
                     SQLiteCommand writeSong = dbConnection.CreateCommand();
+                    writeSong.Transaction = writeTransaction;
                     writeSong.CommandType = System.Data.CommandType.Text;
                     writeSong.CommandText = "INSERT INTO song " +
                         "(song_id, artist_id, song_filename, song_title, live) VALUES " +
@@ -368,6 +379,7 @@ namespace MusicPlayer
                         writeSong.ExecuteNonQuery();
                     }
 
+                    writeTransaction.Commit();
                     pendingSongAdditions.Clear();
                 }
 
@@ -410,7 +422,7 @@ namespace MusicPlayer
 
             //Handle Artist
             string artistName = "UNDEFINED";
-            if (musicFile.Tag.JoinedPerformers != "")
+            if (!string.IsNullOrEmpty(musicFile.Tag.JoinedPerformers))
             {
                 artistName = musicFile.Tag.JoinedPerformers;
             }
@@ -448,7 +460,7 @@ namespace MusicPlayer
             pendingSongAdditions.Add(songDict[songID]);
 
             string albumTitle = "UNDEFINED";
-            if (musicFile.Tag.Album != "")
+            if (!string.IsNullOrEmpty(musicFile.Tag.Album))
             {
                 albumTitle = musicFile.Tag.Album;
             }
