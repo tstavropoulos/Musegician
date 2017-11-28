@@ -83,7 +83,7 @@ namespace MusicPlayer
             playerPanel.CleanUp();
         }
 
-        public void SongDoubleClicked(int songID)
+        public void Request_PlaySong(int songID)
         {
             playerPanel.PlaySong(fileMan.GetPlayData(songID));
         }

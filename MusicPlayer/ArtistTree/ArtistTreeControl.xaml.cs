@@ -38,7 +38,18 @@ namespace MusicPlayer
         }
 
         public delegate void PassID(int id);
-        public event PassID SongDoubleClicked;
+
+        public event PassID Request_PlaySong;
+        public event PassID Request_AddSong;
+        public event PassID Request_EditSong;
+
+        public event PassID Request_PlayAlbum;
+        public event PassID Request_AddAlbum;
+        public event PassID Request_EditAlbum;
+
+        public event PassID Request_PlayArtist;
+        public event PassID Request_AddArtist;
+        public event PassID Request_EditArtist;
 
         private void OnItemMouseDoubleClick(object sender, MouseButtonEventArgs args)
         {
@@ -50,7 +61,7 @@ namespace MusicPlayer
                     return;
                 }
 
-                SongDoubleClicked.Invoke(song.ID);
+                Request_PlaySong.Invoke(song.ID);
             }
         }
 
@@ -60,15 +71,15 @@ namespace MusicPlayer
 
             if (menuItem.DataContext is ArtistViewModel)
             {
-
+                Request_PlayArtist?.Invoke(((ArtistViewModel)menuItem.DataContext).ID);
             }
             else if (menuItem.DataContext is AlbumViewModel)
             {
-
+                Request_PlayAlbum?.Invoke(((AlbumViewModel)menuItem.DataContext).ID);
             }
             else if (menuItem.DataContext is SongViewModel)
             {
-
+                Request_PlaySong?.Invoke(((SongViewModel)menuItem.DataContext).ID);
             }
             else
             {
@@ -82,15 +93,15 @@ namespace MusicPlayer
 
             if (menuItem.DataContext is ArtistViewModel)
             {
-
+                Request_AddArtist?.Invoke(((ArtistViewModel)menuItem.DataContext).ID);
             }
             else if (menuItem.DataContext is AlbumViewModel)
             {
-
+                Request_AddAlbum?.Invoke(((AlbumViewModel)menuItem.DataContext).ID);
             }
             else if (menuItem.DataContext is SongViewModel)
             {
-
+                Request_AddSong?.Invoke(((SongViewModel)menuItem.DataContext).ID);
             }
             else
             {
@@ -104,15 +115,15 @@ namespace MusicPlayer
 
             if (menuItem.DataContext is ArtistViewModel)
             {
-
+                Request_EditArtist?.Invoke(((ArtistViewModel)menuItem.DataContext).ID);
             }
             else if (menuItem.DataContext is AlbumViewModel)
             {
-
+                Request_EditAlbum?.Invoke(((AlbumViewModel)menuItem.DataContext).ID);
             }
             else if (menuItem.DataContext is SongViewModel)
             {
-
+                Request_EditSong?.Invoke(((SongViewModel)menuItem.DataContext).ID);
             }
             else
             {

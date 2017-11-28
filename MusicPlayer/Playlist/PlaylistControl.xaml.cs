@@ -20,12 +20,27 @@ namespace MusicPlayer.Playlist
     /// </summary>
     public partial class PlaylistControl : UserControl
     {
+        PlaylistTreeViewModel _playlistTree;
+
         public delegate void PassID(int id);
         public event PassID SongDoubleClicked;
 
         public PlaylistControl()
         {
             InitializeComponent();
+
+            _playlistTree = new PlaylistTreeViewModel(new List<SongDTO>());
+        }
+
+        public void Rebuild(IList<SongDTO> songs)
+        {
+            _playlistTree = new PlaylistTreeViewModel(songs);
+            base.DataContext = _playlistTree;
+        }
+
+        public void Add(SongDTO song)
+        {
+            _playlistTree.Add(song);
         }
 
 

@@ -25,10 +25,10 @@
         <player:PlayerPanel x:Name="playerPanel"
                             DockPanel.Dock="Bottom"/>
         <local:ArtistTreeControl x:Name="artistWindow"
-                                 SongDoubleClicked="SongDoubleClicked"
+                                 Request_PlaySong="Request_PlaySong"
                                  DockPanel.Dock="Right"/>
         <playlist:PlaylistControl x:Name="playlistWindow"
-                                 SongDoubleClicked="SongDoubleClicked"
+                                 SongDoubleClicked="Request_PlaySong"
                                  DockPanel.Dock="Left"/>
     </DockPanel>
 </Window>

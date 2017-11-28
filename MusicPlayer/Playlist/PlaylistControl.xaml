@@ -24,14 +24,17 @@
 
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="PlaylistItemViewModel">
-                    <TextBlock Text="{Binding Title}">
-                        <TextBlock.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Play Song" Click="Play"/>
-                                <MenuItem Header="Edit Song Information" Click="Edit"/>
-                            </ContextMenu>
-                        </TextBlock.ContextMenu>
-                    </TextBlock>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text=" "/>
+                        <TextBlock Text="{Binding Title}">
+                            <TextBlock.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Play Song" Click="Play"/>
+                                    <MenuItem Header="Edit Song Information" Click="Edit"/>
+                                </ContextMenu>
+                            </TextBlock.ContextMenu>
+                        </TextBlock>
+                    </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
         </TreeView>        

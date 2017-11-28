@@ -48,6 +48,11 @@ namespace MusicPlayer
             get { return _artist.Name; }
         }
 
+        public int ID
+        {
+            get { return _artist.ArtistID; }
+        }
+
         #endregion // Artist Properties
 
         #region Presentation Members
