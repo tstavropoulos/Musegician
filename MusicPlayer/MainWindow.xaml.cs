@@ -87,5 +87,21 @@ namespace MusicPlayer
         {
             playerPanel.PlaySong(fileMan.GetPlayData(songID));
         }
+
+        public void Library_Request_PlaySong(int songID)
+        {
+            playlistControl.AddBack(fileMan.GetSongData(songID));
+            playlistControl.PlayBack();
+        }
+
+        private void PlayerPanel_BackClicked()
+        {
+            playlistControl.PlayPrevious();
+        }
+
+        private void PlayerPanel_NextClicked()
+        {
+            playlistControl.PlayNext();
+        }
     }
 }

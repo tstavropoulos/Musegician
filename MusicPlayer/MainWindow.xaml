@@ -23,12 +23,27 @@
             </MenuItem>
         </Menu>
         <player:PlayerPanel x:Name="playerPanel"
-                            DockPanel.Dock="Bottom"/>
-        <local:ArtistTreeControl x:Name="artistWindow"
-                                 Request_PlaySong="Request_PlaySong"
-                                 DockPanel.Dock="Right"/>
-        <playlist:PlaylistControl x:Name="playlistWindow"
-                                 SongDoubleClicked="Request_PlaySong"
-                                 DockPanel.Dock="Left"/>
+                            DockPanel.Dock="Bottom"
+                            BackClicked="PlayerPanel_BackClicked"
+                            NextClicked="PlayerPanel_NextClicked"/>
+        <Grid>
+            <Grid.Resources >
+                <Style TargetType="Border" >
+                    <Setter Property="Padding" Value="5,5,5,5" />
+                </Style>
+            </Grid.Resources>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            
+            <playlist:PlaylistControl x:Name="playlistControl"
+                                      Request_PlaySong="Request_PlaySong"
+                                      Grid.Column="0" Grid.Row="0"/>
+            
+            <local:ArtistTreeControl x:Name="artistWindow"
+                                     Request_PlaySong="Library_Request_PlaySong"
+                                     Grid.Column="1" Grid.Row="0"/>
+        </Grid>
     </DockPanel>
 </Window>

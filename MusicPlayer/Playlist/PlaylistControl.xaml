@@ -23,16 +23,16 @@
             </TreeView.ItemContainerStyle>
 
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="PlaylistItemViewModel">
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock Text=" "/>
+                <HierarchicalDataTemplate DataType="{x:Type local:PlaylistItemViewModel}">
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Play Song" Click="Play"/>
+                                <MenuItem Header="Edit Song Information" Click="Edit"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                        <TextBlock Text="{Binding PlayingString}"/>
                         <TextBlock Text="{Binding Title}">
-                            <TextBlock.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Play Song" Click="Play"/>
-                                    <MenuItem Header="Edit Song Information" Click="Edit"/>
-                                </ContextMenu>
-                            </TextBlock.ContextMenu>
                         </TextBlock>
                     </StackPanel>
                 </HierarchicalDataTemplate>

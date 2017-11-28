@@ -92,6 +92,7 @@
     <Compile Include="ArtistTree\SongViewModel.cs" />
     <Compile Include="Core\DataStructures.cs" />
     <Compile Include="Core\FileUtility.cs" />
+    <Compile Include="Playlist\PlaylistItemDTO.cs" />
     <Compile Include="Playlist\PlaylistTreeViewModel.cs" />
     <Compile Include="Playlist\PlaylistControl.xaml.cs">
       <DependentUpon>PlaylistControl.xaml</DependentUpon>

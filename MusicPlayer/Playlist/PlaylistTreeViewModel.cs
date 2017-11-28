@@ -11,15 +11,15 @@ namespace MusicPlayer.Playlist
     {
         #region Data
 
-        readonly List<PlaylistItemViewModel> _playlistViewModels;
-        
+        readonly ObservableCollection<PlaylistItemViewModel> _playlistViewModels;
+
         #endregion // Data
 
         #region Constructor
 
-        public PlaylistTreeViewModel(IList<SongDTO> songs)
+        public PlaylistTreeViewModel(IList<PlaylistItemDTO> songs)
         {
-            _playlistViewModels = new List<PlaylistItemViewModel>(
+            _playlistViewModels = new ObservableCollection<PlaylistItemViewModel>(
                 (from song in songs
                  select new PlaylistItemViewModel(song))
                      .ToList());
@@ -27,7 +27,7 @@ namespace MusicPlayer.Playlist
 
         #endregion // Constructor
 
-        public void Add(SongDTO song)
+        public void Add(PlaylistItemDTO song)
         {
             _playlistViewModels.Add(new PlaylistItemViewModel(song));
         }
@@ -35,13 +35,13 @@ namespace MusicPlayer.Playlist
 
         #region Properties
 
-        #region ArtistViewModels
+        #region PlaylistViewModels
 
         /// <summary>
         /// Returns a read-only collection containing the first person 
         /// in the family tree, to which the TreeView can bind.
         /// </summary>
-        public List<PlaylistItemViewModel> PlaylistItemModels
+        public ObservableCollection<PlaylistItemViewModel> PlaylistViewModels
         {
             get { return _playlistViewModels; }
         }
@@ -49,6 +49,6 @@ namespace MusicPlayer.Playlist
         #endregion // ArtistViewModels
 
         #endregion // Properties
-        
+
     }
 }

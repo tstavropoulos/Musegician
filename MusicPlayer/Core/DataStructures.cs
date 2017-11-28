@@ -44,4 +44,11 @@ namespace MusicPlayer.DataStructures
         public string songTitle;
         public string artistName;
     }
+
+    public struct PlaylistData
+    {
+        public int songID;
+        public string songTitle;
+        public string artistName;
+    }
 }

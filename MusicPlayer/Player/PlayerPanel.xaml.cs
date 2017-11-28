@@ -164,7 +164,16 @@ namespace MusicPlayer.Player
 
         public void OnBackClick(object sender, RoutedEventArgs e)
         {
-            BackClicked?.Invoke();
+            if (waveOut.PlaybackState == CSCore.SoundOut.PlaybackState.Playing &&
+                waveOut.WaveSource.Position > 2.0f * waveOut.WaveSource.WaveFormat.BytesPerSecond)
+            {
+                //Restart if it's within the first 3 seconds
+                waveOut.WaveSource.Position = 0;
+            }
+            else
+            {
+                BackClicked?.Invoke();
+            }
         }
 
         private void ManualStop()

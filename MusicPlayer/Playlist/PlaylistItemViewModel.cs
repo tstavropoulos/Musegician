@@ -12,7 +12,7 @@ namespace MusicPlayer.Playlist
     {
         #region Data
 
-        readonly SongDTO _song;
+        readonly PlaylistItemDTO _song;
 
         bool _isExpanded;
         bool _isSelected;
@@ -21,7 +21,7 @@ namespace MusicPlayer.Playlist
 
         #region Constructor
 
-        public PlaylistItemViewModel(SongDTO song)
+        public PlaylistItemViewModel(PlaylistItemDTO song)
         {
             _song = song;
         }
@@ -33,11 +33,47 @@ namespace MusicPlayer.Playlist
         public string Title
         {
             get { return _song.Title; }
+            set
+            {
+                _song.Title = value;
+                OnPropertyChanged("Title");
+            }
+
+        }
+
+        private bool _playing = false;
+
+        public bool Playing
+        {
+            get { return _playing; }
+            set
+            {
+                _playing = value;
+                OnPropertyChanged("Playing");
+                OnPropertyChanged("PlayingString");
+            }
+        }
+
+        public string PlayingString
+        {
+            get
+            {
+                if (_playing)
+                {
+                    return "★";
+                }
+                return " ";
+            }
         }
 
         public int ID
         {
             get { return _song.SongID; }
+            set
+            {
+                _song.SongID = value;
+                OnPropertyChanged("ID");
+            }
         }
 
         #endregion
@@ -58,7 +94,7 @@ namespace MusicPlayer.Playlist
                 if (value != _isExpanded)
                 {
                     _isExpanded = value;
-                    this.OnPropertyChanged("IsExpanded");
+                    OnPropertyChanged("IsExpanded");
                 }
             }
         }
@@ -79,7 +115,7 @@ namespace MusicPlayer.Playlist
                 if (value != _isSelected)
                 {
                     _isSelected = value;
-                    this.OnPropertyChanged("IsSelected");
+                    OnPropertyChanged("IsSelected");
                 }
             }
         }
@@ -94,10 +130,7 @@ namespace MusicPlayer.Playlist
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            if (this.PropertyChanged != null)
-            {
-                this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         #endregion // INotifyPropertyChanged Members

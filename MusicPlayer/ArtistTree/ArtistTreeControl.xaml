@@ -24,9 +24,12 @@
                     <TextBlock Text="{Binding Name}">
                         <TextBlock.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Add Artist To Playlist" Click="Add"/>
-                                <MenuItem Header="Play Artist" Click="Play"/>
-                                <MenuItem Header="Edit Artist Information" Click="Edit"/>
+                                <MenuItem Header="Add Artist To Playlist" 
+                                          Click="Add"/>
+                                <MenuItem Header="Play Artist" 
+                                          Click="Play"/>
+                                <MenuItem Header="Edit Artist Information" 
+                                          Click="Edit"/>
                             </ContextMenu>
                         </TextBlock.ContextMenu>
                     </TextBlock>
@@ -37,9 +40,12 @@
                     <TextBlock Text="{Binding Title}">
                         <TextBlock.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Add Album To Playlist" Click="Add"/>
-                                <MenuItem Header="Play Album" Click="Play"/>
-                                <MenuItem Header="Edit Album Information" Click="Edit"/>
+                                <MenuItem Header="Add Album To Playlist" 
+                                          Click="Add"/>
+                                <MenuItem Header="Play Album" 
+                                          Click="Play"/>
+                                <MenuItem Header="Edit Album Information" 
+                                          Click="Edit"/>
                             </ContextMenu>
                         </TextBlock.ContextMenu>
                     </TextBlock>
@@ -49,9 +55,12 @@
                     <TextBlock Text="{Binding Title}">
                         <TextBlock.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Add Song To Playlist" Click="Add"/>
-                                <MenuItem Header="Play Song" Click="Play"/>
-                                <MenuItem Header="Edit Song Information" Click="Edit"/>
+                                <MenuItem Header="Add Song To Playlist" 
+                                          Click="Add"/>
+                                <MenuItem Header="Play Song" 
+                                          Click="Play"/>
+                                <MenuItem Header="Edit Song Information" 
+                                          Click="Edit"/>
                             </ContextMenu>
                         </TextBlock.ContextMenu>
                     </TextBlock>

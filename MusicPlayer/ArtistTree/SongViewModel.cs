@@ -60,7 +60,7 @@ namespace MusicPlayer
                 if (value != _isExpanded)
                 {
                     _isExpanded = value;
-                    this.OnPropertyChanged("IsExpanded");
+                    OnPropertyChanged("IsExpanded");
                 }
 
                 // Expand all the way up to the root.
@@ -87,7 +87,7 @@ namespace MusicPlayer
                 if (value != _isSelected)
                 {
                     _isSelected = value;
-                    this.OnPropertyChanged("IsSelected");
+                    OnPropertyChanged("IsSelected");
                 }
             }
         }
@@ -98,10 +98,10 @@ namespace MusicPlayer
 
         public bool NameContainsText(string text)
         {
-            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(this.Title))
+            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(Title))
                 return false;
 
-            return this.Title.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
+            return Title.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
         }
 
         #endregion // NameContainsText
@@ -123,8 +123,7 @@ namespace MusicPlayer
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            if (this.PropertyChanged != null)
-                this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         #endregion // INotifyPropertyChanged Members

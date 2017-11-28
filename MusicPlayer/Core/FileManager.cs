@@ -580,6 +580,21 @@ namespace MusicPlayer
             return new AlbumDTO(albumID, albumTitle, songList);
         }
 
+        public PlaylistData GetSongData(int songID)
+        {
+            if (songDict.ContainsKey(songID))
+            {
+                return new PlaylistData()
+                {
+                    songTitle = songDict[songID].songTitle,
+                    artistName = artistDict[songDict[songID].artistID].artistName,
+                    songID = songID
+                };
+            }
+
+            return new PlaylistData();
+        }
+
         public PlayData GetPlayData(int songID)
         {
             if (songDict.ContainsKey(songID))
