@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using LibraryContext = MusicPlayer.Library.LibraryControl.LibraryContext;
+using LibraryContext = MusicPlayer.Library.LibraryContext;
 
 namespace MusicPlayer
 {
@@ -122,7 +122,7 @@ namespace MusicPlayer
             playbackPanel.CleanUp();
         }
 
-        public void Request_PlaySong(int songID)
+        public void Request_PlaySong(long songID)
         {
             playbackPanel.PlaySong(fileMan.GetPlayData(songID));
         }
@@ -142,7 +142,7 @@ namespace MusicPlayer
             playlistControl.PlayNext();
         }
 
-        private void Library_Request_Play(LibraryContext context, int id)
+        private void Library_Request_Play(LibraryContext context, long id)
         {
             switch (context)
             {
@@ -162,7 +162,7 @@ namespace MusicPlayer
             }
         }
 
-        private void Library_Request_Add(LibraryContext context, int id)
+        private void Library_Request_Add(LibraryContext context, long id)
         {
             switch (context)
             {
@@ -188,31 +188,45 @@ namespace MusicPlayer
             }
         }
 
-        private void Library_Request_Edit(LibraryContext context, int id)
+        private void Library_Request_Edit(LibraryContext context, long id)
         {
             switch (context)
             {
                 case LibraryContext.Artist:
-                    {
-                        Editors.ArtistEditor artistEditor = new Editors.ArtistEditor();
-                        artistEditor.Show();
-                    }
-                    break;
                 case LibraryContext.Album:
-                    {
-                        Editors.ArtistEditor artistEditor = new Editors.ArtistEditor();
-                        artistEditor.Show();
-                    }
-                    break;
                 case LibraryContext.Song:
-                    {
-                        Editors.ArtistEditor artistEditor = new Editors.ArtistEditor();
-                        artistEditor.Show();
-                    }
+                    //Do Nothing
                     break;
                 case LibraryContext.MAX:
                 default:
                     Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
+                    return;
+            }
+
+            TagEditor.TagEditor tagEditor = new TagEditor.TagEditor(context, id, fileMan);
+            tagEditor.Show();
+        }
+
+        private void MenuClearLibraryClick(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            MessageBoxResult response = MessageBox.Show(
+                messageBoxText: "Are you sure you want to clear the Music Library?",
+                caption: "Clear Library Confirm",
+                button: MessageBoxButton.YesNo,
+                icon: MessageBoxImage.Warning);
+
+            switch (response)
+            {
+                case MessageBoxResult.Yes:
+                    MessageBox.Show("Not Yet Implemented.");
+                    break;
+                case MessageBoxResult.No:
+                    //Do nothing
+                    break;
+                default:
+                    Console.WriteLine("Unexpected MessageBoxResult: " + response + ".  Likely Error.");
                     break;
             }
         }

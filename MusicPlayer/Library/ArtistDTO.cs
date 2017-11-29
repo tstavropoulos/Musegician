@@ -11,7 +11,7 @@ namespace MusicPlayer.Library
             get { return _albums; }
         }
 
-        public ArtistDTO(int id, string name, List<AlbumDTO> albums)
+        public ArtistDTO(long id, string name, List<AlbumDTO> albums)
         {
             ArtistID = id;
             Name = name;
@@ -19,6 +19,6 @@ namespace MusicPlayer.Library
         }
 
         public string Name { get; set; }
-        public int ArtistID { get; set; }
+        public long ArtistID { get; set; }
     }
 }

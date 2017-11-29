@@ -218,7 +218,7 @@ namespace MusicPlayer.Player
                     return;
             }
 
-            if(prepareNext)
+            if (prepareNext)
             {
                 prepareNext = false;
                 PlaybackFinished?.Invoke();

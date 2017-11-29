@@ -5,6 +5,14 @@ using System.Windows.Input;
 
 namespace MusicPlayer.Library
 {
+    public enum LibraryContext
+    {
+        Artist = 0,
+        Album,
+        Song,
+        MAX
+    }
+
     public partial class LibraryControl : UserControl
     {
         #region Data
@@ -30,16 +38,8 @@ namespace MusicPlayer.Library
         #endregion // Construction
 
         #region Context Menu Events
-        public enum LibraryContext
-        {
-            Artist = 0,
-            Album,
-            Song,
-            MAX
-        }
-
-        public delegate void ContextMenuIDRequest(LibraryContext context, int id);
-        public delegate void ContextMenuMultiIDRequest(IList<Tuple<LibraryContext, int>> items);
+        public delegate void ContextMenuIDRequest(LibraryContext context, long id);
+        public delegate void ContextMenuMultiIDRequest(IList<Tuple<LibraryContext, long>> items);
 
         public event ContextMenuIDRequest ContextMenu_Play;
         public event ContextMenuIDRequest ContextMenu_Add;
@@ -74,7 +74,7 @@ namespace MusicPlayer.Library
 
         private void Play(object sender, System.Windows.RoutedEventArgs e)
         {
-            (LibraryContext context, int id) = ExtractContextAndID(sender as MenuItem);
+            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem);
 
             if (id != -1)
             {
@@ -85,7 +85,7 @@ namespace MusicPlayer.Library
 
         private void Add(object sender, System.Windows.RoutedEventArgs e)
         {
-            (LibraryContext context, int id) = ExtractContextAndID(sender as MenuItem);
+            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem);
 
             if (id != -1)
             {
@@ -96,7 +96,7 @@ namespace MusicPlayer.Library
 
         private void Edit(object sender, System.Windows.RoutedEventArgs e)
         {
-            (LibraryContext context, int id) = ExtractContextAndID(sender as MenuItem);
+            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem);
 
             if (id != -1)
             {
@@ -105,10 +105,10 @@ namespace MusicPlayer.Library
             }
         }
 
-        private (LibraryContext, int) ExtractContextAndID(MenuItem menuItem)
+        private (LibraryContext, long) ExtractContextAndID(MenuItem menuItem)
         {
             LibraryContext context = LibraryContext.MAX;
-            int id = -1;
+            long id = -1;
 
             if (menuItem is null)
             {

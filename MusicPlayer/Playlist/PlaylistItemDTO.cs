@@ -9,6 +9,6 @@ namespace MusicPlayer.Playlist
     public class PlaylistItemDTO
     {
         public string Title { get; set; }
-        public int SongID { get; set; }
+        public long SongID { get; set; }
     }
 }

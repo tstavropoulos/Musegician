@@ -66,7 +66,7 @@ namespace MusicPlayer.Playlist
             }
         }
 
-        public int ID
+        public long ID
         {
             get { return _song.SongID; }
             set

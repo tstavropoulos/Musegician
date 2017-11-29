@@ -48,7 +48,7 @@ namespace MusicPlayer.Library
             get { return _artist.Name; }
         }
 
-        public int ID
+        public long ID
         {
             get { return _artist.ArtistID; }
         }

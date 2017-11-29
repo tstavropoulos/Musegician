@@ -23,7 +23,7 @@ namespace MusicPlayer.Playlist
         PlaylistTreeViewModel _playlistTree;
         Random random = new Random();
 
-        public delegate void PassID(int id);
+        public delegate void PassID(long id);
         public event PassID Request_PlaySong;
 
         private int _currentIndex = -1;

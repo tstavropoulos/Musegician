@@ -14,13 +14,18 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
-                <MenuItem x:Name="MenuOpen"
-                          Header="_Open Directory"
-                          Click="MenuOpenClick"/>
-                <Separator />
-                <MenuItem x:Name="AppExit"
+                <MenuItem x:Name="MenuAppExit"
                           Header="E_xit"
                           Click="MenuQuitClick"/>
+            </MenuItem>
+            <MenuItem Header="_Library">
+                <MenuItem x:Name="MenuOpenDirectory"
+                          Header="_Add Music Directory"
+                          Click="MenuOpenClick"/>
+                <Separator />
+                <MenuItem x:Name="MenuClearLibrary"
+                          Header="_Clear Library"
+                          Click="MenuClearLibraryClick"/>
             </MenuItem>
             <MenuItem Header="_Playlist">
                 <MenuItem x:Name="MenuPlaylistSave"

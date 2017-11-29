@@ -93,8 +93,8 @@
     <Compile Include="Library\SongViewModel.cs" />
     <Compile Include="Core\DataStructures.cs" />
     <Compile Include="Core\FileUtility.cs" />
-    <Compile Include="Editors\ArtistEditor.xaml.cs">
-      <DependentUpon>ArtistEditor.xaml</DependentUpon>
+    <Compile Include="TagEditor\TagEditor.xaml.cs">
+      <DependentUpon>TagEditor.xaml</DependentUpon>
     </Compile>
     <Compile Include="Playlist\PlaylistItemDTO.cs" />
     <Compile Include="Playlist\PlaylistTreeViewModel.cs" />
@@ -108,7 +108,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Editors\ArtistEditor.xaml">
+    <Page Include="TagEditor\TagEditor.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
