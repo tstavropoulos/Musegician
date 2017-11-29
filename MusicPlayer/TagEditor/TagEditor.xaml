@@ -8,6 +8,28 @@
         mc:Ignorable="d"
         Title="Artist Editor" Height="200" Width="400"
         Style="{StaticResource {x:Type Window}}">
+    <Window.Resources>
+        <DataTemplate x:Key="BoolGridCellTemplate">
+            <CheckBox />
+        </DataTemplate>
+        <DataTemplate x:Key="StringGridCellTemplate">
+            <TextBox />
+        </DataTemplate>
+        <DataTemplate x:Key="LongGridCellTemplate">
+            <TextBox PreviewTextInput="NumberValidationTextBox"/>
+        </DataTemplate>
+        <DataTemplate x:Key="FallbackGridCellTemplate">
+            <TextBlock Text="Fallback"/>
+        </DataTemplate>
+        <DataTemplate x:Key="HeaderTemplate">
+            <TextBlock Text="New Value"/>
+        </DataTemplate>
+        <local:TagEditorSelector x:Key="TagEditorSelector"
+                                 BoolEditorTemplate="{StaticResource BoolGridCellTemplate}"
+                                 StringEditorTemplate="{StaticResource StringGridCellTemplate}"
+                                 LongEditorTemplate="{StaticResource LongGridCellTemplate}"
+                                 FallbackTemplate="{StaticResource FallbackGridCellTemplate}"/>
+    </Window.Resources>
     <DockPanel>
         <Label HorizontalAlignment="Center" DockPanel.Dock="Top">Music Tag Editor</Label>
         <Grid DockPanel.Dock="Bottom" Margin="5">
@@ -26,15 +48,13 @@
             <ListView Margin="10" Name="tagView">
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="Tag Name" DisplayMemberBinding="{Binding TagName}" />
-                        <GridViewColumn Header="Current Value" DisplayMemberBinding="{Binding CurrentValue}" />
-                        <GridViewColumn Header="New Value">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBox Text="{Binding CurrentValue}"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
+                        <GridViewColumn Width="Auto" Header="Tag Name" DisplayMemberBinding="{Binding TagName}" />
+                        <GridViewColumn Width="Auto" Header="Current Value" DisplayMemberBinding="{Binding CurrentValue}" />
+                        <!--
+                        <GridViewColumn Width="Auto"
+                                        CellTemplateSelector="{StaticResource TagEditorSelector}"
+                                        HeaderTemplate="{StaticResource HeaderTemplate}"/>
+                        -->
                     </GridView>
                 </ListView.View>
             </ListView>

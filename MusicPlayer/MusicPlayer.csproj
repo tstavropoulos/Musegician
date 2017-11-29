@@ -102,6 +102,7 @@
       <DependentUpon>PlaylistControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Playlist\PlaylistItemViewModel.cs" />
+    <Compile Include="TagEditor\TagEditorSelector.cs" />
     <Compile Include="Themes\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Themes\TreeViewItemExtensions.cs" />
     <Page Include="Library\LibraryControl.xaml">

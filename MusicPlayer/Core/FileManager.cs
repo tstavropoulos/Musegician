@@ -701,9 +701,9 @@ namespace MusicPlayer
                             "SELECT " +
                                 "artist.artist_name AS artist_name, " +
                                 "album.album_title AS album_title, " +
-                                "album.album_year AS album_year" +
+                                "album.album_year AS album_year " +
                             "FROM album " +
-                            "LEFT JOIN artist ON album.artist_id=artist.artist_id " +
+                            "LEFT JOIN artist ON artist.artist_id=album.artist_id " +
                             "WHERE album.album_id=@ID;";
                     }
                     break;
