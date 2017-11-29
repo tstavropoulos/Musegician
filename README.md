@@ -14,4 +14,4 @@ Requirements:
 
 ## About The Developer
 
-I like Music.  I like the artistic vision that Studio Recordings represent.  I like occasionally listening to live recordings of music.  I do not like it when Shuffle results in too many live recordings playing.  I hate it when Shuffle plays two different recordings of the same song back-to-back.  I would like to fix that.
+I like Music.  I like the artistic vision that Studio Recordings represent.  I like occasionally listening to live recordings of music.  I do not like it when a music player's Shuffle results in too many live recordings playing.  I hate it when a music player's Shuffle plays two different recordings of the same song back-to-back.  I would like to fix that.
