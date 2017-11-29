@@ -38,6 +38,11 @@ namespace MusicPlayer.TagEditor
         private LibraryContext context;
 
         List<DataStructures.TagData> tags;
+
+        public List<DataStructures.TagData> Tags
+        {
+            get { return tags; }
+        }
         
         public TagEditor(LibraryContext context, long id, FileManager fileManager)
         {
@@ -49,7 +54,7 @@ namespace MusicPlayer.TagEditor
 
             tags = fileManager.GetTagData(context, id);
 
-            tagView.ItemsSource = tags;
+            tagView.ItemsSource = Tags;
         }
 
         private void Click_Apply(object sender, RoutedEventArgs e)

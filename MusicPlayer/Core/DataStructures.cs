@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -52,18 +53,32 @@ namespace MusicPlayer.DataStructures
         public string artistName;
     }
 
-    public abstract class TagData
+    public abstract class TagData : INotifyPropertyChanged
     {
         public string TagName { get { return TagType.ToString(); } }
         public abstract string CurrentValue { get; }
         public TagEditor.MusicTag TagType;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 
     public class TagDataBool : TagData
     {
-        public override string CurrentValue { get { return _CurrentValue ? "True" : "False"; } }
-        public bool _CurrentValue { get; set; }
-        public bool NewValue { get; set; }
+        public override string CurrentValue { get { return _currentValue ? "True" : "False"; } }
+
+        public bool _currentValue;
+
+        private bool _newValue;
+        public bool NewValue
+        {
+            get { return _newValue; }
+            set { _newValue = value; OnPropertyChanged("NewValue"); }
+        }
     }
 
     public class TagDataString : TagData
@@ -77,6 +92,14 @@ namespace MusicPlayer.DataStructures
     {
         public override string CurrentValue { get { return _CurrentValue.ToString(); } }
         public long _CurrentValue { get; set; }
-        public long NewValue { get; set; }
+        public string NewValue
+        {
+            get { return _NewValue.ToString(); }
+            set
+            {
+                _NewValue = long.Parse(value);
+            }
+        }
+        public long _NewValue { get; set; }
     }
 }

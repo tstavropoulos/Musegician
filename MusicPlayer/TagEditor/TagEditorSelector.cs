@@ -13,7 +13,6 @@ namespace MusicPlayer.TagEditor
         public DataTemplate BoolEditorTemplate { get; set; }
         public DataTemplate StringEditorTemplate { get; set; }
         public DataTemplate LongEditorTemplate { get; set; }
-        public DataTemplate FallbackTemplate { get; set; }
 
         public override DataTemplate SelectTemplate(object obj, DependencyObject c)
         {
@@ -31,7 +30,7 @@ namespace MusicPlayer.TagEditor
             }
 
             Console.WriteLine("Unidentified DataTempate: " + obj.ToString());
-            return FallbackTemplate;
+            return StringEditorTemplate;
         }
     }
 }

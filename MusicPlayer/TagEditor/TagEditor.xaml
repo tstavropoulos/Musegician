@@ -6,30 +6,8 @@
         xmlns:local="clr-namespace:MusicPlayer.TagEditor"
         xmlns:data="clr-namespace:MusicPlayer.DataStructures"
         mc:Ignorable="d"
-        Title="Artist Editor" Height="200" Width="400"
+        Title="Artist Editor" Height="300" Width="400"
         Style="{StaticResource {x:Type Window}}">
-    <Window.Resources>
-        <DataTemplate x:Key="BoolGridCellTemplate">
-            <CheckBox />
-        </DataTemplate>
-        <DataTemplate x:Key="StringGridCellTemplate">
-            <TextBox />
-        </DataTemplate>
-        <DataTemplate x:Key="LongGridCellTemplate">
-            <TextBox PreviewTextInput="NumberValidationTextBox"/>
-        </DataTemplate>
-        <DataTemplate x:Key="FallbackGridCellTemplate">
-            <TextBlock Text="Fallback"/>
-        </DataTemplate>
-        <DataTemplate x:Key="HeaderTemplate">
-            <TextBlock Text="New Value"/>
-        </DataTemplate>
-        <local:TagEditorSelector x:Key="TagEditorSelector"
-                                 BoolEditorTemplate="{StaticResource BoolGridCellTemplate}"
-                                 StringEditorTemplate="{StaticResource StringGridCellTemplate}"
-                                 LongEditorTemplate="{StaticResource LongGridCellTemplate}"
-                                 FallbackTemplate="{StaticResource FallbackGridCellTemplate}"/>
-    </Window.Resources>
     <DockPanel>
         <Label HorizontalAlignment="Center" DockPanel.Dock="Top">Music Tag Editor</Label>
         <Grid DockPanel.Dock="Bottom" Margin="5">
@@ -44,20 +22,65 @@
             <Button Grid.Column="2" Content="Reset" Click="Click_Reset"/>
             <Button Grid.Column="4" Content="Cancel" Click="Click_Cancel"/>
         </Grid>
-        <Grid>
-            <ListView Margin="10" Name="tagView">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Width="Auto" Header="Tag Name" DisplayMemberBinding="{Binding TagName}" />
-                        <GridViewColumn Width="Auto" Header="Current Value" DisplayMemberBinding="{Binding CurrentValue}" />
-                        <!--
-                        <GridViewColumn Width="Auto"
-                                        CellTemplateSelector="{StaticResource TagEditorSelector}"
-                                        HeaderTemplate="{StaticResource HeaderTemplate}"/>
-                        -->
-                    </GridView>
-                </ListView.View>
-            </ListView>
-        </Grid>
+        <ListView Margin="10" Name="tagView" Style="{StaticResource ListViewWithGridViewStyle}">
+            <ListView.Resources>
+                <DataTemplate x:Key="BoolGridCellTemplate" DataType="{x:Type data:TagDataBool}">
+                    <CheckBox IsChecked="{Binding NewValue, Mode=TwoWay}"
+                              VerticalAlignment="Center"/>
+                </DataTemplate>
+                <DataTemplate x:Key="StringGridCellTemplate" DataType="{x:Type data:TagDataString}">
+                    <TextBox Text="{Binding NewValue, Mode=TwoWay}"
+                             HorizontalAlignment="Stretch"/>
+                </DataTemplate>
+                <DataTemplate x:Key="LongGridCellTemplate" DataType="{x:Type data:TagDataLong}">
+                    <TextBox Text="{Binding NewValue, Mode=TwoWay}"
+                             PreviewTextInput="NumberValidationTextBox"
+                             HorizontalAlignment="Stretch"/>
+                </DataTemplate>
+                <DataTemplate x:Key="BoolGridCellLabel" DataType="{x:Type data:TagDataBool}">
+                    <TextBlock Text="{Binding TagName}" VerticalAlignment="Center"/>
+                </DataTemplate>
+                <DataTemplate x:Key="StringGridCellLabel" DataType="{x:Type data:TagDataString}">
+                    <TextBlock Text="{Binding TagName}" VerticalAlignment="Center"/>
+                </DataTemplate>
+                <DataTemplate x:Key="LongGridCellLabel" DataType="{x:Type data:TagDataLong}">
+                    <TextBlock Text="{Binding TagName}" VerticalAlignment="Center"/>
+                </DataTemplate>
+                <DataTemplate x:Key="BoolGridCellCurrent" DataType="{x:Type data:TagDataBool}">
+                    <TextBlock Text="{Binding CurrentValue}" VerticalAlignment="Center"/>
+                </DataTemplate>
+                <DataTemplate x:Key="StringGridCellCurrent" DataType="{x:Type data:TagDataString}">
+                    <TextBlock Text="{Binding CurrentValue}" VerticalAlignment="Center"/>
+                </DataTemplate>
+                <DataTemplate x:Key="LongGridCellCurrent" DataType="{x:Type data:TagDataLong}">
+                    <TextBlock Text="{Binding CurrentValue}" VerticalAlignment="Center"/>
+                </DataTemplate>
+            </ListView.Resources>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Width="100" Header="Tag Name">
+                        <GridViewColumn.CellTemplateSelector>
+                            <local:TagEditorSelector BoolEditorTemplate="{StaticResource BoolGridCellLabel}"
+                                                     StringEditorTemplate="{StaticResource StringGridCellLabel}"
+                                                     LongEditorTemplate="{StaticResource LongGridCellLabel}"/>
+                        </GridViewColumn.CellTemplateSelector>
+                    </GridViewColumn>
+                    <GridViewColumn Width="100" Header="Current Value">
+                        <GridViewColumn.CellTemplateSelector>
+                            <local:TagEditorSelector BoolEditorTemplate="{StaticResource BoolGridCellCurrent}"
+                                                     StringEditorTemplate="{StaticResource StringGridCellCurrent}"
+                                                     LongEditorTemplate="{StaticResource LongGridCellCurrent}"/>
+                        </GridViewColumn.CellTemplateSelector>
+                    </GridViewColumn>
+                    <GridViewColumn Width="170" Header="New Value">
+                        <GridViewColumn.CellTemplateSelector>
+                            <local:TagEditorSelector BoolEditorTemplate="{StaticResource BoolGridCellTemplate}"
+                                                     StringEditorTemplate="{StaticResource StringGridCellTemplate}"
+                                                     LongEditorTemplate="{StaticResource LongGridCellTemplate}"/>
+                        </GridViewColumn.CellTemplateSelector>
+                    </GridViewColumn>
+                </GridView>
+            </ListView.View>
+        </ListView>
     </DockPanel>
 </Window>

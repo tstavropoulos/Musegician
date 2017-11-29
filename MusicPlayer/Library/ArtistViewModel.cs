@@ -71,7 +71,7 @@ namespace MusicPlayer.Library
                 if (value != _isExpanded)
                 {
                     _isExpanded = value;
-                    this.OnPropertyChanged("IsExpanded");
+                    OnPropertyChanged("IsExpanded");
                 }
             }
         }
@@ -92,7 +92,7 @@ namespace MusicPlayer.Library
                 if (value != _isSelected)
                 {
                     _isSelected = value;
-                    this.OnPropertyChanged("IsSelected");
+                    OnPropertyChanged("IsSelected");
                 }
             }
         }

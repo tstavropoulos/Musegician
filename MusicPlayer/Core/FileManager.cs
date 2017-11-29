@@ -743,9 +743,9 @@ namespace MusicPlayer
                             TagType = TagEditor.MusicTag.SongTitle
                         });
 
-                        tagList.Add(new TagDataBool
+                        tagList.Add(new TagDataBool()
                         {
-                            _CurrentValue = (bool)reader["live"],
+                            _currentValue = (bool)reader["live"],
                             NewValue = (bool)reader["live"],
                             TagType = TagEditor.MusicTag.Live
                         });
@@ -753,7 +753,7 @@ namespace MusicPlayer
                         tagList.Add(new TagDataLong
                         {
                             _CurrentValue = (long)reader["track_number"],
-                            NewValue = (long)reader["track_number"],
+                            _NewValue = (long)reader["track_number"],
                             TagType = TagEditor.MusicTag.TrackNumber
                         });
                     }
@@ -771,7 +771,7 @@ namespace MusicPlayer
                         tagList.Add(new TagDataLong
                         {
                             _CurrentValue = (long)reader["album_year"],
-                            NewValue = (long)reader["album_year"],
+                            _NewValue = (long)reader["album_year"],
                             TagType = TagEditor.MusicTag.AlbumYear
                         });
                     }
