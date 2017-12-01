@@ -674,9 +674,10 @@ namespace MusicPlayer
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT track.track_title AS track_title, track.album_id AS album_id, track.recording_id AS recording_id, recording.live AS live " +
+                "SELECT track.track_title AS track_title, track.album_id AS album_id, track.recording_id AS recording_id, recording.live AS live, weight.track_weight AS track_weight " +
                 "FROM track " +
                 "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
+                "LEFT JOIN weight ON track.track_id=weight.track_id " +
                 "WHERE track.song_id = @songID ORDER BY recording.live ASC;";
             readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
 
@@ -684,12 +685,20 @@ namespace MusicPlayer
             {
                 while (reader.Read())
                 {
+                    double weight = double.NaN;
+
+                    if (reader["track_weight"].GetType() != typeof(DBNull))
+                    {
+                        weight = (double)reader["track_weight"];
+                    }
+
                     recordingList.Add(new RecordingDTO
                     {
                         RecordingID = (long)reader["recording_id"],
                         Title = (string)reader["track_title"],
                         IsHome = (albumID == (long)reader["album_id"]),
-                        Live = (bool)reader["live"]
+                        Live = (bool)reader["live"],
+                        Weight = weight
                     });
                 }
             }

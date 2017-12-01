@@ -69,16 +69,6 @@ namespace MusicPlayer.Playlist
             set { SetValue(_repeat, value); }
         }
 
-        public double LiveWeight
-        {
-            get { return 0.1; }
-        }
-
-        public double StudioWeight
-        {
-            get { return 1.0; }
-        }
-
         public PlaylistControl()
         {
             InitializeComponent();
@@ -297,11 +287,11 @@ namespace MusicPlayer.Playlist
             {
                 if (recording.Live)
                 {
-                    return LiveWeight;
+                    return Settings.LiveWeight;
                 }
                 else
                 {
-                    return StudioWeight;
+                    return Settings.StudioWeight;
                 }
             }
 

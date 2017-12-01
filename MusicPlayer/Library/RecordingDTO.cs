@@ -15,5 +15,6 @@ namespace MusicPlayer.Library
         /// Indicates whether the current recording officially belongs to the album its being visualized under.
         /// </summary>
         public bool IsHome { get; set; }
+        public double Weight { get; set; }
     }
 }

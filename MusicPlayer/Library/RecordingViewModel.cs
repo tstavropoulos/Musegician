@@ -52,6 +52,11 @@ namespace MusicPlayer.Library
             get { return _recording.IsHome; }
         }
 
+        public double Weight
+        {
+            get { return _recording.Weight; }
+        }
+
         #endregion // Recording Properties
 
         #region Presentation Members

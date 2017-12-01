@@ -7,7 +7,7 @@ using System.IO;
 
 namespace MusicPlayer
 {
-    class FileUtility
+    public class FileUtility
     {
         public static string GetDataPath()
         {

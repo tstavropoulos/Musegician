@@ -14,6 +14,23 @@ namespace MusicPlayer.Playlist
         /// <summary>
         /// Weight of NaN means use the global value for Live-ness
         /// </summary>
-        public double Weight { get; set; }
+        public double Weight
+        {
+            get
+            {
+                if (double.IsNaN(_weight))
+                {
+                    if (Live)
+                    {
+                        return Settings.LiveWeight;
+                    }
+                    return Settings.StudioWeight;
+                }
+
+                return _weight;
+            }
+            set { _weight = value; }
+        }
+        private double _weight = double.NaN;
     }
 }
