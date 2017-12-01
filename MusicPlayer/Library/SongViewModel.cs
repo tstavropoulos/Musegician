@@ -59,6 +59,16 @@ namespace MusicPlayer.Library
             get { return _recordings.Count > 1; }
         }
 
+        public double Weight
+        {
+            get { return _song.Weight * _album.Weight; }
+        }
+
+        public bool IsDim
+        {
+            get { return Weight == 0.0; }
+        }
+
         #endregion // Song Properties
 
         #region Presentation Members

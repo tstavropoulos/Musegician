@@ -23,5 +23,20 @@ namespace MusicPlayer.Library
 
         public string Title { get; set; }
         public long AlbumID { get; set; }
+
+        private double _weight = double.NaN;
+        public double Weight
+        {
+            get
+            {
+                if (double.IsNaN(_weight))
+                {
+                    return 1.0;
+                }
+
+                return _weight;
+            }
+            set { _weight = value; }
+        }
     }
 }

@@ -11,9 +11,8 @@ namespace MusicPlayer.Playlist
         public string Title { get; set; }
         public long RecordingID { get; set; }
         public bool Live { get; set; }
-        /// <summary>
-        /// Weight of NaN means use the global value for Live-ness
-        /// </summary>
+
+        private double _weight = double.NaN;
         public double Weight
         {
             get
@@ -31,6 +30,5 @@ namespace MusicPlayer.Playlist
             }
             set { _weight = value; }
         }
-        private double _weight = double.NaN;
     }
 }

@@ -53,6 +53,16 @@ namespace MusicPlayer.Library
             get { return _album.AlbumID; }
         }
 
+        public double Weight
+        {
+            get { return _artist.Weight * _album.Weight; }
+        }
+
+        public bool IsDim
+        {
+            get { return Weight == 0.0; }
+        }
+
         #endregion // Artist Properties
 
         #region Presentation Members
@@ -118,7 +128,7 @@ namespace MusicPlayer.Library
         }
 
         #endregion // NameContainsText
-        
+
         #endregion // Presentation Members        
 
         #region INotifyPropertyChanged Members

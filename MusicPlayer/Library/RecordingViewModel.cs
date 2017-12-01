@@ -37,6 +37,18 @@ namespace MusicPlayer.Library
             get { return _recording.Title; }
         }
 
+        public string LiveString
+        {
+            get
+            {
+                if (Live)
+                {
+                    return "🎤";
+                }
+                return "";
+            }
+        }
+
         public long ID
         {
             get { return _recording.RecordingID; }
@@ -47,14 +59,14 @@ namespace MusicPlayer.Library
             get { return _recording.Live; }
         }
 
-        public bool IsHome
+        public bool IsDim
         {
-            get { return _recording.IsHome; }
+            get { return !_recording.IsHome || Weight == 0.0; }
         }
 
         public double Weight
         {
-            get { return _recording.Weight; }
+            get { return _song.Weight * _recording.Weight; }
         }
 
         #endregion // Recording Properties

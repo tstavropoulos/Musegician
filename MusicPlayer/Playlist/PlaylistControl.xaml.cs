@@ -38,6 +38,17 @@ namespace MusicPlayer.Playlist
             }
         }
 
+        private int _lastRecordingIndex = -1;
+        public int LastRecordingIndex
+        {
+            get { return _lastRecordingIndex; }
+            set
+            {
+                _lastRecordingIndex = value;
+                MarkRecordingIndex(_lastRecordingIndex);
+            }
+        }
+
         public int ItemCount
         {
             get { return _playlistTree.PlaylistViewModels.Count; }
@@ -182,6 +193,7 @@ namespace MusicPlayer.Playlist
                     }
 
                     CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
+                    LastRecordingIndex = _playlistTree.PlaylistViewModels[CurrentIndex].Recordings.IndexOf(recording);
                     Request_PlayRecording?.Invoke(recording.ID);
                 }
             }
@@ -202,6 +214,7 @@ namespace MusicPlayer.Playlist
             {
                 e.Handled = true;
                 CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
+                LastRecordingIndex = _playlistTree.PlaylistViewModels[CurrentIndex].Recordings.IndexOf(recording);
                 Request_PlayRecording?.Invoke(recording.ID);
             }
             else
@@ -260,6 +273,11 @@ namespace MusicPlayer.Playlist
             if (index >= 0 && index < ItemCount)
             {
                 _playlistTree.PlaylistViewModels[index].Playing = false;
+
+                if (LastRecordingIndex >= 0 && LastRecordingIndex < _playlistTree.PlaylistViewModels[index].Recordings.Count )
+                {
+                    _playlistTree.PlaylistViewModels[index].Recordings[LastRecordingIndex].Playing = false;
+                }
             }
         }
 
@@ -268,6 +286,14 @@ namespace MusicPlayer.Playlist
             if (index >= 0 && index < ItemCount)
             {
                 _playlistTree.PlaylistViewModels[index].Playing = true;
+            }
+        }
+
+        private void MarkRecordingIndex(int index)
+        {
+            if (CurrentIndex >= 0 && CurrentIndex < ItemCount && index >= 0 && index < _playlistTree.PlaylistViewModels[CurrentIndex].Recordings.Count)
+            {
+                _playlistTree.PlaylistViewModels[CurrentIndex].Recordings[index].Playing = true;
             }
         }
 
@@ -302,12 +328,14 @@ namespace MusicPlayer.Playlist
         {
             if (song.Recordings.Count == 0)
             {
+                LastRecordingIndex = -1;
                 return -1;
             }
 
             if (song.Recordings.Count == 1)
             {
-                return song.Recordings[0].RecordingID;
+                LastRecordingIndex = 0;
+                return song.Recordings[LastRecordingIndex].RecordingID;
             }
 
 
@@ -320,16 +348,20 @@ namespace MusicPlayer.Playlist
 
             cumulativeWeight *= random.NextDouble();
 
-            foreach (RecordingDTO recording in song.Recordings)
+            for (int i = 0; i < song.Recordings.Count; i++)
             {
+                RecordingDTO recording = song.Recordings[i];
+
                 cumulativeWeight -= GetWeight(recording);
                 if (cumulativeWeight <= 0.0)
                 {
+                    LastRecordingIndex = i;
                     return recording.RecordingID;
                 }
             }
 
             Console.WriteLine("Failed to pick a recording before running out.  Method is broken.");
+            LastRecordingIndex = 0;
             return song.Recordings[0].RecordingID;
         }
     }

@@ -71,7 +71,7 @@ namespace MusicPlayer.Playlist
             {
                 if (_playing)
                 {
-                    return "★";
+                    return "🔊";
                 }
                 return " ";
             }
@@ -95,6 +95,16 @@ namespace MusicPlayer.Playlist
         public SongDTO Song
         {
             get { return _song; }
+        }
+
+        public double Weight
+        {
+            get { return _song.Weight; }
+        }
+
+        public bool IsDim
+        {
+            get { return Weight == 0.0; }
         }
 
         #endregion

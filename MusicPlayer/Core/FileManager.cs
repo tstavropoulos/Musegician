@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.IO;
 using System.Data.SQLite;
@@ -14,6 +15,8 @@ namespace MusicPlayer
     {
         private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3" };
         private readonly string[] songNameDelimiter = new string[] { " - " };
+
+        private const string livePattern = @"(\s*?[\(\[][Ll]ive.*?[\)\]])";
 
         private const string songDBFilename = "SongDB.sqlite";
 
@@ -108,11 +111,28 @@ namespace MusicPlayer
                         "track_title TEXT, " +
                         "track_number INTEGER);";
 
-                string makeWeightsTable =
-                    "CREATE TABLE weight (" +
-                        "weight_id INTEGER PRIMARY KEY, " +
-                        "track_id INTEGER REFERENCES track, " +
-                        "track_weight REAL);";
+                string makeTrackWeightTable =
+                    "CREATE TABLE track_weight (" +
+                        "track_id INTEGER PRIMARY KEY, " +
+                        "weight REAL);";
+
+                string makeSongWeightTable =
+                    "CREATE TABLE song_weight (" +
+                        "song_id INTEGER PRIMARY KEY, " +
+                        "weight REAL);";
+
+                string makeAlbumWeightTable =
+                    "CREATE TABLE album_weight (" +
+                        "album_id INTEGER PRIMARY KEY, " +
+                        "weight REAL);";
+
+                string makeArtistWeightTable =
+                    "CREATE TABLE artist_weight (" +
+                        "artist_id INTEGER PRIMARY KEY, " +
+                        "weight REAL);";
+
+                string makeTrackSongIDIndex =
+                    "CREATE INDEX idx_track_songid ON track (song_id);";
 
                 dbConnection.Open();
                 //Set Up Tables
@@ -121,7 +141,11 @@ namespace MusicPlayer
                 new SQLiteCommand(makeSongTable, dbConnection).ExecuteNonQuery();
                 new SQLiteCommand(makeRecordingTable, dbConnection).ExecuteNonQuery();
                 new SQLiteCommand(makeTrackTable, dbConnection).ExecuteNonQuery();
-                new SQLiteCommand(makeWeightsTable, dbConnection).ExecuteNonQuery();
+                new SQLiteCommand(makeTrackWeightTable, dbConnection).ExecuteNonQuery();
+                new SQLiteCommand(makeSongWeightTable, dbConnection).ExecuteNonQuery();
+                new SQLiteCommand(makeAlbumWeightTable, dbConnection).ExecuteNonQuery();
+                new SQLiteCommand(makeArtistWeightTable, dbConnection).ExecuteNonQuery();
+                new SQLiteCommand(makeTrackSongIDIndex, dbConnection).ExecuteNonQuery();
 
                 dbConnection.Close();
             }
@@ -485,7 +509,6 @@ namespace MusicPlayer
                 artistID = lookups.artistName[artistName];
             }
 
-            //long songID = ++lastSongIDAssigned;
             string songTitle = "UNDEFINED";
             if (!string.IsNullOrEmpty(musicFile.Tag.Title))
             {
@@ -515,6 +538,27 @@ namespace MusicPlayer
                 }
             }
 
+            string albumTitle = "UNDEFINED";
+            if (!string.IsNullOrEmpty(musicFile.Tag.Album))
+            {
+                albumTitle = musicFile.Tag.Album;
+            }
+
+
+            bool live = false;
+
+            if (Regex.IsMatch(songTitle, livePattern))
+            {
+                live = true;
+                songTitle = Regex.Replace(songTitle, livePattern, "");
+            }
+
+            if (Regex.IsMatch(albumTitle, livePattern))
+            {
+                live = true;
+                albumTitle = Regex.Replace(albumTitle, livePattern, "");
+            }
+
             long songID = -1;
             if (!lookups.artistID_SongTitle.ContainsKey((artistID, songTitle)))
             {
@@ -534,11 +578,6 @@ namespace MusicPlayer
             }
 
 
-            string albumTitle = "UNDEFINED";
-            if (!string.IsNullOrEmpty(musicFile.Tag.Album))
-            {
-                albumTitle = musicFile.Tag.Album;
-            }
 
             long albumID = -1;
             var albumTuple = (artistID, albumTitle);
@@ -566,7 +605,7 @@ namespace MusicPlayer
             {
                 recordingID = recordingID,
                 filename = path,
-                live = false,
+                live = live,
                 valid = true
             });
 
@@ -643,7 +682,7 @@ namespace MusicPlayer
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT track.song_id as song_id, song.song_title AS song_title, track.track_number AS track_number " +
+                "SELECT track.song_id AS song_id, song.song_title AS song_title, track.track_number AS track_number " +
                 "FROM track " +
                 "LEFT JOIN album ON track.album_id=album.album_id " +
                 "LEFT JOIN song ON track.song_id=song.song_id " +
@@ -674,10 +713,15 @@ namespace MusicPlayer
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT track.track_title AS track_title, track.album_id AS album_id, track.recording_id AS recording_id, recording.live AS live, weight.track_weight AS track_weight " +
+                "SELECT track.track_title AS track_title, track.album_id AS album_id, " +
+                    "track.recording_id AS recording_id, recording.live AS live, " +
+                    "track_weight.weight AS weight, album.album_title AS album_title, " +
+                    "artist.artist_name AS artist_name " +
                 "FROM track " +
+                "LEFT JOIN album ON track.album_id=album.album_id " +
+                "LEFT JOIN artist on album.artist_id=artist.artist_id " +
                 "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
-                "LEFT JOIN weight ON track.track_id=weight.track_id " +
+                "LEFT JOIN track_weight ON track.track_id=track_weight.track_id " +
                 "WHERE track.song_id = @songID ORDER BY recording.live ASC;";
             readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
 
@@ -687,15 +731,19 @@ namespace MusicPlayer
                 {
                     double weight = double.NaN;
 
-                    if (reader["track_weight"].GetType() != typeof(DBNull))
+                    if (reader["weight"].GetType() != typeof(DBNull))
                     {
-                        weight = (double)reader["track_weight"];
+                        weight = (double)reader["weight"];
                     }
 
                     recordingList.Add(new RecordingDTO
                     {
                         RecordingID = (long)reader["recording_id"],
-                        Title = (string)reader["track_title"],
+                        Title = string.Format(
+                            "{0} - {1} - {2}",
+                            (string)reader["artist_name"],
+                            (string)reader["album_title"],
+                            (string)reader["track_title"]),
                         IsHome = (albumID == (long)reader["album_id"]),
                         Live = (bool)reader["live"],
                         Weight = weight
@@ -713,10 +761,14 @@ namespace MusicPlayer
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT recording.recording_id AS recording_id, track.track_title AS track_title, weight.track_weight AS track_weight, recording.live AS live " +
+                "SELECT recording.recording_id AS recording_id, track.track_title AS track_title, " +
+                    "track_weight.weight AS weight, recording.live AS live, album.album_title AS album_title, " +
+                    "artist.artist_name AS artist_name " +
                 "FROM recording " +
                 "LEFT JOIN track ON recording.recording_id=track.recording_id " +
-                "LEFT JOIN weight ON track.track_id=weight.track_id " +
+                "LEFT JOIN album ON track.album_id=album.album_id " +
+                "LEFT JOIN artist on album.artist_id=artist.artist_id " +
+                "LEFT JOIN track_weight ON track.track_id=track_weight.track_id " +
                 "WHERE track.song_id = @songID;";
 
             readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
@@ -734,15 +786,19 @@ namespace MusicPlayer
                     }
                     else
                     {
-                        if (reader["track_weight"].GetType() != typeof(DBNull))
+                        if (reader["weight"].GetType() != typeof(DBNull))
                         {
-                            weight = (double)reader["track_weight"];
+                            weight = (double)reader["weight"];
                         }
                     }
 
                     recordingData.Add(new Playlist.RecordingDTO()
                     {
-                        Title = (string)reader["track_title"],
+                        Title = string.Format(
+                            "{0} - {1} - {2}",
+                            (string)reader["artist_name"],
+                            (string)reader["album_title"],
+                            (string)reader["track_title"]),
                         RecordingID = recordingID,
                         Weight = weight,
                         Live = (bool)reader["Live"]
@@ -864,7 +920,7 @@ namespace MusicPlayer
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT song.song_id as song_id, song.song_title AS song_title, artist.artist_name AS artist_name " +
+                "SELECT song.song_id AS song_id, song.song_title AS song_title, artist.artist_name AS artist_name " +
                 "FROM song " +
                 "LEFT JOIN artist ON song.artist_id=artist.artist_id " +
                 "WHERE song.artist_id = @artistID ORDER BY song.song_title ASC;";
@@ -1024,7 +1080,7 @@ namespace MusicPlayer
                         readTracks.CommandText =
                             "SELECT " +
                                 "song.song_title AS song_title, " +
-                                "song.live as live, " +
+                                "song.live AS live, " +
                                 "artist.artist_name AS artist_name, " +
                                 "album.album_title AS album_title, " +
                                 "album.album_year AS album_year, " +

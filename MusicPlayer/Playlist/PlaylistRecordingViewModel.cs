@@ -60,9 +60,9 @@ namespace MusicPlayer.Playlist
         {
             get
             {
-                if (_playing)
+                if (Playing)
                 {
-                    return "★";
+                    return "🔊";
                 }
                 return " ";
             }
@@ -78,9 +78,36 @@ namespace MusicPlayer.Playlist
             }
         }
 
+        public bool Live
+        {
+            get { return _recording.Live; }
+        }
+
+        public string LiveString
+        {
+            get
+            {
+                if (Live)
+                {
+                    return "🎤";
+                }
+                return "";
+            }
+        }
+
+        public double Weight
+        {
+            get { return _song.Weight * _recording.Weight; }
+        }
+
         public RecordingDTO Recording
         {
             get { return _recording; }
+        }
+
+        public bool IsDim
+        {
+            get { return Weight == 0.0; }
         }
 
         #endregion

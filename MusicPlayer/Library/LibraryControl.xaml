@@ -14,6 +14,9 @@
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="FontWeight" Value="Bold" />
                         </Trigger>
+                        <DataTrigger Binding="{Binding IsDim}" Value="True">
+                            <Setter Property="TextBlock.Foreground" Value="DimGray"/>
+                        </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </TreeView.ItemContainerStyle>
@@ -21,24 +24,37 @@
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type local:ArtistViewModel}"
                                           ItemsSource="{Binding Albums}">
-                    <TextBlock Text="{Binding Name}">
-                        <TextBlock.ContextMenu>
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Add Artist To Playlist" 
-                                          Click="Add"/>
+                                              Click="Add"/>
                                 <MenuItem Header="Play Artist" 
-                                          Click="Play"/>
+                                              Click="Play"/>
                                 <MenuItem Header="Edit Artist Information" 
-                                          Click="Edit"/>
+                                              Click="Edit"/>
                             </ContextMenu>
-                        </TextBlock.ContextMenu>
-                    </TextBlock>
+                        </StackPanel.ContextMenu>
+                        <Border Height="20" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
+                            <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0.5,0.0" EndPoint="0.5,1.0">
+                                        <GradientStop Color="Green" Offset="0.0"/>
+                                        <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                        </Border>
+                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </HierarchicalDataTemplate>
 
                 <HierarchicalDataTemplate DataType="{x:Type local:AlbumViewModel}"
                                           ItemsSource="{Binding Songs}">
-                    <TextBlock Text="{Binding Title}">
-                        <TextBlock.ContextMenu>
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Add Album To Playlist" 
                                           Click="Add"/>
@@ -47,14 +63,27 @@
                                 <MenuItem Header="Edit Album Information" 
                                           Click="Edit"/>
                             </ContextMenu>
-                        </TextBlock.ContextMenu>
-                    </TextBlock>
+                        </StackPanel.ContextMenu>
+                        <Border Height="20" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
+                            <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0.5,0.0" EndPoint="0.5,1.0">
+                                        <GradientStop Color="Green" Offset="0.0"/>
+                                        <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                        </Border>
+                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </HierarchicalDataTemplate>
 
                 <HierarchicalDataTemplate DataType="{x:Type local:SongViewModel}"
                                           ItemsSource="{Binding Recordings}">
-                    <TextBlock Text="{Binding Title}">
-                        <TextBlock.ContextMenu>
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Add Song To Playlist" 
                                           Click="Add"/>
@@ -63,13 +92,26 @@
                                 <MenuItem Header="Edit Song Information" 
                                           Click="Edit"/>
                             </ContextMenu>
-                        </TextBlock.ContextMenu>
-                    </TextBlock>
+                        </StackPanel.ContextMenu>
+                        <Border Height="20" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
+                            <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0.5,0.0" EndPoint="0.5,1.0">
+                                        <GradientStop Color="Green" Offset="0.0"/>
+                                        <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                        </Border>
+                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                    </StackPanel>
                 </HierarchicalDataTemplate>
 
                 <HierarchicalDataTemplate DataType="{x:Type local:RecordingViewModel}">
-                    <TextBlock Text="{Binding Title}">
-                        <TextBlock.ContextMenu>
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="Add Track To Playlist" 
                                           Click="Add"/>
@@ -78,8 +120,22 @@
                                 <MenuItem Header="Edit Track Information" 
                                           Click="Edit"/>
                             </ContextMenu>
-                        </TextBlock.ContextMenu>
-                    </TextBlock>
+                        </StackPanel.ContextMenu>
+                        <Border Height="20" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
+                            <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0.5,1.0" EndPoint="0.5,0.0">
+                                        <GradientStop Color="Green" Offset="0.0"/>
+                                        <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                        </Border>
+                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding LiveString}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                    </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
         </TreeView>

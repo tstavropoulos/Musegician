@@ -18,6 +18,9 @@
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="FontWeight" Value="Bold" />
                         </Trigger>
+                        <DataTrigger Binding="{Binding IsDim}" Value="True">
+                            <Setter Property="TextBlock.Foreground" Value="DimGray"/>
+                        </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </TreeView.ItemContainerStyle>
@@ -33,8 +36,20 @@
                                 <MenuItem Header="Edit Song Information" Click="Edit"/>
                             </ContextMenu>
                         </StackPanel.ContextMenu>
-                        <TextBlock Text="{Binding PlayingString}" MinWidth="10"/>
-                        <TextBlock Text="{Binding Title}"/>
+                        <Border Height="20" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
+                            <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0.5,1.0" EndPoint="0.5,0.0">
+                                        <GradientStop Color="Green" Offset="0.0"/>
+                                        <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                        </Border>
+                        <TextBlock Text="{Binding PlayingString}" VerticalAlignment="Center" MinWidth="20"/>
+                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </HierarchicalDataTemplate>
                 
@@ -47,8 +62,21 @@
                                 <MenuItem Header="Edit Recording Information" Click="Edit"/>
                             </ContextMenu>
                         </StackPanel.ContextMenu>
-                        <TextBlock Text="{Binding PlayingString}" MinWidth="10"/>
-                        <TextBlock Text="{Binding Title}"/>
+                        <Border Height="20" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
+                            <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0.5,1.0" EndPoint="0.5,0.0">
+                                        <GradientStop Color="Green" Offset="0.0"/>
+                                        <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
+                                        <GradientStop Color="Red" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                        </Border>
+                        <TextBlock Text="{Binding PlayingString}" VerticalAlignment="Center" MinWidth="20"/>
+                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding LiveString}" VerticalAlignment="Center" Margin="5,0,0,0"/>
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
