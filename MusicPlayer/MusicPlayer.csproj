@@ -89,20 +89,24 @@
     <Compile Include="Library\AlbumViewModel.cs" />
     <Compile Include="Library\MusicTreeViewModel.cs" />
     <Compile Include="Library\ArtistViewModel.cs" />
+    <Compile Include="Library\RecordingDTO.cs" />
     <Compile Include="Library\SongDTO.cs" />
+    <Compile Include="Library\RecordingViewModel.cs" />
     <Compile Include="Library\SongViewModel.cs" />
     <Compile Include="Core\DataStructures.cs" />
     <Compile Include="Core\FileUtility.cs" />
+    <Compile Include="Playlist\PlaylistRecordingViewModel.cs" />
+    <Compile Include="Playlist\RecordingDTO.cs" />
     <Compile Include="TagEditor\TagEditor.xaml.cs">
       <DependentUpon>TagEditor.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Playlist\PlaylistItemDTO.cs" />
+    <Compile Include="Playlist\SongDTO.cs" />
     <Compile Include="Playlist\PlaylistTreeViewModel.cs" />
     <Compile Include="Playlist\PlaylistControl.xaml.cs">
       <DependentUpon>PlaylistControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Playlist\PlaylistItemViewModel.cs" />
-    <Compile Include="TagEditor\TagEditorSelector.cs" />
+    <Compile Include="Playlist\PlaylistSongViewModel.cs" />
+    <Compile Include="TagEditor\TagTemplateSelector.cs" />
     <Compile Include="Themes\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Themes\TreeViewItemExtensions.cs" />
     <Page Include="Library\LibraryControl.xaml">

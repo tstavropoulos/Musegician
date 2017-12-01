@@ -64,7 +64,7 @@ namespace MusicPlayer
 
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                fileMan.OpenDirectory(dialog.FileName);
+                fileMan.AddDirectoryToLibrary(dialog.FileName);
                 libraryControl.Rebuild(fileMan.GenerateArtistList());
             }
 
@@ -124,7 +124,17 @@ namespace MusicPlayer
 
         public void Request_PlaySong(long songID)
         {
-            playbackPanel.PlaySong(fileMan.GetPlayData(songID));
+            playbackPanel.PlaySong(fileMan.GetSongPlayData(songID));
+        }
+
+        public void Request_PlayTrack(long trackID)
+        {
+            playbackPanel.PlaySong(fileMan.GetTrackPlayData(trackID));
+        }
+
+        public void Request_PlayRecording(long recordingID)
+        {
+            playbackPanel.PlaySong(fileMan.GetRecordingPlayData(recordingID));
         }
 
         private void PlaybackPanel_BackClicked()
@@ -149,6 +159,7 @@ namespace MusicPlayer
                 case LibraryContext.Artist:
                 case LibraryContext.Album:
                 case LibraryContext.Song:
+                case LibraryContext.Recording:
                     {
                         int firstNewSong = playlistControl.ItemCount;
                         Library_Request_Add(context, id);
@@ -181,6 +192,11 @@ namespace MusicPlayer
                         playlistControl.AddBack(fileMan.GetSongData(id));
                     }
                     break;
+                case LibraryContext.Recording:
+                    {
+                        playlistControl.AddBack(fileMan.GetSongDataFromRecordingID(id));
+                    }
+                    break;
                 case LibraryContext.MAX:
                 default:
                     Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
@@ -195,6 +211,7 @@ namespace MusicPlayer
                 case LibraryContext.Artist:
                 case LibraryContext.Album:
                 case LibraryContext.Song:
+                case LibraryContext.Recording:
                     //Do Nothing
                     break;
                 case LibraryContext.MAX:

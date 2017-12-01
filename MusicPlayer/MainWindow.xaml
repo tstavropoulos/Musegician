@@ -69,7 +69,7 @@
             
             <playlist:PlaylistControl x:Name="playlistControl"
                                       Grid.Column="0" Grid.Row="0"
-                                      Request_PlaySong="Request_PlaySong"/>
+                                      Request_PlayRecording="Request_PlayRecording"/>
 
             <library:LibraryControl x:Name="libraryControl"
                                      Grid.Column="1" Grid.Row="0"

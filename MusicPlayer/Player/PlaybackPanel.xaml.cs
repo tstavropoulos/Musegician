@@ -116,13 +116,13 @@ namespace MusicPlayer.Player
                     return;
             }
 
-            if (string.IsNullOrEmpty(playData.fileName))
+            if (string.IsNullOrEmpty(playData.filename))
             {
                 return;
             }
 
             songLabel.Content = String.Format("{0} - {1}", playData.artistName, playData.songTitle);
-            waveOut.Initialize(new CSCore.Codecs.MP3.DmoMp3Decoder(System.IO.File.OpenRead(playData.fileName)));
+            waveOut.Initialize(new CSCore.Codecs.MP3.DmoMp3Decoder(System.IO.File.OpenRead(playData.filename)));
             waveOut.Play();
 
             stopButton.Foreground = new SolidColorBrush(Colors.Red);

@@ -110,9 +110,11 @@ namespace MusicPlayer.Library
         public bool NameContainsText(string text)
         {
             if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(this.Title))
+            {
                 return false;
+            }
 
-            return this.Title.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
+            return Title.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
         }
 
         #endregion // NameContainsText

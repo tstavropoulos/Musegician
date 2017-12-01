@@ -8,29 +8,29 @@ using System.Windows.Controls;
 
 namespace MusicPlayer.TagEditor
 {
-    public class TagEditorSelector : DataTemplateSelector
+    public class TagTemplateSelector : DataTemplateSelector
     {
-        public DataTemplate BoolEditorTemplate { get; set; }
-        public DataTemplate StringEditorTemplate { get; set; }
-        public DataTemplate LongEditorTemplate { get; set; }
+        public DataTemplate BoolTemplate { get; set; }
+        public DataTemplate StringTemplate { get; set; }
+        public DataTemplate LongTemplate { get; set; }
 
         public override DataTemplate SelectTemplate(object obj, DependencyObject c)
         {
             if (obj is DataStructures.TagDataBool)
             {
-                return BoolEditorTemplate;
+                return BoolTemplate;
             }
             else if (obj is DataStructures.TagDataString)
             {
-                return StringEditorTemplate;
+                return StringTemplate;
             }
             else if (obj is DataStructures.TagDataLong)
             {
-                return LongEditorTemplate;
+                return LongTemplate;
             }
 
             Console.WriteLine("Unidentified DataTempate: " + obj.ToString());
-            return StringEditorTemplate;
+            return StringTemplate;
         }
     }
 }

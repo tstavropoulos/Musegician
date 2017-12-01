@@ -24,7 +24,7 @@ namespace MusicPlayer.Playlist
         Random random = new Random();
 
         public delegate void PassID(long id);
-        public event PassID Request_PlaySong;
+        public event PassID Request_PlayRecording;
 
         private int _currentIndex = -1;
         public int CurrentIndex
@@ -69,16 +69,26 @@ namespace MusicPlayer.Playlist
             set { SetValue(_repeat, value); }
         }
 
+        public double LiveWeight
+        {
+            get { return 0.1; }
+        }
+
+        public double StudioWeight
+        {
+            get { return 1.0; }
+        }
+
         public PlaylistControl()
         {
             InitializeComponent();
 
-            _playlistTree = new PlaylistTreeViewModel(new List<PlaylistItemDTO>());
+            _playlistTree = new PlaylistTreeViewModel(new List<SongDTO>());
             base.DataContext = _playlistTree;
             PrepareShuffleList();
         }
 
-        public void Rebuild(IList<PlaylistItemDTO> songs)
+        public void Rebuild(IList<SongDTO> songs)
         {
             _currentIndex = -1;
             _playlistTree = new PlaylistTreeViewModel(songs);
@@ -86,29 +96,11 @@ namespace MusicPlayer.Playlist
             PrepareShuffleList();
         }
 
-        public void AddBack(DataStructures.PlaylistData song)
-        {
-            shuffleList.Add(ItemCount);
-
-            _playlistTree.Add(new PlaylistItemDTO()
-            {
-                SongID = song.songID,
-                Title = String.Format("{0} - {1}", song.artistName, song.songTitle)
-            });
-        }
-
-        public void AddBack(IList<DataStructures.PlaylistData> songs)
+        public void AddBack(IList<SongDTO> songs)
         {
             int originalItemCount = ItemCount;
 
-            foreach (DataStructures.PlaylistData song in songs)
-            {
-                _playlistTree.Add(new PlaylistItemDTO()
-                {
-                    SongID = song.songID,
-                    Title = String.Format("{0} - {1}", song.artistName, song.songTitle)
-                });
-            }
+            _playlistTree.Add(songs);
 
             for (int i = originalItemCount; i < ItemCount; i++)
             {
@@ -118,7 +110,7 @@ namespace MusicPlayer.Playlist
 
         public void ClearPlaylist()
         {
-            Rebuild(new List<PlaylistItemDTO>());
+            Rebuild(new List<SongDTO>());
         }
 
         public void PlayPrevious()
@@ -126,7 +118,8 @@ namespace MusicPlayer.Playlist
             if (CurrentIndex > 0)
             {
                 --CurrentIndex;
-                Request_PlaySong?.Invoke(_playlistTree.PlaylistViewModels[CurrentIndex].ID);
+                Request_PlayRecording?.Invoke(
+                        SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
             }
         }
 
@@ -149,7 +142,8 @@ namespace MusicPlayer.Playlist
                     int nextIndex = random.Next(0, shuffleList.Count);
                     CurrentIndex = shuffleList[nextIndex];
                     shuffleList.RemoveAt(nextIndex);
-                    Request_PlaySong?.Invoke(_playlistTree.PlaylistViewModels[CurrentIndex].ID);
+                    Request_PlayRecording?.Invoke(
+                        SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
                 }
             }
             else
@@ -157,17 +151,9 @@ namespace MusicPlayer.Playlist
                 if (ItemCount > CurrentIndex + 1)
                 {
                     ++CurrentIndex;
-                    Request_PlaySong?.Invoke(_playlistTree.PlaylistViewModels[CurrentIndex].ID);
+                    Request_PlayRecording?.Invoke(
+                        SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
                 }
-            }
-        }
-
-        public void PlayBack()
-        {
-            if (ItemCount > 0)
-            {
-                CurrentIndex = ItemCount - 1;
-                Request_PlaySong?.Invoke(_playlistTree.PlaylistViewModels[CurrentIndex].ID);
             }
         }
 
@@ -176,23 +162,38 @@ namespace MusicPlayer.Playlist
             if (ItemCount > index)
             {
                 CurrentIndex = index;
-                Request_PlaySong?.Invoke(_playlistTree.PlaylistViewModels[CurrentIndex].ID);
+                Request_PlayRecording?.Invoke(
+                        SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
             }
         }
 
         private void OnItemMouseDoubleClick(object sender, MouseButtonEventArgs args)
         {
-            if (sender is TreeViewItem && ((TreeViewItem)sender).Header is PlaylistItemViewModel)
+            if (sender is TreeViewItem treeItem)
             {
-                args.Handled = true;
-                PlaylistItemViewModel song = (PlaylistItemViewModel)((TreeViewItem)sender).Header;
-                if (!song.IsSelected)
+                if (treeItem.Header is PlaylistSongViewModel song)
                 {
-                    return;
-                }
+                    args.Handled = true;
+                    if (!song.IsSelected)
+                    {
+                        return;
+                    }
 
-                CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(song);
-                Request_PlaySong.Invoke(song.ID);
+                    CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(song);
+                    Request_PlayRecording?.Invoke(
+                            SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
+                }
+                else if (treeItem.Header is PlaylistRecordingViewModel recording)
+                {
+                    args.Handled = true;
+                    if (!recording.IsSelected)
+                    {
+                        return;
+                    }
+
+                    CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
+                    Request_PlayRecording?.Invoke(recording.ID);
+                }
             }
         }
 
@@ -200,11 +201,18 @@ namespace MusicPlayer.Playlist
         {
             MenuItem menuItem = sender as MenuItem;
 
-            if (menuItem.DataContext is PlaylistItemViewModel song)
+            if (menuItem.DataContext is PlaylistSongViewModel song)
             {
                 e.Handled = true;
                 CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(song);
-                Request_PlaySong.Invoke(song.ID);
+                Request_PlayRecording?.Invoke(
+                        SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
+            }
+            else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
+            {
+                e.Handled = true;
+                CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
+                Request_PlayRecording?.Invoke(recording.ID);
             }
             else
             {
@@ -216,7 +224,7 @@ namespace MusicPlayer.Playlist
         {
             MenuItem menuItem = sender as MenuItem;
 
-            if (menuItem.DataContext is PlaylistItemViewModel song)
+            if (menuItem.DataContext is PlaylistSongViewModel song)
             {
                 e.Handled = true;
                 int indexToRemove = _playlistTree.PlaylistViewModels.IndexOf(song);
@@ -246,7 +254,7 @@ namespace MusicPlayer.Playlist
         {
             MenuItem menuItem = sender as MenuItem;
 
-            if (menuItem.DataContext is PlaylistItemViewModel song)
+            if (menuItem.DataContext is PlaylistSongViewModel song)
             {
                 e.Handled = true;
                 MessageBox.Show("Not Yet Implemented.");
@@ -281,6 +289,58 @@ namespace MusicPlayer.Playlist
             {
                 shuffleList.Add(i);
             }
+        }
+
+        private double GetWeight(RecordingDTO recording)
+        {
+            if (double.IsNaN(recording.Weight))
+            {
+                if (recording.Live)
+                {
+                    return LiveWeight;
+                }
+                else
+                {
+                    return StudioWeight;
+                }
+            }
+
+            return recording.Weight;
+        }
+
+        private long SelectRecording(SongDTO song)
+        {
+            if (song.Recordings.Count == 0)
+            {
+                return -1;
+            }
+
+            if (song.Recordings.Count == 1)
+            {
+                return song.Recordings[0].RecordingID;
+            }
+
+
+            double cumulativeWeight = 0.0;
+
+            foreach (RecordingDTO recording in song.Recordings)
+            {
+                cumulativeWeight += GetWeight(recording);
+            }
+
+            cumulativeWeight *= random.NextDouble();
+
+            foreach (RecordingDTO recording in song.Recordings)
+            {
+                cumulativeWeight -= GetWeight(recording);
+                if (cumulativeWeight <= 0.0)
+                {
+                    return recording.RecordingID;
+                }
+            }
+
+            Console.WriteLine("Failed to pick a recording before running out.  Method is broken.");
+            return song.Recordings[0].RecordingID;
         }
     }
 }

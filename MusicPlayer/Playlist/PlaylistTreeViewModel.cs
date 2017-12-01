@@ -11,25 +11,33 @@ namespace MusicPlayer.Playlist
     {
         #region Data
 
-        readonly ObservableCollection<PlaylistItemViewModel> _playlistViewModels;
+        readonly ObservableCollection<PlaylistSongViewModel> _playlistViewModels;
 
         #endregion // Data
 
         #region Constructor
 
-        public PlaylistTreeViewModel(IList<PlaylistItemDTO> songs)
+        public PlaylistTreeViewModel(IList<SongDTO> songs)
         {
-            _playlistViewModels = new ObservableCollection<PlaylistItemViewModel>(
+            _playlistViewModels = new ObservableCollection<PlaylistSongViewModel>(
                 (from song in songs
-                 select new PlaylistItemViewModel(song))
+                 select new PlaylistSongViewModel(song))
                      .ToList());
         }
 
         #endregion // Constructor
 
-        public void Add(PlaylistItemDTO song)
+        public void Add(SongDTO song)
         {
-            _playlistViewModels.Add(new PlaylistItemViewModel(song));
+            _playlistViewModels.Add(new PlaylistSongViewModel(song));
+        }
+
+        public void Add(IList<SongDTO> songs)
+        {
+            foreach(SongDTO song in songs)
+            {
+                Add(song);
+            }
         }
 
 
@@ -41,7 +49,7 @@ namespace MusicPlayer.Playlist
         /// Returns a read-only collection containing the first person 
         /// in the family tree, to which the TreeView can bind.
         /// </summary>
-        public ObservableCollection<PlaylistItemViewModel> PlaylistViewModels
+        public ObservableCollection<PlaylistSongViewModel> PlaylistViewModels
         {
             get { return _playlistViewModels; }
         }

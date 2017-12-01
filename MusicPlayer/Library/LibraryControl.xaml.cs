@@ -10,6 +10,7 @@ namespace MusicPlayer.Library
         Artist = 0,
         Album,
         Song,
+        Recording,
         MAX
     }
 
@@ -60,16 +61,30 @@ namespace MusicPlayer.Library
 
         private void OnItemMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (sender is TreeViewItem treeItem && treeItem.Header is SongViewModel songModel)
+            if(sender is TreeViewItem treeItem)
             {
-                if (!songModel.IsSelected)
+                if (treeItem.Header is SongViewModel songModel)
                 {
-                    return;
-                }
+                    if (!songModel.IsSelected)
+                    {
+                        return;
+                    }
 
-                e.Handled = true;
-                ContextMenu_Play?.Invoke(LibraryContext.Song, songModel.ID);
+                    e.Handled = true;
+                    ContextMenu_Play?.Invoke(LibraryContext.Song, songModel.ID);
+                }
+                else if (treeItem.Header is RecordingViewModel recordingModel)
+                {
+                    if (!recordingModel.IsSelected)
+                    {
+                        return;
+                    }
+
+                    e.Handled = true;
+                    ContextMenu_Play?.Invoke(LibraryContext.Recording, recordingModel.ID);
+                }
             }
+
         }
 
         private void Play(object sender, System.Windows.RoutedEventArgs e)
@@ -128,6 +143,11 @@ namespace MusicPlayer.Library
             {
                 context = LibraryContext.Song;
                 id = songModel.ID;
+            }
+            else if (menuItem.DataContext is RecordingViewModel recordingModel)
+            {
+                context = LibraryContext.Recording;
+                id = recordingModel.ID;
             }
             else
             {

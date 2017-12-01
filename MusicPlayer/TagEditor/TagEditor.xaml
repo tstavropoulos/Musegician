@@ -22,9 +22,9 @@
             <Button Grid.Column="2" Content="Reset" Click="Click_Reset"/>
             <Button Grid.Column="4" Content="Cancel" Click="Click_Cancel"/>
         </Grid>
-        <ListView Margin="10" Name="tagView" Style="{StaticResource ListViewWithGridViewStyle}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center">
+        <ListView Margin="10" Name="tagView" HorizontalContentAlignment="Stretch" Style="{StaticResource ListViewWithGridViewStyle}" >
             <ListView.Resources>
-                <DataTemplate x:Key="BoolGridCellTemplate" DataType="{x:Type data:TagDataBool}">
+                <DataTemplate x:Key="BoolEditorTemplate" DataType="{x:Type data:TagDataBool}">
                     <CheckBox IsChecked="{Binding NewValue, Mode=TwoWay}"
                               VerticalAlignment="Center"/>
                 </DataTemplate>
@@ -39,27 +39,16 @@
                              HorizontalAlignment="Stretch"
                              VerticalAlignment="Center"/>
                 </DataTemplate>
-                <!--<Style TargetType="ContentPresenter">
-                    <Setter Property="Control.HorizontalAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
-                    <Setter Property="Control.VerticalAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
-                </Style>-->
+                <local:TagTemplateSelector x:Key="TagEditorSelector"
+                                           BoolTemplate="{StaticResource BoolEditorTemplate}"
+                                           StringTemplate="{StaticResource StringGridCellTemplate}"
+                                           LongTemplate="{StaticResource LongGridCellTemplate}"/>
             </ListView.Resources>
-            <!--<ListView.ItemContainerStyle>
-                <Style BasedOn="{StaticResource ListViewItemGridViewStyle}">
-                    <Setter Property="Control.VerticalAlignment" Value="Center"/>
-                </Style>
-            </ListView.ItemContainerStyle>-->
             <ListView.View>
                 <GridView>
                     <GridViewColumn Width="100" Header="Tag Name" DisplayMemberBinding="{Binding TagName}"/>
                     <GridViewColumn Width="150" Header="Current Value" DisplayMemberBinding="{Binding CurrentValue}"/>
-                    <GridViewColumn Width="Auto" Header="New Value">
-                        <GridViewColumn.CellTemplateSelector>
-                            <local:TagEditorSelector BoolEditorTemplate="{StaticResource BoolGridCellTemplate}"
-                                                     StringEditorTemplate="{StaticResource StringGridCellTemplate}"
-                                                     LongEditorTemplate="{StaticResource LongGridCellTemplate}"/>
-                        </GridViewColumn.CellTemplateSelector>
-                    </GridViewColumn>
+                    <GridViewColumn Width="200" Header="New Value" CellTemplateSelector="{StaticResource TagEditorSelector}"/>
                 </GridView>
             </ListView.View>
         </ListView>

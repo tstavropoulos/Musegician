@@ -19,16 +19,14 @@ namespace MusicPlayer.DataStructures
         public long artistID;
         public string albumTitle;
         public long albumYear;
+        public string albumArtFilename;
     }
 
     public struct SongData
     {
         public long songID;
         public long artistID;
-        public string fileName;
         public string songTitle;
-        public bool live;
-        public bool valid;
     }
 
     public struct TrackData
@@ -36,19 +34,23 @@ namespace MusicPlayer.DataStructures
         public long trackID;
         public long songID;
         public long albumID;
+        public long recordingID;
+        public string trackTitle;
         public long trackNumber;
+        public double weight;
+    }
+
+    public struct RecordingData
+    {
+        public long recordingID;
+        public string filename;
+        public bool live;
+        public bool valid;
     }
 
     public struct PlayData
     {
-        public string fileName;
-        public string songTitle;
-        public string artistName;
-    }
-
-    public struct PlaylistData
-    {
-        public long songID;
+        public string filename;
         public string songTitle;
         public string artistName;
     }

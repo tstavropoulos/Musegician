@@ -23,7 +23,8 @@
             </TreeView.ItemContainerStyle>
 
             <TreeView.Resources>
-                <HierarchicalDataTemplate DataType="{x:Type local:PlaylistItemViewModel}">
+                <HierarchicalDataTemplate DataType="{x:Type local:PlaylistSongViewModel}"
+                                          ItemsSource="{Binding Recordings}">
                     <StackPanel Orientation="Horizontal">
                         <StackPanel.ContextMenu>
                             <ContextMenu>
@@ -33,8 +34,21 @@
                             </ContextMenu>
                         </StackPanel.ContextMenu>
                         <TextBlock Text="{Binding PlayingString}" MinWidth="10"/>
-                        <TextBlock Text="{Binding Title}">
-                        </TextBlock>
+                        <TextBlock Text="{Binding Title}"/>
+                    </StackPanel>
+                </HierarchicalDataTemplate>
+                
+                <HierarchicalDataTemplate DataType="{x:Type local:PlaylistRecordingViewModel}">
+                    <StackPanel Orientation="Horizontal">
+                        <StackPanel.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Play Recording" Click="Play"/>
+                                <MenuItem Header="Remove Recording" Click="Remove"/>
+                                <MenuItem Header="Edit Recording Information" Click="Edit"/>
+                            </ContextMenu>
+                        </StackPanel.ContextMenu>
+                        <TextBlock Text="{Binding PlayingString}" MinWidth="10"/>
+                        <TextBlock Text="{Binding Title}"/>
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>

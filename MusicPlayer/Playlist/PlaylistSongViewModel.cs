@@ -1,20 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Input;
+using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 
-namespace MusicPlayer.Library
+namespace MusicPlayer.Playlist
 {
-    public class SongViewModel : INotifyPropertyChanged
+    class PlaylistSongViewModel : INotifyPropertyChanged
     {
         #region Data
 
-        readonly ReadOnlyCollection<RecordingViewModel> _recordings;
-        readonly AlbumViewModel _album;
+        readonly ReadOnlyCollection<PlaylistRecordingViewModel> _recordings;
         readonly SongDTO _song;
 
         bool _isExpanded;
@@ -22,24 +20,23 @@ namespace MusicPlayer.Library
 
         #endregion // Data
 
-        #region Constructors
+        #region Constructor
 
-        public SongViewModel(SongDTO song, AlbumViewModel album)
+        public PlaylistSongViewModel(SongDTO song)
         {
             _song = song;
-            _album = album;
 
-            _recordings = new ReadOnlyCollection<RecordingViewModel>(
+            _recordings = new ReadOnlyCollection<PlaylistRecordingViewModel>(
                     (from recording in _song.Recordings
-                     select new RecordingViewModel(recording, this))
+                     select new PlaylistRecordingViewModel(recording, this))
                      .ToList());
         }
 
-        #endregion // Constructors
+        #endregion // Constructor
 
-        #region Song Properties
+        #region PlaylistItem Properties
 
-        public ReadOnlyCollection<RecordingViewModel> Recordings
+        public ReadOnlyCollection<PlaylistRecordingViewModel> Recordings
         {
             get { return _recordings; }
         }
@@ -47,11 +44,47 @@ namespace MusicPlayer.Library
         public string Title
         {
             get { return _song.Title; }
+            set
+            {
+                _song.Title = value;
+                OnPropertyChanged("Title");
+            }
+
+        }
+
+        private bool _playing = false;
+
+        public bool Playing
+        {
+            get { return _playing; }
+            set
+            {
+                _playing = value;
+                OnPropertyChanged("Playing");
+                OnPropertyChanged("PlayingString");
+            }
+        }
+
+        public string PlayingString
+        {
+            get
+            {
+                if (_playing)
+                {
+                    return "★";
+                }
+                return " ";
+            }
         }
 
         public long ID
         {
             get { return _song.SongID; }
+            set
+            {
+                _song.SongID = value;
+                OnPropertyChanged("ID");
+            }
         }
 
         public bool IsExpandable
@@ -59,7 +92,12 @@ namespace MusicPlayer.Library
             get { return _recordings.Count > 1; }
         }
 
-        #endregion // Song Properties
+        public SongDTO Song
+        {
+            get { return _song; }
+        }
+
+        #endregion
 
         #region Presentation Members
 
@@ -78,12 +116,6 @@ namespace MusicPlayer.Library
                 {
                     _isExpanded = value;
                     OnPropertyChanged("IsExpanded");
-                }
-
-                // Expand all the way up to the root.
-                if (_isExpanded && _album != null)
-                {
-                    _album.IsExpanded = true;
                 }
             }
         }
@@ -111,27 +143,6 @@ namespace MusicPlayer.Library
 
         #endregion // IsSelected
 
-        #region NameContainsText
-
-        public bool NameContainsText(string text)
-        {
-            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(Title))
-                return false;
-
-            return Title.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
-        }
-
-        #endregion // NameContainsText
-
-        #region Parent
-
-        public AlbumViewModel Album
-        {
-            get { return _album; }
-        }
-
-        #endregion // Parent
-
         #endregion // Presentation Members
 
         #region INotifyPropertyChanged Members
@@ -145,4 +156,5 @@ namespace MusicPlayer.Library
 
         #endregion // INotifyPropertyChanged Members
     }
+
 }

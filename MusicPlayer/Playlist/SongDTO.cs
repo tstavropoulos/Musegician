@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace MusicPlayer.Library
+namespace MusicPlayer.Playlist
 {
     public class SongDTO
     {
@@ -10,7 +13,7 @@ namespace MusicPlayer.Library
         {
             get { return _recordings; }
         }
-
+        
         public SongDTO(long id, string title, List<RecordingDTO> recordings)
         {
             SongID = id;

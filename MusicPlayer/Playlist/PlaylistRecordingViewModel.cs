@@ -1,65 +1,89 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Input;
+using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 
-namespace MusicPlayer.Library
+namespace MusicPlayer.Playlist
 {
-    public class SongViewModel : INotifyPropertyChanged
+    class PlaylistRecordingViewModel : INotifyPropertyChanged
     {
         #region Data
 
-        readonly ReadOnlyCollection<RecordingViewModel> _recordings;
-        readonly AlbumViewModel _album;
-        readonly SongDTO _song;
+        readonly RecordingDTO _recording;
+        readonly PlaylistSongViewModel _song;
 
         bool _isExpanded;
         bool _isSelected;
 
         #endregion // Data
 
-        #region Constructors
+        #region Constructor
 
-        public SongViewModel(SongDTO song, AlbumViewModel album)
+        public PlaylistRecordingViewModel(RecordingDTO recording, PlaylistSongViewModel song)
         {
+            _recording = recording;
             _song = song;
-            _album = album;
-
-            _recordings = new ReadOnlyCollection<RecordingViewModel>(
-                    (from recording in _song.Recordings
-                     select new RecordingViewModel(recording, this))
-                     .ToList());
         }
 
-        #endregion // Constructors
+        #endregion // Constructor
 
-        #region Song Properties
-
-        public ReadOnlyCollection<RecordingViewModel> Recordings
-        {
-            get { return _recordings; }
-        }
+        #region PlaylistItem Properties
 
         public string Title
         {
-            get { return _song.Title; }
+            get { return _recording.Title; }
+            set
+            {
+                _recording.Title = value;
+                OnPropertyChanged("Title");
+            }
+
+        }
+
+        private bool _playing = false;
+
+        public bool Playing
+        {
+            get { return _playing; }
+            set
+            {
+                _playing = value;
+                OnPropertyChanged("Playing");
+                OnPropertyChanged("PlayingString");
+            }
+        }
+
+        public string PlayingString
+        {
+            get
+            {
+                if (_playing)
+                {
+                    return "★";
+                }
+                return " ";
+            }
         }
 
         public long ID
         {
-            get { return _song.SongID; }
+            get { return _recording.RecordingID; }
+            set
+            {
+                _recording.RecordingID = value;
+                OnPropertyChanged("ID");
+            }
         }
 
-        public bool IsExpandable
+        public RecordingDTO Recording
         {
-            get { return _recordings.Count > 1; }
+            get { return _recording; }
         }
 
-        #endregion // Song Properties
+        #endregion
 
         #region Presentation Members
 
@@ -80,10 +104,9 @@ namespace MusicPlayer.Library
                     OnPropertyChanged("IsExpanded");
                 }
 
-                // Expand all the way up to the root.
-                if (_isExpanded && _album != null)
+                if(_isExpanded && _song != null)
                 {
-                    _album.IsExpanded = true;
+                    _song.IsExpanded = true;
                 }
             }
         }
@@ -111,23 +134,11 @@ namespace MusicPlayer.Library
 
         #endregion // IsSelected
 
-        #region NameContainsText
-
-        public bool NameContainsText(string text)
-        {
-            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(Title))
-                return false;
-
-            return Title.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
-        }
-
-        #endregion // NameContainsText
-
         #region Parent
 
-        public AlbumViewModel Album
+        public PlaylistSongViewModel Song
         {
-            get { return _album; }
+            get { return _song; }
         }
 
         #endregion // Parent
@@ -145,4 +156,5 @@ namespace MusicPlayer.Library
 
         #endregion // INotifyPropertyChanged Members
     }
+
 }

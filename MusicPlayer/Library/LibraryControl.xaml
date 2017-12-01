@@ -51,7 +51,8 @@
                     </TextBlock>
                 </HierarchicalDataTemplate>
 
-                <HierarchicalDataTemplate DataType="{x:Type local:SongViewModel}">
+                <HierarchicalDataTemplate DataType="{x:Type local:SongViewModel}"
+                                          ItemsSource="{Binding Recordings}">
                     <TextBlock Text="{Binding Title}">
                         <TextBlock.ContextMenu>
                             <ContextMenu>
@@ -60,6 +61,21 @@
                                 <MenuItem Header="Play Song" 
                                           Click="Play"/>
                                 <MenuItem Header="Edit Song Information" 
+                                          Click="Edit"/>
+                            </ContextMenu>
+                        </TextBlock.ContextMenu>
+                    </TextBlock>
+                </HierarchicalDataTemplate>
+
+                <HierarchicalDataTemplate DataType="{x:Type local:RecordingViewModel}">
+                    <TextBlock Text="{Binding Title}">
+                        <TextBlock.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Add Track To Playlist" 
+                                          Click="Add"/>
+                                <MenuItem Header="Play Track" 
+                                          Click="Play"/>
+                                <MenuItem Header="Edit Track Information" 
                                           Click="Edit"/>
                             </ContextMenu>
                         </TextBlock.ContextMenu>
