@@ -81,6 +81,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Core\Settings.cs" />
     <Compile Include="Library\AlbumDTO.cs" />
     <Compile Include="Library\ArtistDTO.cs" />
     <Compile Include="Library\LibraryControl.xaml.cs">
