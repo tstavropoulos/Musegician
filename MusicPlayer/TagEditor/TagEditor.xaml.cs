@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
 using LibraryContext = MusicPlayer.Library.LibraryContext;
+using MusicPlayer.DataStructures;
 
 namespace MusicPlayer.TagEditor
 {
@@ -51,9 +52,9 @@ namespace MusicPlayer.TagEditor
         private long id;
         private LibraryContext context;
 
-        List<DataStructures.TagData> tags;
+        List<TagData> tags;
 
-        public List<DataStructures.TagData> Tags
+        public List<TagData> Tags
         {
             get { return tags; }
         }
@@ -74,9 +75,9 @@ namespace MusicPlayer.TagEditor
         private void Click_Apply(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            List<string> paths = null;
+            bool ID3Updates = false;
 
-            foreach (DataStructures.TagData tag in tags)
+            foreach (TagData tag in tags)
             {
                 if (tag.ApplyChanges)
                 {
@@ -102,31 +103,49 @@ namespace MusicPlayer.TagEditor
 
                 if (tag.Push && tag.Pushable)
                 {
-                    if (paths == null)
-                    {
-                        paths = fileManager.GetAffectedFiles(context, id);
-                    }
-
-
-                    switch (tag.tagType)
-                    {
-                        case ID3TagType.Title:
-                        case ID3TagType.Performer:
-                        case ID3TagType.AlbumArtist:
-                        case ID3TagType.Album:
-                        case ID3TagType.Year:
-                        case ID3TagType.Track:
-                            UpdateTag(tag.tagType, tag, paths);
-                            break;
-                        case ID3TagType.NotEditable:
-                        case ID3TagType.MAX:
-                        default:
-                            {
-                                throw new Exception("Unexpected ID3TagTypes value: " + tag.tagType);
-                            }
-                    }
+                    ID3Updates = true;
                 }
             }
+
+            if (ID3Updates)
+            {
+                List<string> paths = fileManager.GetAffectedFiles(context, id);
+
+                foreach(string path in paths)
+                {
+                    TagLib.File file = null;
+
+                    try
+                    {
+                        file = TagLib.File.Create(path);
+                        file.Mode = TagLib.File.AccessMode.Write;
+                    }
+                    catch (TagLib.UnsupportedFormatException)
+                    {
+                        Console.WriteLine("UNSUPPORTED FILE: " + path);
+                        Console.WriteLine(String.Empty);
+                        Console.WriteLine("---------------------------------------");
+                        Console.WriteLine(String.Empty);
+                        continue;
+                    }
+                    catch (System.IO.IOException)
+                    {
+                        file.Mode = TagLib.File.AccessMode.Closed;
+                        file.Dispose();
+                        Console.WriteLine("FILE IN USE: " + path);
+                        Console.WriteLine("SKIPPING");
+                        Console.WriteLine(String.Empty);
+                        Console.WriteLine("---------------------------------------");
+                        Console.WriteLine(String.Empty);
+                        continue;
+                    }
+
+                    UpdateTags(file, tags);
+
+                    file.Save();
+                }
+            }
+
             Close();
         }
 
@@ -134,7 +153,7 @@ namespace MusicPlayer.TagEditor
         {
             e.Handled = true;
 
-            foreach (DataStructures.TagData tag in tags)
+            foreach (TagData tag in tags)
             {
                 tag.Reset();
             }
@@ -152,54 +171,75 @@ namespace MusicPlayer.TagEditor
             e.Handled = regex.IsMatch(e.Text);
         }
 
-        private void UpdateRecord(MusicRecord record, DataStructures.TagData tag)
+        private void UpdateRecord(MusicRecord record, TagData tag)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Not yet implemented.");
         }
 
-        private void UpdateTag(ID3TagType record, DataStructures.TagData tag, List<string> paths)
+        private void UpdateTags(TagLib.File file, IList<TagData> tags)
         {
-            TagLib.File file = null;
-
-            foreach (string path in paths)
+            foreach(TagData tag in tags)
             {
-                try
+                if (tag.Push && tag.Pushable)
                 {
-                    file = TagLib.File.Create(path);
+                    switch (tag.tagType)
+                    {
+                        case ID3TagType.Title:
+                            {
+                                if (tag is TagDataString data)
+                                {
+                                    file.Tag.Title = data.NewValue;
+                                }
+                            }
+                            break;
+                        case ID3TagType.Performer:
+                            {
+                                if (tag is TagDataString data)
+                                {
+                                    file.Tag.Performers = new string[] { data.NewValue };
+                                }
+                            }
+                            break;
+                        case ID3TagType.AlbumArtist:
+                            {
+                                if (tag is TagDataString data)
+                                {
+                                    file.Tag.AlbumArtists = new string[] { data.NewValue };
+                                }
+                            }
+                            break;
+                        case ID3TagType.Album:
+                            {
+                                if (tag is TagDataString data)
+                                {
+                                    file.Tag.Album = data.NewValue;
+                                }
+                            }
+                            break;
+                        case ID3TagType.Year:
+                            {
+                                if (tag is TagDataLong data)
+                                {
+                                    file.Tag.Year = (uint)data.NewLong;
+                                }
+                            }
+                            break;
+                        case ID3TagType.Track:
+                            {
+                                if (tag is TagDataLong data)
+                                {
+                                    file.Tag.Track = (uint)data.NewLong;
+                                }
+                            }
+                            break;
+                        case ID3TagType.NotEditable:
+                        case ID3TagType.MAX:
+                        default:
+                            {
+                                throw new Exception("Unexpected ID3TagTypes value: " + tag.tagType);
+                            }
+                    }
                 }
-                catch (TagLib.UnsupportedFormatException)
-                {
-                    Console.WriteLine("UNSUPPORTED FILE: " + path);
-                    Console.WriteLine(String.Empty);
-                    Console.WriteLine("---------------------------------------");
-                    Console.WriteLine(String.Empty);
-                    return;
-                }
-
-
-                switch (record)
-                {
-                    case ID3TagType.Title:
-                        break;
-                    case ID3TagType.Performer:
-                        break;
-                    case ID3TagType.AlbumArtist:
-                        break;
-                    case ID3TagType.Album:
-                        break;
-                    case ID3TagType.Year:
-                        break;
-                    case ID3TagType.Track:
-                        break;
-                    case ID3TagType.NotEditable:
-                    case ID3TagType.MAX:
-                    default:
-                        {
-                            throw new Exception("Unexpected ID3TagTypes value: " + tag.tagType);
-                        }
-                }
-
-                throw new NotImplementedException();
             }
         }
     }

@@ -198,14 +198,14 @@ namespace MusicPlayer
                         string artistName = (string)reader["artist_name"];
                         long artistID = (long)reader["artist_id"];
 
-                        if (!lookups.artistName.ContainsKey(artistName))
+                        if (!lookups.artistName.ContainsKey(artistName.ToLowerInvariant()))
                         {
-                            lookups.artistName.Add(artistName, artistID);
+                            lookups.artistName.Add(artistName.ToLowerInvariant(), artistID);
                         }
                         else
                         {
                             Console.WriteLine(
-                                "Warning, duplicated artist name.  Possible error: " + artistName);
+                                "Warning, duplicated artist name.  Possible error: " + artistName.ToLowerInvariant());
                         }
 
                         if (artistID > lastArtistIDAssigned)
@@ -1284,7 +1284,8 @@ namespace MusicPlayer
                             _currentValue = (string)reader["artist_name"],
                             NewValue = (string)reader["artist_name"],
                             recordType = TagEditor.MusicRecord.ArtistName,
-                            tagType = TagEditor.ID3TagType.Performer
+                            tagType = TagEditor.ID3TagType.Performer,
+                            tagTypeIndex = 0
                         });
                     }
                 }
@@ -1299,24 +1300,66 @@ namespace MusicPlayer
         {
             List<string> affectedFiles = new List<string>();
 
+            dbConnection.Open();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.Parameters.Add(new SQLiteParameter("@ID", id));
+
             switch (context)
             {
                 case LibraryContext.Artist:
+                    readTracks.CommandText =
+                        "SELECT recording.filename AS filename " +
+                        "FROM song " +
+                        "LEFT JOIN track ON song.song_id=track.song_id " +
+                        "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
+                        "WHERE song.artist_id=@ID;";
                     break;
                 case LibraryContext.Album:
+                    readTracks.CommandText =
+                        "SELECT recording.filename AS filename " +
+                        "FROM track " +
+                        "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
+                        "WHERE track.album_id=@ID;";
                     break;
                 case LibraryContext.Song:
+                    readTracks.CommandText =
+                        "SELECT recording.filename AS filename " +
+                        "FROM track " +
+                        "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
+                        "WHERE track.song_id=@ID;";
                     break;
                 case LibraryContext.Track:
+                    readTracks.CommandText =
+                        "SELECT recording.filename AS filename " +
+                        "FROM track " +
+                        "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
+                        "WHERE track.track_id=@ID;";
                     break;
                 case LibraryContext.Recording:
+                    readTracks.CommandText =
+                        "SELECT recording.filename AS filename " +
+                        "FROM recording " +
+                        "WHERE recording.recording_id=@ID;";
                     break;
                 case LibraryContext.MAX:
                 default:
+                    dbConnection.Close();
                     throw new Exception("Unexpected LibraryContext: " + context);
             }
 
-            throw new NotImplementedException();
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    affectedFiles.Add((string)reader["filename"]);
+                }
+            }
+
+            dbConnection.Close();
+            
             return affectedFiles;
         }
     }

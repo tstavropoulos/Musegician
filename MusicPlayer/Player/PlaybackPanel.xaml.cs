@@ -122,6 +122,10 @@ namespace MusicPlayer.Player
             }
 
             songLabel.Content = String.Format("{0} - {1}", playData.artistName, playData.songTitle);
+            if(waveOut.WaveSource != null)
+            {
+                waveOut.WaveSource.Dispose();
+            }
             waveOut.Initialize(new CSCore.Codecs.MP3.DmoMp3Decoder(System.IO.File.OpenRead(playData.filename)));
             waveOut.Play();
 
