@@ -27,6 +27,10 @@ namespace MusicPlayer.TagEditor
         Live,
         TrackTitle,
         Filename,
+        ArtistWeight,
+        AlbumWeight,
+        SongWeight,
+        TrackWeight,
         MAX
     }
 
@@ -111,7 +115,7 @@ namespace MusicPlayer.TagEditor
             {
                 List<string> paths = fileManager.GetAffectedFiles(context, id);
 
-                foreach(string path in paths)
+                foreach (string path in paths)
                 {
                     TagLib.File file = null;
 
@@ -173,12 +177,36 @@ namespace MusicPlayer.TagEditor
 
         private void UpdateRecord(MusicRecord record, TagData tag)
         {
+            switch (record)
+            {
+                case MusicRecord.SongTitle:
+                case MusicRecord.ArtistName:
+                case MusicRecord.AlbumTitle:
+                case MusicRecord.TrackTitle:
+                case MusicRecord.Filename:
+                    {
+                        if (tag is TagDataString data)
+                        {
+                            fileManager.UpdateRecord(record, data.NewValue);
+                        }
+                    }
+                    break;
+                case MusicRecord.AlbumYear:
+                case MusicRecord.TrackNumber:
+                    break;
+                case MusicRecord.Live:
+                    break;
+                case MusicRecord.MAX:
+                default:
+                    throw new Exception("Invalid MusicRecord for Updating: " + record);
+            }
+
             Console.WriteLine("Not yet implemented.");
         }
 
         private void UpdateTags(TagLib.File file, IList<TagData> tags)
         {
-            foreach(TagData tag in tags)
+            foreach (TagData tag in tags)
             {
                 if (tag.Push && tag.Pushable)
                 {

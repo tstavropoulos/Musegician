@@ -9,6 +9,7 @@ using System.Data.SQLite;
 using MusicPlayer.DataStructures;
 using MusicPlayer.Library;
 using System.Windows;
+using MusicPlayer.TagEditor;
 
 namespace MusicPlayer
 {
@@ -779,7 +780,7 @@ namespace MusicPlayer
                     }
 
                     bool albumMatch = false;
-                    if(albumID == (long)reader["album_id"])
+                    if (albumID == (long)reader["album_id"])
                     {
                         albumMatch = true;
                         trackID = (long)reader["track_id"];
@@ -1212,30 +1213,30 @@ namespace MusicPlayer
                         tagList.Add(new TagViewable
                         {
                             _CurrentValue = (string)reader["filename"],
-                            recordType = TagEditor.MusicRecord.Filename
+                            recordType = MusicRecord.Filename
                         });
 
                         tagList.Add(new TagDataString
                         {
                             _currentValue = (string)reader["track_title"],
                             NewValue = (string)reader["track_title"],
-                            recordType = TagEditor.MusicRecord.TrackTitle,
-                            tagType = TagEditor.ID3TagType.Title
+                            recordType = MusicRecord.TrackTitle,
+                            tagType = ID3TagType.Title
                         });
 
                         tagList.Add(new TagDataLong
                         {
                             _currentValue = (long)reader["track_number"],
                             _newValue = (long)reader["track_number"],
-                            recordType = TagEditor.MusicRecord.TrackNumber,
-                            tagType = TagEditor.ID3TagType.Track
+                            recordType = MusicRecord.TrackNumber,
+                            tagType = ID3TagType.Track
                         });
 
                         tagList.Add(new TagDataBool()
                         {
                             _currentValue = (bool)reader["live"],
                             NewValue = (bool)reader["live"],
-                            recordType = TagEditor.MusicRecord.Live
+                            recordType = MusicRecord.Live
                         });
                     }
 
@@ -1247,7 +1248,7 @@ namespace MusicPlayer
                         {
                             _currentValue = (string)reader["song_title"],
                             NewValue = (string)reader["song_title"],
-                            recordType = TagEditor.MusicRecord.SongTitle
+                            recordType = MusicRecord.SongTitle
                         });
                     }
 
@@ -1260,16 +1261,16 @@ namespace MusicPlayer
                         {
                             _currentValue = (string)reader["album_title"],
                             NewValue = (string)reader["album_title"],
-                            recordType = TagEditor.MusicRecord.AlbumTitle,
-                            tagType = TagEditor.ID3TagType.Album
+                            recordType = MusicRecord.AlbumTitle,
+                            tagType = ID3TagType.Album
                         });
 
                         tagList.Add(new TagDataLong
                         {
                             _currentValue = (long)reader["album_year"],
                             _newValue = (long)reader["album_year"],
-                            recordType = TagEditor.MusicRecord.AlbumYear,
-                            tagType = TagEditor.ID3TagType.Year
+                            recordType = MusicRecord.AlbumYear,
+                            tagType = ID3TagType.Year
                         });
                     }
 
@@ -1283,8 +1284,8 @@ namespace MusicPlayer
                         {
                             _currentValue = (string)reader["artist_name"],
                             NewValue = (string)reader["artist_name"],
-                            recordType = TagEditor.MusicRecord.ArtistName,
-                            tagType = TagEditor.ID3TagType.Performer,
+                            recordType = MusicRecord.ArtistName,
+                            tagType = ID3TagType.Performer,
                             tagTypeIndex = 0
                         });
                     }
@@ -1359,8 +1360,402 @@ namespace MusicPlayer
             }
 
             dbConnection.Close();
-            
+
             return affectedFiles;
+        }
+
+        public class LibraryContextException : Exception
+        {
+            public LibraryContextException(string message) : base(message) { }
+        }
+
+        /// <summary>
+        /// Make sure to translate the ID to the right context before calling this method.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="id"></param>
+        /// <param name="record"></param>
+        /// <param name="newString"></param>
+        /// <exception cref="LibraryContextException"/>
+        public void UpdateRecord(LibraryContext context, IList<long> ids, MusicRecord record, string newString)
+        {
+            switch (record)
+            {
+                case MusicRecord.SongTitle:
+                    {
+                        switch (context)
+                        {
+                            case LibraryContext.Song:
+                                //Renaming a song
+                                {
+                                    dbConnection.Open();
+
+                                    using (SQLiteTransaction updateSongTitles = dbConnection.BeginTransaction())
+                                    {
+                                        SQLiteCommand updateValues = dbConnection.CreateCommand();
+                                        updateValues.CommandType = System.Data.CommandType.Text;
+                                        updateValues.Parameters.Add(new SQLiteParameter("@Value", newString));
+                                        updateValues.Parameters.Add(new SQLiteParameter("@ID", -1));
+                                        updateValues.CommandText =
+                                            "UPDATE song " +
+                                            "SET song.song_title=@Value" +
+                                            "WHERE song.song_id=@ID;";
+                                        foreach (long id in ids)
+                                        {
+                                            updateValues.Parameters["@ID"].Value = id;
+                                            updateValues.ExecuteNonQuery();
+                                        }
+
+                                        updateSongTitles.Commit();
+                                    }
+
+                                    dbConnection.Close();
+                                }
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
+                        }
+                    }
+                    break;
+                case MusicRecord.ArtistName:
+                    {
+                        switch (context)
+                        {
+                            case LibraryContext.Artist:
+                                {
+                                    //Renaming Artists
+                                    dbConnection.Open();
+
+                                    using (SQLiteTransaction updateArtistNames = dbConnection.BeginTransaction())
+                                    {
+                                        SQLiteCommand updateValues = dbConnection.CreateCommand();
+                                        updateValues.CommandType = System.Data.CommandType.Text;
+                                        updateValues.Parameters.Add(new SQLiteParameter("@Value", newString));
+                                        updateValues.Parameters.Add(new SQLiteParameter("@ID", -1));
+                                        updateValues.CommandText =
+                                            "UPDATE artist " +
+                                            "SET artist.artist_name=@Value" +
+                                            "WHERE artist.artist_id=@ID;";
+                                        foreach (long id in ids)
+                                        {
+                                            updateValues.Parameters["@ID"].Value = id;
+                                            updateValues.ExecuteNonQuery();
+                                        }
+
+                                        updateArtistNames.Commit();
+                                    }
+
+                                    dbConnection.Close();
+                                }
+                                break;
+                            case LibraryContext.Album:
+                                {
+                                    //Assigning Albums to a different artist
+                                    dbConnection.Open();
+
+                                    long artistID = -1;
+
+                                    //First, find out if the new artist exists
+                                    SQLiteCommand findArtist = dbConnection.CreateCommand();
+                                    findArtist.CommandType = System.Data.CommandType.Text;
+                                    findArtist.Parameters.Add(new SQLiteParameter("@Value", newString));
+                                    findArtist.CommandText =
+                                        "SELECT artist_id " +
+                                        "FROM artist " +
+                                        "WHERE artist.artist_name=@Value;";
+
+                                    using (SQLiteDataReader reader = findArtist.ExecuteReader())
+                                    {
+                                        if (reader.Read())
+                                        {
+                                            artistID = (long)reader["artist_id"];
+                                        }
+                                    }
+
+                                    if (artistID == -1)
+                                    {
+                                        //Create a new Artist, because it doesn't exist
+                                        artistID = ++lastArtistIDAssigned;
+
+                                        SQLiteCommand createArtist = dbConnection.CreateCommand();
+                                        createArtist.CommandType = System.Data.CommandType.Text;
+                                        createArtist.Parameters.Add(new SQLiteParameter("@Value", newString));
+                                        createArtist.Parameters.Add(new SQLiteParameter("@ID", artistID));
+                                        createArtist.CommandText =
+                                            "INSERT INTO artist " +
+                                            "(artist_id, artist_name) VALUES " +
+                                            "(@ID, @Value);";
+                                        createArtist.ExecuteNonQuery();
+                                    }
+
+                                    //Read in old ArtistID
+                                    HashSet<long> oldArtistIDs = new HashSet<long>();
+
+                                    SQLiteCommand findOldArtist = dbConnection.CreateCommand();
+                                    findOldArtist.CommandType = System.Data.CommandType.Text;
+                                    findOldArtist.Parameters.Add(new SQLiteParameter("@Value", newString));
+                                    findOldArtist.CommandText =
+                                        "SELECT artist.artist_id AS artist_id " +
+                                        "FROM album " +
+                                        "LEFT JOIN artist ON album.artist_id=artist.artist_ids" +
+                                        "WHERE artist.artist_name=@Value;";
+
+                                    using (SQLiteDataReader reader = findOldArtist.ExecuteReader())
+                                    {
+                                        while (reader.Read())
+                                        {
+                                            long id = (long)reader["artist_id"];
+
+                                            if (!oldArtistIDs.Contains(id))
+                                            {
+                                                oldArtistIDs.Add(id);
+                                            }
+                                        }
+                                    }
+
+
+                                    using (SQLiteTransaction updateAlbums = dbConnection.BeginTransaction())
+                                    {
+                                        //Update the artistID of listed albums
+                                        SQLiteCommand updateValues = dbConnection.CreateCommand();
+                                        updateValues.CommandType = System.Data.CommandType.Text;
+                                        updateValues.Parameters.Add(new SQLiteParameter("@ArtistID", artistID));
+                                        updateValues.Parameters.Add(new SQLiteParameter("@ID", -1));
+                                        updateValues.CommandText =
+                                            "UPDATE album " +
+                                            "SET album.artist_id=@ArtistID" +
+                                            "WHERE album.album_id=@ID;";
+                                        foreach (long id in ids)
+                                        {
+                                            updateValues.Parameters["@ID"].Value = id;
+                                            updateValues.ExecuteNonQuery();
+                                        }
+
+                                        //Update the Tracks that were affected
+                                        SQLiteCommand updateTracks = dbConnection.CreateCommand();
+                                        updateTracks.CommandType = System.Data.CommandType.Text;
+                                        updateTracks.Parameters.Add(new SQLiteParameter("@ArtistID", artistID));
+                                        updateTracks.Parameters.Add(new SQLiteParameter("@ID", -1));
+                                        updateTracks.CommandText =
+                                            "UPDATE track " +
+                                            "SET track.artist_id=@ArtistID" +
+                                            "WHERE track.album_id=@ID;";
+                                        foreach (long id in ids)
+                                        {
+                                            updateValues.Parameters["@ID"].Value = id;
+                                            updateValues.ExecuteNonQuery();
+                                        }
+
+                                        updateAlbums.Commit();
+                                    }
+
+                                    //Now, delete any old artists with no remaining albums
+                                    SQLiteCommand deleteArtists = dbConnection.CreateCommand();
+                                    deleteArtists.CommandType = System.Data.CommandType.Text;
+                                    deleteArtists.Parameters.Add(new SQLiteParameter("@ArtistID", artistID));
+                                    deleteArtists.Parameters.Add(new SQLiteParameter("@ID", -1));
+                                    deleteArtists.CommandText =
+                                        "UPDATE track " +
+                                        "SET track.artist_id=@ArtistID" +
+                                        "WHERE track.album_id=@ID;";
+
+
+
+                                    dbConnection.Close();
+                                }
+                                throw new NotImplementedException();
+                                break;
+                            case LibraryContext.Song:
+                                //Assinging a song to a different artist
+                                throw new NotImplementedException();
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
+                        }
+
+                    }
+                    break;
+                case MusicRecord.AlbumTitle:
+                    {
+                        switch (context)
+                        {
+                            case LibraryContext.Album:
+                                //Renaming an album
+                                throw new NotImplementedException();
+                                break;
+                            case LibraryContext.Track:
+                                //Assigning a track to a different album
+                                throw new NotImplementedException();
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
+                        }
+                    }
+                    break;
+                case MusicRecord.TrackTitle:
+                    {
+                        switch (context)
+                        {
+                            case LibraryContext.Track:
+                                //Renaming a track
+                                throw new NotImplementedException();
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
+                        }
+                    }
+                    break;
+                default:
+                    throw new Exception(string.Format(
+                        "Wrong field type submitted. Submitted {0} for field {1}.",
+                        newString.GetType().ToString(),
+                        record.ToString()));
+            }
+        }
+
+        public void UpdateRecord(LibraryContext context, IList<long> ids, MusicRecord record, long newLong)
+        {
+            switch (record)
+            {
+                case MusicRecord.TrackNumber:
+                    {
+                        switch (context)
+                        {
+                            case LibraryContext.Track:
+                                //Updating the track number of a track
+                                throw new NotImplementedException();
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
+                        }
+                    }
+                    break;
+                case MusicRecord.AlbumYear:
+                    {
+                        switch (context)
+                        {
+                            case LibraryContext.Album:
+                                //Updating the year that an album was produced
+                                throw new NotImplementedException();
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
+                        }
+                    }
+                    break;
+                default:
+                    throw new Exception(string.Format(
+                        "Wrong field type submitted. Submitted {0} for field {1}.",
+                        newLong.GetType().ToString(),
+                        record.ToString()));
+            }
+        }
+
+        public void UpdateRecord(LibraryContext context, IList<long> ids, MusicRecord record, bool newBool)
+        {
+            switch (record)
+            {
+                case MusicRecord.Live:
+                    {
+                        //Update Recording Live Status Weight
+                        if (context != LibraryContext.Recording)
+                        {
+                            throw new LibraryContextException(string.Format(
+                                "Bad Context ({0}) for RecordUpdate ({1})",
+                                context.ToString(),
+                                record.ToString()));
+                        }
+                        throw new NotImplementedException();
+                    }
+                    break;
+                default:
+                    throw new Exception(string.Format(
+                        "Wrong field type submitted. Submitted {0} for field {1}.",
+                        newBool.GetType().ToString(),
+                        record.ToString()));
+            }
+        }
+
+        public void UpdateRecord(LibraryContext context, IList<long> ids, MusicRecord record, double newDouble)
+        {
+            switch (record)
+            {
+                case MusicRecord.ArtistWeight:
+                    {
+                        //Update Artist Weight
+                        if (context != LibraryContext.Artist)
+                        {
+                            throw new LibraryContextException(string.Format(
+                                "Bad Context ({0}) for RecordUpdate ({1})",
+                                context.ToString(),
+                                record.ToString()));
+                        }
+                        throw new NotImplementedException();
+                    }
+                    break;
+                case MusicRecord.AlbumWeight:
+                    {
+                        //Update Album Weight
+                        if (context != LibraryContext.Album)
+                        {
+                            throw new LibraryContextException(string.Format(
+                                "Bad Context ({0}) for RecordUpdate ({1})",
+                                context.ToString(),
+                                record.ToString()));
+                        }
+                        throw new NotImplementedException();
+                    }
+                    break;
+                case MusicRecord.SongWeight:
+                    {
+                        //Update Album Weight
+                        if (context != LibraryContext.Song)
+                        {
+                            throw new LibraryContextException(string.Format(
+                                "Bad Context ({0}) for RecordUpdate ({1})",
+                                context.ToString(),
+                                record.ToString()));
+                        }
+                        throw new NotImplementedException();
+                    }
+                    break;
+                case MusicRecord.TrackWeight:
+                    {
+                        //Update Track Weight
+                        if (context != LibraryContext.Track)
+                        {
+                            throw new LibraryContextException(string.Format(
+                                "Bad Context ({0}) for RecordUpdate ({1})",
+                                context.ToString(),
+                                record.ToString()));
+                        }
+                        throw new NotImplementedException();
+                    }
+                    break;
+                default:
+                    throw new Exception(string.Format(
+                        "Wrong field type submitted. Submitted {0} for field {1}.",
+                        newDouble.GetType().ToString(),
+                        record.ToString()));
+            }
         }
     }
 }
