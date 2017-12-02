@@ -55,12 +55,12 @@ namespace MusicPlayer.Library
 
         public double Weight
         {
-            get { return _artist.Weight * _album.Weight; }
+            get { return _album.Weight; }
         }
 
         public bool IsDim
         {
-            get { return Weight == 0.0; }
+            get { return Weight == 0.0 || _artist.IsDim; }
         }
 
         #endregion // Artist Properties

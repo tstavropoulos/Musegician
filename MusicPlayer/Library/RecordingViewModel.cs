@@ -61,12 +61,12 @@ namespace MusicPlayer.Library
 
         public bool IsDim
         {
-            get { return !_recording.IsHome || Weight == 0.0; }
+            get { return !_recording.IsHome || Weight == 0.0 || _song.IsDim; }
         }
 
         public double Weight
         {
-            get { return _song.Weight * _recording.Weight; }
+            get { return _recording.Weight; }
         }
 
         #endregion // Recording Properties

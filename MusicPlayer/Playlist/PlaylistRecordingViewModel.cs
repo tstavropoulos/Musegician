@@ -97,7 +97,7 @@ namespace MusicPlayer.Playlist
 
         public double Weight
         {
-            get { return _song.Weight * _recording.Weight; }
+            get { return _recording.Weight; }
         }
 
         public RecordingDTO Recording
@@ -107,7 +107,7 @@ namespace MusicPlayer.Playlist
 
         public bool IsDim
         {
-            get { return Weight == 0.0; }
+            get { return Weight == 0.0 || _song.IsDim; }
         }
 
         #endregion

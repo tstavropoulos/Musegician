@@ -9,9 +9,23 @@ namespace MusicPlayer.Library
     {
         Artist = 0,
         Album,
+        /// <summary>
+        /// For a context-less song, like from the Playlist
+        /// </summary>
         Song,
+        /// <summary>
+        /// For a context-full song, like from the Library
+        /// </summary>
+        Track,
         Recording,
         MAX
+    }
+
+    public enum MenuAction
+    {
+        Play = 0,
+        Add,
+        Edit
     }
 
     public partial class LibraryControl : UserControl
@@ -40,7 +54,7 @@ namespace MusicPlayer.Library
 
         #region Context Menu Events
         public delegate void ContextMenuIDRequest(LibraryContext context, long id);
-        public delegate void ContextMenuMultiIDRequest(IList<Tuple<LibraryContext, long>> items);
+        public delegate void ContextMenuMultiIDRequest(IList<ValueTuple<LibraryContext, long>> items);
 
         public event ContextMenuIDRequest ContextMenu_Play;
         public event ContextMenuIDRequest ContextMenu_Add;
@@ -89,7 +103,7 @@ namespace MusicPlayer.Library
 
         private void Play(object sender, System.Windows.RoutedEventArgs e)
         {
-            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem);
+            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Play);
 
             if (id != -1)
             {
@@ -100,7 +114,7 @@ namespace MusicPlayer.Library
 
         private void Add(object sender, System.Windows.RoutedEventArgs e)
         {
-            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem);
+            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Add);
 
             if (id != -1)
             {
@@ -111,16 +125,17 @@ namespace MusicPlayer.Library
 
         private void Edit(object sender, System.Windows.RoutedEventArgs e)
         {
-            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem);
+            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Edit);
 
             if (id != -1)
             {
                 e.Handled = true;
+                
                 ContextMenu_Edit?.Invoke(context, id);
             }
         }
 
-        private (LibraryContext, long) ExtractContextAndID(MenuItem menuItem)
+        private (LibraryContext, long) ExtractContextAndID(MenuItem menuItem, MenuAction option)
         {
             LibraryContext context = LibraryContext.MAX;
             long id = -1;
@@ -141,8 +156,24 @@ namespace MusicPlayer.Library
             }
             else if (menuItem.DataContext is SongViewModel songModel)
             {
-                context = LibraryContext.Song;
-                id = songModel.ID;
+                switch (option)
+                {
+                    case MenuAction.Play:
+                    case MenuAction.Add:
+                        context = LibraryContext.Song;
+                        id = songModel.ID;
+                        break;
+                    case MenuAction.Edit:
+                        context = LibraryContext.Track;
+                        id = songModel.ContextualTrackID;
+                        break;
+                    default:
+                        Console.WriteLine("Unhandled MenuAction.  Likely Error: " + option);
+                        context = LibraryContext.Song;
+                        id = songModel.ID;
+                        break;
+                }
+
             }
             else if (menuItem.DataContext is RecordingViewModel recordingModel)
             {

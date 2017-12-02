@@ -160,6 +160,7 @@ namespace MusicPlayer
                 case LibraryContext.Album:
                 case LibraryContext.Song:
                 case LibraryContext.Recording:
+                case LibraryContext.Track:
                     {
                         int firstNewSong = playlistControl.ItemCount;
                         Library_Request_Add(context, id);
@@ -192,6 +193,10 @@ namespace MusicPlayer
                         playlistControl.AddBack(fileMan.GetSongData(id));
                     }
                     break;
+                case LibraryContext.Track:
+                    {
+                        throw new NotImplementedException();
+                    }
                 case LibraryContext.Recording:
                     {
                         playlistControl.AddBack(fileMan.GetSongDataFromRecordingID(id));
@@ -211,6 +216,7 @@ namespace MusicPlayer
                 case LibraryContext.Artist:
                 case LibraryContext.Album:
                 case LibraryContext.Song:
+                case LibraryContext.Track:
                 case LibraryContext.Recording:
                     //Do Nothing
                     break;
@@ -237,7 +243,8 @@ namespace MusicPlayer
             switch (response)
             {
                 case MessageBoxResult.Yes:
-                    MessageBox.Show("Not Yet Implemented.");
+                    fileMan.DropDB();
+                    libraryControl.Rebuild(fileMan.GenerateArtistList());
                     break;
                 case MessageBoxResult.No:
                     //Do nothing

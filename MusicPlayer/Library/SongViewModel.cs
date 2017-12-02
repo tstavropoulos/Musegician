@@ -54,6 +54,11 @@ namespace MusicPlayer.Library
             get { return _song.SongID; }
         }
 
+        public long ContextualTrackID
+        {
+            get { return _song.TrackID; }
+        }
+
         public bool IsExpandable
         {
             get { return _recordings.Count > 1; }
@@ -61,12 +66,12 @@ namespace MusicPlayer.Library
 
         public double Weight
         {
-            get { return _song.Weight * _album.Weight; }
+            get { return _song.Weight; }
         }
 
         public bool IsDim
         {
-            get { return Weight == 0.0; }
+            get { return Weight == 0.0 || _album.IsDim; }
         }
 
         #endregion // Song Properties

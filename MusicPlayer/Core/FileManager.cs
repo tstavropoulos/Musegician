@@ -8,6 +8,7 @@ using System.IO;
 using System.Data.SQLite;
 using MusicPlayer.DataStructures;
 using MusicPlayer.Library;
+using System.Windows;
 
 namespace MusicPlayer
 {
@@ -57,6 +58,38 @@ namespace MusicPlayer
 
         public FileManager()
         {
+        }
+
+        public void DropDB()
+        {
+            if (dbConnection != null)
+            {
+                dbConnection.Close();
+                dbConnection = null;
+            }
+
+            try
+            {
+                string dbPath = Path.Combine(FileUtility.GetDataPath(), songDBFilename);
+                if (File.Exists(dbPath))
+                {
+                    File.Delete(dbPath);
+                }
+
+                Initialize();
+
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(
+                    messageBoxText: string.Format(
+                        "There was an error of type ({0}) attempting to delete the database file.\n\n{1}",
+                        e.GetType().ToString(),
+                        e.Message),
+                    caption: "Cannot Delete Database",
+                    button: MessageBoxButton.OK,
+                    icon: MessageBoxImage.Error);
+            }
         }
 
         public void Initialize()
@@ -194,7 +227,7 @@ namespace MusicPlayer
                         long artistID = (long)reader["artist_id"];
                         string albumTitle = (string)reader["album_title"];
 
-                        lookups.artistID_AlbumTitle.Add((artistID, albumTitle), albumID);
+                        lookups.artistID_AlbumTitle.Add((artistID, albumTitle.ToLowerInvariant()), albumID);
 
                         if (albumID > lastAlbumIDAssigned)
                         {
@@ -215,9 +248,9 @@ namespace MusicPlayer
                         string songTitle = (string)reader["song_title"];
                         long artistID = (long)reader["artist_id"];
 
-                        if (!lookups.artistID_SongTitle.ContainsKey((artistID, songTitle)))
+                        if (!lookups.artistID_SongTitle.ContainsKey((artistID, songTitle.ToLowerInvariant())))
                         {
-                            lookups.artistID_SongTitle.Add((artistID, songTitle), songID);
+                            lookups.artistID_SongTitle.Add((artistID, songTitle.ToLowerInvariant()), songID);
                         }
 
                         if (songID > lastSongIDAssigned)
@@ -544,9 +577,10 @@ namespace MusicPlayer
                 albumTitle = musicFile.Tag.Album;
             }
 
+            //Copy the track title before we gut it
+            string trackTitle = songTitle;
 
             bool live = false;
-
             if (Regex.IsMatch(songTitle, livePattern))
             {
                 live = true;
@@ -560,11 +594,12 @@ namespace MusicPlayer
             }
 
             long songID = -1;
-            if (!lookups.artistID_SongTitle.ContainsKey((artistID, songTitle)))
+            var songLookupKey = (artistID, songTitle.ToLowerInvariant());
+            if (!lookups.artistID_SongTitle.ContainsKey(songLookupKey))
             {
                 songID = ++lastSongIDAssigned;
 
-                lookups.artistID_SongTitle.Add((artistID, songTitle), songID);
+                lookups.artistID_SongTitle.Add(songLookupKey, songID);
                 newRecords.songs.Add(new SongData()
                 {
                     songID = songID,
@@ -574,13 +609,11 @@ namespace MusicPlayer
             }
             else
             {
-                songID = lookups.artistID_SongTitle[(artistID, songTitle)];
+                songID = lookups.artistID_SongTitle[songLookupKey];
             }
 
-
-
             long albumID = -1;
-            var albumTuple = (artistID, albumTitle);
+            var albumTuple = (artistID, albumTitle.ToLowerInvariant());
             if (lookups.artistID_AlbumTitle.ContainsKey(albumTuple))
             {
                 albumID = lookups.artistID_AlbumTitle[albumTuple];
@@ -616,7 +649,7 @@ namespace MusicPlayer
                 songID = songID,
                 albumID = albumID,
                 recordingID = recordingID,
-                trackTitle = songTitle,
+                trackTitle = trackTitle,
                 trackNumber = musicFile.Tag.Track
             });
         }
@@ -656,7 +689,7 @@ namespace MusicPlayer
             readAlbums.CommandText =
                 "SELECT album_id, album_title, album_year " +
                 "FROM album " +
-                "WHERE artist_id = @artistID ORDER BY album_year ASC;";
+                "WHERE artist_id=@artistID ORDER BY album_year ASC;";
             readAlbums.Parameters.Add(new SQLiteParameter("@artistID", artistID));
 
             using (SQLiteDataReader reader = readAlbums.ExecuteReader())
@@ -682,11 +715,14 @@ namespace MusicPlayer
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT track.song_id AS song_id, song.song_title AS song_title, track.track_number AS track_number " +
+                "SELECT " +
+                    "track.song_id AS song_id, " +
+                    "song.song_title AS song_title, " +
+                    "track.track_number AS track_number " +
                 "FROM track " +
                 "LEFT JOIN album ON track.album_id=album.album_id " +
                 "LEFT JOIN song ON track.song_id=song.song_id " +
-                "WHERE track.album_id = @albumID ORDER BY track.track_number ASC;";
+                "WHERE track.album_id=@albumID ORDER BY track.track_number ASC;";
             readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
 
             using (SQLiteDataReader reader = readTracks.ExecuteReader())
@@ -713,18 +749,24 @@ namespace MusicPlayer
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT track.track_title AS track_title, track.album_id AS album_id, " +
-                    "track.recording_id AS recording_id, recording.live AS live, " +
-                    "track_weight.weight AS weight, album.album_title AS album_title, " +
+                "SELECT " +
+                    "track.track_id AS track_id, " +
+                    "track.track_title AS track_title, " +
+                    "track.album_id AS album_id, " +
+                    "track.recording_id AS recording_id, " +
+                    "recording.live AS live, " +
+                    "track_weight.weight AS weight, " +
+                    "album.album_title AS album_title, " +
                     "artist.artist_name AS artist_name " +
                 "FROM track " +
                 "LEFT JOIN album ON track.album_id=album.album_id " +
-                "LEFT JOIN artist on album.artist_id=artist.artist_id " +
+                "LEFT JOIN artist ON album.artist_id=artist.artist_id " +
                 "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
                 "LEFT JOIN track_weight ON track.track_id=track_weight.track_id " +
-                "WHERE track.song_id = @songID ORDER BY recording.live ASC;";
+                "WHERE track.song_id=@songID ORDER BY recording.live ASC;";
             readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
 
+            long trackID = -1;
             using (SQLiteDataReader reader = readTracks.ExecuteReader())
             {
                 while (reader.Read())
@@ -736,6 +778,13 @@ namespace MusicPlayer
                         weight = (double)reader["weight"];
                     }
 
+                    bool albumMatch = false;
+                    if(albumID == (long)reader["album_id"])
+                    {
+                        albumMatch = true;
+                        trackID = (long)reader["track_id"];
+                    }
+
                     recordingList.Add(new RecordingDTO
                     {
                         RecordingID = (long)reader["recording_id"],
@@ -744,14 +793,14 @@ namespace MusicPlayer
                             (string)reader["artist_name"],
                             (string)reader["album_title"],
                             (string)reader["track_title"]),
-                        IsHome = (albumID == (long)reader["album_id"]),
+                        IsHome = albumMatch,
                         Live = (bool)reader["live"],
                         Weight = weight
                     });
                 }
             }
 
-            return new SongDTO(songID, songTitle, recordingList);
+            return new SongDTO(songID, trackID, songTitle, recordingList);
         }
 
         private List<Playlist.RecordingDTO> GetRecordingList(long songID, long overrideRecordingID = -1)
@@ -761,15 +810,19 @@ namespace MusicPlayer
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT recording.recording_id AS recording_id, track.track_title AS track_title, " +
-                    "track_weight.weight AS weight, recording.live AS live, album.album_title AS album_title, " +
+                "SELECT " +
+                    "recording.recording_id AS recording_id, " +
+                    "track.track_title AS track_title, " +
+                    "track_weight.weight AS weight, " +
+                    "recording.live AS live, " +
+                    "album.album_title AS album_title, " +
                     "artist.artist_name AS artist_name " +
                 "FROM recording " +
                 "LEFT JOIN track ON recording.recording_id=track.recording_id " +
                 "LEFT JOIN album ON track.album_id=album.album_id " +
-                "LEFT JOIN artist on album.artist_id=artist.artist_id " +
+                "LEFT JOIN artist ON album.artist_id=artist.artist_id " +
                 "LEFT JOIN track_weight ON track.track_id=track_weight.track_id " +
-                "WHERE track.song_id = @songID;";
+                "WHERE track.song_id=@songID;";
 
             readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
 
@@ -818,7 +871,7 @@ namespace MusicPlayer
             readTracks.CommandText =
                 "SELECT track.song_id AS song_id " +
                 "FROM track " +
-                "WHERE track.recording_id = @recordingID " +
+                "WHERE track.recording_id=@recordingID " +
                 "LIMIT 1;";
             readTracks.Parameters.Add(new SQLiteParameter("@recordingID", recordingID));
 
@@ -854,7 +907,7 @@ namespace MusicPlayer
                 "SELECT song.song_title AS song_title, artist.artist_name AS artist_name " +
                 "FROM song " +
                 "LEFT JOIN artist ON song.artist_id=artist.artist_id " +
-                "WHERE song.song_id = @songID " +
+                "WHERE song.song_id=@songID " +
                 "LIMIT 1;";
             readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
 
@@ -889,7 +942,7 @@ namespace MusicPlayer
                 "LEFT JOIN album ON track.album_id=album.album_id " +
                 "LEFT JOIN song ON track.song_id=song.song_id " +
                 "LEFT JOIN artist ON album.artist_id=artist.artist_id " +
-                "WHERE track.album_id = @albumID ORDER BY track.track_number ASC;";
+                "WHERE track.album_id=@albumID ORDER BY track.track_number ASC;";
             readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
 
             using (SQLiteDataReader reader = readTracks.ExecuteReader())
@@ -923,7 +976,7 @@ namespace MusicPlayer
                 "SELECT song.song_id AS song_id, song.song_title AS song_title, artist.artist_name AS artist_name " +
                 "FROM song " +
                 "LEFT JOIN artist ON song.artist_id=artist.artist_id " +
-                "WHERE song.artist_id = @artistID ORDER BY song.song_title ASC;";
+                "WHERE song.artist_id=@artistID ORDER BY song.song_title ASC;";
             readTracks.Parameters.Add(new SQLiteParameter("@artistID", artistID));
 
             using (SQLiteDataReader reader = readTracks.ExecuteReader())
@@ -954,9 +1007,12 @@ namespace MusicPlayer
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT track.track_title AS track_title, artist.artist_name AS artist_name, recording.filename AS filename " +
+                "SELECT " +
+                    "track.track_title AS track_title, " +
+                    "artist.artist_name AS artist_name, " +
+                    "recording.filename AS filename " +
                 "FROM track " +
-                "LEFT JOIN song ON song.song_id=track.song_id " +
+                "LEFT JOIN song ON track.song_id=song.song_id " +
                 "LEFT JOIN artist ON song.artist_id=artist.artist_id " +
                 "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
                 "WHERE track.song_id=@songID ORDER BY recording.live " +
@@ -989,7 +1045,7 @@ namespace MusicPlayer
             readTracks.CommandText =
                 "SELECT track.track_title AS track_title, artist.artist_name AS artist_name, recording.filename AS filename " +
                 "FROM track " +
-                "LEFT JOIN song ON song.song_id=track.song_id " +
+                "LEFT JOIN song ON track.song_id=song.song_id " +
                 "LEFT JOIN artist ON song.artist_id=artist.artist_id " +
                 "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
                 "WHERE track.track_id=@trackID " +
@@ -1020,10 +1076,13 @@ namespace MusicPlayer
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT track.track_title AS track_title, artist.artist_name AS artist_name, recording.filename AS filename " +
+                "SELECT " +
+                    "track.track_title AS track_title, " +
+                    "artist.artist_name AS artist_name, " +
+                    "recording.filename AS filename " +
                 "FROM recording " +
                 "LEFT JOIN track ON recording.recording_id=track.recording_id " +
-                "LEFT JOIN song ON song.song_id=track.song_id " +
+                "LEFT JOIN song ON track.song_id=song.song_id " +
                 "LEFT JOIN artist ON song.artist_id=artist.artist_id " +
                 "WHERE recording.recording_id=@recordingID " +
                 "LIMIT 1;";
@@ -1059,7 +1118,11 @@ namespace MusicPlayer
                 case LibraryContext.Artist:
                     {
                         readTracks.CommandText =
-                            "SELECT artist_name FROM artist WHERE artist_id=@ID LIMIT 1;";
+                            "SELECT " +
+                                "artist_name " +
+                            "FROM artist " +
+                            "WHERE artist_id=@ID " +
+                            "LIMIT 1;";
                     }
                     break;
                 case LibraryContext.Album:
@@ -1070,7 +1133,7 @@ namespace MusicPlayer
                                 "album.album_title AS album_title, " +
                                 "album.album_year AS album_year " +
                             "FROM album " +
-                            "LEFT JOIN artist ON artist.artist_id=album.artist_id " +
+                            "LEFT JOIN artist ON album.artist_id=artist.artist_id " +
                             "WHERE album.album_id=@ID " +
                             "LIMIT 1;";
                     }
@@ -1080,16 +1143,56 @@ namespace MusicPlayer
                         readTracks.CommandText =
                             "SELECT " +
                                 "song.song_title AS song_title, " +
-                                "song.live AS live, " +
                                 "artist.artist_name AS artist_name, " +
                                 "album.album_title AS album_title, " +
                                 "album.album_year AS album_year, " +
-                                "track.track_number AS track_number " +
                             "FROM song " +
-                            "LEFT JOIN artist ON artist.artist_id=song.artist_id " +
-                            "LEFT JOIN track ON track.song_id=song.song_id " +
-                            "LEFT JOIN album ON album.album_id=track.album_id " +
+                            "LEFT JOIN artist ON song.artist_id=artist.artist_id " +
+                            "LEFT JOIN track ON song.song_id=track.song_id " +
+                            "LEFT JOIN album ON track.album_id=album.album_id " +
                             "WHERE song.song_id=@ID " +
+                            "LIMIT 1;";
+                    }
+                    break;
+                case LibraryContext.Track:
+                    {
+                        readTracks.CommandText =
+                            "SELECT " +
+                                "song.song_title AS song_title, " +
+                                "artist.artist_name AS artist_name, " +
+                                "album.album_title AS album_title, " +
+                                "album.album_year AS album_year, " +
+                                "track.track_title AS track_title, " +
+                                "track.track_number AS track_number, " +
+                                "recording.filename AS filename, " +
+                                "recording.live AS live " +
+                            "FROM track " +
+                            "LEFT JOIN song ON track.song_id=song.song_id " +
+                            "LEFT JOIN artist ON song.artist_id=artist.artist_id " +
+                            "LEFT JOIN album ON track.album_id=album.album_id " +
+                            "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
+                            "WHERE track.track_id=@ID " +
+                            "LIMIT 1;";
+                    }
+                    break;
+                case LibraryContext.Recording:
+                    {
+                        readTracks.CommandText =
+                            "SELECT " +
+                                "song.song_title AS song_title, " +
+                                "track.track_title AS track_title, " +
+                                "track.track_number AS track_number, " +
+                                "artist.artist_name AS artist_name, " +
+                                "album.album_title AS album_title, " +
+                                "album.album_year AS album_year, " +
+                                "recording.filename AS filename, " +
+                                "recording.live AS live " +
+                            "FROM recording " +
+                            "LEFT JOIN track ON recording.recording_id=track.recording_id " +
+                            "LEFT JOIN song ON track.song_id=song.song_id " +
+                            "LEFT JOIN artist ON song.artist_id=artist.artist_id " +
+                            "LEFT JOIN album ON track.album_id=album.album_id " +
+                            "WHERE recording.recording_id=@ID " +
                             "LIMIT 1;";
                     }
                     break;
@@ -1103,57 +1206,85 @@ namespace MusicPlayer
             {
                 if (reader.Read())
                 {
-                    if (context == LibraryContext.Song)
+                    if (context == LibraryContext.Track ||
+                        context == LibraryContext.Recording)
                     {
+                        tagList.Add(new TagViewable
+                        {
+                            _CurrentValue = (string)reader["filename"],
+                            recordType = TagEditor.MusicRecord.Filename
+                        });
+
                         tagList.Add(new TagDataString
                         {
-                            _CurrentValue = (string)reader["song_title"],
-                            NewValue = (string)reader["song_title"],
-                            TagType = TagEditor.MusicTag.SongTitle
+                            _currentValue = (string)reader["track_title"],
+                            NewValue = (string)reader["track_title"],
+                            recordType = TagEditor.MusicRecord.TrackTitle,
+                            tagType = TagEditor.ID3TagType.Title
+                        });
+
+                        tagList.Add(new TagDataLong
+                        {
+                            _currentValue = (long)reader["track_number"],
+                            _newValue = (long)reader["track_number"],
+                            recordType = TagEditor.MusicRecord.TrackNumber,
+                            tagType = TagEditor.ID3TagType.Track
                         });
 
                         tagList.Add(new TagDataBool()
                         {
                             _currentValue = (bool)reader["live"],
                             NewValue = (bool)reader["live"],
-                            TagType = TagEditor.MusicTag.Live
+                            recordType = TagEditor.MusicRecord.Live
                         });
+                    }
 
-                        tagList.Add(new TagDataLong
+                    if (context == LibraryContext.Song ||
+                        context == LibraryContext.Track ||
+                        context == LibraryContext.Recording)
+                    {
+                        tagList.Add(new TagDataString
                         {
-                            _CurrentValue = (long)reader["track_number"],
-                            _NewValue = (long)reader["track_number"],
-                            TagType = TagEditor.MusicTag.TrackNumber
+                            _currentValue = (string)reader["song_title"],
+                            NewValue = (string)reader["song_title"],
+                            recordType = TagEditor.MusicRecord.SongTitle
                         });
                     }
 
                     if (context == LibraryContext.Album ||
-                        context == LibraryContext.Song)
+                        context == LibraryContext.Song ||
+                        context == LibraryContext.Track ||
+                        context == LibraryContext.Recording)
                     {
                         tagList.Add(new TagDataString
                         {
-                            _CurrentValue = (string)reader["album_title"],
+                            _currentValue = (string)reader["album_title"],
                             NewValue = (string)reader["album_title"],
-                            TagType = TagEditor.MusicTag.AlbumTitle
+                            recordType = TagEditor.MusicRecord.AlbumTitle,
+                            tagType = TagEditor.ID3TagType.Album
                         });
 
                         tagList.Add(new TagDataLong
                         {
-                            _CurrentValue = (long)reader["album_year"],
-                            _NewValue = (long)reader["album_year"],
-                            TagType = TagEditor.MusicTag.AlbumYear
+                            _currentValue = (long)reader["album_year"],
+                            _newValue = (long)reader["album_year"],
+                            recordType = TagEditor.MusicRecord.AlbumYear,
+                            tagType = TagEditor.ID3TagType.Year
                         });
                     }
 
                     if (context == LibraryContext.Artist ||
                         context == LibraryContext.Album ||
-                        context == LibraryContext.Song)
+                        context == LibraryContext.Song ||
+                        context == LibraryContext.Track ||
+                        context == LibraryContext.Recording)
                     {
                         tagList.Add(new TagDataString
                         {
-                            _CurrentValue = (string)reader["artist_name"],
+                            _currentValue = (string)reader["artist_name"],
                             NewValue = (string)reader["artist_name"],
-                            TagType = TagEditor.MusicTag.ArtistName
+                            recordType = TagEditor.MusicRecord.ArtistName,
+                            tagType = TagEditor.ID3TagType.Performer
                         });
                     }
                 }
@@ -1162,6 +1293,31 @@ namespace MusicPlayer
             dbConnection.Close();
 
             return tagList;
+        }
+
+        public List<string> GetAffectedFiles(LibraryContext context, long id)
+        {
+            List<string> affectedFiles = new List<string>();
+
+            switch (context)
+            {
+                case LibraryContext.Artist:
+                    break;
+                case LibraryContext.Album:
+                    break;
+                case LibraryContext.Song:
+                    break;
+                case LibraryContext.Track:
+                    break;
+                case LibraryContext.Recording:
+                    break;
+                case LibraryContext.MAX:
+                default:
+                    throw new Exception("Unexpected LibraryContext: " + context);
+            }
+
+            throw new NotImplementedException();
+            return affectedFiles;
         }
     }
 }
