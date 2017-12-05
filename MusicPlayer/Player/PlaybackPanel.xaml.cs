@@ -12,6 +12,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.Threading;
+using CSCore;
+using CSCore.Codecs;
+using CSCore.CoreAudioAPI;
+using CSCore.SoundOut;
 
 namespace MusicPlayer.Player
 {
@@ -20,7 +24,8 @@ namespace MusicPlayer.Player
     /// </summary>
     public partial class PlaybackPanel : UserControl
     {
-        CSCore.SoundOut.WaveOut waveOut = null;
+        private ISoundOut _soundOut;
+        private IWaveSource _waveSource;
 
         DataStructures.PlayData lastPlay;
 
@@ -28,22 +33,22 @@ namespace MusicPlayer.Player
 
         bool prepareNext = false;
 
-        string playString;
-        string pauseString;
+        const string playString = "▶";
+        const string pauseString = "||";
+
+        private int reentryBlock = 0;
+
+        public event EventHandler<PlaybackStoppedEventArgs> PlaybackStopped;
 
         public PlaybackPanel()
         {
-            playString = "▶";
-            pauseString = "||";
             InitializeComponent();
 
-            waveOut = new CSCore.SoundOut.WaveOut();
+            PlaybackStopped += SongFinished;
 
             playButton.Content = playString;
             playButton.Foreground = new SolidColorBrush(Colors.Black);
             stopButton.Foreground = new SolidColorBrush(Colors.Black);
-
-            waveOut.Stopped += SongFinished;
 
             playTimer = new DispatcherTimer
             {
@@ -61,9 +66,7 @@ namespace MusicPlayer.Player
         public event SimpleEvent BackClicked;
         public event SimpleEvent PlaybackFinished;
 
-        private int reentryBlock = 0;
-
-        public void SongFinished(object sender, CSCore.SoundOut.PlaybackStoppedEventArgs e)
+        public void SongFinished(object sender, PlaybackStoppedEventArgs e)
         {
             if (reentryBlock == 0)
             {
@@ -81,18 +84,23 @@ namespace MusicPlayer.Player
 
         public void CleanUp()
         {
-            switch (waveOut.PlaybackState)
+            if (_soundOut == null)
             {
-                case CSCore.SoundOut.PlaybackState.Stopped:
+                return;
+            }
+
+            switch (_soundOut.PlaybackState)
+            {
+                case PlaybackState.Stopped:
                     //Do nothing
                     break;
-                case CSCore.SoundOut.PlaybackState.Playing:
-                case CSCore.SoundOut.PlaybackState.Paused:
+                case PlaybackState.Playing:
+                case PlaybackState.Paused:
                     ManualStop();
                     break;
                 default:
                     ManualStop();
-                    Console.WriteLine("Unexpeted playbackState: " + waveOut.PlaybackState);
+                    Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
                     return;
             }
         }
@@ -100,20 +108,22 @@ namespace MusicPlayer.Player
         public void PlaySong(DataStructures.PlayData playData)
         {
             lastPlay = playData;
-
-            switch (waveOut.PlaybackState)
+            if (_soundOut != null)
             {
-                case CSCore.SoundOut.PlaybackState.Stopped:
-                    //Do nothing
-                    break;
-                case CSCore.SoundOut.PlaybackState.Playing:
-                case CSCore.SoundOut.PlaybackState.Paused:
-                    ManualStop();
-                    break;
-                default:
-                    ManualStop();
-                    Console.WriteLine("Unexpeted playbackState: " + waveOut.PlaybackState);
-                    return;
+                switch (_soundOut.PlaybackState)
+                {
+                    case PlaybackState.Stopped:
+                        //Do nothing
+                        break;
+                    case PlaybackState.Playing:
+                    case PlaybackState.Paused:
+                        ManualStop();
+                        break;
+                    default:
+                        ManualStop();
+                        Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
+                        return;
+                }
             }
 
             if (string.IsNullOrEmpty(playData.filename))
@@ -122,58 +132,99 @@ namespace MusicPlayer.Player
             }
 
             songLabel.Content = String.Format("{0} - {1}", playData.artistName, playData.songTitle);
-            if(waveOut.WaveSource != null)
+
+            if (_soundOut != null)
             {
-                waveOut.WaveSource.Dispose();
+                _soundOut.Dispose();
+                _soundOut = null;
             }
-            waveOut.Initialize(new CSCore.Codecs.MP3.DmoMp3Decoder(System.IO.File.OpenRead(playData.filename)));
-            waveOut.Play();
+
+            if (_waveSource != null)
+            {
+                _waveSource.Dispose();
+                _waveSource = null;
+            }
+
+            if (!System.IO.File.Exists(playData.filename))
+            {
+                return;
+            }
+
+            _waveSource = CodecFactory.Instance.GetCodec(playData.filename)
+                .ToSampleSource()
+                .ToStereo()
+                .ToWaveSource();
+
+            _soundOut = new WasapiOut()
+            {
+                Latency = 100,
+                Device = MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia)
+            };
+
+            _soundOut.Initialize(_waveSource);
+
+            if (PlaybackStopped != null)
+            {
+                _soundOut.Stopped += PlaybackStopped;
+            }
+
+            _soundOut.Play();
 
             stopButton.Foreground = new SolidColorBrush(Colors.Red);
             playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
             playButton.Content = pauseString;
 
-            progressSlider.TickFrequency = 0.25 * waveOut.WaveSource.WaveFormat.BytesPerSecond;
-            progressSlider.Maximum = waveOut.WaveSource.Length;
+            progressSlider.TickFrequency = 0.25 * _waveSource.WaveFormat.BytesPerSecond;
+            progressSlider.Maximum = _waveSource.Length;
         }
 
         public void OnPlayClick(object sender, RoutedEventArgs e)
         {
-            switch (waveOut.PlaybackState)
+            if (_soundOut == null)
             {
-                case CSCore.SoundOut.PlaybackState.Stopped:
+                return;
+            }
+
+            switch (_soundOut.PlaybackState)
+            {
+                case PlaybackState.Stopped:
                     PlaySong(lastPlay);
                     break;
-                case CSCore.SoundOut.PlaybackState.Playing:
-                    waveOut.Pause();
+                case PlaybackState.Playing:
+                    _soundOut.Pause();
                     playButton.Content = playString;
                     break;
-                case CSCore.SoundOut.PlaybackState.Paused:
-                    waveOut.Play();
+                case PlaybackState.Paused:
+                    _soundOut.Play();
                     playButton.Content = pauseString;
                     break;
                 default:
                     ManualStop();
-                    Console.WriteLine("Unexpeted playbackState: " + waveOut.PlaybackState);
+                    Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
                     return;
             }
         }
 
         public void OnStopClick(object sender, RoutedEventArgs e)
         {
-            switch (waveOut.PlaybackState)
+            if (_soundOut == null)
             {
-                case CSCore.SoundOut.PlaybackState.Stopped:
+                return;
+            }
+
+            switch (_soundOut.PlaybackState)
+            {
+                case PlaybackState.Stopped:
                     //Do nothing
                     break;
-                case CSCore.SoundOut.PlaybackState.Playing:
-                case CSCore.SoundOut.PlaybackState.Paused:
+                case PlaybackState.Playing:
+                case PlaybackState.Paused:
                     ManualStop();
                     playButton.Content = playString;
                     break;
                 default:
                     ManualStop();
-                    Console.WriteLine("Unexpeted playbackState: " + waveOut.PlaybackState);
+                    Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
                     return;
             }
 
@@ -187,11 +238,12 @@ namespace MusicPlayer.Player
 
         public void OnBackClick(object sender, RoutedEventArgs e)
         {
-            if (waveOut.PlaybackState == CSCore.SoundOut.PlaybackState.Playing &&
-                waveOut.WaveSource.Position > 2.0f * waveOut.WaveSource.WaveFormat.BytesPerSecond)
+            if (_soundOut != null && _waveSource != null &&
+                _soundOut.PlaybackState == PlaybackState.Playing &&
+                _waveSource.Position > 2.0f * _waveSource.WaveFormat.BytesPerSecond)
             {
                 //Restart if it's within the first 3 seconds
-                waveOut.WaveSource.Position = 0;
+                _waveSource.Position = 0;
             }
             else
             {
@@ -202,24 +254,27 @@ namespace MusicPlayer.Player
         private void ManualStop()
         {
             ++reentryBlock;
-            waveOut.Stop();
+            _soundOut.Stop();
             --reentryBlock;
         }
 
         private void Tick_ProgressTimer(object s, EventArgs e)
         {
-            switch (waveOut.PlaybackState)
+            if (_soundOut != null && _waveSource != null)
             {
-                case CSCore.SoundOut.PlaybackState.Stopped:
-                    //Do nothing
-                    break;
-                case CSCore.SoundOut.PlaybackState.Playing:
-                case CSCore.SoundOut.PlaybackState.Paused:
-                    progressSlider.Value = waveOut.WaveSource.Position;
-                    break;
-                default:
-                    Console.WriteLine("Unexpeted playbackState: " + waveOut.PlaybackState);
-                    return;
+                switch (_soundOut.PlaybackState)
+                {
+                    case PlaybackState.Stopped:
+                        //Do nothing
+                        break;
+                    case PlaybackState.Playing:
+                    case PlaybackState.Paused:
+                        progressSlider.Value = _waveSource.Position;
+                        break;
+                    default:
+                        Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
+                        return;
+                }
             }
 
             if (prepareNext)
@@ -231,17 +286,22 @@ namespace MusicPlayer.Player
 
         private void Slider_Drag(object s, DragDeltaEventArgs e)
         {
-            switch (waveOut.PlaybackState)
+            if (_soundOut == null || _waveSource == null)
             {
-                case CSCore.SoundOut.PlaybackState.Stopped:
+                return;
+            }
+
+            switch (_soundOut.PlaybackState)
+            {
+                case PlaybackState.Stopped:
                     //Do nothing
                     break;
-                case CSCore.SoundOut.PlaybackState.Playing:
-                case CSCore.SoundOut.PlaybackState.Paused:
-                    waveOut.WaveSource.Position = (long)progressSlider.Value;
+                case PlaybackState.Playing:
+                case PlaybackState.Paused:
+                    _waveSource.Position = (long)progressSlider.Value;
                     break;
                 default:
-                    Console.WriteLine("Unexpeted playbackState: " + waveOut.PlaybackState);
+                    Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
                     return;
             }
         }

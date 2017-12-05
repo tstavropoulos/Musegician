@@ -37,6 +37,7 @@ namespace MusicPlayer.DataStructures
         public long recordingID;
         public string trackTitle;
         public long trackNumber;
+        public long discNumber;
         public double weight;
     }
 
@@ -211,7 +212,16 @@ namespace MusicPlayer.DataStructures
             get { return _newValue.ToString(); }
             set
             {
-                long temp = long.Parse(value);
+                long temp;
+                if(value == "")
+                {
+                    temp = 0;
+                }
+                else
+                {
+                    temp = long.Parse(value);
+                }
+
                 if (_newValue != temp)
                 {
                     _newValue = temp;

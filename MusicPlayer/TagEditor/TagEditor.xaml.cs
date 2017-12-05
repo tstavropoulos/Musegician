@@ -53,7 +53,7 @@ namespace MusicPlayer.TagEditor
     public partial class TagEditor : Window
     {
         private FileManager fileManager;
-        private long id;
+        private List<long> ids;
         private LibraryContext context;
 
         List<TagData> tags;
@@ -68,10 +68,23 @@ namespace MusicPlayer.TagEditor
             InitializeComponent();
 
             this.context = context;
-            this.id = id;
+            this.ids = new List<long>(new long[] { id });
             this.fileManager = fileManager;
 
             tags = fileManager.GetTagData(context, id);
+
+            tagView.ItemsSource = Tags;
+        }
+
+        public TagEditor(LibraryContext context, List<long> ids, FileManager fileManager)
+        {
+            InitializeComponent();
+
+            this.context = context;
+            this.ids = ids;
+            this.fileManager = fileManager;
+
+            tags = fileManager.GetTagData(context, ids[0]);
 
             tagView.ItemsSource = Tags;
         }
@@ -113,40 +126,43 @@ namespace MusicPlayer.TagEditor
 
             if (ID3Updates)
             {
-                List<string> paths = fileManager.GetAffectedFiles(context, id);
-
-                foreach (string path in paths)
+                foreach (long id in ids)
                 {
-                    TagLib.File file = null;
+                    List<string> paths = fileManager.GetAffectedFiles(context, id);
 
-                    try
+                    foreach (string path in paths)
                     {
-                        file = TagLib.File.Create(path);
-                        file.Mode = TagLib.File.AccessMode.Write;
-                    }
-                    catch (TagLib.UnsupportedFormatException)
-                    {
-                        Console.WriteLine("UNSUPPORTED FILE: " + path);
-                        Console.WriteLine(String.Empty);
-                        Console.WriteLine("---------------------------------------");
-                        Console.WriteLine(String.Empty);
-                        continue;
-                    }
-                    catch (System.IO.IOException)
-                    {
-                        file.Mode = TagLib.File.AccessMode.Closed;
-                        file.Dispose();
-                        Console.WriteLine("FILE IN USE: " + path);
-                        Console.WriteLine("SKIPPING");
-                        Console.WriteLine(String.Empty);
-                        Console.WriteLine("---------------------------------------");
-                        Console.WriteLine(String.Empty);
-                        continue;
-                    }
+                        TagLib.File file = null;
 
-                    UpdateTags(file, tags);
+                        try
+                        {
+                            file = TagLib.File.Create(path);
+                            file.Mode = TagLib.File.AccessMode.Write;
+                        }
+                        catch (TagLib.UnsupportedFormatException)
+                        {
+                            Console.WriteLine("UNSUPPORTED FILE: " + path);
+                            Console.WriteLine(String.Empty);
+                            Console.WriteLine("---------------------------------------");
+                            Console.WriteLine(String.Empty);
+                            continue;
+                        }
+                        catch (System.IO.IOException)
+                        {
+                            file.Mode = TagLib.File.AccessMode.Closed;
+                            file.Dispose();
+                            Console.WriteLine("FILE IN USE: " + path);
+                            Console.WriteLine("SKIPPING");
+                            Console.WriteLine(String.Empty);
+                            Console.WriteLine("---------------------------------------");
+                            Console.WriteLine(String.Empty);
+                            continue;
+                        }
 
-                    file.Save();
+                        UpdateTags(file, tags);
+
+                        file.Save();
+                    }
                 }
             }
 
@@ -177,6 +193,8 @@ namespace MusicPlayer.TagEditor
 
         private void UpdateRecord(MusicRecord record, TagData tag)
         {
+            Console.WriteLine("Skipping real record update.");
+            return;
             switch (record)
             {
                 case MusicRecord.SongTitle:
@@ -187,7 +205,7 @@ namespace MusicPlayer.TagEditor
                     {
                         if (tag is TagDataString data)
                         {
-                            fileManager.UpdateRecord(record, data.NewValue);
+                            fileManager.UpdateRecord(context, ids, record, data.NewValue);
                         }
                     }
                     break;

@@ -18,7 +18,12 @@ namespace MusicPlayer
         private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3" };
         private readonly string[] songNameDelimiter = new string[] { " - " };
 
-        private const string livePattern = @"(\s*?[\(\[][Ll]ive.*?[\)\]])";
+        private const string livePatternA = @"(\s*?[\(\[][Ll]ive.*?[\)\]])";
+        private const string livePatternB = @"(\s*?[\(\[][Bb]ootleg.*?[\)\]])";
+        private const string explicitCleanupPattern = @"(\s*?[\(\[][Ee]xplicit.*?[\)\]])";
+        private const string albumVersionCleanupPattern = @"(\s*?[\(\[][Aa]lbum.*?[\)\]])";
+        private const string discNumberPattern = @"(\s*?[\(\[][Dd]isc.*?\d+[\)\]])";
+        private const string numberExtractor = @"(\d+)";
 
         private const string songDBFilename = "SongDB.sqlite";
 
@@ -143,7 +148,8 @@ namespace MusicPlayer
                         "album_id INTEGER REFERENCES album, " +
                         "recording_id INTEGER REFERENCES recording, " +
                         "track_title TEXT, " +
-                        "track_number INTEGER);";
+                        "track_number INTEGER, " +
+                        "disc_number INTEGER);";
 
                 string makeTrackWeightTable =
                     "CREATE TABLE track_weight (" +
@@ -415,14 +421,15 @@ namespace MusicPlayer
                     writeTrack.Transaction = writeTracksTransaction;
                     writeTrack.CommandType = System.Data.CommandType.Text;
                     writeTrack.CommandText = "INSERT INTO track " +
-                        "(track_id, song_id, album_id, recording_id, track_title, track_number) VALUES " +
-                        "(@trackID, @songID, @albumID, @recordingID, @trackTitle, @trackNumber);";
+                        "(track_id, song_id, album_id, recording_id, track_title, track_number, disc_number) VALUES " +
+                        "(@trackID, @songID, @albumID, @recordingID, @trackTitle, @trackNumber, @discNumber);";
                     writeTrack.Parameters.Add(new SQLiteParameter("@trackID", -1));
                     writeTrack.Parameters.Add(new SQLiteParameter("@songID", -1));
                     writeTrack.Parameters.Add(new SQLiteParameter("@albumID", -1));
                     writeTrack.Parameters.Add(new SQLiteParameter("@recordingID", -1));
                     writeTrack.Parameters.Add(new SQLiteParameter("@trackTitle", ""));
                     writeTrack.Parameters.Add(new SQLiteParameter("@trackNumber", -1));
+                    writeTrack.Parameters.Add(new SQLiteParameter("@discNumber", -1));
 
                     foreach (TrackData track in newRecords.tracks)
                     {
@@ -432,6 +439,8 @@ namespace MusicPlayer
                         writeTrack.Parameters["@recordingID"].Value = track.recordingID;
                         writeTrack.Parameters["@trackTitle"].Value = track.trackTitle;
                         writeTrack.Parameters["@trackNumber"].Value = track.trackNumber;
+                        writeTrack.Parameters["@discNumber"].Value = track.discNumber;
+
                         writeTrack.ExecuteNonQuery();
                     }
 
@@ -578,20 +587,55 @@ namespace MusicPlayer
                 albumTitle = musicFile.Tag.Album;
             }
 
+            long discNumber = 1;
+            if (musicFile.Tag.Disc != 0)
+            {
+                discNumber = musicFile.Tag.Disc;
+            }
+
             //Copy the track title before we gut it
             string trackTitle = songTitle;
 
-            bool live = false;
-            if (Regex.IsMatch(songTitle, livePattern))
+            if (Regex.IsMatch(songTitle, explicitCleanupPattern))
             {
-                live = true;
-                songTitle = Regex.Replace(songTitle, livePattern, "");
+                songTitle = Regex.Replace(songTitle, explicitCleanupPattern, "");
             }
 
-            if (Regex.IsMatch(albumTitle, livePattern))
+            if (Regex.IsMatch(songTitle, albumVersionCleanupPattern))
+            {
+                songTitle = Regex.Replace(songTitle, albumVersionCleanupPattern, "");
+            }
+
+            bool live = false;
+            if (Regex.IsMatch(songTitle, livePatternA))
             {
                 live = true;
-                albumTitle = Regex.Replace(albumTitle, livePattern, "");
+                songTitle = Regex.Replace(songTitle, livePatternA, "");
+            }
+
+            if (Regex.IsMatch(songTitle, livePatternB))
+            {
+                live = true;
+                songTitle = Regex.Replace(songTitle, livePatternB, "");
+            }
+
+            if (Regex.IsMatch(albumTitle, livePatternA))
+            {
+                live = true;
+                albumTitle = Regex.Replace(albumTitle, livePatternA, "");
+            }
+
+            if (Regex.IsMatch(albumTitle, livePatternB))
+            {
+                live = true;
+                albumTitle = Regex.Replace(albumTitle, livePatternB, "");
+            }
+
+            if(Regex.IsMatch(albumTitle, discNumberPattern))
+            {
+                string discString = Regex.Match(albumTitle, discNumberPattern).Captures[0].ToString();
+                discNumber = long.Parse(Regex.Match(discString, numberExtractor).Captures[0].ToString());
+                albumTitle = Regex.Replace(albumTitle, discNumberPattern, "");
             }
 
             long songID = -1;
@@ -651,7 +695,8 @@ namespace MusicPlayer
                 albumID = albumID,
                 recordingID = recordingID,
                 trackTitle = trackTitle,
-                trackNumber = musicFile.Tag.Track
+                trackNumber = musicFile.Tag.Track,
+                discNumber = discNumber
             });
         }
 
@@ -723,7 +768,7 @@ namespace MusicPlayer
                 "FROM track " +
                 "LEFT JOIN album ON track.album_id=album.album_id " +
                 "LEFT JOIN song ON track.song_id=song.song_id " +
-                "WHERE track.album_id=@albumID ORDER BY track.track_number ASC;";
+                "WHERE track.album_id=@albumID ORDER BY track.disc_number ASC, track.track_number ASC;";
             readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
 
             using (SQLiteDataReader reader = readTracks.ExecuteReader())
@@ -943,7 +988,7 @@ namespace MusicPlayer
                 "LEFT JOIN album ON track.album_id=album.album_id " +
                 "LEFT JOIN song ON track.song_id=song.song_id " +
                 "LEFT JOIN artist ON album.artist_id=artist.artist_id " +
-                "WHERE track.album_id=@albumID ORDER BY track.track_number ASC;";
+                "WHERE track.album_id=@albumID ORDER BY track.disc_number ASC, track.track_number ASC;";
             readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
 
             using (SQLiteDataReader reader = readTracks.ExecuteReader())
@@ -1431,6 +1476,9 @@ namespace MusicPlayer
 
                                     using (SQLiteTransaction updateArtistNames = dbConnection.BeginTransaction())
                                     {
+                                        throw new NotImplementedException();
+
+                                        //First see if it exists
                                         SQLiteCommand updateValues = dbConnection.CreateCommand();
                                         updateValues.CommandType = System.Data.CommandType.Text;
                                         updateValues.Parameters.Add(new SQLiteParameter("@Value", newString));
@@ -1555,12 +1603,16 @@ namespace MusicPlayer
                                     //Now, delete any old artists with no remaining albums
                                     SQLiteCommand deleteArtists = dbConnection.CreateCommand();
                                     deleteArtists.CommandType = System.Data.CommandType.Text;
-                                    deleteArtists.Parameters.Add(new SQLiteParameter("@ArtistID", artistID));
                                     deleteArtists.Parameters.Add(new SQLiteParameter("@ID", -1));
                                     deleteArtists.CommandText =
-                                        "UPDATE track " +
-                                        "SET track.artist_id=@ArtistID" +
-                                        "WHERE track.album_id=@ID;";
+                                        "SELECT artist.artist_id " +
+                                        "FROM artist " +
+                                        "WHERE artist.artist_id=@ID;";
+                                    foreach(long id in oldArtistIDs)
+                                    {
+                                        deleteArtists.Parameters["@ID"].Value = id;
+                                        deleteArtists.ExecuteNonQuery();
+                                    }
 
 
 
