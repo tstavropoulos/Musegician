@@ -25,6 +25,8 @@ namespace MusicPlayer
     {
         FileManager fileMan = null;
 
+        //public double Volume { get; set; } = 1.0;
+
         public MainWindow()
         {
             InitializeComponent();

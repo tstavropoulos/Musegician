@@ -40,6 +40,23 @@ namespace MusicPlayer.Player
 
         public event EventHandler<PlaybackStoppedEventArgs> PlaybackStopped;
 
+        private double _volume = 1.0;
+        public double Volume
+        {
+            get { return _volume; }
+            set
+            {
+                if (_volume != value)
+                {
+                    _volume = value;
+                    if (_soundOut != null)
+                    {
+                        _soundOut.Volume = (float)_volume;
+                    }
+                }
+            }
+        }
+
         public PlaybackPanel()
         {
             InitializeComponent();
@@ -150,15 +167,25 @@ namespace MusicPlayer.Player
                 return;
             }
 
+            
+
             _waveSource = CodecFactory.Instance.GetCodec(playData.filename)
                 .ToSampleSource()
                 .ToStereo()
                 .ToWaveSource();
+            
+            
+            MMDevice device = MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            
+            if (device == null)
+            {
+                return;
+            }
 
             _soundOut = new WasapiOut()
             {
                 Latency = 100,
-                Device = MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia)
+                Device = device,
             };
 
             _soundOut.Initialize(_waveSource);
@@ -169,6 +196,7 @@ namespace MusicPlayer.Player
             }
 
             _soundOut.Play();
+            _soundOut.Volume = (float)Volume;
 
             stopButton.Foreground = new SolidColorBrush(Colors.Red);
             playButton.Foreground = new SolidColorBrush(Colors.LightGreen);

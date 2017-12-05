@@ -6,30 +6,29 @@
              xmlns:local="clr-namespace:MusicPlayer.Player"
              mc:Ignorable="d"
              Height="75">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition />
-            <ColumnDefinition />
-            <ColumnDefinition />
-            <ColumnDefinition />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition />
-            <RowDefinition />
-            <RowDefinition />
-        </Grid.RowDefinitions>
-        <Label Name="songLabel"  Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="0" Background="Black" Foreground="Wheat" HorizontalContentAlignment="Center"></Label>
-        <Button Grid.Column="0" Grid.Row="2" Content="➔" Click="OnBackClick">
-            <Button.LayoutTransform>
-                <TransformGroup>
-                    <ScaleTransform ScaleX="-1"/>
-                </TransformGroup>
-            </Button.LayoutTransform>
-        </Button>
-        <Slider Name="progressSlider" Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" VerticalAlignment="Center" Thumb.DragDelta="Slider_Drag"/>
-        <Button Name="stopButton" Grid.Column="1" Grid.Row="2" Content="■" Click="OnStopClick"/>
-        <Button Name="playButton" Grid.Column="2" Grid.Row="2" Content="▶" Click="OnPlayClick"/>
-        <Button Grid.Column="3" Grid.Row="2" Content="➔" Click="OnNextClick"/>
-    </Grid>
-
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Label Name="songLabel"  Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="0" Background="Black" Foreground="Wheat" HorizontalContentAlignment="Center"></Label>
+            <Button Grid.Column="0" Grid.Row="2" Content="➔" Click="OnBackClick">
+                <Button.LayoutTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="-1"/>
+                    </TransformGroup>
+                </Button.LayoutTransform>
+            </Button>
+            <Slider Name="progressSlider" Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" VerticalAlignment="Center" Thumb.DragDelta="Slider_Drag"/>
+            <Button Name="stopButton" Grid.Column="1" Grid.Row="2" Content="■" Click="OnStopClick"/>
+            <Button Name="playButton" Grid.Column="2" Grid.Row="2" Content="▶" Click="OnPlayClick"/>
+            <Button Grid.Column="3" Grid.Row="2" Content="➔" Click="OnNextClick"/>
+        </Grid>
 </UserControl>

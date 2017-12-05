@@ -12,45 +12,58 @@
         Closing="WindowClosing"
         Style="{StaticResource {x:Type Window}}">
     <DockPanel>
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="_File">
-                <MenuItem x:Name="MenuAppExit"
-                          Header="E_xit"
-                          Click="MenuQuitClick"/>
-            </MenuItem>
-            <MenuItem Header="_Library">
-                <MenuItem x:Name="MenuOpenDirectory"
-                          Header="_Add Music Directory"
-                          Click="MenuOpenClick"/>
-                <Separator />
-                <MenuItem x:Name="MenuClearLibrary"
-                          Header="_Clear Library"
-                          Click="MenuClearLibraryClick"/>
-            </MenuItem>
-            <MenuItem Header="_Playlist">
-                <MenuItem x:Name="MenuPlaylistSave"
-                          Header="_Save Playlist"
-                          Click="Menu_SavePlaylist"/>
-                <MenuItem x:Name="MenuPlaylistLoad"
-                          Header="_Load Playlist"
-                          Click="Menu_LoadPlaylist"/>
-                <Separator />
-                <MenuItem x:Name="MenuPlaylistShuffle"
-                          Header="Shu_ffle Playlist"
-                          Click="Menu_ShufflePlaylist"
-                          IsCheckable="True"
-                          IsChecked="{Binding ElementName=playlistControl, Path=Shuffle}"/>
-                <MenuItem x:Name="MenuPlaylistRepeat"
-                          Header="_Repeat Playlist"
-                          Click="Menu_RepeatPlaylist"
-                          IsCheckable="True"
-                          IsChecked="{Binding ElementName=playlistControl, Path=Repeat}"/>
-                <Separator />
-                <MenuItem x:Name="MenuPlaylistClear"
-                          Header="_Clear Playlist"
-                          Click="Menu_ClearPlaylist"/>
-            </MenuItem>
-        </Menu>
+        <DockPanel DockPanel.Dock="Top">
+            <DockPanel DockPanel.Dock="Right">
+                <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center">🔊</TextBlock>
+                <Slider Name="volumeSlider" 
+                        Orientation="Horizontal"
+                        Minimum="0.0" 
+                        Maximum="1.0" 
+                        Value="{Binding Path=Volume, ElementName=playbackPanel, Mode=TwoWay}" 
+                        Width="100" 
+                        VerticalAlignment="Center"/>
+            </DockPanel>
+            <Menu>
+                <MenuItem Header="_File">
+                    <MenuItem x:Name="MenuAppExit"
+                              Header="E_xit"
+                              Click="MenuQuitClick"/>
+                </MenuItem>
+                <MenuItem Header="_Library">
+                    <MenuItem x:Name="MenuOpenDirectory"
+                              Header="_Add Music Directory"
+                              Click="MenuOpenClick"/>
+                    <Separator />
+                    <MenuItem x:Name="MenuClearLibrary"
+                              Header="_Clear Library"
+                              Click="MenuClearLibraryClick"/>
+                </MenuItem>
+                <MenuItem Header="_Playlist">
+                    <MenuItem x:Name="MenuPlaylistSave"
+                              Header="_Save Playlist"
+                              Click="Menu_SavePlaylist"/>
+                    <MenuItem x:Name="MenuPlaylistLoad"
+                              Header="_Load Playlist"
+                              Click="Menu_LoadPlaylist"/>
+                    <Separator />
+                    <MenuItem x:Name="MenuPlaylistShuffle"
+                              Header="Shu_ffle Playlist"
+                              Click="Menu_ShufflePlaylist"
+                              IsCheckable="True"
+                              IsChecked="{Binding ElementName=playlistControl, Path=Shuffle}"/>
+                    <MenuItem x:Name="MenuPlaylistRepeat"
+                              Header="_Repeat Playlist"
+                              Click="Menu_RepeatPlaylist"
+                              IsCheckable="True"
+                              IsChecked="{Binding ElementName=playlistControl, Path=Repeat}"/>
+                    <Separator />
+                    <MenuItem x:Name="MenuPlaylistClear"
+                              Header="_Clear Playlist"
+                              Click="Menu_ClearPlaylist"/>
+                </MenuItem>
+            
+            </Menu>
+        </DockPanel>
         <player:PlaybackPanel x:Name="playbackPanel"
                               DockPanel.Dock="Bottom"
                               BackClicked="PlaybackPanel_BackClicked"
