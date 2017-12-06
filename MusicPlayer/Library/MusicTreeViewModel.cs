@@ -121,7 +121,7 @@ namespace MusicPlayer.Library
         {
             if (_matchingArtistEnumerator == null || !_matchingArtistEnumerator.MoveNext())
             {
-                this.VerifyMatchingArtistEnumerator();
+                VerifyMatchingArtistEnumerator();
             }
 
             var artist = _matchingArtistEnumerator.Current;
@@ -136,7 +136,7 @@ namespace MusicPlayer.Library
 
         void VerifyMatchingArtistEnumerator()
         {
-            var matches = this.FindMatchingArtists(_searchText);
+            var matches = FindMatchingArtists(_searchText);
             _matchingArtistEnumerator = matches.GetEnumerator();
 
             if (!_matchingArtistEnumerator.MoveNext())

@@ -7,6 +7,39 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,2,0,2" Background="{StaticResource DarkInsetPanel}">
+            <ToggleButton Name="shuffleToggleButton"
+                          IsChecked="{Binding Shuffle, Mode=TwoWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}}"
+                          TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
+                          Margin="1,2,4,2" Height="34" Width="34">
+                <ToggleButton.Style>
+                    <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                        <Setter Property="Content" Value="⇉"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Content" Value="🔀"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ToggleButton.Style>
+            </ToggleButton>
+            <ToggleButton Name="repeatToggleButton"
+                          IsChecked="{Binding Repeat, Mode=TwoWay, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=UserControl}}"
+                          Content="🔁" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
+                          Margin="0,0,0,0" Height="34" Width="34"/>
+            <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
+                <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+            </StackPanel>
+            <Button Name="newPlaylist"
+                    Content="🗋" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
+                    Margin="0,0,4,0" Height="33" Width="33"/>
+            <Button Name="savePlaylist"
+                    Content="💾" TextBlock.FontSize="22" TextBlock.TextAlignment="Center" 
+                    Margin="0,0,4,0" Height="33" Width="33"/>
+            <Button Name="loadPlaylist"
+                    Content="📂" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
+                    Margin="0,0,4,0" Height="33" Width="33"/>
+        </StackPanel>
         <TreeView ItemsSource="{Binding PlaylistViewModels}">
             <TreeView.ItemContainerStyle>
                 <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource {x:Type TreeViewItem}}">
@@ -52,7 +85,7 @@
                         <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </HierarchicalDataTemplate>
-                
+
                 <HierarchicalDataTemplate DataType="{x:Type local:PlaylistRecordingViewModel}">
                     <StackPanel Orientation="Horizontal">
                         <StackPanel.ContextMenu>
@@ -80,6 +113,6 @@
                     </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.Resources>
-        </TreeView>        
+        </TreeView>
     </DockPanel>
 </UserControl>

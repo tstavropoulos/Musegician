@@ -12,6 +12,7 @@
     <!--#region Colors-->
     <Color x:Key="WindowBackgroundColor">#444444</Color>
     <Color x:Key="DarkBackgroundColor">#333333</Color>
+    <Color x:Key="VeryDarkBackgroundColor">#222222</Color>
     <Color x:Key="LightBackgroundColor">#595959</Color>
     <Color x:Key="BackgroundColor">#3D3D3D</Color>
     <Color x:Key="DisabledBackgroundColor">#424242</Color>
@@ -27,6 +28,8 @@
     <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}"/>
     <SolidColorBrush x:Key="MouseOverForegroundBrush" Color="{StaticResource DarkBackgroundColor}"/>
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="{StaticResource WindowBackgroundColor}"/>
+    <SolidColorBrush x:Key="DarkInsetPanel" Color="{StaticResource VeryDarkBackgroundColor}"/>
+
 
     <SolidColorBrush x:Key="TabControlNormalBorderBrush" Color="{StaticResource WindowBackgroundColor}"/>
 

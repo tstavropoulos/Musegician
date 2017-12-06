@@ -60,12 +60,23 @@ namespace MusicPlayer.Playlist
             "Shuffle",
             typeof(bool),
             typeof(PlaylistControl),
-            new UIPropertyMetadata(false));
+            new UIPropertyMetadata(true));
 
         public bool Shuffle
         {
             get { return (bool)GetValue(_shuffle); }
-            set { SetValue(_shuffle, value); }
+            set
+            {
+                SetValue(_shuffle, value);
+                if(value)
+                {
+                    SetValue(_shuffleText, "🔀");
+                }
+                else
+                {
+                    SetValue(_shuffleText, "⇉");
+                }
+            }
         }
 
         public static readonly DependencyProperty _repeat = DependencyProperty.Register(
@@ -78,6 +89,18 @@ namespace MusicPlayer.Playlist
         {
             get { return (bool)GetValue(_repeat); }
             set { SetValue(_repeat, value); }
+        }
+
+
+        public static readonly DependencyProperty _shuffleText = DependencyProperty.Register(
+            "ShuffleText",
+            typeof(string),
+            typeof(PlaylistControl),
+            new UIPropertyMetadata("🔀"));
+
+        public string ShuffleText
+        {
+            get { return (string)GetValue(_shuffleText); }
         }
 
         public PlaylistControl()
@@ -274,7 +297,7 @@ namespace MusicPlayer.Playlist
             {
                 _playlistTree.PlaylistViewModels[index].Playing = false;
 
-                if (LastRecordingIndex >= 0 && LastRecordingIndex < _playlistTree.PlaylistViewModels[index].Recordings.Count )
+                if (LastRecordingIndex >= 0 && LastRecordingIndex < _playlistTree.PlaylistViewModels[index].Recordings.Count)
                 {
                     _playlistTree.PlaylistViewModels[index].Recordings[LastRecordingIndex].Playing = false;
                 }

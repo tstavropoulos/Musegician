@@ -36,8 +36,6 @@ namespace MusicPlayer.Player
         const string playString = "▶";
         const string pauseString = "||";
 
-        private int reentryBlock = 0;
-
         public event EventHandler<PlaybackStoppedEventArgs> PlaybackStopped;
 
         private double _volume = 1.0;
@@ -81,13 +79,13 @@ namespace MusicPlayer.Player
 
         public event SimpleEvent NextClicked;
         public event SimpleEvent BackClicked;
+        public event SimpleEvent StopClicked;
         public event SimpleEvent PlaybackFinished;
 
         public void SongFinished(object sender, PlaybackStoppedEventArgs e)
         {
-            if (reentryBlock == 0)
+            if (_soundOut != null && _soundOut.PlaybackState == PlaybackState.Stopped)
             {
-                ++reentryBlock;
                 Dispatcher.Invoke(() =>
                 {
                     playButton.Content = playString;
@@ -95,61 +93,11 @@ namespace MusicPlayer.Player
                     stopButton.Foreground = new SolidColorBrush(Colors.Black);
                     prepareNext = true;
                 });
-                --reentryBlock;
             }
         }
 
         public void CleanUp()
         {
-            if (_soundOut == null)
-            {
-                return;
-            }
-
-            switch (_soundOut.PlaybackState)
-            {
-                case PlaybackState.Stopped:
-                    //Do nothing
-                    break;
-                case PlaybackState.Playing:
-                case PlaybackState.Paused:
-                    ManualStop();
-                    break;
-                default:
-                    ManualStop();
-                    Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
-                    return;
-            }
-        }
-
-        public void PlaySong(DataStructures.PlayData playData)
-        {
-            lastPlay = playData;
-            if (_soundOut != null)
-            {
-                switch (_soundOut.PlaybackState)
-                {
-                    case PlaybackState.Stopped:
-                        //Do nothing
-                        break;
-                    case PlaybackState.Playing:
-                    case PlaybackState.Paused:
-                        ManualStop();
-                        break;
-                    default:
-                        ManualStop();
-                        Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
-                        return;
-                }
-            }
-
-            if (string.IsNullOrEmpty(playData.filename))
-            {
-                return;
-            }
-
-            songLabel.Content = String.Format("{0} - {1}", playData.artistName, playData.songTitle);
-
             if (_soundOut != null)
             {
                 _soundOut.Dispose();
@@ -161,19 +109,30 @@ namespace MusicPlayer.Player
                 _waveSource.Dispose();
                 _waveSource = null;
             }
+        }
+
+        public void PlaySong(DataStructures.PlayData playData)
+        {
+            lastPlay = playData;
+
+            if (string.IsNullOrEmpty(playData.filename))
+            {
+                return;
+            }
+
+            songLabel.Content = String.Format("{0} - {1}", playData.artistName, playData.songTitle);
+
+            CleanUp();
 
             if (!System.IO.File.Exists(playData.filename))
             {
                 return;
             }
-
             
-
             _waveSource = CodecFactory.Instance.GetCodec(playData.filename)
                 .ToSampleSource()
                 .ToStereo()
                 .ToWaveSource();
-            
             
             MMDevice device = MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
             
@@ -210,26 +169,28 @@ namespace MusicPlayer.Player
         {
             if (_soundOut == null)
             {
-                return;
+                PlaySong(lastPlay);
             }
-
-            switch (_soundOut.PlaybackState)
+            else
             {
-                case PlaybackState.Stopped:
-                    PlaySong(lastPlay);
-                    break;
-                case PlaybackState.Playing:
-                    _soundOut.Pause();
-                    playButton.Content = playString;
-                    break;
-                case PlaybackState.Paused:
-                    _soundOut.Play();
-                    playButton.Content = pauseString;
-                    break;
-                default:
-                    ManualStop();
-                    Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
-                    return;
+                switch (_soundOut.PlaybackState)
+                {
+                    case PlaybackState.Stopped:
+                        PlaySong(lastPlay);
+                        break;
+                    case PlaybackState.Playing:
+                        _soundOut.Pause();
+                        playButton.Content = playString;
+                        break;
+                    case PlaybackState.Paused:
+                        _soundOut.Play();
+                        playButton.Content = pauseString;
+                        break;
+                    default:
+                        ManualStop();
+                        Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
+                        return;
+                }
             }
         }
 
@@ -240,23 +201,14 @@ namespace MusicPlayer.Player
                 return;
             }
 
-            switch (_soundOut.PlaybackState)
-            {
-                case PlaybackState.Stopped:
-                    //Do nothing
-                    break;
-                case PlaybackState.Playing:
-                case PlaybackState.Paused:
-                    ManualStop();
-                    playButton.Content = playString;
-                    break;
-                default:
-                    ManualStop();
-                    Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
-                    return;
-            }
+            CleanUp();
 
+            songLabel.Content = "";
+            playButton.Content = playString;
+            playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
             stopButton.Foreground = new SolidColorBrush(Colors.Black);
+
+            StopClicked?.Invoke();
         }
 
         public void OnNextClick(object sender, RoutedEventArgs e)
@@ -270,7 +222,7 @@ namespace MusicPlayer.Player
                 _soundOut.PlaybackState == PlaybackState.Playing &&
                 _waveSource.Position > 2.0f * _waveSource.WaveFormat.BytesPerSecond)
             {
-                //Restart if it's within the first 3 seconds
+                //Restart if it's within the first 2 seconds
                 _waveSource.Position = 0;
             }
             else
@@ -281,9 +233,7 @@ namespace MusicPlayer.Player
 
         private void ManualStop()
         {
-            ++reentryBlock;
             _soundOut.Stop();
-            --reentryBlock;
         }
 
         private void Tick_ProgressTimer(object s, EventArgs e)
