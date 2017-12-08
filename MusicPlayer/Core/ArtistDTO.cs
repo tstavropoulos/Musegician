@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MusicPlayer.Library
+namespace MusicPlayer.DataStructures
 {
     public class ArtistDTO
     {

@@ -91,26 +91,24 @@
     <Compile Include="Core\DBCommands\SongCommands.cs" />
     <Compile Include="Core\Settings.cs" />
     <Compile Include="Core\TreeViewItemBehavior.cs" />
-    <Compile Include="Library\AlbumDTO.cs" />
-    <Compile Include="Library\ArtistDTO.cs" />
+    <Compile Include="Core\AlbumDTO.cs" />
+    <Compile Include="Core\ArtistDTO.cs" />
     <Compile Include="Library\LibraryControl.xaml.cs">
       <DependentUpon>LibraryControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Library\AlbumViewModel.cs" />
     <Compile Include="Library\MusicTreeViewModel.cs" />
     <Compile Include="Library\ArtistViewModel.cs" />
-    <Compile Include="Library\RecordingDTO.cs" />
-    <Compile Include="Library\SongDTO.cs" />
+    <Compile Include="Core\RecordingDTO.cs" />
+    <Compile Include="Core\SongDTO.cs" />
     <Compile Include="Library\RecordingViewModel.cs" />
     <Compile Include="Library\SongViewModel.cs" />
     <Compile Include="Core\DataStructures.cs" />
     <Compile Include="Core\FileUtility.cs" />
     <Compile Include="Playlist\PlaylistRecordingViewModel.cs" />
-    <Compile Include="Playlist\RecordingDTO.cs" />
     <Compile Include="TagEditor\TagEditor.xaml.cs">
       <DependentUpon>TagEditor.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Playlist\SongDTO.cs" />
     <Compile Include="Playlist\PlaylistTreeViewModel.cs" />
     <Compile Include="Playlist\PlaylistControl.xaml.cs">
       <DependentUpon>PlaylistControl.xaml</DependentUpon>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MusicPlayer.Library
+namespace MusicPlayer.DataStructures
 {
     public class SongDTO
     {
@@ -16,6 +16,15 @@ namespace MusicPlayer.Library
             SongID = songID;
             TrackID = trackID;
             IsHome = isHome;
+            Title = title;
+            _recordings = recordings;
+        }
+
+        public SongDTO(long songID, string title, List<RecordingDTO> recordings)
+        {
+            SongID = songID;
+            TrackID = -1;
+            IsHome = true;
             Title = title;
             _recordings = recordings;
         }

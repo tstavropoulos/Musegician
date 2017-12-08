@@ -4,13 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MusicPlayer.Playlist
+namespace MusicPlayer.DataStructures
 {
-    public class RecordingDTO
+    public class AlbumDTO
     {
+        readonly List<SongDTO> _songs = new List<SongDTO>();
+        public IList<SongDTO> Songs
+        {
+            get { return _songs; }
+        }
+
+        public AlbumDTO(long id, string title, List<SongDTO> songs)
+        {
+            AlbumID = id;
+            Title = title;
+            _songs = songs;
+        }
+
         public string Title { get; set; }
-        public long RecordingID { get; set; }
-        public bool Live { get; set; }
+        public long AlbumID { get; set; }
 
         private double _weight = double.NaN;
         public double Weight
@@ -19,11 +31,7 @@ namespace MusicPlayer.Playlist
             {
                 if (double.IsNaN(_weight))
                 {
-                    if (Live)
-                    {
-                        return Settings.LiveWeight;
-                    }
-                    return Settings.StudioWeight;
+                    return 1.0;
                 }
 
                 return _weight;

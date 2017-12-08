@@ -647,12 +647,12 @@ namespace MusicPlayer
                 recordings: recordingList);
         }
 
-        private List<Playlist.RecordingDTO> GetRecordingList(
+        private List<RecordingDTO> GetRecordingList(
             long songID,
             long exclusiveArtistID = -1,
             long exclusiveRecordingID = -1)
         {
-            List<Playlist.RecordingDTO> recordingData = new List<Playlist.RecordingDTO>();
+            List<RecordingDTO> recordingData = new List<RecordingDTO>();
 
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
@@ -709,7 +709,7 @@ namespace MusicPlayer
                     }
 
 
-                    recordingData.Add(new Playlist.RecordingDTO()
+                    recordingData.Add(new RecordingDTO()
                     {
                         Title = string.Format(
                             "{0} - {1} - {2}",
@@ -726,7 +726,7 @@ namespace MusicPlayer
             return recordingData;
         }
 
-        public List<Playlist.SongDTO> GetSongDataFromRecordingID(long recordingID)
+        public List<SongDTO> GetSongDataFromRecordingID(long recordingID)
         {
             RecordingData data = recordingCommands.GetData(
                 recordingID: recordingID);
@@ -741,12 +741,12 @@ namespace MusicPlayer
                 exclusiveRecordingID: recordingID);
         }
 
-        public List<Playlist.SongDTO> GetSongData(
+        public List<SongDTO> GetSongData(
             long songID,
             long exclusiveArtistID = -1,
             long exclusiveRecordingID = -1)
         {
-            List<Playlist.SongDTO> songData = new List<Playlist.SongDTO>();
+            List<SongDTO> songData = new List<SongDTO>();
 
             dbConnection.Open();
 
@@ -769,8 +769,8 @@ namespace MusicPlayer
                     songID: songID);
             }
 
-            songData.Add(new Playlist.SongDTO(
-                id: songID,
+            songData.Add(new SongDTO(
+                songID: songID,
                 title: playlistName,
                 recordings: GetRecordingList(
                     songID: songID,
@@ -782,11 +782,11 @@ namespace MusicPlayer
             return songData;
         }
 
-        public List<Playlist.SongDTO> GetAlbumData(
+        public List<SongDTO> GetAlbumData(
             long albumID,
             long exclusiveArtistID = -1)
         {
-            List<Playlist.SongDTO> albumData = new List<Playlist.SongDTO>();
+            List<SongDTO> albumData = new List<SongDTO>();
 
             dbConnection.Open();
 
@@ -824,8 +824,8 @@ namespace MusicPlayer
                             songID: songID);
                     }
 
-                    albumData.Add(new Playlist.SongDTO(
-                        id: songID,
+                    albumData.Add(new SongDTO(
+                        songID: songID,
                         title: playlistName,
                         recordings: GetRecordingList(
                             songID: songID,
@@ -838,9 +838,9 @@ namespace MusicPlayer
             return albumData;
         }
 
-        public List<Playlist.SongDTO> GetArtistData(long artistID, bool exclusive = false)
+        public List<SongDTO> GetArtistData(long artistID, bool exclusive = false)
         {
-            List<Playlist.SongDTO> artistData = new List<Playlist.SongDTO>();
+            List<SongDTO> artistData = new List<SongDTO>();
 
             dbConnection.Open();
 
@@ -875,8 +875,8 @@ namespace MusicPlayer
                             songID: songID);
                     }
 
-                    artistData.Add(new Playlist.SongDTO(
-                        id: songID,
+                    artistData.Add(new SongDTO(
+                        songID: songID,
                         title: playlistName,
                         recordings: GetRecordingList(
                             songID: songID,
