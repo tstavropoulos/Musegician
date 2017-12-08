@@ -71,7 +71,7 @@ namespace MusicPlayer.Library
 
         public bool IsDim
         {
-            get { return Weight == 0.0 || _album.IsDim; }
+            get { return Weight == 0.0 || _album.IsDim || !_song.IsHome; }
         }
 
         #endregion // Song Properties

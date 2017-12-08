@@ -16,7 +16,6 @@ namespace MusicPlayer.DataStructures
     public struct AlbumData
     {
         public long albumID;
-        public long artistID;
         public string albumTitle;
         public long albumYear;
         public string albumArtFilename;
@@ -25,14 +24,12 @@ namespace MusicPlayer.DataStructures
     public struct SongData
     {
         public long songID;
-        public long artistID;
         public string songTitle;
     }
 
     public struct TrackData
     {
         public long trackID;
-        public long songID;
         public long albumID;
         public long recordingID;
         public string trackTitle;
@@ -43,7 +40,30 @@ namespace MusicPlayer.DataStructures
 
     public struct RecordingData
     {
+        public static RecordingData Invalid
+        {
+            get
+            {
+                return new RecordingData()
+                {
+                    recordingID = -1,
+                    artistID = -1,
+                    songID = -1,
+                    filename = "",
+                    live = false,
+                    valid = false
+                };
+            }
+        }
+
+        public bool RecordFound()
+        {
+            return recordingID != -1;
+        }
+
         public long recordingID;
+        public long artistID;
+        public long songID;
         public string filename;
         public bool live;
         public bool valid;

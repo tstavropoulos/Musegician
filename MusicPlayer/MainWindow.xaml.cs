@@ -124,16 +124,6 @@ namespace MusicPlayer
             playbackPanel.CleanUp();
         }
 
-        public void Request_PlaySong(long songID)
-        {
-            playbackPanel.PlaySong(fileMan.GetSongPlayData(songID));
-        }
-
-        public void Request_PlayTrack(long trackID)
-        {
-            playbackPanel.PlaySong(fileMan.GetTrackPlayData(trackID));
-        }
-
         public void Request_PlayRecording(long recordingID)
         {
             playbackPanel.PlaySong(fileMan.GetRecordingPlayData(recordingID));

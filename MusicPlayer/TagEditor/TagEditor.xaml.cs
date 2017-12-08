@@ -211,8 +211,20 @@ namespace MusicPlayer.TagEditor
                     break;
                 case MusicRecord.AlbumYear:
                 case MusicRecord.TrackNumber:
+                    {
+                        if (tag is TagDataLong data)
+                        {
+                            fileManager.UpdateRecord(context, ids, record, data.NewLong);
+                        }
+                    }
                     break;
                 case MusicRecord.Live:
+                    {
+                        if (tag is TagDataBool data)
+                        {
+                            fileManager.UpdateRecord(context, ids, record, data.NewValue);
+                        }
+                    }
                     break;
                 case MusicRecord.MAX:
                 default:

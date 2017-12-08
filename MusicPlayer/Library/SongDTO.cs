@@ -11,10 +11,11 @@ namespace MusicPlayer.Library
             get { return _recordings; }
         }
 
-        public SongDTO(long songID, long trackID, string title, List<RecordingDTO> recordings)
+        public SongDTO(long songID, long trackID, string title, bool isHome, List<RecordingDTO> recordings)
         {
             SongID = songID;
             TrackID = trackID;
+            IsHome = isHome;
             Title = title;
             _recordings = recordings;
         }
@@ -25,6 +26,11 @@ namespace MusicPlayer.Library
         /// The ID of the track that this context (Artist>Album>Track) represents
         /// </summary>
         public long TrackID { get; set; }
+
+        /// <summary>
+        /// Indicates whether the current Song belongs to the Artist that the Album its being visualized under.
+        /// </summary>
+        public bool IsHome { get; set; }
 
         private double _weight = double.NaN;
         public double Weight

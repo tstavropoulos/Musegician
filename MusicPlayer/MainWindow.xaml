@@ -61,7 +61,7 @@
                               Header="_Clear Playlist"
                               Click="Menu_ClearPlaylist"/>
                 </MenuItem>
-            
+
             </Menu>
         </DockPanel>
         <player:PlaybackPanel x:Name="playbackPanel"
@@ -80,7 +80,7 @@
                 <ColumnDefinition Width="3"/>
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            
+
             <playlist:PlaylistControl x:Name="playlistControl"
                                       Grid.Column="0" Grid.Row="0"
                                       Request_PlayRecording="Request_PlayRecording"/>
