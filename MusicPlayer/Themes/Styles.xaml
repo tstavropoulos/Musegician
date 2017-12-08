@@ -86,6 +86,8 @@
   <SolidColorBrush x:Key="RadioButtonForeground" Color="{StaticResource ForegroundColor}"/>
   <SolidColorBrush x:Key="RadioButtonBackground" Color="{StaticResource LightDisabledBackgroundColor}"/>
 
+  <SolidColorBrush x:Key="GridSplitterBackground" Color="{StaticResource LightDisabledBackgroundColor}"/>
+
   <SolidColorBrush x:Key="ListBorder" Color="{StaticResource DarkBackgroundColor}"/>
   <SolidColorBrush x:Key="ListBackground" Color="{StaticResource DarkBackgroundColor}"/>
   <SolidColorBrush x:Key="SelectedListItem" Color="{StaticResource HighlightColor}"/>
@@ -3131,6 +3133,11 @@
   <!--#endregion-->
 
   <!--#region DataGrid styles-->
+  
+  <!-- GridSplitter-->
+  <Style TargetType="{x:Type GridSplitter}">
+    <Setter Property="Background" Value="{StaticResource GridSplitterBackground}"/>
+  </Style>
 
   <!-- DataGridSelectAllButtonStyle-->
   <Style x:Key="{ComponentResourceKey ResourceId=DataGridSelectAllButtonStyle, TypeInTargetAssembly={x:Type DataGrid}}" TargetType="{x:Type Button}">

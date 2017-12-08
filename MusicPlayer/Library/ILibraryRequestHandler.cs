@@ -13,5 +13,9 @@ namespace MusicPlayer.Library
         List<AlbumDTO> GenerateArtistAlbumList(long artistID, string artistName);
         List<SongDTO> GenerateAlbumSongList(long artistID, long albumID);
         List<RecordingDTO> GenerateSongRecordingList(long songID, long albumID);
+
+
+        List<AlbumDTO> GenerateAlbumList();
+        List<SongDTO> GenerateArtistSongList(long artistID, string artistName);
     }
 }

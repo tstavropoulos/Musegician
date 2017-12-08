@@ -13,14 +13,21 @@ namespace MusicPlayer.Library
 {
     public class ArtistViewModel : LibraryViewModel
     {
+        #region Data
+
+        readonly ViewMode mode;
+
+        #endregion // Data
+
         #region Constructors
 
-        public ArtistViewModel(ArtistDTO artist) : 
+        public ArtistViewModel(ArtistDTO artist, ViewMode mode) : 
             base(
                 data: artist,
                 parent: null,
                 lazyLoadChildren: true)
         {
+            this.mode = mode;
         }
 
         #endregion // Constructors
@@ -40,10 +47,30 @@ namespace MusicPlayer.Library
         public override void LoadChildren(ILibraryRequestHandler dataManager)
         {
             base.LoadChildren(dataManager);
-            foreach(AlbumDTO albumData in dataManager.GenerateArtistAlbumList(ID, Name))
+            switch (mode)
             {
-                _artist.Children.Add(albumData);
-                Children.Add(new AlbumViewModel(albumData, this));
+                case ViewMode.Classic:
+                    {
+                        foreach (AlbumDTO albumData in dataManager.GenerateArtistAlbumList(ID, Name))
+                        {
+                            _artist.Children.Add(albumData);
+                            Children.Add(new AlbumViewModel(albumData, this));
+                        }
+                    }
+                    break;
+                case ViewMode.Simple:
+                    {
+                        foreach (SongDTO songData in dataManager.GenerateArtistSongList(ID, Name))
+                        {
+                            _artist.Children.Add(songData);
+                            Children.Add(new SongViewModel(songData, this));
+                        }
+                    }
+                    break;
+                case ViewMode.Album:
+                case ViewMode.MAX:
+                default:
+                    throw new Exception("Inappropriate view mode for an ArtistViewModel: " + mode);
             }
         }
 

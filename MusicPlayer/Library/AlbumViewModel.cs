@@ -12,7 +12,6 @@ namespace MusicPlayer.Library
 {
     public class AlbumViewModel : LibraryViewModel
     {
-
         #region Constructors
 
         public AlbumViewModel(AlbumDTO album, ArtistViewModel artist)
@@ -45,7 +44,9 @@ namespace MusicPlayer.Library
         public override void LoadChildren(ILibraryRequestHandler dataManager)
         {
             base.LoadChildren(dataManager);
-            foreach (SongDTO songData in dataManager.GenerateAlbumSongList(Parent.ID, ID))
+            foreach (SongDTO songData in dataManager.GenerateAlbumSongList(
+                artistID: (Parent != null) ? Parent.ID : -1,
+                albumID: ID))
             {
                 Data.Children.Add(songData);
                 Children.Add(new SongViewModel(songData, this));

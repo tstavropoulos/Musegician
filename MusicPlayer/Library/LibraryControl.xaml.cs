@@ -44,7 +44,7 @@ namespace MusicPlayer.Library
         {
             InitializeComponent();
 
-            _musicTree = new MusicTreeViewModel(new List<ArtistDTO>());
+            _musicTree = new MusicTreeViewModel();
 
             // Bind view-model to UI.
             DataContext = _musicTree;
@@ -57,7 +57,7 @@ namespace MusicPlayer.Library
 
         public void Rebuild()
         {
-            _musicTree = new MusicTreeViewModel(dataManager.GenerateArtistList());
+            _musicTree = new MusicTreeViewModel(dataManager);
             DataContext = _musicTree;
         }
 

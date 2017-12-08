@@ -9,11 +9,21 @@ using MusicPlayer.DataStructures;
 
 namespace MusicPlayer.Library
 {
+    public enum ViewMode
+    {
+        Classic = 0,
+        Simple,
+        Album,
+        MAX
+    }
+
     public class MusicTreeViewModel
     {
         #region Data
 
-        readonly ObservableCollection<ArtistViewModel> _artistViewModels;
+        readonly ObservableCollection<ArtistViewModel> _classicArtistViewModels;
+        readonly ObservableCollection<ArtistViewModel> _simpleArtistViewModels;
+        readonly ObservableCollection<AlbumViewModel> _albumViewModels;
         readonly ICommand _searchCommand;
 
         IEnumerator<ArtistViewModel> _matchingArtistEnumerator;
@@ -23,11 +33,27 @@ namespace MusicPlayer.Library
 
         #region Constructor
 
-        public MusicTreeViewModel(IList<ArtistDTO> artists)
+        public MusicTreeViewModel()
         {
-            _artistViewModels = new ObservableCollection<ArtistViewModel>(
-                (from artist in artists
-                select new ArtistViewModel(artist))
+            _classicArtistViewModels = new ObservableCollection<ArtistViewModel>();
+            _searchCommand = new SearchMusicTreeCommand(this);
+        }
+
+        public MusicTreeViewModel(ILibraryRequestHandler dataHandler)
+        {
+            _classicArtistViewModels = new ObservableCollection<ArtistViewModel>(
+                (from artist in dataHandler.GenerateArtistList()
+                 select new ArtistViewModel(artist, ViewMode.Classic))
+                     .ToList());
+
+            _simpleArtistViewModels = new ObservableCollection<ArtistViewModel>(
+                (from artist in dataHandler.GenerateArtistList()
+                 select new ArtistViewModel(artist, ViewMode.Simple))
+                     .ToList());
+
+            _albumViewModels = new ObservableCollection<AlbumViewModel>(
+                (from album in dataHandler.GenerateAlbumList()
+                 select new AlbumViewModel(album, null))
                      .ToList());
 
             _searchCommand = new SearchMusicTreeCommand(this);
@@ -43,9 +69,19 @@ namespace MusicPlayer.Library
         /// Returns a read-only collection containing the first person 
         /// in the family tree, to which the TreeView can bind.
         /// </summary>
-        public ObservableCollection<ArtistViewModel> ArtistViewModels
+        public ObservableCollection<ArtistViewModel> ClassicArtistViewModels
         {
-            get { return _artistViewModels; }
+            get { return _classicArtistViewModels; }
+        }
+
+        public ObservableCollection<AlbumViewModel> AlbumViewModels
+        {
+            get { return _albumViewModels; }
+        }
+
+        public ObservableCollection<ArtistViewModel> SimpleViewModels
+        {
+            get { return _simpleArtistViewModels; }
         }
 
         #endregion // ArtistViewModels
@@ -153,7 +189,7 @@ namespace MusicPlayer.Library
 
         IEnumerable<ArtistViewModel> FindMatchingArtists(string searchText)
         {
-            foreach(ArtistViewModel artist in _artistViewModels)
+            foreach(ArtistViewModel artist in _classicArtistViewModels)
             {
                 if (artist.NameContainsText(searchText))
                 {

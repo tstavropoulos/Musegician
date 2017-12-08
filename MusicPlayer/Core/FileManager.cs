@@ -558,8 +558,7 @@ namespace MusicPlayer
                             "{0} ({1})",
                             (string)reader["album_title"],
                             ((long)reader["album_year"]).ToString()),
-                        albumArt: LoadImage(albumCommands._GetArt(
-                            albumID: albumID))));
+                        albumArt: LoadImage(albumCommands._GetArt(albumID))));
                 }
             }
 
@@ -598,7 +597,7 @@ namespace MusicPlayer
                             "{0}. {1}",
                             ((long)reader["track_number"]).ToString("D2"),
                             (string)reader["track_title"]),
-                        isHome: (artistID == (long)reader["artist_id"])));
+                        isHome: (artistID == (long)reader["artist_id"] || artistID == -1)));
                 }
             }
 
@@ -671,6 +670,74 @@ namespace MusicPlayer
             dbConnection.Close();
 
             return recordingList;
+        }
+        
+        List<AlbumDTO> ILibraryRequestHandler.GenerateAlbumList()
+        {
+            List<AlbumDTO> albumList = new List<AlbumDTO>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readAlbums = dbConnection.CreateCommand();
+            readAlbums.CommandType = System.Data.CommandType.Text;
+            readAlbums.CommandText =
+                "SELECT album_id, album_title " +
+                "FROM album ORDER BY album_title ASC;";
+            using (SQLiteDataReader reader = readAlbums.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    long albumID = (long)reader["album_id"];
+
+                    albumList.Add(new AlbumDTO(
+                        albumID: albumID,
+                        albumTitle: (string)reader["album_title"],
+                        albumArt: LoadImage(albumCommands._GetArt(albumID))));
+                }
+            }
+
+            dbConnection.Close();
+
+            return albumList;
+        }
+
+        List<SongDTO> ILibraryRequestHandler.GenerateArtistSongList(long artistID, string artistName)
+        {
+            List<SongDTO> songList = new List<SongDTO>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readSongs = dbConnection.CreateCommand();
+            readSongs.CommandType = System.Data.CommandType.Text;
+            readSongs.Parameters.Add(new SQLiteParameter("@artistID", artistID));
+            readSongs.CommandText =
+                "SELECT " +
+                    "song_title AS song_title, " +
+                    "song_id AS song_id " +
+                "FROM song " +
+                "WHERE song_id IN ( " +
+                    "SELECT song_id " +
+                    "FROM recording " +
+                    "WHERE artist_id=@artistID ) " +
+                "ORDER BY song_title ASC;";
+
+
+            using (SQLiteDataReader reader = readSongs.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    songList.Add(new SongDTO(
+                        songID: (long)reader["song_id"],
+                        title: string.Format(
+                            "{0} - {1}",
+                            artistName,
+                            (string)reader["song_title"])));
+                }
+            }
+
+            dbConnection.Close();
+
+            return songList;
         }
 
         private List<RecordingDTO> GetRecordingList(
