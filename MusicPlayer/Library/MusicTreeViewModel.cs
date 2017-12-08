@@ -13,7 +13,7 @@ namespace MusicPlayer.Library
     {
         #region Data
 
-        readonly ReadOnlyCollection<ArtistViewModel> _artistViewModels;
+        readonly ObservableCollection<ArtistViewModel> _artistViewModels;
         readonly ICommand _searchCommand;
 
         IEnumerator<ArtistViewModel> _matchingArtistEnumerator;
@@ -25,7 +25,7 @@ namespace MusicPlayer.Library
 
         public MusicTreeViewModel(IList<ArtistDTO> artists)
         {
-            _artistViewModels = new ReadOnlyCollection<ArtistViewModel>(
+            _artistViewModels = new ObservableCollection<ArtistViewModel>(
                 (from artist in artists
                 select new ArtistViewModel(artist))
                      .ToList());
@@ -43,7 +43,7 @@ namespace MusicPlayer.Library
         /// Returns a read-only collection containing the first person 
         /// in the family tree, to which the TreeView can bind.
         /// </summary>
-        public ReadOnlyCollection<ArtistViewModel> ArtistViewModels
+        public ObservableCollection<ArtistViewModel> ArtistViewModels
         {
             get { return _artistViewModels; }
         }
@@ -161,7 +161,7 @@ namespace MusicPlayer.Library
                 }
             }
         }
-
+        /*
         IEnumerable<SongViewModel> FindMatchingSongs(string searchText)
         {
             foreach (ArtistViewModel artist in _artistViewModels)
@@ -186,7 +186,7 @@ namespace MusicPlayer.Library
                 }
             }
         }
-
+        */
         #endregion // Search Logic
 
     }

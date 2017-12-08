@@ -350,43 +350,43 @@ namespace MusicPlayer.Playlist
 
         private long SelectRecording(SongDTO song)
         {
-            if (song.Recordings.Count == 0)
+            if (song.Children.Count == 0)
             {
                 LastRecordingIndex = -1;
                 return -1;
             }
 
-            if (song.Recordings.Count == 1)
+            if (song.Children.Count == 1)
             {
                 LastRecordingIndex = 0;
-                return song.Recordings[LastRecordingIndex].RecordingID;
+                return song.Children[LastRecordingIndex].ID;
             }
 
 
             double cumulativeWeight = 0.0;
 
-            foreach (RecordingDTO recording in song.Recordings)
+            foreach (RecordingDTO recording in song.Children)
             {
                 cumulativeWeight += GetWeight(recording);
             }
 
             cumulativeWeight *= random.NextDouble();
 
-            for (int i = 0; i < song.Recordings.Count; i++)
+            for (int i = 0; i < song.Children.Count; i++)
             {
-                RecordingDTO recording = song.Recordings[i];
+                RecordingDTO recording = song.Children[i] as RecordingDTO;
 
                 cumulativeWeight -= GetWeight(recording);
                 if (cumulativeWeight <= 0.0)
                 {
                     LastRecordingIndex = i;
-                    return recording.RecordingID;
+                    return recording.ID;
                 }
             }
 
             Console.WriteLine("Failed to pick a recording before running out.  Method is broken.");
             LastRecordingIndex = 0;
-            return song.Recordings[0].RecordingID;
+            return song.Children[0].ID;
         }
     }
 }

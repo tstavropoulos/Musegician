@@ -6,34 +6,25 @@ using System.Threading.Tasks;
 
 namespace MusicPlayer.DataStructures
 {
-    public class RecordingDTO
+    public class RecordingDTO : DTO
     {
-        public string Title { get; set; }
-        public long RecordingID { get; set; }
         public bool Live { get; set; }
 
         /// <summary>
         /// Indicates whether the current recording officially belongs to the album its being visualized under.
         /// </summary>
         public bool IsHome { get; set; }
-        
-        private double _weight = double.NaN;
-        public double Weight
+
+        protected override double DefaultWeight
         {
             get
             {
-                if (double.IsNaN(_weight))
+                if (Live)
                 {
-                    if (Live)
-                    {
-                        return Settings.LiveWeight;
-                    }
-                    return Settings.StudioWeight;
+                    return Settings.LiveWeight;
                 }
-
-                return _weight;
+                return Settings.StudioWeight;
             }
-            set { _weight = value; }
         }
     }
 }

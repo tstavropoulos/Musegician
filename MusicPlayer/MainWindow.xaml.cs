@@ -36,7 +36,8 @@ namespace MusicPlayer
             fileMan = new FileManager();
             fileMan.Initialize();
 
-            libraryControl.Rebuild(fileMan.GenerateArtistList());
+            libraryControl.Initialize(fileMan);
+            libraryControl.Rebuild();
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -67,7 +68,7 @@ namespace MusicPlayer
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
                 fileMan.AddDirectoryToLibrary(dialog.FileName);
-                libraryControl.Rebuild(fileMan.GenerateArtistList());
+                libraryControl.Rebuild();
             }
 
         }
@@ -236,7 +237,7 @@ namespace MusicPlayer
             {
                 case MessageBoxResult.Yes:
                     fileMan.DropDB();
-                    libraryControl.Rebuild(fileMan.GenerateArtistList());
+                    libraryControl.Rebuild();
                     break;
                 case MessageBoxResult.No:
                     //Do nothing

@@ -89,10 +89,13 @@
     <Compile Include="Core\DBCommands\AlbumCommands.cs" />
     <Compile Include="Core\DBCommands\TrackCommands.cs" />
     <Compile Include="Core\DBCommands\SongCommands.cs" />
+    <Compile Include="Core\DTO.cs" />
     <Compile Include="Core\Settings.cs" />
     <Compile Include="Core\TreeViewItemBehavior.cs" />
     <Compile Include="Core\AlbumDTO.cs" />
     <Compile Include="Core\ArtistDTO.cs" />
+    <Compile Include="Library\ILibraryRequestHandler.cs" />
+    <Compile Include="Library\LibraryViewModel.cs" />
     <Compile Include="Library\LibraryControl.xaml.cs">
       <DependentUpon>LibraryControl.xaml</DependentUpon>
     </Compile>

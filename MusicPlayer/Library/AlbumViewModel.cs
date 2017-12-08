@@ -10,39 +10,26 @@ using System.Windows.Media.Imaging;
 
 namespace MusicPlayer.Library
 {
-    public class AlbumViewModel : INotifyPropertyChanged
+    public class AlbumViewModel : LibraryViewModel
     {
-        #region Data
-
-        readonly ReadOnlyCollection<SongViewModel> _songs;
-        readonly AlbumDTO _album;
-        readonly ArtistViewModel _artist;
-
-        bool _isExpanded;
-        bool _isSelected;
-
-        #endregion // Data
 
         #region Constructors
 
         public AlbumViewModel(AlbumDTO album, ArtistViewModel artist)
+            : base(
+                  data: album,
+                  parent: artist,
+                  lazyLoadChildren: true)
         {
-            _album = album;
-            _artist = artist;
-
-            _songs = new ReadOnlyCollection<SongViewModel>(
-                    (from song in _album.Songs
-                     select new SongViewModel(song, this))
-                     .ToList());
         }
 
         #endregion // Constructors
 
         #region Artist Properties
 
-        public ReadOnlyCollection<SongViewModel> Songs
+        public AlbumDTO _album
         {
-            get { return _songs; }
+            get { return Data as AlbumDTO; }
         }
 
         public BitmapImage AlbumArt
@@ -50,103 +37,21 @@ namespace MusicPlayer.Library
             get { return _album.AlbumArt; }
         }
 
-        public string Title
-        {
-            get { return _album.Title; }
-        }
-
-        public long ID
-        {
-            get { return _album.AlbumID; }
-        }
-
-        public double Weight
-        {
-            get { return _album.Weight; }
-        }
-
-        public bool IsDim
-        {
-            get { return Weight == 0.0 || _artist.IsDim; }
-        }
-
         #endregion // Artist Properties
 
-        #region Presentation Members
 
-        #region IsExpanded
+        #region LoadChildren
 
-        /// <summary>
-        /// Gets/sets whether the TreeViewItem 
-        /// associated with this object is expanded.
-        /// </summary>
-        public bool IsExpanded
+        public override void LoadChildren(ILibraryRequestHandler dataManager)
         {
-            get { return _isExpanded; }
-            set
+            base.LoadChildren(dataManager);
+            foreach (SongDTO songData in dataManager.GenerateAlbumSongList(Parent.ID, ID))
             {
-                if (value != _isExpanded)
-                {
-                    _isExpanded = value;
-                    OnPropertyChanged("IsExpanded");
-                }
-
-                // Expand all the way up to the root.
-                if (_isExpanded && _artist != null)
-                {
-                    _artist.IsExpanded = true;
-                }
+                Data.Children.Add(songData);
+                Children.Add(new SongViewModel(songData, this));
             }
         }
 
-        #endregion // IsExpanded
-
-        #region IsSelected
-
-        /// <summary>
-        /// Gets/sets whether the TreeViewItem 
-        /// associated with this object is selected.
-        /// </summary>
-        public bool IsSelected
-        {
-            get { return _isSelected; }
-            set
-            {
-                if (value != _isSelected)
-                {
-                    _isSelected = value;
-                    OnPropertyChanged("IsSelected");
-                }
-            }
-        }
-
-        #endregion // IsSelected
-
-        #region NameContainsText
-
-        public bool NameContainsText(string text)
-        {
-            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(this.Title))
-            {
-                return false;
-            }
-
-            return Title.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
-        }
-
-        #endregion // NameContainsText
-
-        #endregion // Presentation Members        
-
-        #region INotifyPropertyChanged Members
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        #endregion // INotifyPropertyChanged Members
+        #endregion // LoadChildren
     }
 }

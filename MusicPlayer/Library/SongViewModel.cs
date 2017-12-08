@@ -10,49 +10,30 @@ using MusicPlayer.DataStructures;
 
 namespace MusicPlayer.Library
 {
-    public class SongViewModel : INotifyPropertyChanged
+    public class SongViewModel : LibraryViewModel
     {
-        #region Data
-
-        readonly ReadOnlyCollection<RecordingViewModel> _recordings;
-        readonly AlbumViewModel _album;
-        readonly SongDTO _song;
-
-        bool _isExpanded;
-        bool _isSelected;
-
-        #endregion // Data
-
         #region Constructors
 
         public SongViewModel(SongDTO song, AlbumViewModel album)
+            : base (
+                  data: song,
+                  parent: album,
+                  lazyLoadChildren: true)
         {
-            _song = song;
-            _album = album;
-
-            _recordings = new ReadOnlyCollection<RecordingViewModel>(
-                    (from recording in _song.Recordings
-                     select new RecordingViewModel(recording, this))
-                     .ToList());
         }
 
         #endregion // Constructors
 
         #region Song Properties
 
-        public ReadOnlyCollection<RecordingViewModel> Recordings
+        public SongDTO _song
         {
-            get { return _recordings; }
+            get { return Data as SongDTO; }
         }
 
-        public string Title
+        public override bool IsDim
         {
-            get { return _song.Title; }
-        }
-
-        public long ID
-        {
-            get { return _song.SongID; }
+            get { return base.IsDim || !_song.IsHome; }
         }
 
         public long ContextualTrackID
@@ -60,105 +41,20 @@ namespace MusicPlayer.Library
             get { return _song.TrackID; }
         }
 
-        public bool IsExpandable
-        {
-            get { return _recordings.Count > 1; }
-        }
-
-        public double Weight
-        {
-            get { return _song.Weight; }
-        }
-
-        public bool IsDim
-        {
-            get { return Weight == 0.0 || _album.IsDim || !_song.IsHome; }
-        }
-
         #endregion // Song Properties
 
-        #region Presentation Members
+        #region LoadChildren
 
-        #region IsExpanded
-
-        /// <summary>
-        /// Gets/sets whether the TreeViewItem 
-        /// associated with this object is expanded.
-        /// </summary>
-        public bool IsExpanded
+        public override void LoadChildren(ILibraryRequestHandler dataManager)
         {
-            get { return _isExpanded; }
-            set
+            base.LoadChildren(dataManager);
+            foreach (RecordingDTO recordingData in dataManager.GenerateSongRecordingList(ID, Parent.ID))
             {
-                if (value != _isExpanded)
-                {
-                    _isExpanded = value;
-                    OnPropertyChanged("IsExpanded");
-                }
-
-                // Expand all the way up to the root.
-                if (_isExpanded && _album != null)
-                {
-                    _album.IsExpanded = true;
-                }
+                Data.Children.Add(recordingData);
+                Children.Add(new RecordingViewModel(recordingData, this));
             }
         }
 
-        #endregion // IsExpanded
-
-        #region IsSelected
-
-        /// <summary>
-        /// Gets/sets whether the TreeViewItem 
-        /// associated with this object is selected.
-        /// </summary>
-        public bool IsSelected
-        {
-            get { return _isSelected; }
-            set
-            {
-                if (value != _isSelected)
-                {
-                    _isSelected = value;
-                    OnPropertyChanged("IsSelected");
-                }
-            }
-        }
-
-        #endregion // IsSelected
-
-        #region NameContainsText
-
-        public bool NameContainsText(string text)
-        {
-            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(Title))
-                return false;
-
-            return Title.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
-        }
-
-        #endregion // NameContainsText
-
-        #region Parent
-
-        public AlbumViewModel Album
-        {
-            get { return _album; }
-        }
-
-        #endregion // Parent
-
-        #endregion // Presentation Members
-
-        #region INotifyPropertyChanged Members
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        #endregion // INotifyPropertyChanged Members
+        #endregion // LoadChildren
     }
 }

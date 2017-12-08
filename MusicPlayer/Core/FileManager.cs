@@ -16,7 +16,7 @@ using System.Windows.Media.Imaging;
 
 namespace MusicPlayer
 {
-    public class FileManager
+    public class FileManager : ILibraryRequestHandler
     {
         private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3" };
         private readonly string[] songNameDelimiter = new string[] { " - " };
@@ -501,7 +501,7 @@ namespace MusicPlayer
             });
         }
 
-        public List<ArtistDTO> GenerateArtistList()
+        List<ArtistDTO> ILibraryRequestHandler.GenerateArtistList()
         {
             List<ArtistDTO> artistList = new List<ArtistDTO>();
 
@@ -516,9 +516,9 @@ namespace MusicPlayer
             {
                 while (reader.Read())
                 {
-                    artistList.Add(GenerateArtist(
-                        artistID: (long)reader["artist_id"],
-                        artistName: (string)reader["artist_name"]));
+                    artistList.Add(new ArtistDTO(
+                        id: (long)reader["artist_id"],
+                        name: (string)reader["artist_name"]));
                 }
             }
 
@@ -527,9 +527,11 @@ namespace MusicPlayer
             return artistList;
         }
 
-        private ArtistDTO GenerateArtist(long artistID, string artistName)
+        List<AlbumDTO> ILibraryRequestHandler.GenerateArtistAlbumList(long artistID, string artistName)
         {
             List<AlbumDTO> albumList = new List<AlbumDTO>();
+
+            dbConnection.Open();
 
             SQLiteCommand readAlbums = dbConnection.CreateCommand();
             readAlbums.CommandType = System.Data.CommandType.Text;
@@ -548,25 +550,29 @@ namespace MusicPlayer
             {
                 while (reader.Read())
                 {
-                    string albumName = (string)reader["album_title"];
-                    long albumYear = (long)reader["album_year"];
+                    long albumID = (long)reader["album_id"];
 
-                    albumList.Add(GenerateAlbum(
-                        artistID: artistID,
-                        albumID: (long)reader["album_id"],
-                        albumTitle: String.Format("{0} ({1})", albumName, albumYear)));
+                    albumList.Add(new AlbumDTO(
+                        albumID: albumID,
+                        albumTitle: String.Format(
+                            "{0} ({1})",
+                            (string)reader["album_title"],
+                            ((long)reader["album_year"]).ToString()),
+                        albumArt: LoadImage(albumCommands._GetArt(
+                            albumID: albumID))));
                 }
             }
 
-            return new ArtistDTO(
-                id: artistID,
-                name: artistName,
-                albums: albumList);
+            dbConnection.Close();
+
+            return albumList;
         }
 
-        private AlbumDTO GenerateAlbum(long artistID, long albumID, string albumTitle)
+        List<SongDTO> ILibraryRequestHandler.GenerateAlbumSongList(long artistID, long albumID)
         {
             List<SongDTO> songList = new List<SongDTO>();
+
+            dbConnection.Open();
 
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
@@ -586,30 +592,27 @@ namespace MusicPlayer
             {
                 while (reader.Read())
                 {
-                    songList.Add(GenerateSong(
+                    songList.Add(new SongDTO(
                         songID: (long)reader["song_id"],
-                        trackTitle: String.Format(
+                        title: String.Format(
                             "{0}. {1}",
                             ((long)reader["track_number"]).ToString("D2"),
                             (string)reader["track_title"]),
-                        albumID: albumID,
                         isHome: (artistID == (long)reader["artist_id"])));
                 }
             }
 
-            BitmapImage art = LoadImage(albumCommands._GetArt(
-                albumID: albumID));
 
-            return new AlbumDTO(
-                albumID: albumID,
-                albumTitle: albumTitle,
-                songs: songList,
-                albumArt: art);
+            dbConnection.Close();
+
+            return songList;
         }
 
-        private SongDTO GenerateSong(long songID, string trackTitle, long albumID, bool isHome)
+        List<RecordingDTO> ILibraryRequestHandler.GenerateSongRecordingList(long songID, long albumID)
         {
             List<RecordingDTO> recordingList = new List<RecordingDTO>();
+
+            dbConnection.Open();
 
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
@@ -652,8 +655,8 @@ namespace MusicPlayer
 
                     recordingList.Add(new RecordingDTO
                     {
-                        RecordingID = (long)reader["recording_id"],
-                        Title = string.Format(
+                        ID = (long)reader["recording_id"],
+                        Name = string.Format(
                             "{0} - {1} - {2}",
                             (string)reader["artist_name"],
                             (string)reader["album_title"],
@@ -665,12 +668,9 @@ namespace MusicPlayer
                 }
             }
 
-            return new SongDTO(
-                songID: songID,
-                trackID: trackID,
-                title: trackTitle,
-                isHome: isHome,
-                recordings: recordingList);
+            dbConnection.Close();
+
+            return recordingList;
         }
 
         private List<RecordingDTO> GetRecordingList(
@@ -737,12 +737,12 @@ namespace MusicPlayer
 
                     recordingData.Add(new RecordingDTO()
                     {
-                        Title = string.Format(
+                        Name = string.Format(
                             "{0} - {1} - {2}",
                             (string)reader["artist_name"],
                             (string)reader["album_title"],
                             (string)reader["track_title"]),
-                        RecordingID = recordingID,
+                        ID = recordingID,
                         Weight = weight,
                         Live = (bool)reader["Live"]
                     });
@@ -797,11 +797,15 @@ namespace MusicPlayer
 
             songData.Add(new SongDTO(
                 songID: songID,
-                title: playlistName,
-                recordings: GetRecordingList(
-                    songID: songID,
-                    exclusiveArtistID: exclusiveArtistID,
-                    exclusiveRecordingID: exclusiveRecordingID)));
+                title: playlistName));
+
+            foreach(RecordingDTO data in GetRecordingList(
+                                            songID: songID,
+                                            exclusiveArtistID: exclusiveArtistID,
+                                            exclusiveRecordingID: exclusiveRecordingID))
+            {
+                songData[0].Children.Add(data);
+            }
 
             dbConnection.Close();
 
@@ -850,12 +854,19 @@ namespace MusicPlayer
                             songID: songID);
                     }
 
-                    albumData.Add(new SongDTO(
+                    SongDTO newSong = new SongDTO(
                         songID: songID,
-                        title: playlistName,
-                        recordings: GetRecordingList(
+                        title: playlistName);
+
+                    foreach(RecordingDTO recording in GetRecordingList(
                             songID: songID,
-                            exclusiveArtistID: exclusiveArtistID)));
+                            exclusiveArtistID: exclusiveArtistID))
+                    {
+                        newSong.Children.Add(recording);
+                    }
+
+
+                    albumData.Add(newSong);
                 }
             }
 
@@ -901,12 +912,18 @@ namespace MusicPlayer
                             songID: songID);
                     }
 
-                    artistData.Add(new SongDTO(
+                    SongDTO newSong = new SongDTO(
                         songID: songID,
-                        title: playlistName,
-                        recordings: GetRecordingList(
+                        title: playlistName);
+
+                    foreach (RecordingDTO recording in GetRecordingList(
                             songID: songID,
-                            exclusiveArtistID: exclusive ? artistID : -1)));
+                            exclusiveArtistID: exclusive ? artistID : -1))
+                    {
+                        newSong.Children.Add(recording);
+                    }
+
+                    artistData.Add(newSong);
                 }
             }
 

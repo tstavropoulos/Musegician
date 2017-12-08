@@ -28,8 +28,8 @@ namespace MusicPlayer.Playlist
             _song = song;
 
             _recordings = new ReadOnlyCollection<PlaylistRecordingViewModel>(
-                    (from recording in _song.Recordings
-                     select new PlaylistRecordingViewModel(recording, this))
+                    (from recording in _song.Children
+                     select new PlaylistRecordingViewModel(recording as RecordingDTO, this))
                      .ToList());
         }
 
@@ -44,10 +44,10 @@ namespace MusicPlayer.Playlist
 
         public string Title
         {
-            get { return _song.Title; }
+            get { return _song.Name; }
             set
             {
-                _song.Title = value;
+                _song.Name = value;
                 OnPropertyChanged("Title");
             }
 
@@ -80,10 +80,10 @@ namespace MusicPlayer.Playlist
 
         public long ID
         {
-            get { return _song.SongID; }
+            get { return _song.ID; }
             set
             {
-                _song.SongID = value;
+                _song.ID = value;
                 OnPropertyChanged("ID");
             }
         }

@@ -11,128 +11,42 @@ using MusicPlayer.DataStructures;
 
 namespace MusicPlayer.Library
 {
-    public class ArtistViewModel : INotifyPropertyChanged
+    public class ArtistViewModel : LibraryViewModel
     {
-        #region Data
-
-        readonly ReadOnlyCollection<AlbumViewModel> _albums;
-        readonly ArtistDTO _artist;
-
-        bool _isExpanded;
-        bool _isSelected;
-
-        #endregion // Data
-
         #region Constructors
 
-        public ArtistViewModel(ArtistDTO artist)
+        public ArtistViewModel(ArtistDTO artist) : 
+            base(
+                data: artist,
+                parent: null,
+                lazyLoadChildren: true)
         {
-            _artist = artist;
-
-            _albums = new ReadOnlyCollection<AlbumViewModel>(
-                    (from album in artist.Albums
-                     select new AlbumViewModel(album, this))
-                     .ToList());
         }
 
         #endregion // Constructors
 
-        #region Artist Properties
+        #region Properties
 
-        public ReadOnlyCollection<AlbumViewModel> Albums
+        public ArtistDTO _artist
         {
-            get { return _albums; }
+            get { return Data as ArtistDTO; }
         }
 
-        public string Name
+        #endregion // Properties
+
+
+        #region LoadChildren
+
+        public override void LoadChildren(ILibraryRequestHandler dataManager)
         {
-            get { return _artist.Name; }
-        }
-
-        public long ID
-        {
-            get { return _artist.ArtistID; }
-        }
-
-        public double Weight
-        {
-            get { return _artist.Weight; }
-        }
-
-        public bool IsDim
-        {
-            get { return Weight == 0.0; }
-        }
-
-        #endregion // Artist Properties
-
-        #region Presentation Members
-
-        #region IsExpanded
-
-        /// <summary>
-        /// Gets/sets whether the TreeViewItem 
-        /// associated with this object is expanded.
-        /// </summary>
-        public bool IsExpanded
-        {
-            get { return _isExpanded; }
-            set
+            base.LoadChildren(dataManager);
+            foreach(AlbumDTO albumData in dataManager.GenerateArtistAlbumList(ID, Name))
             {
-                if (value != _isExpanded)
-                {
-                    _isExpanded = value;
-                    OnPropertyChanged("IsExpanded");
-                }
+                _artist.Children.Add(albumData);
+                Children.Add(new AlbumViewModel(albumData, this));
             }
         }
 
-        #endregion // IsExpanded
-
-        #region IsSelected
-
-        /// <summary>
-        /// Gets/sets whether the TreeViewItem 
-        /// associated with this object is selected.
-        /// </summary>
-        public bool IsSelected
-        {
-            get { return _isSelected; }
-            set
-            {
-                if (value != _isSelected)
-                {
-                    _isSelected = value;
-                    OnPropertyChanged("IsSelected");
-                }
-            }
-        }
-
-        #endregion // IsSelected
-
-        #region NameContainsText
-
-        public bool NameContainsText(string text)
-        {
-            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(this.Name))
-                return false;
-
-            return this.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
-        }
-
-        #endregion // NameContainsText
-
-        #endregion // Presentation Members
-
-        #region INotifyPropertyChanged Members
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        #endregion // INotifyPropertyChanged Members
+        #endregion // LoadChildren
     }
 }

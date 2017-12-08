@@ -35,10 +35,10 @@ namespace MusicPlayer.Playlist
 
         public string Title
         {
-            get { return _recording.Title; }
+            get { return _recording.Name; }
             set
             {
-                _recording.Title = value;
+                _recording.Name = value;
                 OnPropertyChanged("Title");
             }
 
@@ -71,10 +71,10 @@ namespace MusicPlayer.Playlist
 
         public long ID
         {
-            get { return _recording.RecordingID; }
+            get { return _recording.ID; }
             set
             {
-                _recording.RecordingID = value;
+                _recording.ID = value;
                 OnPropertyChanged("ID");
             }
         }

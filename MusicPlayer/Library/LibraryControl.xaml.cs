@@ -32,39 +32,52 @@ namespace MusicPlayer.Library
     public partial class LibraryControl : UserControl
     {
         #region Data
+
         MusicTreeViewModel _musicTree;
+        ILibraryRequestHandler dataManager;
+
         #endregion // Data
 
         #region Construction
+
         public LibraryControl()
         {
             InitializeComponent();
 
             _musicTree = new MusicTreeViewModel(new List<ArtistDTO>());
 
-            // Bind view-mdoel to UI.
-            base.DataContext = _musicTree;
+            // Bind view-model to UI.
+            DataContext = _musicTree;
         }
 
-        public void Rebuild(IList<ArtistDTO> artists)
+        public void Initialize(ILibraryRequestHandler dataManager)
         {
-            _musicTree = new MusicTreeViewModel(artists);
-            base.DataContext = _musicTree;
+            this.dataManager = dataManager;
         }
+
+        public void Rebuild()
+        {
+            _musicTree = new MusicTreeViewModel(dataManager.GenerateArtistList());
+            DataContext = _musicTree;
+        }
+
         #endregion // Construction
 
         #region Context Menu Events
+
         public delegate void ContextMenuIDRequest(LibraryContext context, long id);
         public delegate void ContextMenuMultiIDRequest(IList<ValueTuple<LibraryContext, long>> items);
 
         public event ContextMenuIDRequest ContextMenu_Play;
         public event ContextMenuIDRequest ContextMenu_Add;
         public event ContextMenuIDRequest ContextMenu_Edit;
+
         #endregion // Context Menu Events
 
         #region Callbacks
 
-        #region Callbacks Defunct Search Example
+        #region Callbacks Search Example
+
         void SearchTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -72,11 +85,12 @@ namespace MusicPlayer.Library
                 _musicTree.SearchCommand.Execute(null);
             }
         }
-        #endregion // Callbacks Defunct Search Example
+
+        #endregion // Callbacks Search Example
 
         private void OnItemMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if(sender is TreeViewItem treeItem)
+            if (sender is TreeViewItem treeItem)
             {
                 if (treeItem.Header is SongViewModel songModel)
                 {
@@ -99,7 +113,6 @@ namespace MusicPlayer.Library
                     ContextMenu_Play?.Invoke(LibraryContext.Recording, recordingModel.ID);
                 }
             }
-
         }
 
         private void Play(object sender, System.Windows.RoutedEventArgs e)
@@ -131,7 +144,7 @@ namespace MusicPlayer.Library
             if (id != -1)
             {
                 e.Handled = true;
-                
+
                 ContextMenu_Edit?.Invoke(context, id);
             }
         }
@@ -189,8 +202,22 @@ namespace MusicPlayer.Library
             return (context, id);
         }
 
+        private void TreeViewItem_Expanded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (e.OriginalSource is TreeViewItem treeItem)
+            {
+                if (treeItem.Header is LibraryViewModel libraryModel)
+                {
+                    if (!libraryModel.HasDummyChild)
+                    {
+                        return;
+                    }
+
+                    libraryModel.LoadChildren(dataManager);
+                }
+            }
+        }
 
         #endregion // Callbacks
-
     }
 }
