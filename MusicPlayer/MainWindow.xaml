@@ -8,7 +8,7 @@
         xmlns:player="clr-namespace:MusicPlayer.Player"
         xmlns:playlist="clr-namespace:MusicPlayer.Playlist"
         mc:Ignorable="d"
-        Title="Musegician" Height="350" Width="525"
+        Title="Musegician" Height="800" Width="1200"
         Closing="WindowClosing"
         Style="{StaticResource {x:Type Window}}">
     <DockPanel>

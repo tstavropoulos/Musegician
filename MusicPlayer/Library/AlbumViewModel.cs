@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MusicPlayer.DataStructures;
+using System.Windows.Media.Imaging;
 
 namespace MusicPlayer.Library
 {
@@ -42,6 +43,11 @@ namespace MusicPlayer.Library
         public ReadOnlyCollection<SongViewModel> Songs
         {
             get { return _songs; }
+        }
+
+        public BitmapImage AlbumArt
+        {
+            get { return _album.AlbumArt; }
         }
 
         public string Title

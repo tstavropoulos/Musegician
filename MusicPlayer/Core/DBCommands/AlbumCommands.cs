@@ -102,13 +102,37 @@ namespace MusicPlayer.Core.DBCommands
             return artistID;
         }
 
+        public byte[] _GetArt(long albumID)
+        {
+            byte[] image = null;
+
+            SQLiteCommand getAlbumArt = dbConnection.CreateCommand();
+            getAlbumArt.CommandType = System.Data.CommandType.Text;
+            getAlbumArt.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+            getAlbumArt.CommandText =
+                "SELECT image " +
+                "FROM art " +
+                "WHERE album_id=@albumID;";
+
+            using (SQLiteDataReader reader = getAlbumArt.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    image = (byte[])reader["image"];
+                }
+            }
+
+            return image;
+        }
+
         #endregion  //Search Commands
 
 
         #region Lookup Commands
 
         public void _PopulateLookup(
-            Dictionary<(long, string), long> artistID_AlbumTitleDict)
+            Dictionary<(long, string), long> artistID_AlbumTitleDict,
+            HashSet<long> albumArt)
         {
             SQLiteCommand loadAlbums = dbConnection.CreateCommand();
             loadAlbums.CommandType = System.Data.CommandType.Text;
@@ -142,6 +166,25 @@ namespace MusicPlayer.Core.DBCommands
                     if (albumID > _lastIDAssigned)
                     {
                         _lastIDAssigned = albumID;
+                    }
+                }
+            }
+
+            SQLiteCommand loadAlbumArt = dbConnection.CreateCommand();
+            loadAlbumArt.CommandType = System.Data.CommandType.Text;
+            loadAlbumArt.CommandText =
+                "SELECT album_id " +
+                "FROM art; ";
+
+            using (SQLiteDataReader reader = loadAlbumArt.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    long albumID = (long)reader["album_id"];
+
+                    if (!albumArt.Contains(albumID))
+                    {
+                        albumArt.Add(albumID);
                     }
                 }
             }
@@ -242,8 +285,7 @@ namespace MusicPlayer.Core.DBCommands
                 "CREATE TABLE IF NOT EXISTS album (" +
                     "album_id INTEGER PRIMARY KEY, " +
                     "album_title TEXT, " +
-                    "album_year INTEGER, " +
-                    "album_art_filename TEXT);";
+                    "album_year INTEGER);";
             createAlbumTable.ExecuteNonQuery();
 
             SQLiteCommand createWeightTable = dbConnection.CreateCommand();
@@ -254,6 +296,16 @@ namespace MusicPlayer.Core.DBCommands
                     "album_id INTEGER PRIMARY KEY, " +
                     "weight REAL);";
             createWeightTable.ExecuteNonQuery();
+
+
+            SQLiteCommand createArtTable = dbConnection.CreateCommand();
+            createArtTable.Transaction = transaction;
+            createArtTable.CommandType = System.Data.CommandType.Text;
+            createArtTable.CommandText =
+                "CREATE TABLE IF NOT EXISTS art (" +
+                    "album_id INTEGER PRIMARY KEY, " +
+                    "image BLOB);";
+            createArtTable.ExecuteNonQuery();
         }
 
         #endregion //Create Commands
@@ -263,8 +315,7 @@ namespace MusicPlayer.Core.DBCommands
         public long _CreateAlbum(
             SQLiteTransaction transaction,
             string albumTitle,
-            long albumYear = 0,
-            string albumArtFilename = "")
+            long albumYear = 0)
         {
             long albumID = NextID;
 
@@ -273,12 +324,11 @@ namespace MusicPlayer.Core.DBCommands
             writeAlbum.CommandType = System.Data.CommandType.Text;
             writeAlbum.CommandText =
                 "INSERT INTO album " +
-                    "(album_id, album_title, album_year, album_art_filename) VALUES " +
-                    "(@albumID, @albumTitle, @albumYear, @albumArt);";
+                    "(album_id, album_title, album_year) VALUES " +
+                    "(@albumID, @albumTitle, @albumYear);";
             writeAlbum.Parameters.Add(new SQLiteParameter("@albumID", albumID));
             writeAlbum.Parameters.Add(new SQLiteParameter("@albumTitle", albumTitle));
             writeAlbum.Parameters.Add(new SQLiteParameter("@albumYear", albumYear));
-            writeAlbum.Parameters.Add(new SQLiteParameter("@albumArt", albumArtFilename));
             writeAlbum.ExecuteNonQuery();
 
             return albumID;
@@ -293,8 +343,8 @@ namespace MusicPlayer.Core.DBCommands
             writeAlbum.CommandType = System.Data.CommandType.Text;
             writeAlbum.CommandText =
                 "INSERT INTO album " +
-                    "(album_id, album_title, album_year, album_art_filename) VALUES " +
-                    "(@albumID, @albumTitle, @albumYear, @albumArtFilename);";
+                    "(album_id, album_title, album_year) VALUES " +
+                    "(@albumID, @albumTitle, @albumYear);";
             writeAlbum.Parameters.Add("@albumID", DbType.Int64);
             writeAlbum.Parameters.Add("@albumTitle", DbType.AnsiString);
             writeAlbum.Parameters.Add("@albumYear", DbType.Int64);
@@ -305,8 +355,29 @@ namespace MusicPlayer.Core.DBCommands
                 writeAlbum.Parameters["@albumID"].Value = album.albumID;
                 writeAlbum.Parameters["@albumTitle"].Value = album.albumTitle;
                 writeAlbum.Parameters["@albumYear"].Value = album.albumYear;
-                writeAlbum.Parameters["@albumArtFilename"].Value = album.albumArtFilename;
                 writeAlbum.ExecuteNonQuery();
+            }
+        }
+
+        public void _BatchCreateArt(
+            SQLiteTransaction transaction,
+            ICollection<ArtData> newArtRecords)
+        {
+            SQLiteCommand writeArt = dbConnection.CreateCommand();
+            writeArt.Transaction = transaction;
+            writeArt.CommandType = System.Data.CommandType.Text;
+            writeArt.CommandText =
+                "INSERT INTO art " +
+                    "(album_id, image) VALUES " +
+                    "(@albumID, @image);";
+            writeArt.Parameters.Add("@albumID", DbType.Int64);
+            writeArt.Parameters.Add("@image", DbType.Binary);
+
+            foreach (ArtData art in newArtRecords)
+            {
+                writeArt.Parameters["@albumID"].Value = art.albumID;
+                writeArt.Parameters["@image"].Value = art.image;
+                writeArt.ExecuteNonQuery();
             }
         }
 

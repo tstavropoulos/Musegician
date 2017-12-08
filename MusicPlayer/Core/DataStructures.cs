@@ -18,7 +18,12 @@ namespace MusicPlayer.DataStructures
         public long albumID;
         public string albumTitle;
         public long albumYear;
-        public string albumArtFilename;
+    }
+
+    public struct ArtData
+    {
+        public long albumID;
+        public byte[] image;
     }
 
     public struct SongData

@@ -11,6 +11,8 @@ using MusicPlayer.Library;
 using System.Windows;
 using MusicPlayer.TagEditor;
 using MusicPlayer.Core.DBCommands;
+using System.Drawing;
+using System.Windows.Media.Imaging;
 
 namespace MusicPlayer
 {
@@ -43,6 +45,7 @@ namespace MusicPlayer
             public List<SongData> songs;
             public List<RecordingData> recordings;
             public List<TrackData> tracks;
+            public List<ArtData> art;
 
             public bool HasRecords()
             {
@@ -50,7 +53,8 @@ namespace MusicPlayer
                     albums.Count > 0 ||
                     tracks.Count > 0 ||
                     songs.Count > 0 ||
-                    recordings.Count > 0);
+                    recordings.Count > 0 ||
+                    art.Count > 0);
             }
         }
 
@@ -60,6 +64,7 @@ namespace MusicPlayer
             public Dictionary<ValueTuple<long, string>, long> artistID_AlbumTitle;
             public Dictionary<ValueTuple<long, string>, long> artistID_SongTitle;
             public HashSet<string> loadedFilenames;
+            public HashSet<long> loadedAlbumArt;
         }
 
 
@@ -173,7 +178,8 @@ namespace MusicPlayer
 
             //Load Albums
             albumCommands._PopulateLookup(
-                artistID_AlbumTitleDict: lookups.artistID_AlbumTitle);
+                artistID_AlbumTitleDict: lookups.artistID_AlbumTitle,
+                albumArt: lookups.loadedAlbumArt);
 
             //Load Songs
             songCommands._PopulateLookup(
@@ -215,7 +221,8 @@ namespace MusicPlayer
                 artistName = new Dictionary<string, long>(),
                 artistID_AlbumTitle = new Dictionary<ValueTuple<long, string>, long>(),
                 artistID_SongTitle = new Dictionary<ValueTuple<long, string>, long>(),
-                loadedFilenames = new HashSet<string>()
+                loadedFilenames = new HashSet<string>(),
+                loadedAlbumArt = new HashSet<long>()
             };
 
             DBRecords newRecords = new DBRecords()
@@ -224,7 +231,8 @@ namespace MusicPlayer
                 artists = new List<ArtistData>(),
                 songs = new List<SongData>(),
                 tracks = new List<TrackData>(),
-                recordings = new List<RecordingData>()
+                recordings = new List<RecordingData>(),
+                art = new List<ArtData>()
             };
 
 
@@ -255,6 +263,10 @@ namespace MusicPlayer
                     albumCommands._BatchCreateAlbum(
                         transaction: writeRecordsTransaction,
                         newAlbumRecords: newRecords.albums);
+
+                    albumCommands._BatchCreateArt(
+                        transaction: writeRecordsTransaction,
+                        newArtRecords: newRecords.art);
 
                     //Add Tracks
                     trackCommands._BatchCreateTracks(
@@ -451,8 +463,18 @@ namespace MusicPlayer
                 {
                     albumID = albumID,
                     albumTitle = albumTitle,
-                    albumYear = musicFile.Tag.Year,
-                    albumArtFilename = ""
+                    albumYear = musicFile.Tag.Year
+                });
+            }
+
+            if (musicFile.Tag.Pictures.Length > 0 && !lookups.loadedAlbumArt.Contains(albumID))
+            {
+                lookups.loadedAlbumArt.Add(albumID);
+
+                newRecords.art.Add(new ArtData()
+                {
+                    albumID = albumID,
+                    image = file.Tag.Pictures[0].Data.Data
                 });
             }
 
@@ -575,10 +597,14 @@ namespace MusicPlayer
                 }
             }
 
+            BitmapImage art = LoadImage(albumCommands._GetArt(
+                albumID: albumID));
+
             return new AlbumDTO(
-                id: albumID,
-                title: albumTitle,
-                songs: songList);
+                albumID: albumID,
+                albumTitle: albumTitle,
+                songs: songList,
+                albumArt: art);
         }
 
         private SongDTO GenerateSong(long songID, string trackTitle, long albumID, bool isHome)
@@ -1425,6 +1451,30 @@ namespace MusicPlayer
                         newDouble.GetType().ToString(),
                         record.ToString()));
             }
+        }
+
+
+        private static BitmapImage LoadImage(byte[] imageData)
+        {
+            if (imageData == null || imageData.Length == 0)
+            {
+                return null;
+            }
+
+            BitmapImage image = new BitmapImage();
+            using (MemoryStream mem = new MemoryStream(imageData))
+            {
+                mem.Position = 0;
+                image.BeginInit();
+                image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.UriSource = null;
+                image.StreamSource = mem;
+                image.EndInit();
+            }
+
+            image.Freeze();
+            return image;
         }
     }
 }
