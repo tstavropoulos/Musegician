@@ -15,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using LibraryContext = MusicPlayer.Library.LibraryContext;
+using Microsoft.Win32;
 
 namespace MusicPlayer
 {
@@ -245,6 +246,25 @@ namespace MusicPlayer
                 default:
                     Console.WriteLine("Unexpected MessageBoxResult: " + response + ".  Likely Error.");
                     break;
+            }
+        }
+
+        private void Library_Request_Edit_Art(LibraryContext context, long id)
+        {
+            OpenFileDialog dialog = new OpenFileDialog()
+            {
+                Title = "Select Album Art to add to Library",
+                InitialDirectory = "C:\\",
+                Multiselect = false,
+                Filter = "image files (*.bmp;*.png;*.jpg;*.jpeg)|*.bmp;*.jpg;*.jpeg;*.png"
+            };
+
+            bool? val = dialog.ShowDialog();
+
+            if (val.HasValue && val.Value)
+            {
+                fileMan.SetAlbumArt(id, dialog.FileName);
+                libraryControl.Rebuild();
             }
         }
     }

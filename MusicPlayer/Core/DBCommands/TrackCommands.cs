@@ -11,7 +11,9 @@ namespace MusicPlayer.Core.DBCommands
 {
     public class TrackCommands
     {
+        ArtistCommands artistCommands = null;
         SongCommands songCommands = null;
+        RecordingCommands recordingCommands = null;
 
         SQLiteConnection dbConnection;
 
@@ -28,10 +30,14 @@ namespace MusicPlayer.Core.DBCommands
 
         public void Initialize(
             SQLiteConnection dbConnection,
-            SongCommands songCommands)
+            ArtistCommands artistCommands,
+            SongCommands songCommands,
+            RecordingCommands recordingCommands)
         {
             this.dbConnection = dbConnection;
+            this.artistCommands = artistCommands;
             this.songCommands = songCommands;
+            this.recordingCommands = recordingCommands;
 
             _lastIDAssigned = 0;
         }
@@ -51,9 +57,7 @@ namespace MusicPlayer.Core.DBCommands
             long oldSongID = _FindSongID_ByTrackID(
                 trackID: trackIDsCopy[0]);
 
-            long artistID = songCommands._FindArtistID_BySongID(
-                songID: oldSongID);
-
+            //Is there a song currently by the same artist with the same name?
             long newSongID = songCommands._FindSongID_ByTitle_MatchSongArtist(
                 songTitle: newTitle,
                 oldSongID: oldSongID);
@@ -72,7 +76,7 @@ namespace MusicPlayer.Core.DBCommands
 
                 //New song did exist, or we passed in more than one track
                 //Update track table to point at new song
-                _ReassignSongID(
+                recordingCommands._ReassignSongIDs_ByTrackID(
                     transaction: updateSongTitles,
                     songID: newSongID,
                     trackIDs: trackIDsCopy);
@@ -84,6 +88,50 @@ namespace MusicPlayer.Core.DBCommands
         }
 
 
+
+        /// <summary>
+        /// Assigning Tracks to a different artist
+        /// </summary>
+        /// <param name="songIDs"></param>
+        /// <param name="newTitle"></param>
+        public void UpdateArtistName(ICollection<long> trackIDs, string newArtistName)
+        {
+            List<long> songIDsCopy = new List<long>(trackIDs);
+
+            //Renaming (or Consolidating) a Song
+            dbConnection.Open();
+
+            long artistID = artistCommands._FindArtist_ByName(
+                artistName: newArtistName);
+
+            using (SQLiteTransaction updateArtistName = dbConnection.BeginTransaction())
+            {
+                if (artistID == -1)
+                {
+                    //New Artist did not exist
+                    //  We need to Create one
+
+                    //Update the song formerly in the front
+                    artistID = artistCommands._CreateArtist(
+                        transaction: updateArtistName,
+                        artistName: newArtistName);
+                }
+
+                //Update the recording ArtistIDs
+                recordingCommands._ReassignArtistIDs_ByTrackID(
+                    transaction: updateArtistName,
+                    artistID: artistID,
+                    trackIDs: trackIDs);
+
+                //Now, delete any old artists with no remaining recordings
+               artistCommands._DeleteAllLeafs(
+                    transaction: updateArtistName);
+
+                updateArtistName.Commit();
+            }
+
+            dbConnection.Close();
+        }
 
 
         #region Search Commands
@@ -162,27 +210,6 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        public void _ReassignSongID(
-            SQLiteTransaction transaction,
-            long songID,
-            ICollection<long> trackIDs)
-        {
-            SQLiteCommand remapSongID = dbConnection.CreateCommand();
-            remapSongID.Transaction = transaction;
-            remapSongID.CommandType = System.Data.CommandType.Text;
-            remapSongID.Parameters.Add(new SQLiteParameter("@songID", songID));
-            remapSongID.Parameters.Add("@trackID", DbType.Int64);
-            remapSongID.CommandText =
-                "UPDATE track " +
-                    "SET track.song_id=@songID " +
-                    "WHERE track.track_id=@trackID;";
-            foreach (long id in trackIDs)
-            {
-                remapSongID.Parameters["@trackID"].Value = id;
-                remapSongID.ExecuteNonQuery();
-            }
-        }
-
         public void _RemapAlbumID(
             SQLiteTransaction transaction,
             long newAlbumID,
@@ -200,27 +227,6 @@ namespace MusicPlayer.Core.DBCommands
             foreach (long id in oldAlbumIDs)
             {
                 remapSongID.Parameters["@oldAlbumID"].Value = id;
-                remapSongID.ExecuteNonQuery();
-            }
-        }
-
-        public void _RemapSongID(
-            SQLiteTransaction transaction,
-            long newSongID,
-            ICollection<long> oldSongIDs)
-        {
-            SQLiteCommand remapSongID = dbConnection.CreateCommand();
-            remapSongID.Transaction = transaction;
-            remapSongID.CommandType = System.Data.CommandType.Text;
-            remapSongID.Parameters.Add(new SQLiteParameter("@newSongID", newSongID));
-            remapSongID.Parameters.Add("@oldSongID", DbType.Int64);
-            remapSongID.CommandText =
-                "UPDATE track " +
-                    "SET track.song_id=@newSongID " +
-                    "WHERE track.song_id=@oldSongID;";
-            foreach (long id in oldSongIDs)
-            {
-                remapSongID.Parameters["@oldSongID"].Value = id;
                 remapSongID.ExecuteNonQuery();
             }
         }

@@ -61,11 +61,13 @@
         <StackPanel.ContextMenu>
           <ContextMenu>
             <MenuItem Header="Add Album To Playlist" 
-                                          Click="Add"/>
+                      Click="Add"/>
             <MenuItem Header="Play Album" 
-                                          Click="Play"/>
+                      Click="Play"/>
             <MenuItem Header="Edit Album Information" 
-                                          Click="Edit"/>
+                      Click="Edit"/>
+            <MenuItem Header="Update Album Art" 
+                      Click="EditArt"/>
           </ContextMenu>
         </StackPanel.ContextMenu>
         <Border Height="30" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
@@ -147,16 +149,16 @@
     <DockPanel DockPanel.Dock="Top"  Margin="10,2,10,2">
       <DockPanel DockPanel.Dock="Top">
         <TextBlock DockPanel.Dock="Left"
-                       VerticalAlignment="Center"
-                       Text="Search:"
-                       TextBlock.FontSize="14" TextAlignment="Left"
-                       Margin="0,0,10,0"/>
+                   VerticalAlignment="Center"
+                   Text="Search:"
+                   TextBlock.FontSize="14" TextAlignment="Left"
+                   Margin="0,0,10,0"/>
         <TextBox Name="shuffleToggleButton"
-                     TextBlock.FontSize="12" TextBlock.TextAlignment="Left"
-                     KeyDown="SearchTextBox_KeyDown" 
-                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     VerticalContentAlignment="Center"
-                     Margin="1,2,4,2" Height="24" />
+                 TextBlock.FontSize="12" TextBlock.TextAlignment="Left"
+                 KeyDown="SearchTextBox_KeyDown" 
+                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                 VerticalContentAlignment="Center"
+                 Margin="1,2,4,2" Height="24" />
       </DockPanel>
       <Grid DockPanel.Dock="Bottom" Margin="55,0,0,0">
         <Grid.ColumnDefinitions>
@@ -172,18 +174,18 @@
     <TabControl>
       <TabItem Header="Classic" FontSize="14">
         <TreeView ItemsSource="{Binding ClassicArtistViewModels}"
-                    TreeViewItem.Expanded="TreeViewItem_Expanded"
-                    ItemContainerStyle="{StaticResource LibraryStyle}"/>
+                  TreeViewItem.Expanded="TreeViewItem_Expanded"
+                  ItemContainerStyle="{StaticResource LibraryStyle}"/>
       </TabItem>
       <TabItem Header="Simple"  FontSize="14">
         <TreeView ItemsSource="{Binding SimpleViewModels}" 
-                    TreeViewItem.Expanded="TreeViewItem_Expanded"
-                    ItemContainerStyle="{StaticResource LibraryStyle}"/>
+                  TreeViewItem.Expanded="TreeViewItem_Expanded"
+                  ItemContainerStyle="{StaticResource LibraryStyle}"/>
       </TabItem>
       <TabItem Header="Albums"  FontSize="14">
         <TreeView ItemsSource="{Binding AlbumViewModels}" 
-                    TreeViewItem.Expanded="TreeViewItem_Expanded"
-                    ItemContainerStyle="{StaticResource LibraryStyle}"/>
+                  TreeViewItem.Expanded="TreeViewItem_Expanded"
+                  ItemContainerStyle="{StaticResource LibraryStyle}"/>
       </TabItem>
     </TabControl>
   </DockPanel>

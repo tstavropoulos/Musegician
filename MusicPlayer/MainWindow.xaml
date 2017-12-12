@@ -90,7 +90,8 @@
                                      Grid.Column="2" Grid.Row="0"
                                      ContextMenu_Play="Library_Request_Play"
                                      ContextMenu_Add="Library_Request_Add"
-                                     ContextMenu_Edit="Library_Request_Edit"/>
+                                     ContextMenu_Edit="Library_Request_Edit"
+                                     ContextMenu_EditArt="Library_Request_Edit_Art"/>
     </Grid>
   </DockPanel>
 </Window>

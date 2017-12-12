@@ -13,6 +13,7 @@ namespace MusicPlayer.Core.DBCommands
     {
         AlbumCommands albumCommands = null;
         SongCommands songCommands = null;
+        RecordingCommands recordingCommands = null;
 
         SQLiteConnection dbConnection;
 
@@ -29,12 +30,14 @@ namespace MusicPlayer.Core.DBCommands
         public void Initialize(
             SQLiteConnection dbConnection,
             AlbumCommands albumCommands,
-            SongCommands songCommands)
+            SongCommands songCommands,
+            RecordingCommands recordingCommands)
         {
             this.dbConnection = dbConnection;
 
             this.albumCommands = albumCommands;
             this.songCommands = songCommands;
+            this.recordingCommands = recordingCommands;
 
             _lastIDAssigned = 0;
         }
@@ -76,7 +79,7 @@ namespace MusicPlayer.Core.DBCommands
                         newArtistID: artistID,
                         oldArtistIDs: artistIDsCopy);
 
-                    //Now, delete any old artists with no remaining songs
+                    //Now, delete any old artists with no remaining recordings
                     _DeleteAllLeafs(
                         transaction: updateArtist);
                 }
@@ -85,6 +88,32 @@ namespace MusicPlayer.Core.DBCommands
             }
 
             dbConnection.Close();
+        }
+
+        public List<ArtistDTO> GeneratArtistList()
+        {
+            List<ArtistDTO> artistList = new List<ArtistDTO>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readArtists = dbConnection.CreateCommand();
+            readArtists.CommandType = System.Data.CommandType.Text;
+            readArtists.CommandText =
+                "SELECT artist_id, artist_name " +
+                "FROM artist ORDER BY artist_name ASC;";
+            using (SQLiteDataReader reader = readArtists.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    artistList.Add(new ArtistDTO(
+                        id: (long)reader["artist_id"],
+                        name: (string)reader["artist_name"]));
+                }
+            }
+
+            dbConnection.Close();
+
+            return artistList;
         }
 
         #endregion // High Level Commands
@@ -203,12 +232,7 @@ namespace MusicPlayer.Core.DBCommands
             long newArtistID,
             ICollection<long> oldArtistIDs)
         {
-            songCommands._RemapArtistID(
-                transaction: transaction,
-                newArtistID: newArtistID,
-                oldArtistIDs: oldArtistIDs);
-
-            albumCommands._RemapArtistID(
+            recordingCommands._RemapArtistID(
                 transaction: transaction,
                 newArtistID: newArtistID,
                 oldArtistIDs: oldArtistIDs);

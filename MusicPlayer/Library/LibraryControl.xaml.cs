@@ -71,6 +71,7 @@ namespace MusicPlayer.Library
         public event ContextMenuIDRequest ContextMenu_Play;
         public event ContextMenuIDRequest ContextMenu_Add;
         public event ContextMenuIDRequest ContextMenu_Edit;
+        public event ContextMenuIDRequest ContextMenu_EditArt;
 
         #endregion // Context Menu Events
 
@@ -146,6 +147,18 @@ namespace MusicPlayer.Library
                 e.Handled = true;
 
                 ContextMenu_Edit?.Invoke(context, id);
+            }
+        }
+
+        private void EditArt(object sender, System.Windows.RoutedEventArgs e)
+        {
+            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Edit);
+
+            if (id != -1)
+            {
+                e.Handled = true;
+
+                ContextMenu_EditArt?.Invoke(context, id);
             }
         }
 

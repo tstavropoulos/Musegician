@@ -5,12 +5,12 @@ namespace MusicPlayer.DataStructures
 {
     public class SongDTO : DTO
     {
-        public SongDTO(long songID, string title, bool isHome)
+        public SongDTO(long songID, string title, long trackID, bool isHome)
         {
             ID = songID;
             IsHome = isHome;
             Name = title;
-            TrackID = -1;
+            TrackID = trackID;
         }
 
         public SongDTO(long songID, string title)

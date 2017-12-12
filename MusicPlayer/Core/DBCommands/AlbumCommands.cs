@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using DbType = System.Data.DbType;
 using MusicPlayer.DataStructures;
+using System.Drawing;
+using System.Windows.Media.Imaging;
+using System.IO;
+using TagLib;
 
 namespace MusicPlayer.Core.DBCommands
 {
@@ -41,38 +45,73 @@ namespace MusicPlayer.Core.DBCommands
 
         #region High Level Commands
 
-        public void UpdateArtistName(ICollection<long> albumIDs, string newArtistName)
+        public List<AlbumDTO> GenerateArtistAlbumList(long artistID, string artistName)
         {
-            //Assigning Albums to a different artist
+            List<AlbumDTO> albumList = new List<AlbumDTO>();
+
             dbConnection.Open();
 
-            //First, find out if the new artist exists
-            long artistID = artistCommands._FindArtist_ByName(newArtistName);
+            SQLiteCommand readAlbums = dbConnection.CreateCommand();
+            readAlbums.CommandType = System.Data.CommandType.Text;
+            readAlbums.CommandText =
+                "SELECT album_id, album_title, album_year " +
+                "FROM album " +
+                "WHERE album_id IN ( " +
+                    "SELECT track.album_id " +
+                    "FROM recording " +
+                    "LEFT JOIN track ON recording.recording_id=track.recording_id " +
+                    "WHERE recording.artist_id=@artistID ) " +
+                "ORDER BY album_year ASC;";
+            readAlbums.Parameters.Add(new SQLiteParameter("@artistID", artistID));
 
-            using (SQLiteTransaction updateAlbums = dbConnection.BeginTransaction())
+            using (SQLiteDataReader reader = readAlbums.ExecuteReader())
             {
-                if (artistID == -1)
+                while (reader.Read())
                 {
-                    //Create a new Artist, because it doesn't exist
-                    artistID = artistCommands._CreateArtist(
-                        transaction: updateAlbums,
-                        artistName: newArtistName);
+                    long albumID = (long)reader["album_id"];
+
+                    albumList.Add(new AlbumDTO(
+                        albumID: albumID,
+                        albumTitle: String.Format(
+                            "{0} ({1})",
+                            (string)reader["album_title"],
+                            ((long)reader["album_year"]).ToString()),
+                        albumArt: LoadImage(_GetArt(albumID))));
                 }
-
-                //Update the album and song ArtistIDs
-                _UpdateArtistID_ByAlbumID(
-                    transaction: updateAlbums,
-                    artistID: artistID,
-                    albumIDs: albumIDs);
-
-                //Now, delete any old artists with no remaining albums
-                _DeleteAllLeafs(
-                    transaction: updateAlbums);
-
-                updateAlbums.Commit();
             }
 
             dbConnection.Close();
+
+            return albumList;
+        }
+
+        public List<AlbumDTO> GenerateAlbumList()
+        {
+            List<AlbumDTO> albumList = new List<AlbumDTO>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readAlbums = dbConnection.CreateCommand();
+            readAlbums.CommandType = System.Data.CommandType.Text;
+            readAlbums.CommandText =
+                "SELECT album_id, album_title " +
+                "FROM album ORDER BY album_title ASC;";
+            using (SQLiteDataReader reader = readAlbums.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    long albumID = (long)reader["album_id"];
+
+                    albumList.Add(new AlbumDTO(
+                        albumID: albumID,
+                        albumTitle: (string)reader["album_title"],
+                        albumArt: LoadImage(_GetArt(albumID))));
+                }
+            }
+
+            dbConnection.Close();
+
+            return albumList;
         }
 
         #endregion // High Level Commands
@@ -212,66 +251,6 @@ namespace MusicPlayer.Core.DBCommands
             updateAlbumTitle_ByAlbumID.ExecuteNonQuery();
         }
 
-        public void _UpdateArtistID_ByAlbumID(
-            SQLiteTransaction transaction,
-            long artistID,
-            ICollection<long> albumIDs)
-        {
-            //Update the artistID of listed albums
-            _ReassignArtistID(
-                transaction: transaction,
-                artistID: artistID,
-                albumIDs: albumIDs);
-
-            //Update the Songs that were affected
-            songCommands._UpdateArtistID_ByAlbumID(
-                transaction: transaction,
-                artistID: artistID,
-                albumIDs: albumIDs);
-        }
-
-        public void _ReassignArtistID(
-            SQLiteTransaction transaction,
-            long artistID,
-            ICollection<long> albumIDs)
-        {
-            SQLiteCommand reassignArtistID = dbConnection.CreateCommand();
-            reassignArtistID.Transaction = transaction;
-            reassignArtistID.CommandType = System.Data.CommandType.Text;
-            reassignArtistID.Parameters.Add(new SQLiteParameter("@newArtistID", artistID));
-            reassignArtistID.Parameters.Add("@albumID", DbType.Int64);
-            reassignArtistID.CommandText =
-                "UPDATE album " +
-                    "SET album.artist_id=@newArtistID " +
-                    "WHERE album.album_id=@albumID;";
-            foreach (long id in albumIDs)
-            {
-                reassignArtistID.Parameters["@albumID"].Value = id;
-                reassignArtistID.ExecuteNonQuery();
-            }
-        }
-
-        public void _RemapArtistID(
-            SQLiteTransaction transaction,
-            long newArtistID,
-            ICollection<long> oldArtistIDs)
-        {
-            SQLiteCommand remapArtistID = dbConnection.CreateCommand();
-            remapArtistID.Transaction = transaction;
-            remapArtistID.CommandType = System.Data.CommandType.Text;
-            remapArtistID.Parameters.Add(new SQLiteParameter("@newArtistID", newArtistID));
-            remapArtistID.Parameters.Add("@oldArtistID", DbType.Int64);
-            remapArtistID.CommandText =
-                "UPDATE album " +
-                    "SET album.artist_id=@newArtistID " +
-                    "WHERE album.artist_id=@oldArtistID;";
-            foreach (long id in oldArtistIDs)
-            {
-                remapArtistID.Parameters["@oldArtistID"].Value = id;
-                remapArtistID.ExecuteNonQuery();
-            }
-        }
-
         #endregion // Update Commands
 
         #region Create Commands
@@ -332,6 +311,24 @@ namespace MusicPlayer.Core.DBCommands
             writeAlbum.ExecuteNonQuery();
 
             return albumID;
+        }
+
+        public void _CreateArt(
+            SQLiteTransaction transaction,
+            long albumID,
+            byte[] imageData)
+        {
+            SQLiteCommand writeArt = dbConnection.CreateCommand();
+            writeArt.Transaction = transaction;
+            writeArt.CommandType = System.Data.CommandType.Text;
+            writeArt.CommandText =
+                "INSERT INTO art " +
+                    "(album_id, image) VALUES " +
+                    "(@albumID, @image);";
+            writeArt.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+            writeArt.Parameters.Add(new SQLiteParameter("@image", imageData));
+            
+            writeArt.ExecuteNonQuery();
         }
 
         public void _BatchCreateAlbum(
@@ -424,5 +421,98 @@ namespace MusicPlayer.Core.DBCommands
         }
 
         #endregion // Delete Commands
+
+        public void SetAlbumArt(long albumID, string path)
+        {
+            if (!System.IO.File.Exists(path))
+            {
+                throw new IOException("File not found: " + path);
+            }
+
+            byte[] imageData = System.IO.File.ReadAllBytes(path);
+
+            dbConnection.Open();
+
+            using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
+            {
+                _CreateArt(
+                    transaction: transaction,
+                    albumID: albumID,
+                    imageData: imageData);
+
+                transaction.Commit();
+            }
+
+            //Update the first song on the album (whose id3 tag points to the album) with the art
+            _PushAlbumArtToTag(albumID, imageData);
+
+            dbConnection.Close();
+
+        }
+
+        //Update the first song on the album (whose id3 tag points to the album) with the art
+        public void _PushAlbumArtToTag(long albumID, byte[] imageData)
+        {
+
+            SQLiteCommand readFiles = dbConnection.CreateCommand();
+            readFiles.CommandType = System.Data.CommandType.Text;
+            readFiles.CommandText =
+                "SELECT recording.filename AS filename, album.album_title AS album_title " +
+                "FROM album " +
+                "LEFT JOIN track ON album.album_id=track.album_id " +
+                "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
+                "WHERE album.album_id=@albumID " +
+                "ORDER BY track.track_number ASC;";
+            readFiles.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+
+            using (SQLiteDataReader reader = readFiles.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    string albumTitle = (string)reader["album_title"];
+                    string filename = (string)reader["filename"];
+
+                    TagLib.Mpeg.AudioFile audioFile = TagLib.File.Create(filename) as TagLib.Mpeg.AudioFile;
+
+                    if (audioFile == null)
+                    {
+                        Console.WriteLine("Unable to open file: " + filename);
+                        continue;
+                    }
+
+                    if (audioFile.Tag.Album.ToLowerInvariant() != albumTitle.ToLowerInvariant())
+                    {
+                        Console.WriteLine("Album Title doesn't match. Skipping : " + albumTitle + " / " + audioFile.Tag.Album);
+                        continue;
+                    }
+                    audioFile.Tag.Pictures = new IPicture[1] { new Picture(imageData) };
+                    audioFile.Save();
+                    break;
+                }
+            }
+        }
+
+        private static BitmapImage LoadImage(byte[] imageData)
+        {
+            if (imageData == null || imageData.Length == 0)
+            {
+                return null;
+            }
+
+            BitmapImage image = new BitmapImage();
+            using (MemoryStream mem = new MemoryStream(imageData))
+            {
+                mem.Position = 0;
+                image.BeginInit();
+                image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.UriSource = null;
+                image.StreamSource = mem;
+                image.EndInit();
+            }
+
+            image.Freeze();
+            return image;
+        }
     }
 }
