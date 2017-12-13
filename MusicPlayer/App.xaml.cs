@@ -13,5 +13,14 @@ namespace MusicPlayer
     /// </summary>
     public partial class App : Application
     {
+        public App()
+        {
+            Exit += App_Exit;
+        }
+
+        private void App_Exit(object sender, ExitEventArgs e)
+        {
+            Player.MusicManager.Instance.CleanUp();
+        }
     }
 }

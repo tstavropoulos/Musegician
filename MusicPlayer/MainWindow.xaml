@@ -9,66 +9,64 @@
         xmlns:playlist="clr-namespace:MusicPlayer.Playlist"
         mc:Ignorable="d"
         Title="Musegician" Height="800" Width="1200"
-        Closing="WindowClosing"
         Style="{StaticResource {x:Type Window}}">
   <DockPanel>
     <DockPanel DockPanel.Dock="Top">
       <DockPanel DockPanel.Dock="Right" Margin="10,2,10,2">
         <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center">🔊</TextBlock>
         <Slider Name="volumeSlider" 
-                        Orientation="Horizontal"
-                        Minimum="0.0" 
-                        Maximum="1.0" 
-                        Value="{Binding Path=Volume, ElementName=playbackPanel, Mode=TwoWay}" 
-                        Width="100" 
-                        VerticalAlignment="Center"/>
+                Orientation="Horizontal"
+                Minimum="0.0" 
+                Maximum="1.0" 
+                Value="{Binding Source={x:Static player:MusicManager.Instance}, Path=Volume, Mode=TwoWay}" 
+                Width="100" 
+                VerticalAlignment="Center"/>
       </DockPanel>
       <Menu>
         <MenuItem Header="_File">
           <MenuItem x:Name="MenuAppExit"
-                              Header="E_xit"
-                              Click="MenuQuitClick"/>
+                    Header="E_xit"
+                    Click="MenuQuitClick"/>
+        </MenuItem>
+        <MenuItem Header="_View">
+          <MenuItem Header="_Condensed View"
+                    Click="Menu_CondensedView"/>
         </MenuItem>
         <MenuItem Header="_Library">
           <MenuItem x:Name="MenuOpenDirectory"
-                              Header="_Add Music Directory"
-                              Click="MenuOpenClick"/>
+                    Header="_Add Music Directory"
+                    Click="MenuOpenClick"/>
           <Separator />
           <MenuItem x:Name="MenuClearLibrary"
-                              Header="_Clear Library"
-                              Click="MenuClearLibraryClick"/>
+                    Header="_Clear Library"
+                    Click="MenuClearLibraryClick"/>
         </MenuItem>
         <MenuItem Header="_Playlist">
           <MenuItem x:Name="MenuPlaylistSave"
-                              Header="_Save Playlist"
-                              Click="Menu_SavePlaylist"/>
+                    Header="_Save Playlist"
+                    Click="Menu_SavePlaylist"/>
           <MenuItem x:Name="MenuPlaylistLoad"
-                              Header="_Load Playlist"
-                              Click="Menu_LoadPlaylist"/>
+                    Header="_Load Playlist"
+                    Click="Menu_LoadPlaylist"/>
           <Separator />
           <MenuItem x:Name="MenuPlaylistShuffle"
-                              Header="Shu_ffle Playlist"
-                              Click="Menu_ShufflePlaylist"
-                              IsCheckable="True"
-                              IsChecked="{Binding ElementName=playlistControl, Path=Shuffle}"/>
+                    Header="Shu_ffle Playlist"
+                    IsCheckable="True"
+                    IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Shuffle, Mode=TwoWay}"/>
           <MenuItem x:Name="MenuPlaylistRepeat"
-                              Header="_Repeat Playlist"
-                              Click="Menu_RepeatPlaylist"
-                              IsCheckable="True"
-                              IsChecked="{Binding ElementName=playlistControl, Path=Repeat}"/>
+                    Header="_Repeat Playlist"
+                    IsCheckable="True"
+                    IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Repeat, Mode=TwoWay}"/>
           <Separator />
           <MenuItem x:Name="MenuPlaylistClear"
-                              Header="_Clear Playlist"
-                              Click="Menu_ClearPlaylist"/>
+                    Header="_Clear Playlist"
+                    Click="Menu_ClearPlaylist"/>
         </MenuItem>
 
       </Menu>
     </DockPanel>
     <player:PlaybackPanel x:Name="playbackPanel"
-                              DockPanel.Dock="Bottom"
-                              BackClicked="PlaybackPanel_BackClicked"
-                              NextClicked="PlaybackPanel_NextClicked"
-                              PlaybackFinished="PlaybackPanel_PlaybackFinished"/>
+                          DockPanel.Dock="Bottom"/>
     <Grid>
       <Grid.Resources >
         <Style TargetType="Border" >
@@ -82,16 +80,15 @@
       </Grid.ColumnDefinitions>
 
       <playlist:PlaylistControl x:Name="playlistControl"
-                                      Grid.Column="0" Grid.Row="0"
-                                      Request_PlayRecording="Request_PlayRecording"/>
+                                Grid.Column="0" Grid.Row="0"
+                                TinyViewerPressed="Menu_CondensedView"/>
       <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
-
       <library:LibraryControl x:Name="libraryControl"
-                                     Grid.Column="2" Grid.Row="0"
-                                     ContextMenu_Play="Library_Request_Play"
-                                     ContextMenu_Add="Library_Request_Add"
-                                     ContextMenu_Edit="Library_Request_Edit"
-                                     ContextMenu_EditArt="Library_Request_Edit_Art"/>
+                              Grid.Column="2" Grid.Row="0"
+                              ContextMenu_Play="Library_Request_Play"
+                              ContextMenu_Add="Library_Request_Add"
+                              ContextMenu_Edit="Library_Request_Edit"
+                              ContextMenu_EditArt="Library_Request_Edit_Art"/>
     </Grid>
   </DockPanel>
 </Window>

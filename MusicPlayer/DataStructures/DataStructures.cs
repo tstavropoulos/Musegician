@@ -79,6 +79,7 @@ namespace MusicPlayer.DataStructures
         public string filename;
         public string songTitle;
         public string artistName;
+        public long recordingID;
     }
 
     public abstract class TagData : INotifyPropertyChanged

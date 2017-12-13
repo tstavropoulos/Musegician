@@ -11,6 +11,7 @@ using MusicPlayer.Library;
 using System.Windows;
 using MusicPlayer.TagEditor;
 using MusicPlayer.Core.DBCommands;
+using System.Windows.Media.Imaging;
 
 namespace MusicPlayer
 {
@@ -66,7 +67,7 @@ namespace MusicPlayer
         }
 
 
-        public FileManager()
+        private FileManager()
         {
             recordingCommands = new RecordingCommands();
             trackCommands = new TrackCommands();
@@ -74,6 +75,28 @@ namespace MusicPlayer
             albumCommands = new AlbumCommands();
             artistCommands = new ArtistCommands();
         }
+
+        private static object m_lock = new object();
+        private static volatile FileManager _instance;
+        public static FileManager Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (m_lock)
+                    {
+                        if (_instance == null)
+                        {
+                            _instance = new FileManager();
+                            _instance.Initialize();
+                        }
+                    }
+                }
+                return _instance;
+            }
+        }
+
 
         public void DropDB()
         {
@@ -109,6 +132,7 @@ namespace MusicPlayer
 
         public void Initialize()
         {
+
             string dbPath = Path.Combine(FileUtility.GetDataPath(), songDBFilename);
 
             bool newDB = false;
@@ -143,7 +167,8 @@ namespace MusicPlayer
             albumCommands.Initialize(
                 dbConnection: dbConnection,
                 artistCommands: artistCommands,
-                songCommands: songCommands);
+                songCommands: songCommands,
+                recordingCommands: recordingCommands);
 
             artistCommands.Initialize(
                 dbConnection: dbConnection,
@@ -727,9 +752,11 @@ namespace MusicPlayer
         public void SetAlbumArt(long albumID, string path)
         {
             albumCommands.SetAlbumArt(albumID, path);
+        }
 
-
-
+        public BitmapImage GetAlbumArtForRecording(long recordingID)
+        {
+            return albumCommands.GetAlbumArtForRecording(recordingID);
         }
 
         public PlayData GetRecordingPlayData(long recordingID)
@@ -783,6 +810,7 @@ namespace MusicPlayer
                                 "album.album_year AS album_year, " +
                                 "track.track_title AS track_title, " +
                                 "track.track_number AS track_number, " +
+                                "track.disc_number AS disc_number," +
                                 "recording.filename AS filename, " +
                                 "recording.live AS live " +
                             "FROM track " +
@@ -850,6 +878,14 @@ namespace MusicPlayer
                             _newValue = (long)reader["track_number"],
                             recordType = MusicRecord.TrackNumber,
                             tagType = ID3TagType.Track
+                        });
+
+                        tagList.Add(new TagDataLong
+                        {
+                            _currentValue = (long)reader["disc_number"],
+                            _newValue = (long)reader["disc_number"],
+                            recordType = MusicRecord.DiscNumber,
+                            tagType = ID3TagType.Disc
                         });
                     }
 

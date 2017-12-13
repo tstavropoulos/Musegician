@@ -17,6 +17,7 @@ namespace MusicPlayer.Core.DBCommands
     {
         ArtistCommands artistCommands = null;
         SongCommands songCommands = null;
+        RecordingCommands recordingCommands = null;
 
         SQLiteConnection dbConnection;
 
@@ -33,12 +34,14 @@ namespace MusicPlayer.Core.DBCommands
         public void Initialize(
             SQLiteConnection dbConnection,
             ArtistCommands artistCommands,
-            SongCommands songCommands)
+            SongCommands songCommands,
+            RecordingCommands recordingCommands)
         {
             this.dbConnection = dbConnection;
 
             this.artistCommands = artistCommands;
             this.songCommands = songCommands;
+            this.recordingCommands = recordingCommands;
 
             _lastIDAssigned = 0;
         }
@@ -112,6 +115,19 @@ namespace MusicPlayer.Core.DBCommands
             dbConnection.Close();
 
             return albumList;
+        }
+
+        public BitmapImage GetAlbumArtForRecording(long recordingID)
+        {
+            dbConnection.Open();
+
+            long albumID = recordingCommands._GetAlbumID(recordingID);
+
+            BitmapImage image = LoadImage(_GetArt(albumID));
+
+            dbConnection.Close();
+
+            return image;
         }
 
         #endregion // High Level Commands
@@ -322,7 +338,7 @@ namespace MusicPlayer.Core.DBCommands
             writeArt.Transaction = transaction;
             writeArt.CommandType = System.Data.CommandType.Text;
             writeArt.CommandText =
-                "INSERT INTO art " +
+                "INSERT OR REPLACE INTO art " +
                     "(album_id, image) VALUES " +
                     "(@albumID, @image);";
             writeArt.Parameters.Add(new SQLiteParameter("@albumID", albumID));
@@ -433,6 +449,8 @@ namespace MusicPlayer.Core.DBCommands
 
             dbConnection.Open();
 
+
+
             using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
             {
                 _CreateArt(
@@ -469,7 +487,7 @@ namespace MusicPlayer.Core.DBCommands
             {
                 while (reader.Read())
                 {
-                    string albumTitle = (string)reader["album_title"];
+                    string albumTitle = ((string)reader["album_title"]).ToLowerInvariant();
                     string filename = (string)reader["filename"];
 
                     TagLib.Mpeg.AudioFile audioFile = TagLib.File.Create(filename) as TagLib.Mpeg.AudioFile;
@@ -480,11 +498,14 @@ namespace MusicPlayer.Core.DBCommands
                         continue;
                     }
 
-                    if (audioFile.Tag.Album.ToLowerInvariant() != albumTitle.ToLowerInvariant())
+                    string tagName = audioFile.Tag.Album.ToLowerInvariant();
+
+                    if (tagName != albumTitle && !tagName.Contains(albumTitle))
                     {
-                        Console.WriteLine("Album Title doesn't match. Skipping : " + albumTitle + " / " + audioFile.Tag.Album);
+                        Console.WriteLine("Album Title doesn't match. Skipping : " + albumTitle + " / " + tagName);
                         continue;
                     }
+
                     audioFile.Tag.Pictures = new IPicture[1] { new Picture(imageData) };
                     audioFile.Save();
                     break;

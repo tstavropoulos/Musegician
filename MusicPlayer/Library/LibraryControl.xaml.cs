@@ -34,7 +34,13 @@ namespace MusicPlayer.Library
         #region Data
 
         MusicTreeViewModel _musicTree;
-        ILibraryRequestHandler dataManager;
+        ILibraryRequestHandler requestHandler
+        {
+            get
+            {
+                return FileManager.Instance;
+            }
+        }
 
         #endregion // Data
 
@@ -44,20 +50,14 @@ namespace MusicPlayer.Library
         {
             InitializeComponent();
 
-            _musicTree = new MusicTreeViewModel();
-
+            _musicTree = new MusicTreeViewModel(requestHandler);
             // Bind view-model to UI.
             DataContext = _musicTree;
         }
 
-        public void Initialize(ILibraryRequestHandler dataManager)
-        {
-            this.dataManager = dataManager;
-        }
-
         public void Rebuild()
         {
-            _musicTree = new MusicTreeViewModel(dataManager);
+            _musicTree = new MusicTreeViewModel(requestHandler);
             DataContext = _musicTree;
         }
 
@@ -226,7 +226,7 @@ namespace MusicPlayer.Library
                         return;
                     }
 
-                    libraryModel.LoadChildren(dataManager);
+                    libraryModel.LoadChildren(requestHandler);
                 }
             }
         }

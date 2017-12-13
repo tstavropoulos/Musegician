@@ -12,10 +12,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.Threading;
-using CSCore;
-using CSCore.Codecs;
-using CSCore.CoreAudioAPI;
-using CSCore.SoundOut;
 
 namespace MusicPlayer.Player
 {
@@ -24,262 +20,79 @@ namespace MusicPlayer.Player
     /// </summary>
     public partial class PlaybackPanel : UserControl
     {
-        private ISoundOut _soundOut;
-        private IWaveSource _waveSource;
-
-        DataStructures.PlayData lastPlay;
-
-        DispatcherTimer playTimer;
-
-        bool prepareNext = false;
-
         const string playString = "▶";
         const string pauseString = "||";
 
-        public event EventHandler<PlaybackStoppedEventArgs> PlaybackStopped;
-
-        private double _volume = 1.0;
-        public double Volume
+        private MusicManager musicMan
         {
-            get { return _volume; }
-            set
-            {
-                if (_volume != value)
-                {
-                    _volume = value;
-                    if (_soundOut != null)
-                    {
-                        _soundOut.Volume = (float)_volume;
-                    }
-                }
-            }
+            get { return MusicManager.Instance; }
         }
 
         public PlaybackPanel()
         {
             InitializeComponent();
 
-            PlaybackStopped += SongFinished;
-
-            playButton.Content = playString;
-            playButton.Foreground = new SolidColorBrush(Colors.Black);
-            stopButton.Foreground = new SolidColorBrush(Colors.Black);
-
-            playTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(0.25)
-            };
-            playTimer.Tick += new EventHandler(Tick_ProgressTimer);
-            playTimer.Start();
-
-            progressSlider.Minimum = 0.0;
-        }
-
-        public delegate void SimpleEvent();
-
-        public event SimpleEvent NextClicked;
-        public event SimpleEvent BackClicked;
-        public event SimpleEvent StopClicked;
-        public event SimpleEvent PlaybackFinished;
-
-        public void SongFinished(object sender, PlaybackStoppedEventArgs e)
-        {
-            if (_soundOut != null && _soundOut.PlaybackState == PlaybackState.Stopped)
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    playButton.Content = playString;
-                    playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
-                    stopButton.Foreground = new SolidColorBrush(Colors.Black);
-                    prepareNext = true;
-                });
-            }
-        }
-
-        public void CleanUp()
-        {
-            if (_soundOut != null)
-            {
-                _soundOut.Dispose();
-                _soundOut = null;
-            }
-
-            if (_waveSource != null)
-            {
-                _waveSource.Dispose();
-                _waveSource = null;
-            }
-        }
-
-        public void PlaySong(DataStructures.PlayData playData)
-        {
-            lastPlay = playData;
-
-            if (string.IsNullOrEmpty(playData.filename))
-            {
-                return;
-            }
-
-            songLabel.Content = String.Format("{0} - {1}", playData.artistName, playData.songTitle);
-
-            CleanUp();
-
-            if (!System.IO.File.Exists(playData.filename))
-            {
-                return;
-            }
-            
-            _waveSource = CodecFactory.Instance.GetCodec(playData.filename)
-                .ToSampleSource()
-                .ToStereo()
-                .ToWaveSource();
-            
-            MMDevice device = MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-            
-            if (device == null)
-            {
-                return;
-            }
-
-            _soundOut = new WasapiOut()
-            {
-                Latency = 100,
-                Device = device,
-            };
-
-            _soundOut.Initialize(_waveSource);
-
-            if (PlaybackStopped != null)
-            {
-                _soundOut.Stopped += PlaybackStopped;
-            }
-
-            _soundOut.Play();
-            _soundOut.Volume = (float)Volume;
-
-            stopButton.Foreground = new SolidColorBrush(Colors.Red);
-            playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
-            playButton.Content = pauseString;
-
-            progressSlider.TickFrequency = 0.25 * _waveSource.WaveFormat.BytesPerSecond;
-            progressSlider.Maximum = _waveSource.Length;
+            musicMan.PlayerStateChanged += PlayerStateChanged;
+            musicMan.tickUpdate += TickUpdate;
         }
 
         public void OnPlayClick(object sender, RoutedEventArgs e)
         {
-            if (_soundOut == null)
-            {
-                PlaySong(lastPlay);
-            }
-            else
-            {
-                switch (_soundOut.PlaybackState)
-                {
-                    case PlaybackState.Stopped:
-                        PlaySong(lastPlay);
-                        break;
-                    case PlaybackState.Playing:
-                        _soundOut.Pause();
-                        playButton.Content = playString;
-                        break;
-                    case PlaybackState.Paused:
-                        _soundOut.Play();
-                        playButton.Content = pauseString;
-                        break;
-                    default:
-                        ManualStop();
-                        Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
-                        return;
-                }
-            }
+            musicMan.Play();
         }
 
         public void OnStopClick(object sender, RoutedEventArgs e)
         {
-            if (_soundOut == null)
-            {
-                return;
-            }
-
-            CleanUp();
-
-            songLabel.Content = "";
-            playButton.Content = playString;
-            playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
-            stopButton.Foreground = new SolidColorBrush(Colors.Black);
-
-            StopClicked?.Invoke();
+            musicMan.Stop();
         }
 
         public void OnNextClick(object sender, RoutedEventArgs e)
         {
-            NextClicked?.Invoke();
+            musicMan.Next();
         }
 
         public void OnBackClick(object sender, RoutedEventArgs e)
         {
-            if (_soundOut != null && _waveSource != null &&
-                _soundOut.PlaybackState == PlaybackState.Playing &&
-                _waveSource.Position > 2.0f * _waveSource.WaveFormat.BytesPerSecond)
-            {
-                //Restart if it's within the first 2 seconds
-                _waveSource.Position = 0;
-            }
-            else
-            {
-                BackClicked?.Invoke();
-            }
-        }
-
-        private void ManualStop()
-        {
-            _soundOut.Stop();
-        }
-
-        private void Tick_ProgressTimer(object s, EventArgs e)
-        {
-            if (_soundOut != null && _waveSource != null)
-            {
-                switch (_soundOut.PlaybackState)
-                {
-                    case PlaybackState.Stopped:
-                        //Do nothing
-                        break;
-                    case PlaybackState.Playing:
-                    case PlaybackState.Paused:
-                        progressSlider.Value = _waveSource.Position;
-                        break;
-                    default:
-                        Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
-                        return;
-                }
-            }
-
-            if (prepareNext)
-            {
-                prepareNext = false;
-                PlaybackFinished?.Invoke();
-            }
+            musicMan.Back();
         }
 
         private void Slider_Drag(object s, DragDeltaEventArgs e)
         {
-            if (_soundOut == null || _waveSource == null)
-            {
-                return;
-            }
+            musicMan.DragRequest((long)progressSlider.Value);
+        }
 
-            switch (_soundOut.PlaybackState)
+        private void TickUpdate(long position)
+        {
+            progressSlider.Value = position;
+        }
+
+        private void PlayerStateChanged(MusicManager.PlayerState newState)
+        {
+            switch (newState)
             {
-                case PlaybackState.Stopped:
-                    //Do nothing
+                case MusicManager.PlayerState.NotLoaded:
+                    playButton.Content = playString;
+                    playButton.Foreground = new SolidColorBrush(Colors.Black);
+                    stopButton.Foreground = new SolidColorBrush(Colors.Black);
                     break;
-                case PlaybackState.Playing:
-                case PlaybackState.Paused:
-                    _waveSource.Position = (long)progressSlider.Value;
+                case MusicManager.PlayerState.Stopped:
+                    playButton.Content = playString;
+                    playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
+                    stopButton.Foreground = new SolidColorBrush(Colors.Black);
                     break;
+                case MusicManager.PlayerState.Playing:
+                    stopButton.Foreground = new SolidColorBrush(Colors.Red);
+                    playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
+                    playButton.Content = pauseString;
+                    break;
+                case MusicManager.PlayerState.Paused:
+                    stopButton.Foreground = new SolidColorBrush(Colors.Red);
+                    playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
+                    playButton.Content = playString;
+                    break;
+                case MusicManager.PlayerState.MAX:
                 default:
-                    Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
+                    Console.WriteLine("Unexpeted PlayerState: " + newState);
                     return;
             }
         }

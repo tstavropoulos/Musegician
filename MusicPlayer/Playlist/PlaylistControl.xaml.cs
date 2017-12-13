@@ -22,31 +22,68 @@ namespace MusicPlayer.Playlist
     public partial class PlaylistControl : UserControl
     {
         PlaylistTreeViewModel _playlistTree;
-        Random random = new Random();
 
-        public delegate void PassID(long id);
-        public event PassID Request_PlayRecording;
-
-        private int _currentIndex = -1;
-        public int CurrentIndex
+        PlaylistManager playlistMan
         {
-            get { return _currentIndex; }
-            set
+            get { return PlaylistManager.Instance; }
+        }
+
+        public event RoutedEventHandler TinyViewerPressed
+        {
+            add
             {
-                UnmarkIndex(_currentIndex);
-                _currentIndex = value;
-                MarkIndex(_currentIndex);
+                tinyViewerButton.Click += value;
+            }
+            remove
+            {
+                tinyViewerButton.Click -= value;
             }
         }
 
-        private int _lastRecordingIndex = -1;
-        public int LastRecordingIndex
+
+        private PlaylistSongViewModel _playingSong;
+        private PlaylistSongViewModel playingSong
         {
-            get { return _lastRecordingIndex; }
+            get { return _playingSong; }
             set
             {
-                _lastRecordingIndex = value;
-                MarkRecordingIndex(_lastRecordingIndex);
+                if (_playingSong == value)
+                {
+                    return;
+                }
+
+                if (_playingSong != null)
+                {
+                    _playingSong.Playing = false;
+                }
+                _playingSong = value;
+                if (_playingSong != null)
+                {
+                    _playingSong.Playing = true;
+                }
+            }
+        }
+
+        private PlaylistRecordingViewModel _playingRecording;
+        private PlaylistRecordingViewModel playingRecording
+        {
+            get { return _playingRecording; }
+            set
+            {
+                if (_playingRecording == value)
+                {
+                    return;
+                }
+
+                if (_playingRecording != null)
+                {
+                    _playingRecording.Playing = false;
+                }
+                _playingRecording = value;
+                if (_playingRecording != null)
+                {
+                    _playingRecording.Playing = true;
+                }
             }
         }
 
@@ -55,141 +92,33 @@ namespace MusicPlayer.Playlist
             get { return _playlistTree.PlaylistViewModels.Count; }
         }
 
-        private List<int> shuffleList = new List<int>();
-
-        public static readonly DependencyProperty _shuffle = DependencyProperty.Register(
-            "Shuffle",
-            typeof(bool),
-            typeof(PlaylistControl),
-            new UIPropertyMetadata(true));
-
-        public bool Shuffle
-        {
-            get { return (bool)GetValue(_shuffle); }
-            set
-            {
-                SetValue(_shuffle, value);
-                if(value)
-                {
-                    SetValue(_shuffleText, "🔀");
-                }
-                else
-                {
-                    SetValue(_shuffleText, "⇉");
-                }
-            }
-        }
-
-        public static readonly DependencyProperty _repeat = DependencyProperty.Register(
-            "Repeat",
-            typeof(bool),
-            typeof(PlaylistControl),
-            new UIPropertyMetadata(false));
-
-        public bool Repeat
-        {
-            get { return (bool)GetValue(_repeat); }
-            set { SetValue(_repeat, value); }
-        }
-
-
-        public static readonly DependencyProperty _shuffleText = DependencyProperty.Register(
-            "ShuffleText",
-            typeof(string),
-            typeof(PlaylistControl),
-            new UIPropertyMetadata("🔀"));
-
-        public string ShuffleText
-        {
-            get { return (string)GetValue(_shuffleText); }
-        }
-
         public PlaylistControl()
         {
             InitializeComponent();
 
-            _playlistTree = new PlaylistTreeViewModel(new List<SongDTO>());
-            base.DataContext = _playlistTree;
-            PrepareShuffleList();
+            playlistMan.addBack += AddBack;
+            playlistMan.rebuild += Rebuild;
+            playlistMan.RemoveAt += RemoveAt;
+
+            playlistMan.MarkIndex += MarkIndex;
+            playlistMan.MarkRecordingIndex += MarkRecordingIndex;
+            playlistMan.UnmarkAll += UnmarkAll;
         }
 
-        public void Rebuild(IList<SongDTO> songs)
+        private void Rebuild(ICollection<SongDTO> songs)
         {
-            _currentIndex = -1;
             _playlistTree = new PlaylistTreeViewModel(songs);
             base.DataContext = _playlistTree;
-            PrepareShuffleList();
         }
 
-        public void AddBack(IList<SongDTO> songs)
+        private void AddBack(ICollection<SongDTO> songs)
         {
-            int originalItemCount = ItemCount;
-
             _playlistTree.Add(songs);
-
-            for (int i = originalItemCount; i < ItemCount; i++)
-            {
-                shuffleList.Add(i);
-            }
         }
 
-        public void ClearPlaylist()
+        private void ClearPlaylist()
         {
             Rebuild(new List<SongDTO>());
-        }
-
-        public void PlayPrevious()
-        {
-            if (CurrentIndex > 0)
-            {
-                --CurrentIndex;
-                Request_PlayRecording?.Invoke(
-                        SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
-            }
-        }
-
-        public void PlayNext()
-        {
-            if (ItemCount == 0)
-            {
-                return;
-            }
-
-            if (Shuffle)
-            {
-                if (shuffleList.Count == 0 && Repeat)
-                {
-                    PrepareShuffleList();
-                }
-
-                if (shuffleList.Count > 0)
-                {
-                    int nextIndex = random.Next(0, shuffleList.Count);
-                    CurrentIndex = shuffleList[nextIndex];
-                    shuffleList.RemoveAt(nextIndex);
-                    Request_PlayRecording?.Invoke(
-                        SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
-                }
-            }
-            else
-            {
-                if (ItemCount > CurrentIndex + 1)
-                {
-                    ++CurrentIndex;
-                    Request_PlayRecording?.Invoke(
-                        SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
-                }
-            }
-        }
-
-        public void PlayIndex(int index)
-        {
-            if (ItemCount > index)
-            {
-                CurrentIndex = index;
-                Request_PlayRecording?.Invoke(
-                        SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
-            }
         }
 
         private void OnItemMouseDoubleClick(object sender, MouseButtonEventArgs args)
@@ -204,9 +133,7 @@ namespace MusicPlayer.Playlist
                         return;
                     }
 
-                    CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(song);
-                    Request_PlayRecording?.Invoke(
-                            SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
+                    playlistMan.PlayIndex(_playlistTree.PlaylistViewModels.IndexOf(song));
                 }
                 else if (treeItem.Header is PlaylistRecordingViewModel recording)
                 {
@@ -216,9 +143,10 @@ namespace MusicPlayer.Playlist
                         return;
                     }
 
-                    CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
-                    LastRecordingIndex = _playlistTree.PlaylistViewModels[CurrentIndex].Recordings.IndexOf(recording);
-                    Request_PlayRecording?.Invoke(recording.ID);
+                    int songIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
+                    int recordingIndex = _playlistTree.PlaylistViewModels[songIndex].Recordings.IndexOf(recording);
+
+                    playlistMan.PlayRecording(songIndex, recordingIndex);
                 }
             }
         }
@@ -230,16 +158,17 @@ namespace MusicPlayer.Playlist
             if (menuItem.DataContext is PlaylistSongViewModel song)
             {
                 e.Handled = true;
-                CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(song);
-                Request_PlayRecording?.Invoke(
-                        SelectRecording(_playlistTree.PlaylistViewModels[CurrentIndex].Song));
+                int index = _playlistTree.PlaylistViewModels.IndexOf(song);
+
+                playlistMan.PlayIndex(index);
             }
             else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
             {
                 e.Handled = true;
-                CurrentIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
-                LastRecordingIndex = _playlistTree.PlaylistViewModels[CurrentIndex].Recordings.IndexOf(recording);
-                Request_PlayRecording?.Invoke(recording.ID);
+                int songIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
+                int recordingIndex = _playlistTree.PlaylistViewModels[songIndex].Recordings.IndexOf(recording);
+
+                playlistMan.PlayRecording(songIndex, recordingIndex);
             }
             else
             {
@@ -256,20 +185,7 @@ namespace MusicPlayer.Playlist
                 e.Handled = true;
                 int indexToRemove = _playlistTree.PlaylistViewModels.IndexOf(song);
 
-                _playlistTree.PlaylistViewModels.RemoveAt(indexToRemove);
-
-                if (indexToRemove < CurrentIndex)
-                {
-                    --_currentIndex;
-                }
-
-                for (int i = 0; i < shuffleList.Count; i++)
-                {
-                    if (indexToRemove < shuffleList[i])
-                    {
-                        --shuffleList[i];
-                    }
-                }
+                playlistMan.RemoveIndex(indexToRemove);
             }
             else
             {
@@ -292,101 +208,39 @@ namespace MusicPlayer.Playlist
             }
         }
 
-        private void UnmarkIndex(int index)
+        private void UnmarkAll()
         {
-            if (index >= 0 && index < ItemCount)
-            {
-                _playlistTree.PlaylistViewModels[index].Playing = false;
-
-                if (LastRecordingIndex >= 0 && LastRecordingIndex < _playlistTree.PlaylistViewModels[index].Recordings.Count)
-                {
-                    _playlistTree.PlaylistViewModels[index].Recordings[LastRecordingIndex].Playing = false;
-                }
-            }
+            playingSong = null;
+            playingRecording = null;
         }
 
         private void MarkIndex(int index)
         {
             if (index >= 0 && index < ItemCount)
             {
-                _playlistTree.PlaylistViewModels[index].Playing = true;
+                playingSong = _playlistTree.PlaylistViewModels[index];
+            }
+            else
+            {
+                playingSong = null;
             }
         }
 
         private void MarkRecordingIndex(int index)
         {
-            if (CurrentIndex >= 0 && CurrentIndex < ItemCount && index >= 0 && index < _playlistTree.PlaylistViewModels[CurrentIndex].Recordings.Count)
+            if (index >= 0 && index < playingSong.Recordings.Count)
             {
-                _playlistTree.PlaylistViewModels[CurrentIndex].Recordings[index].Playing = true;
+                playingRecording = playingSong.Recordings[index];
+            }
+            else
+            {
+                playingRecording = null;
             }
         }
 
-        public void PrepareShuffleList()
+        private void RemoveAt(int index)
         {
-            shuffleList.Clear();
-
-            for (int i = 0; i < ItemCount; i++)
-            {
-                shuffleList.Add(i);
-            }
-        }
-
-        private double GetWeight(RecordingDTO recording)
-        {
-            if (double.IsNaN(recording.Weight))
-            {
-                if (recording.Live)
-                {
-                    return Settings.LiveWeight;
-                }
-                else
-                {
-                    return Settings.StudioWeight;
-                }
-            }
-
-            return recording.Weight;
-        }
-
-        private long SelectRecording(SongDTO song)
-        {
-            if (song.Children.Count == 0)
-            {
-                LastRecordingIndex = -1;
-                return -1;
-            }
-
-            if (song.Children.Count == 1)
-            {
-                LastRecordingIndex = 0;
-                return song.Children[LastRecordingIndex].ID;
-            }
-
-
-            double cumulativeWeight = 0.0;
-
-            foreach (RecordingDTO recording in song.Children)
-            {
-                cumulativeWeight += GetWeight(recording);
-            }
-
-            cumulativeWeight *= random.NextDouble();
-
-            for (int i = 0; i < song.Children.Count; i++)
-            {
-                RecordingDTO recording = song.Children[i] as RecordingDTO;
-
-                cumulativeWeight -= GetWeight(recording);
-                if (cumulativeWeight <= 0.0)
-                {
-                    LastRecordingIndex = i;
-                    return recording.ID;
-                }
-            }
-
-            Console.WriteLine("Failed to pick a recording before running out.  Method is broken.");
-            LastRecordingIndex = 0;
-            return song.Children[0].ID;
+            _playlistTree.PlaylistViewModels.RemoveAt(index);
         }
     }
 }

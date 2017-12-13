@@ -89,11 +89,11 @@
     <Compile Include="Core\DBCommands\AlbumCommands.cs" />
     <Compile Include="Core\DBCommands\TrackCommands.cs" />
     <Compile Include="Core\DBCommands\SongCommands.cs" />
-    <Compile Include="Core\DTO.cs" />
+    <Compile Include="DataStructures\DTO.cs" />
     <Compile Include="Core\Settings.cs" />
     <Compile Include="Core\TreeViewItemBehavior.cs" />
-    <Compile Include="Core\AlbumDTO.cs" />
-    <Compile Include="Core\ArtistDTO.cs" />
+    <Compile Include="DataStructures\AlbumDTO.cs" />
+    <Compile Include="DataStructures\ArtistDTO.cs" />
     <Compile Include="Library\ILibraryRequestHandler.cs" />
     <Compile Include="Library\LibraryViewModel.cs" />
     <Compile Include="Library\LibraryControl.xaml.cs">
@@ -102,12 +102,14 @@
     <Compile Include="Library\AlbumViewModel.cs" />
     <Compile Include="Library\MusicTreeViewModel.cs" />
     <Compile Include="Library\ArtistViewModel.cs" />
-    <Compile Include="Core\RecordingDTO.cs" />
-    <Compile Include="Core\SongDTO.cs" />
+    <Compile Include="DataStructures\RecordingDTO.cs" />
+    <Compile Include="DataStructures\SongDTO.cs" />
     <Compile Include="Library\RecordingViewModel.cs" />
     <Compile Include="Library\SongViewModel.cs" />
-    <Compile Include="Core\DataStructures.cs" />
+    <Compile Include="DataStructures\DataStructures.cs" />
     <Compile Include="Core\FileUtility.cs" />
+    <Compile Include="Player\MusicManager.cs" />
+    <Compile Include="Playlist\PlaylistManager.cs" />
     <Compile Include="Playlist\PlaylistRecordingViewModel.cs" />
     <Compile Include="TagEditor\TagEditor.xaml.cs">
       <DependentUpon>TagEditor.xaml</DependentUpon>
@@ -120,6 +122,9 @@
     <Compile Include="TagEditor\TagTemplateSelector.cs" />
     <Compile Include="Themes\LeftMarginMultiplierConverter.cs" />
     <Compile Include="Themes\TreeViewItemExtensions.cs" />
+    <Compile Include="TinyPlayer\TinyPlayer.xaml.cs">
+      <DependentUpon>TinyPlayer.xaml</DependentUpon>
+    </Compile>
     <Page Include="Library\LibraryControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -152,6 +157,10 @@
     <Page Include="Themes\Styles.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="TinyPlayer\TinyPlayer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>

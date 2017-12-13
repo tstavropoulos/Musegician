@@ -76,6 +76,7 @@ namespace MusicPlayer.Core.DBCommands
 
 
 
+
         /// <summary>
         /// Splitting, Renaming, And/Or Consolidating Recordings by Song Title
         /// </summary>
@@ -258,6 +259,7 @@ namespace MusicPlayer.Core.DBCommands
                     playData.songTitle = (string)reader["track_title"];
                     playData.artistName = (string)reader["artist_name"];
                     playData.filename = (string)reader["filename"];
+                    playData.recordingID = recordingID;
                 }
             }
 
@@ -443,6 +445,28 @@ namespace MusicPlayer.Core.DBCommands
             return recordingData;
         }
 
+        public long _GetAlbumID(long recordingID)
+        {
+            long albumID = -1;
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.CommandText =
+                "SELECT album_id " +
+                "FROM track " +
+                "WHERE track.recording_id=@recordingID;";
+            readTracks.Parameters.Add(new SQLiteParameter("@recordingID", recordingID));
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    albumID = (long)reader["album_id"];
+                }
+            }
+
+            return albumID;
+        }
 
         #endregion  //Search Commands
 

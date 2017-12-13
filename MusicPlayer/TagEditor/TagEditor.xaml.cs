@@ -25,6 +25,7 @@ namespace MusicPlayer.TagEditor
         AlbumYear,
         TrackNumber,
         Live,
+        DiscNumber,
         TrackTitle,
         Filename,
         ArtistWeight,
@@ -43,6 +44,7 @@ namespace MusicPlayer.TagEditor
         Album,
         Year,
         Track,
+        Disc,
         MAX
     }
 
@@ -107,6 +109,7 @@ namespace MusicPlayer.TagEditor
                         case MusicRecord.TrackNumber:
                         case MusicRecord.Live:
                         case MusicRecord.TrackTitle:
+                        case MusicRecord.DiscNumber:
                             UpdateRecord(tag.recordType, tag);
                             break;
                         case MusicRecord.Filename:
@@ -211,6 +214,7 @@ namespace MusicPlayer.TagEditor
                     break;
                 case MusicRecord.AlbumYear:
                 case MusicRecord.TrackNumber:
+                case MusicRecord.DiscNumber:
                     {
                         if (tag is TagDataLong data)
                         {
@@ -290,6 +294,15 @@ namespace MusicPlayer.TagEditor
                                 }
                             }
                             break;
+                        case ID3TagType.Disc:
+                            {
+                                if (tag is TagDataLong data)
+                                {
+                                    file.Tag.Disc = (uint)data.NewLong;
+                                }
+                            }
+                            break;
+
                         case ID3TagType.NotEditable:
                         case ID3TagType.MAX:
                         default:

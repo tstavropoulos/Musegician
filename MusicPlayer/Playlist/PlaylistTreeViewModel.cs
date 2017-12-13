@@ -18,7 +18,12 @@ namespace MusicPlayer.Playlist
 
         #region Constructor
 
-        public PlaylistTreeViewModel(IList<SongDTO> songs)
+        public PlaylistTreeViewModel()
+        {
+            _playlistViewModels = new ObservableCollection<PlaylistSongViewModel>();
+        }
+
+        public PlaylistTreeViewModel(ICollection<SongDTO> songs)
         {
             _playlistViewModels = new ObservableCollection<PlaylistSongViewModel>(
                 (from song in songs
@@ -33,7 +38,7 @@ namespace MusicPlayer.Playlist
             _playlistViewModels.Add(new PlaylistSongViewModel(song));
         }
 
-        public void Add(IList<SongDTO> songs)
+        public void Add(ICollection<SongDTO> songs)
         {
             foreach(SongDTO song in songs)
             {

@@ -24,28 +24,19 @@ namespace MusicPlayer
     /// </summary>
     public partial class MainWindow : Window
     {
-        FileManager fileMan = null;
-
-        //public double Volume { get; set; } = 1.0;
+        FileManager fileMan
+        {
+            get
+            {
+                return FileManager.Instance;
+            }
+        }
 
         public MainWindow()
         {
             InitializeComponent();
-
-            Loaded += new RoutedEventHandler(MainWindow_Loaded);
-
-            fileMan = new FileManager();
-            fileMan.Initialize();
-
-            libraryControl.Initialize(fileMan);
-            libraryControl.Rebuild();
         }
-
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-
-        }
-
+        
         private void MenuOpenClick(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
@@ -85,7 +76,7 @@ namespace MusicPlayer
         {
             e.Handled = true;
 
-            playlistControl.ClearPlaylist();
+            Playlist.PlaylistManager.Instance.ClearPlaylist();
         }
 
         private void Menu_LoadPlaylist(object sender, RoutedEventArgs e)
@@ -102,89 +93,30 @@ namespace MusicPlayer
             MessageBox.Show("Not Yet Implemented.");
         }
 
-        private void Menu_RepeatPlaylist(object sender, RoutedEventArgs e)
-        {
-            e.Handled = true;
-        }
-
-        private void Menu_ShufflePlaylist(object sender, RoutedEventArgs e)
-        {
-            e.Handled = true;
-            if (playlistControl.Shuffle)
-            {
-                playlistControl.PrepareShuffleList();
-            }
-        }
-
-        private void WindowClosing(object sender, CancelEventArgs e)
-        {
-            Quitting();
-        }
-
         private void Quitting()
         {
-            playbackPanel.CleanUp();
-        }
-
-        public void Request_PlayRecording(long recordingID)
-        {
-            playbackPanel.PlaySong(fileMan.GetRecordingPlayData(recordingID));
-        }
-
-        private void PlaybackPanel_BackClicked()
-        {
-            playlistControl.PlayPrevious();
-        }
-
-        private void PlaybackPanel_NextClicked()
-        {
-            playlistControl.PlayNext();
-        }
-
-        private void PlaybackPanel_PlaybackFinished()
-        {
-            playlistControl.PlayNext();
+            Player.MusicManager.Instance.CleanUp();
         }
 
         private void Library_Request_Play(LibraryContext context, long id)
         {
-            switch (context)
-            {
-                case LibraryContext.Artist:
-                case LibraryContext.Album:
-                case LibraryContext.Song:
-                case LibraryContext.Recording:
-                case LibraryContext.Track:
-                    {
-                        int firstNewSong = playlistControl.ItemCount;
-                        Library_Request_Add(context, id);
-                        playlistControl.PlayIndex(firstNewSong);
-                    }
-                    break;
-                case LibraryContext.MAX:
-                default:
-                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
-                    break;
-            }
-        }
+            ICollection<DataStructures.SongDTO> songs;
 
-        private void Library_Request_Add(LibraryContext context, long id)
-        {
             switch (context)
             {
                 case LibraryContext.Artist:
                     {
-                        playlistControl.AddBack(fileMan.GetArtistData(id));
+                        songs = fileMan.GetArtistData(id);
                     }
                     break;
                 case LibraryContext.Album:
                     {
-                        playlistControl.AddBack(fileMan.GetAlbumData(id));
+                        songs = fileMan.GetAlbumData(id);
                     }
                     break;
                 case LibraryContext.Song:
                     {
-                        playlistControl.AddBack(fileMan.GetSongData(id));
+                        songs = fileMan.GetSongData(id);
                     }
                     break;
                 case LibraryContext.Track:
@@ -193,14 +125,57 @@ namespace MusicPlayer
                     }
                 case LibraryContext.Recording:
                     {
-                        playlistControl.AddBack(fileMan.GetSongDataFromRecordingID(id));
+                        songs = fileMan.GetSongDataFromRecordingID(id);
                     }
                     break;
                 case LibraryContext.MAX:
                 default:
                     Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
-                    break;
+                    return;
             }
+
+            Playlist.PlaylistManager.Instance.Rebuild(songs);
+            Player.MusicManager.Instance.Next();
+        }
+
+        private void Library_Request_Add(LibraryContext context, long id)
+        {
+            ICollection<DataStructures.SongDTO> songs;
+
+            switch (context)
+            {
+                case LibraryContext.Artist:
+                    {
+                        songs = fileMan.GetArtistData(id);
+                    }
+                    break;
+                case LibraryContext.Album:
+                    {
+                        songs = fileMan.GetAlbumData(id);
+                    }
+                    break;
+                case LibraryContext.Song:
+                    {
+                        songs = fileMan.GetSongData(id);
+                    }
+                    break;
+                case LibraryContext.Track:
+                    {
+                        throw new NotImplementedException();
+                    }
+                case LibraryContext.Recording:
+                    {
+                        songs = fileMan.GetSongDataFromRecordingID(id);
+                    }
+                    break;
+                case LibraryContext.MAX:
+                default:
+                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
+                    return;
+            }
+
+            Playlist.PlaylistManager.Instance.AddBack(songs);
+
         }
 
         private void Library_Request_Edit(LibraryContext context, long id)
@@ -266,6 +241,14 @@ namespace MusicPlayer
                 fileMan.SetAlbumArt(id, dialog.FileName);
                 libraryControl.Rebuild();
             }
+        }
+
+        private void Menu_CondensedView(object sender, RoutedEventArgs e)
+        {
+            Window tinyPlayer = new TinyPlayer.TinyPlayer();
+
+            tinyPlayer.Show();
+            Close();
         }
     }
 }
