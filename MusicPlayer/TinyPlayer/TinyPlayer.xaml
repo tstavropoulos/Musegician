@@ -8,6 +8,7 @@
         xmlns:playlist="clr-namespace:MusicPlayer.Playlist"
         mc:Ignorable="d"
         Title="TinyPlayer" Height="500" Width="360"
+        Deactivated="Window_Deactivated"
         Style="{StaticResource {x:Type Window}}">
   <DockPanel>
     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,2,0,2" Background="{StaticResource DarkInsetPanel}">

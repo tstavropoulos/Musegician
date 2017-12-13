@@ -37,5 +37,10 @@ namespace MusicPlayer.TinyPlayer
             window.Show();
             Close();
         }
+
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            Topmost = true;
+        }
     }
 }
