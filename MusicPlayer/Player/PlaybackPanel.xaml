@@ -20,8 +20,8 @@
       <RowDefinition />
     </Grid.RowDefinitions>
     <Label Name="songLabel"  Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="0"
-                   Background="Black" Foreground="Wheat" HorizontalContentAlignment="Center"
-                   Content="{Binding Source={x:Static local:MusicManager.Instance}, Path=SongLabel}"/>
+           Background="Black" Foreground="Wheat" HorizontalContentAlignment="Center"
+           Content="{Binding Source={x:Static local:MusicManager.Instance}, Path=SongLabel}"/>
     <Button Grid.Column="0" Grid.Row="2" Content="➔" Click="OnBackClick">
       <Button.LayoutTransform>
         <TransformGroup>
@@ -30,10 +30,11 @@
       </Button.LayoutTransform>
     </Button>
     <Slider Name="progressSlider" Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" Margin="10,2,10,2"
-                VerticalAlignment="Center" Thumb.DragDelta="Slider_Drag" 
-                Minimum="0.0"
-                Maximum="{Binding Source={x:Static local:MusicManager.Instance}, Path=Length}"
-                TickFrequency="{Binding Source={x:Static local:MusicManager.Instance}, Path=TickFrequency}"/>
+            VerticalAlignment="Center" Thumb.DragDelta="Slider_Drag"
+            Minimum="0.0"
+            Maximum="{Binding Source={x:Static local:MusicManager.Instance}, Path=Length}"
+            LargeChange="{Binding Source={x:Static local:MusicManager.Instance}, Path=ClickJump}"
+            SmallChange="{Binding Source={x:Static local:MusicManager.Instance}, Path=KBJump}"/>
     <Button Name="stopButton" Grid.Column="1" Grid.Row="2" Content="■" Click="OnStopClick"/>
     <Button Name="playButton" Grid.Column="2" Grid.Row="2" Content="▶" Click="OnPlayClick"/>
     <Button Grid.Column="3" Grid.Row="2" Content="➔" Click="OnNextClick"/>

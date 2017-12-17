@@ -98,86 +98,6 @@ namespace MusicPlayer
             Player.MusicManager.Instance.CleanUp();
         }
 
-        private void Library_Request_Play(LibraryContext context, long id)
-        {
-            ICollection<DataStructures.SongDTO> songs;
-
-            switch (context)
-            {
-                case LibraryContext.Artist:
-                    {
-                        songs = fileMan.GetArtistData(id);
-                    }
-                    break;
-                case LibraryContext.Album:
-                    {
-                        songs = fileMan.GetAlbumData(id);
-                    }
-                    break;
-                case LibraryContext.Song:
-                    {
-                        songs = fileMan.GetSongData(id);
-                    }
-                    break;
-                case LibraryContext.Track:
-                    {
-                        throw new NotImplementedException();
-                    }
-                case LibraryContext.Recording:
-                    {
-                        songs = fileMan.GetSongDataFromRecordingID(id);
-                    }
-                    break;
-                case LibraryContext.MAX:
-                default:
-                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
-                    return;
-            }
-
-            Playlist.PlaylistManager.Instance.Rebuild(songs);
-            Player.MusicManager.Instance.Next();
-        }
-
-        private void Library_Request_Add(LibraryContext context, long id)
-        {
-            ICollection<DataStructures.SongDTO> songs;
-
-            switch (context)
-            {
-                case LibraryContext.Artist:
-                    {
-                        songs = fileMan.GetArtistData(id);
-                    }
-                    break;
-                case LibraryContext.Album:
-                    {
-                        songs = fileMan.GetAlbumData(id);
-                    }
-                    break;
-                case LibraryContext.Song:
-                    {
-                        songs = fileMan.GetSongData(id);
-                    }
-                    break;
-                case LibraryContext.Track:
-                    {
-                        throw new NotImplementedException();
-                    }
-                case LibraryContext.Recording:
-                    {
-                        songs = fileMan.GetSongDataFromRecordingID(id);
-                    }
-                    break;
-                case LibraryContext.MAX:
-                default:
-                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
-                    return;
-            }
-
-            Playlist.PlaylistManager.Instance.AddBack(songs);
-
-        }
-
         private void Library_Request_Edit(LibraryContext context, long id)
         {
             switch (context)
@@ -197,6 +117,25 @@ namespace MusicPlayer
 
             TagEditor.TagEditor tagEditor = new TagEditor.TagEditor(context, id, fileMan);
             tagEditor.Show();
+        }
+
+        private void Library_Request_Edit_Art(LibraryContext context, long id)
+        {
+            OpenFileDialog dialog = new OpenFileDialog()
+            {
+                Title = "Select Album Art to add to Library",
+                InitialDirectory = "C:\\",
+                Multiselect = false,
+                Filter = "image files (*.bmp;*.png;*.jpg;*.jpeg)|*.bmp;*.jpg;*.jpeg;*.png"
+            };
+
+            bool? val = dialog.ShowDialog();
+
+            if (val.HasValue && val.Value)
+            {
+                fileMan.SetAlbumArt(id, dialog.FileName);
+                libraryControl.Rebuild();
+            }
         }
 
         private void MenuClearLibraryClick(object sender, RoutedEventArgs e)
@@ -221,25 +160,6 @@ namespace MusicPlayer
                 default:
                     Console.WriteLine("Unexpected MessageBoxResult: " + response + ".  Likely Error.");
                     break;
-            }
-        }
-
-        private void Library_Request_Edit_Art(LibraryContext context, long id)
-        {
-            OpenFileDialog dialog = new OpenFileDialog()
-            {
-                Title = "Select Album Art to add to Library",
-                InitialDirectory = "C:\\",
-                Multiselect = false,
-                Filter = "image files (*.bmp;*.png;*.jpg;*.jpeg)|*.bmp;*.jpg;*.jpeg;*.png"
-            };
-
-            bool? val = dialog.ShowDialog();
-
-            if (val.HasValue && val.Value)
-            {
-                fileMan.SetAlbumArt(id, dialog.FileName);
-                libraryControl.Rebuild();
             }
         }
 

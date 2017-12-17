@@ -14,11 +14,11 @@ namespace MusicPlayer.Library
     {
         #region Constructors
 
-        public AlbumViewModel(AlbumDTO album, ArtistViewModel artist)
+        public AlbumViewModel(AlbumDTO album, ArtistViewModel artist, bool lazyLoadChildren = true)
             : base(
                   data: album,
                   parent: artist,
-                  lazyLoadChildren: true)
+                  lazyLoadChildren: lazyLoadChildren)
         {
         }
 

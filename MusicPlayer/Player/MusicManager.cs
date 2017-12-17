@@ -59,19 +59,24 @@ namespace MusicPlayer.Player
             }
         }
 
-        private double _tickFrequency = 100;
-        public double TickFrequency
+        private double _dataRate = 100;
+        public double DataRate
         {
-            get { return _tickFrequency; }
+            get { return _dataRate; }
             private set
             {
-                if (_tickFrequency != value)
+                if (_dataRate != value)
                 {
-                    _tickFrequency = value;
-                    OnPropertyChanged("TickFrequency");
+                    _dataRate = value;
+                    OnPropertyChanged("DataRate");
+                    OnPropertyChanged("ClickJump");
+                    OnPropertyChanged("KBJump");
                 }
             }
         }
+
+        public double ClickJump{ get { return DataRate * 10.0; } }
+        public double KBJump { get { return DataRate * 0.5; } }
 
         private string _songLabel = "";
         public string SongLabel
@@ -83,7 +88,21 @@ namespace MusicPlayer.Player
                 {
                     _songLabel = value;
                     OnPropertyChanged("SongLabel");
+                    OnPropertyChanged("WindowTitle");
                 }
+            }
+        }
+
+        public string WindowTitle
+        {
+            get
+            {
+                if (SongLabel == "")
+                {
+                    return "Musegician";
+                }
+
+                return "Musegician: " + SongLabel;
             }
         }
 
@@ -239,7 +258,7 @@ namespace MusicPlayer.Player
 
             _RecordingStarted?.Invoke(playData.recordingID);
 
-            TickFrequency = 0.25 * _waveSource.WaveFormat.BytesPerSecond;
+            DataRate = 0.25 * _waveSource.WaveFormat.BytesPerSecond;
             Length = _waveSource.Length;
 
             State = PlayerState.Playing;
@@ -375,11 +394,15 @@ namespace MusicPlayer.Player
             }
         }
 
+        #region INotifyPropertyChanged
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        #endregion // INotifyPropertyChanged
     }
 }

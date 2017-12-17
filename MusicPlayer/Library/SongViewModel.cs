@@ -41,6 +41,11 @@ namespace MusicPlayer.Library
             get { return _song.TrackID; }
         }
 
+        public string SearchableName
+        {
+            get { return _song.SearchableName; }
+        }
+
         #endregion // Song Properties
 
         #region LoadChildren
@@ -56,5 +61,17 @@ namespace MusicPlayer.Library
         }
 
         #endregion // LoadChildren
+
+        #region NameContainsText
+
+        public override bool NameContainsText(string text)
+        {
+            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(SearchableName))
+                return false;
+
+            return SearchableName.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
+        }
+
+        #endregion // NameContainsText
     }
 }

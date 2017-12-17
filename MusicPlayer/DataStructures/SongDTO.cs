@@ -5,11 +5,12 @@ namespace MusicPlayer.DataStructures
 {
     public class SongDTO : DTO
     {
-        public SongDTO(long songID, string title, long trackID, bool isHome)
+        public SongDTO(long songID, string titlePrefix, string title, long trackID, bool isHome)
         {
             ID = songID;
             IsHome = isHome;
-            Name = title;
+            Name = titlePrefix + title;
+            SearchableName = title;
             TrackID = trackID;
         }
 
@@ -19,6 +20,7 @@ namespace MusicPlayer.DataStructures
             TrackID = -1;
             IsHome = true;
             Name = title;
+            SearchableName = title;
         }
         
         /// <summary>
@@ -30,5 +32,7 @@ namespace MusicPlayer.DataStructures
         /// Indicates whether the current Song belongs to the Artist that the Album its being visualized under.
         /// </summary>
         public bool IsHome { get; set; }
+
+        public string SearchableName { get; set; }
     }
 }

@@ -181,7 +181,29 @@ namespace MusicPlayer.Core.DBCommands
         }
 
         #endregion  //Search Commands
+        
+        #region Initialization Commands
 
+        public void _InitializeValues()
+        {
+            SQLiteCommand loadAlbums = dbConnection.CreateCommand();
+            loadAlbums.CommandType = System.Data.CommandType.Text;
+            loadAlbums.CommandText =
+                "SELECT album_id " +
+                "FROM album " +
+                "ORDER BY album_id DESC " +
+                "LIMIT 1;";
+
+            using (SQLiteDataReader reader = loadAlbums.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    _lastIDAssigned = (long)reader["album_id"];
+                }
+            }
+        }
+
+        #endregion //Initialization Commands
 
         #region Lookup Commands
 
@@ -216,11 +238,6 @@ namespace MusicPlayer.Core.DBCommands
                     if (!artistID_AlbumTitleDict.ContainsKey(key))
                     {
                         artistID_AlbumTitleDict.Add(key, albumID);
-                    }
-
-                    if (albumID > _lastIDAssigned)
-                    {
-                        _lastIDAssigned = albumID;
                     }
                 }
             }
@@ -359,9 +376,9 @@ namespace MusicPlayer.Core.DBCommands
                     "(album_id, album_title, album_year) VALUES " +
                     "(@albumID, @albumTitle, @albumYear);";
             writeAlbum.Parameters.Add("@albumID", DbType.Int64);
-            writeAlbum.Parameters.Add("@albumTitle", DbType.AnsiString);
+            writeAlbum.Parameters.Add("@albumTitle", DbType.String);
             writeAlbum.Parameters.Add("@albumYear", DbType.Int64);
-            writeAlbum.Parameters.Add("@albumArtFilename", DbType.AnsiString);
+            writeAlbum.Parameters.Add("@albumArtFilename", DbType.String);
 
             foreach (AlbumData album in newAlbumRecords)
             {

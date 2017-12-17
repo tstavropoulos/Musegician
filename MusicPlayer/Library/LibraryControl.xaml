@@ -4,17 +4,21 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MusicPlayer.Library"
+             xmlns:core="clr-namespace:MusicPlayer"
              xmlns:commands="clr-namespace:MusicPlayer.Commands"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="600" d:DesignWidth="500"
+             d:DataContext="{d:DesignInstance Type=local:MockLibraryViewModel, IsDesignTimeCreatable=True}">
   <UserControl.Resources>
-    <Style x:Key="LibraryStyle" TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource {x:Type TreeViewItem}}">
+    <Style x:Key="LibraryStyle" 
+           TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource {x:Type TreeViewItem}}">
       <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick" />
       <Setter Property="VerticalContentAlignment" Value="Stretch"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
       <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
       <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
       <Setter Property="FontWeight" Value="Normal" />
+      <Setter Property="TextBlock.Foreground" Value="WhiteSmoke"/>
       <Style.Triggers>
         <Trigger Property="IsSelected" Value="True">
           <Setter Property="commands:TreeViewItemBehavior.BringIntoViewWhenSelected" Value="True" />
@@ -26,126 +30,77 @@
       </Style.Triggers>
     </Style>
 
+    <core:EnumBoolConverter x:Key="EnumBooleanConverter"/>
+
+    <ContextMenu x:Key="ArtistCM">
+      <MenuItem Header="Add Artist To Playlist" Click="Add_Shallow"/>
+      <MenuItem Header="Add Artist To Playlist (Deep)" Click="Add_Deep"/>
+      <MenuItem Header="Play Artist" Click="Play_Shallow"/>
+      <MenuItem Header="Play Artist (Deep)" Click="Play_Deep"/>
+      <MenuItem Header="Edit Artist Information" Click="Edit"/>
+    </ContextMenu>
+
+    <ContextMenu x:Key="AlbumCM">
+      <MenuItem Header="Add Album To Playlist" Click="Add_Shallow"/>
+      <MenuItem Header="Add Album To Playlist (Deep)" Click="Add_Deep"/>
+      <MenuItem Header="Play Album" Click="Play_Shallow"/>
+      <MenuItem Header="Play Album (Deep)" Click="Play_Deep"/>
+      <MenuItem Header="Edit Album Information" Click="Edit"/>
+      <MenuItem Header="Update Album Art" Click="EditArt"/>
+    </ContextMenu>
+
+    <ContextMenu x:Key="SongCM">
+      <MenuItem Header="Add Song To Playlist" Click="Add_Shallow"/>
+      <MenuItem Header="Add Song To Playlist (Deep)" Click="Add_Deep"/>
+      <MenuItem Header="Play Song" Click="Play_Shallow"/>
+      <MenuItem Header="Play Song (Deep)" Click="Play_Deep"/>
+      <MenuItem Header="Edit Song Information" Click="Edit"/>
+    </ContextMenu>
+
+    <ContextMenu x:Key="RecordingCM">
+      <MenuItem Header="Add Recording To Playlist" Click="Add_Shallow"/>
+      <MenuItem Header="Play Recording" Click="Play_Shallow"/>
+      <MenuItem Header="Edit Recording Information" Click="Edit"/>
+    </ContextMenu>
+
     <HierarchicalDataTemplate DataType="{x:Type local:ArtistViewModel}"
-                                          ItemsSource="{Binding Children}">
-      <StackPanel Orientation="Horizontal" Background="Transparent">
-        <StackPanel.ContextMenu>
-          <ContextMenu>
-            <MenuItem Header="Add Artist To Playlist" 
-                                              Click="Add"/>
-            <MenuItem Header="Play Artist" 
-                                              Click="Play"/>
-            <MenuItem Header="Edit Artist Information" 
-                                              Click="Edit"/>
-          </ContextMenu>
-        </StackPanel.ContextMenu>
-        <Border Height="30" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
-          <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-            <Rectangle.Fill>
-              <LinearGradientBrush StartPoint="0.5,0.0" EndPoint="0.5,1.0">
-                <GradientStop Color="Green" Offset="0.0"/>
-                <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                <GradientStop Color="Red" Offset="1.0"/>
-              </LinearGradientBrush>
-            </Rectangle.Fill>
-          </Rectangle>
-        </Border>
+                              ItemsSource="{Binding Children}">
+      <StackPanel Orientation="Horizontal" Background="Transparent"
+                  ContextMenu="{StaticResource ArtistCM}">
+        <core:WeightBar Margin="0,0,5,0"/>
         <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
       </StackPanel>
     </HierarchicalDataTemplate>
 
     <HierarchicalDataTemplate DataType="{x:Type local:AlbumViewModel}"
-                                          ItemsSource="{Binding Children}">
-      <StackPanel Orientation="Horizontal" Background="Transparent">
-        <StackPanel.ContextMenu>
-          <ContextMenu>
-            <MenuItem Header="Add Album To Playlist" 
-                      Click="Add"/>
-            <MenuItem Header="Play Album" 
-                      Click="Play"/>
-            <MenuItem Header="Edit Album Information" 
-                      Click="Edit"/>
-            <MenuItem Header="Update Album Art" 
-                      Click="EditArt"/>
-          </ContextMenu>
-        </StackPanel.ContextMenu>
-        <Border Height="30" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
-          <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-            <Rectangle.Fill>
-              <LinearGradientBrush StartPoint="0.5,0.0" EndPoint="0.5,1.0">
-                <GradientStop Color="Green" Offset="0.0"/>
-                <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                <GradientStop Color="Red" Offset="1.0"/>
-              </LinearGradientBrush>
-            </Rectangle.Fill>
-          </Rectangle>
-        </Border>
+                              ItemsSource="{Binding Children}">
+      <StackPanel Orientation="Horizontal" Background="Transparent"
+                  ContextMenu="{StaticResource AlbumCM}">
+        <core:WeightBar Margin="0,0,5,0"/>
         <Image Width="32" Height="32" Margin="0,0,5,0" Source="{Binding AlbumArt}"/>
         <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
       </StackPanel>
     </HierarchicalDataTemplate>
 
     <HierarchicalDataTemplate DataType="{x:Type local:SongViewModel}"
-                                          ItemsSource="{Binding Children}">
-      <StackPanel Orientation="Horizontal" Background="Transparent">
-        <StackPanel.ContextMenu>
-          <ContextMenu>
-            <MenuItem Header="Add Song To Playlist" 
-                                          Click="Add"/>
-            <MenuItem Header="Play Song" 
-                                          Click="Play"/>
-            <MenuItem Header="Edit Song Information" 
-                                          Click="Edit"/>
-          </ContextMenu>
-        </StackPanel.ContextMenu>
-        <Border Height="30" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
-          <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-            <Rectangle.Fill>
-              <LinearGradientBrush StartPoint="0.5,0.0" EndPoint="0.5,1.0">
-                <GradientStop Color="Green" Offset="0.0"/>
-                <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                <GradientStop Color="Red" Offset="1.0"/>
-              </LinearGradientBrush>
-            </Rectangle.Fill>
-          </Rectangle>
-        </Border>
+                              ItemsSource="{Binding Children}">
+      <StackPanel Orientation="Horizontal" Background="Transparent"
+                  ContextMenu="{StaticResource SongCM}">
+        <core:WeightBar Margin="0,0,5,0"/>
         <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
       </StackPanel>
     </HierarchicalDataTemplate>
 
     <HierarchicalDataTemplate DataType="{x:Type local:RecordingViewModel}">
-      <StackPanel Orientation="Horizontal" Background="Transparent">
-        <StackPanel.ContextMenu>
-          <ContextMenu>
-            <MenuItem Header="Add Track To Playlist" 
-                                          Click="Add"/>
-            <MenuItem Header="Play Track" 
-                                          Click="Play"/>
-            <MenuItem Header="Edit Track Information" 
-                                          Click="Edit"/>
-          </ContextMenu>
-        </StackPanel.ContextMenu>
-        <Border Height="30" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
-          <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-            <Rectangle.Fill>
-              <LinearGradientBrush StartPoint="0.5,1.0" EndPoint="0.5,0.0">
-                <GradientStop Color="Green" Offset="0.0"/>
-                <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                <GradientStop Color="Red" Offset="1.0"/>
-              </LinearGradientBrush>
-            </Rectangle.Fill>
-          </Rectangle>
-        </Border>
+      <StackPanel Orientation="Horizontal" Background="Transparent"
+                  ContextMenu="{StaticResource RecordingCM}">
+        <core:WeightBar Margin="0,0,5,0"/>
         <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
         <TextBlock Text="{Binding LiveString}" FontSize="14" VerticalAlignment="Center" Margin="5,0,0,0"/>
       </StackPanel>
     </HierarchicalDataTemplate>
   </UserControl.Resources>
-  <DockPanel>
+  <DockPanel Background="{StaticResource DarkInsetPanel}">
     <DockPanel DockPanel.Dock="Top"  Margin="10,2,10,2">
       <DockPanel DockPanel.Dock="Top">
         <TextBlock DockPanel.Dock="Left"
@@ -165,24 +120,41 @@
           <ColumnDefinition/>
           <ColumnDefinition/>
           <ColumnDefinition/>
+          <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <RadioButton GroupName="SearchSelection" Grid.Column="0" Content="Artist" IsChecked="True" />
-        <RadioButton GroupName="SearchSelection" Grid.Column="1" Content="Album"/>
-        <RadioButton GroupName="SearchSelection" Grid.Column="2" Content="Song"/>
+        <RadioButton Content="All" GroupName="SearchSelection" Grid.Column="0"
+                     IsChecked="{Binding Path=SearchChoice,
+                                  Converter={StaticResource EnumBooleanConverter},
+                                  ConverterParameter={x:Static local:SearchChoices.All}}"/>
+        <RadioButton x:Name="radioSearchArtist"
+                     Content="Artist" GroupName="SearchSelection" Grid.Column="1"
+                     IsChecked="{Binding Path=SearchChoice, 
+                                  Converter={StaticResource EnumBooleanConverter}, 
+                                  ConverterParameter={x:Static local:SearchChoices.Artist}}"/>
+        <RadioButton x:Name="radioSearchAlbum"
+                     Content="Album" GroupName="SearchSelection" Grid.Column="2"
+                     IsChecked="{Binding Path=SearchChoice, 
+                                  Converter={StaticResource EnumBooleanConverter}, 
+                                  ConverterParameter={x:Static local:SearchChoices.Album}}"/>
+        <RadioButton Content="Song" GroupName="SearchSelection" Grid.Column="3" 
+                     IsChecked="{Binding Path=SearchChoice, 
+                                  Converter={StaticResource EnumBooleanConverter}, 
+                                  ConverterParameter={x:Static local:SearchChoices.Song}}"/>
       </Grid>
     </DockPanel>
-    <TabControl>
+    <TabControl SelectionChanged="LibraryView_SelectionChanged">
       <TabItem Header="Classic" FontSize="14">
         <TreeView ItemsSource="{Binding ClassicArtistViewModels}"
                   TreeViewItem.Expanded="TreeViewItem_Expanded"
-                  ItemContainerStyle="{StaticResource LibraryStyle}"/>
+                  ItemContainerStyle="{StaticResource LibraryStyle}">
+        </TreeView>
       </TabItem>
       <TabItem Header="Simple"  FontSize="14">
         <TreeView ItemsSource="{Binding SimpleViewModels}" 
                   TreeViewItem.Expanded="TreeViewItem_Expanded"
                   ItemContainerStyle="{StaticResource LibraryStyle}"/>
       </TabItem>
-      <TabItem Header="Albums"  FontSize="14">
+      <TabItem Header="Album"  FontSize="14">
         <TreeView ItemsSource="{Binding AlbumViewModels}" 
                   TreeViewItem.Expanded="TreeViewItem_Expanded"
                   ItemContainerStyle="{StaticResource LibraryStyle}"/>

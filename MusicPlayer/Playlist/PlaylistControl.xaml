@@ -4,54 +4,95 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MusicPlayer.Playlist"
+             xmlns:core="clr-namespace:MusicPlayer"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="300" d:DesignWidth="500">
+  <UserControl.Resources>
+    <ContextMenu x:Key="PlaylistSongCM">
+      <MenuItem Header="Play Song" Click="Play"/>
+      <MenuItem Header="Remove Song" Click="Remove"/>
+      <MenuItem Header="Edit Song Information" Click="Edit"/>
+    </ContextMenu>
+
+    <ContextMenu x:Key="PlaylistRecordingCM">
+      <MenuItem Header="Play Recording" Click="Play"/>
+      <MenuItem Header="Remove Recording" Click="Remove"/>
+      <MenuItem Header="Edit Recording Information" Click="Edit"/>
+    </ContextMenu>
+
+    <HierarchicalDataTemplate DataType="{x:Type local:PlaylistSongViewModel}"
+                                            ItemsSource="{Binding Recordings}">
+      <StackPanel Orientation="Horizontal" ContextMenu="{StaticResource PlaylistSongCM}">
+        <core:WeightBar Margin="0,0,5,0"/>
+        <TextBlock Text="{Binding PlayingString}" VerticalAlignment="Center" MinWidth="20"/>
+        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+      </StackPanel>
+    </HierarchicalDataTemplate>
+
+    <HierarchicalDataTemplate DataType="{x:Type local:PlaylistRecordingViewModel}">
+      <StackPanel Orientation="Horizontal" ContextMenu="{StaticResource PlaylistRecordingCM}">
+        <core:WeightBar Margin="0,0,5,0"/>
+        <TextBlock Text="{Binding PlayingString}" VerticalAlignment="Center" MinWidth="20"/>
+        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding LiveString}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+      </StackPanel>
+    </HierarchicalDataTemplate>
+  </UserControl.Resources>
   <DockPanel>
-    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,2,0,2" Background="{StaticResource DarkInsetPanel}">
-      <ToggleButton Name="shuffleToggleButton"
-                    ToolTip="Shuffle"
-                    IsChecked="{Binding Source={x:Static local:PlaylistManager.Instance}, Path=Shuffle, Mode=TwoWay}"
-                    TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
-                    Margin="1,2,4,2" Height="34" Width="34">
-        <ToggleButton.Style>
-          <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource {x:Type ToggleButton}}">
-            <Setter Property="Content" Value="⇉"/>
-            <Style.Triggers>
-              <Trigger Property="IsChecked" Value="True">
-                <Setter Property="Content" Value="🔀"/>
-              </Trigger>
-            </Style.Triggers>
-          </Style>
-        </ToggleButton.Style>
-      </ToggleButton>
-      <ToggleButton Name="repeatToggleButton"
-                    ToolTip="Repeat"
-                    IsChecked="{Binding Source={x:Static local:PlaylistManager.Instance}, Path=Repeat, Mode=TwoWay}"
-                    Content="🔁" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
-                    Margin="0,0,0,0" Height="34" Width="34"/>
-      <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
-        <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+    <DockPanel DockPanel.Dock="Top" Margin="0,2,0,2" Background="{StaticResource DarkInsetPanel}">
+      <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+        <ToggleButton Name="shuffleToggleButton"
+                      ToolTip="Shuffle"
+                      IsChecked="{Binding Source={x:Static local:PlaylistManager.Instance}, Path=Shuffle, Mode=TwoWay}"
+                      TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
+                      Margin="1,2,4,2" Height="34" Width="34">
+          <ToggleButton.Style>
+            <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource {x:Type ToggleButton}}">
+              <Setter Property="Content" Value="⇉"/>
+              <Style.Triggers>
+                <Trigger Property="IsChecked" Value="True">
+                  <Setter Property="Content" Value="🔀"/>
+                </Trigger>
+              </Style.Triggers>
+            </Style>
+          </ToggleButton.Style>
+        </ToggleButton>
+        <ToggleButton Name="repeatToggleButton"
+                      ToolTip="Repeat"
+                      IsChecked="{Binding Source={x:Static local:PlaylistManager.Instance}, Path=Repeat, Mode=TwoWay}"
+                      Content="🔁" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
+                      Margin="0,0,0,0" Height="34" Width="34"/>
+        <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
+          <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+        </StackPanel>
+        <Button Name="tinyViewerButton"
+                Content="⟎" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
+                ToolTip="Open Tiny Viewer"
+                Margin="0,0,4,0" Height="33" Width="33"/>
+        <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
+          <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+        </StackPanel>
+        <Button Name="newPlaylist"
+                ToolTip="New Playlist"
+                Content="🗋" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
+                Click="Toolbar_NewPlaylist"
+                Margin="0,0,4,0" Height="33" Width="33"/>
+        <Button Name="savePlaylist"
+                ToolTip="Save Playlist"
+                Click="Toolbar_SavePlaylist"
+                Content="💾" TextBlock.FontSize="22" TextBlock.TextAlignment="Center" 
+                Margin="0,0,4,0" Height="33" Width="33"/>
+        <Button Name="loadPlaylist"
+                ToolTip="Load Playlist"
+                Click="Toolbar_LoadPlaylist"
+                Content="📂" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
+                Margin="0,0,4,0" Height="33" Width="33"/>
       </StackPanel>
-      <Button Name="newPlaylist"
-              ToolTip="New Playlist"
-              Content="🗋" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
-              Margin="0,0,4,0" Height="33" Width="33"/>
-      <Button Name="savePlaylist"
-              ToolTip="Save Playlist"
-              Content="💾" TextBlock.FontSize="22" TextBlock.TextAlignment="Center" 
-              Margin="0,0,4,0" Height="33" Width="33"/>
-      <Button Name="loadPlaylist"
-              ToolTip="Load Playlist"
-              Content="📂" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
-              Margin="0,0,4,0" Height="33" Width="33"/>
-      <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
-        <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
-      </StackPanel>
-      <Button Name="tinyViewerButton"
-              Content="⟎" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
-              ToolTip="Open Tiny Viewer"
-              Margin="0,0,4,0" Height="33" Width="33"/>
-    </StackPanel>
+      <TextBox Name="playlistName"
+               Text="" FontSize="24"
+               VerticalContentAlignment="Center" HorizontalAlignment="Stretch"
+               Margin="6"/>
+    </DockPanel>
     <TreeView ItemsSource="{Binding PlaylistViewModels}">
       <TreeView.ItemContainerStyle>
         <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource {x:Type TreeViewItem}}">
@@ -69,63 +110,6 @@
           </Style.Triggers>
         </Style>
       </TreeView.ItemContainerStyle>
-
-      <TreeView.Resources>
-        <HierarchicalDataTemplate DataType="{x:Type local:PlaylistSongViewModel}"
-                                            ItemsSource="{Binding Recordings}">
-          <StackPanel Orientation="Horizontal">
-            <StackPanel.ContextMenu>
-              <ContextMenu>
-                <MenuItem Header="Play Song" Click="Play"/>
-                <MenuItem Header="Remove Song" Click="Remove"/>
-                <MenuItem Header="Edit Song Information" Click="Edit"/>
-              </ContextMenu>
-            </StackPanel.ContextMenu>
-            <Border Height="20" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
-              <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                <Rectangle.Fill>
-                  <LinearGradientBrush StartPoint="0.5,1.0" EndPoint="0.5,0.0">
-                    <GradientStop Color="Green" Offset="0.0"/>
-                    <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                    <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                    <GradientStop Color="Red" Offset="1.0"/>
-                  </LinearGradientBrush>
-                </Rectangle.Fill>
-              </Rectangle>
-            </Border>
-            <TextBlock Text="{Binding PlayingString}" VerticalAlignment="Center" MinWidth="20"/>
-            <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
-          </StackPanel>
-        </HierarchicalDataTemplate>
-
-        <HierarchicalDataTemplate DataType="{x:Type local:PlaylistRecordingViewModel}">
-          <StackPanel Orientation="Horizontal">
-            <StackPanel.ContextMenu>
-              <ContextMenu>
-                <MenuItem Header="Play Recording" Click="Play"/>
-                <MenuItem Header="Remove Recording" Click="Remove"/>
-                <MenuItem Header="Edit Recording Information" Click="Edit"/>
-              </ContextMenu>
-            </StackPanel.ContextMenu>
-            <Border Height="20" Width="7" Padding="1" Background="Black" Margin="0,0,5,0">
-              <Rectangle VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                <Rectangle.Fill>
-                  <LinearGradientBrush StartPoint="0.5,1.0" EndPoint="0.5,0.0">
-                    <GradientStop Color="Green" Offset="0.0"/>
-                    <GradientStop Color="Green" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                    <GradientStop Color="Red" Offset="{Binding Path=Weight, FallbackValue=1.0}"/>
-                    <GradientStop Color="Red" Offset="1.0"/>
-                  </LinearGradientBrush>
-                </Rectangle.Fill>
-              </Rectangle>
-            </Border>
-            <TextBlock Text="{Binding PlayingString}" VerticalAlignment="Center" MinWidth="20"/>
-            <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
-            <TextBlock Text="{Binding LiveString}" VerticalAlignment="Center" Margin="5,0,0,0"/>
-          </StackPanel>
-        </HierarchicalDataTemplate>
-      </TreeView.Resources>
     </TreeView>
-
   </DockPanel>
 </UserControl>

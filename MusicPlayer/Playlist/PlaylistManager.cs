@@ -16,6 +16,11 @@ namespace MusicPlayer.Playlist
         private List<SongDTO> playlist = new List<SongDTO>();
         private List<int> shuffleList = new List<int>();
 
+        private IPlaylistRequestHandler requestHandler
+        {
+            get { return FileManager.Instance; }
+        }
+
         public delegate void PassIndex(int index);
 
         private event PassIndex _MarkIndex;
@@ -270,7 +275,7 @@ namespace MusicPlayer.Playlist
                 --_currentIndex;
             }
 
-            if(shuffleList.Contains(songIndex))
+            if (shuffleList.Contains(songIndex))
             {
                 shuffleList.Remove(songIndex);
             }
@@ -335,11 +340,11 @@ namespace MusicPlayer.Playlist
             {
                 if (recording.Live)
                 {
-                    return Settings.LiveWeight;
+                    return Settings.Instance.LiveWeight;
                 }
                 else
                 {
-                    return Settings.StudioWeight;
+                    return Settings.Instance.StudioWeight;
                 }
             }
 
@@ -356,13 +361,6 @@ namespace MusicPlayer.Playlist
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         private void PlayRecording(long recordingID)
         {
             Player.MusicManager.Instance.PlaySong(
@@ -373,5 +371,47 @@ namespace MusicPlayer.Playlist
         {
             Rebuild(new List<SongDTO>());
         }
+
+        public void LoadPlaylist(long playlistID)
+        {
+            Rebuild(requestHandler.LoadPlaylist(playlistID));
+        }
+
+        public void TryLoadPlaylist(string playlistTitle)
+        {
+            long playlistID = requestHandler.FindPlaylist(playlistTitle);
+
+            if (playlistID == -1)
+            {
+                MessageBox.Show(
+                    "Could not find playlist titled: " + playlistTitle,
+                    "Playlist Not Found",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            else
+            {
+                LoadPlaylist(playlistID);
+            }
+        }
+
+        public void SavePlaylistAs(string title)
+        {
+            if (playlist.Count != 0)
+            {
+                requestHandler.SavePlaylist(title, playlist);
+            }
+        }
+
+        #region INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion // INotifyPropertyChanged
     }
 }

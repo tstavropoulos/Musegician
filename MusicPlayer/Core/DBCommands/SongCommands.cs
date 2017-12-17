@@ -126,10 +126,8 @@ namespace MusicPlayer.Core.DBCommands
                 {
                     songList.Add(new SongDTO(
                         songID: (long)reader["song_id"],
-                        title: String.Format(
-                            "{0}. {1}",
-                            ((long)reader["track_number"]).ToString("D2"),
-                            (string)reader["track_title"]),
+                        titlePrefix: ((long)reader["track_number"]).ToString("D2") + ". ",
+                        title: (string)reader["track_title"],
                         trackID: (long)reader["track_id"],
                         isHome: (artistID == (long)reader["artist_id"] || artistID == -1)));
                 }
@@ -241,7 +239,7 @@ namespace MusicPlayer.Core.DBCommands
             return artistID;
         }
 
-        public string _GetPlaylistName(long songID)
+        public string _GetPlaylistSongName(long songID)
         {
             string songName = "";
             string artistName = "";
@@ -285,6 +283,29 @@ namespace MusicPlayer.Core.DBCommands
 
         #endregion  //Search Commands
 
+        #region Initialization Commands
+
+        public void _InitializeValues()
+        {
+            SQLiteCommand loadSongs = dbConnection.CreateCommand();
+            loadSongs.CommandType = System.Data.CommandType.Text;
+            loadSongs.CommandText =
+                "SELECT song_id " +
+                "FROM song " +
+                "ORDER BY song_id DESC " +
+                "LIMIT 1;";
+
+            using (SQLiteDataReader reader = loadSongs.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    _lastIDAssigned = (long)reader["song_id"];
+                }
+            }
+        }
+
+        #endregion //Initialization Commands
+
         #region Lookup Commands
 
         public void _PopulateLookup(
@@ -313,11 +334,6 @@ namespace MusicPlayer.Core.DBCommands
                     if (!artistID_SongTitleDict.ContainsKey(key))
                     {
                         artistID_SongTitleDict.Add(key, songID);
-                    }
-
-                    if (songID > _lastIDAssigned)
-                    {
-                        _lastIDAssigned = songID;
                     }
                 }
             }
@@ -423,8 +439,8 @@ namespace MusicPlayer.Core.DBCommands
                 "INSERT INTO song " +
                     "(song_id, song_title) VALUES " +
                     "(@songID, @songTitle);";
-            writeSong.Parameters.Add(new SQLiteParameter("@songID", -1));
-            writeSong.Parameters.Add(new SQLiteParameter("@songTitle", ""));
+            writeSong.Parameters.Add("@songID", DbType.Int64);
+            writeSong.Parameters.Add("@songTitle", DbType.String);
             foreach (SongData song in newSongRecords)
             {
                 writeSong.Parameters["@songID"].Value = song.songID;

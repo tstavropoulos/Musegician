@@ -144,7 +144,7 @@ namespace MusicPlayer.Core.DBCommands
             return artistID;
         }
 
-        public string _GetPlaylistName(long artistID, long songID)
+        public string _GetPlaylistSongName(long artistID, long songID)
         {
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
@@ -173,11 +173,34 @@ namespace MusicPlayer.Core.DBCommands
         }
 
         #endregion  //Search Commands
+        
+        #region Initialization Commands
+
+        public void _InitializeValues()
+        {
+            SQLiteCommand loadArtists = dbConnection.CreateCommand();
+            loadArtists.CommandType = System.Data.CommandType.Text;
+            loadArtists.CommandText =
+                "SELECT artist_id " +
+                "FROM artist " +
+                "ORDER BY artist_id DESC " +
+                "LIMIT 1;";
+
+            using (SQLiteDataReader reader = loadArtists.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    _lastIDAssigned = (long)reader["artist_id"];
+                }
+            }
+        }
+
+        #endregion //Initialization Commands
 
         #region Lookup Commands
 
         public void _PopulateLookup(
-            Dictionary<string, long> artistNameDict)
+        Dictionary<string, long> artistNameDict)
         {
             SQLiteCommand loadArtists = dbConnection.CreateCommand();
             loadArtists.CommandType = System.Data.CommandType.Text;
@@ -195,11 +218,6 @@ namespace MusicPlayer.Core.DBCommands
                     if (!artistNameDict.ContainsKey(artistName.ToLowerInvariant()))
                     {
                         artistNameDict.Add(artistName.ToLowerInvariant(), artistID);
-                    }
-
-                    if (artistID > _lastIDAssigned)
-                    {
-                        _lastIDAssigned = artistID;
                     }
                 }
             }
@@ -272,11 +290,11 @@ namespace MusicPlayer.Core.DBCommands
             string artistName)
         {
             long artistID = NextID;
-            
+
             SQLiteCommand createArtist = dbConnection.CreateCommand();
             createArtist.Transaction = transaction;
             createArtist.CommandType = System.Data.CommandType.Text;
-            createArtist.CommandText = 
+            createArtist.CommandText =
                 "INSERT INTO artist " +
                     "(artist_id, artist_name) VALUES " +
                     "(@artistID, @artistName);";
@@ -299,7 +317,7 @@ namespace MusicPlayer.Core.DBCommands
                     "(artist_id, artist_name) VALUES " +
                     "(@artistID, @artistName);";
             writeArtist.Parameters.Add("@artistID", DbType.Int64);
-            writeArtist.Parameters.Add("@artistName", DbType.AnsiString);
+            writeArtist.Parameters.Add("@artistName", DbType.String);
 
             foreach (ArtistData artist in newArtistRecords)
             {

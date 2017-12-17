@@ -12,10 +12,15 @@ using System.Windows;
 using MusicPlayer.TagEditor;
 using MusicPlayer.Core.DBCommands;
 using System.Windows.Media.Imaging;
+using IPlaylistTransferRequestHandler = MusicPlayer.Playlist.IPlaylistTransferRequestHandler;
+using IPlaylistRequestHandler = MusicPlayer.Playlist.IPlaylistRequestHandler;
 
 namespace MusicPlayer
 {
-    public class FileManager : ILibraryRequestHandler
+    public class FileManager :
+        ILibraryRequestHandler, 
+        IPlaylistRequestHandler, 
+        IPlaylistTransferRequestHandler
     {
         private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3" };
         private readonly string[] songNameDelimiter = new string[] { " - " };
@@ -36,6 +41,13 @@ namespace MusicPlayer
         private SongCommands songCommands = null;
         private AlbumCommands albumCommands = null;
         private ArtistCommands artistCommands = null;
+
+        private PlaylistCommands playlistCommands = null;
+
+        private IPlaylistTransferRequestHandler thisTransfer
+        {
+            get { return this; }
+        }
 
         private struct DBRecords
         {
@@ -74,6 +86,8 @@ namespace MusicPlayer
             songCommands = new SongCommands();
             albumCommands = new AlbumCommands();
             artistCommands = new ArtistCommands();
+
+            playlistCommands = new PlaylistCommands();
         }
 
         private static object m_lock = new object();
@@ -109,6 +123,7 @@ namespace MusicPlayer
             try
             {
                 string dbPath = Path.Combine(FileUtility.GetDataPath(), songDBFilename);
+
                 if (File.Exists(dbPath))
                 {
                     File.Delete(dbPath);
@@ -176,6 +191,9 @@ namespace MusicPlayer
                 songCommands: songCommands,
                 recordingCommands: recordingCommands);
 
+            playlistCommands.Initialize(
+                dbConnection: dbConnection);
+
             if (newDB)
             {
                 dbConnection.Open();
@@ -189,12 +207,45 @@ namespace MusicPlayer
                     recordingCommands._CreateRecordingTables(createTablesTransaction);
                     trackCommands._CreateTrackTables(createTablesTransaction);
 
+                    playlistCommands._CreatePlaylistTables(createTablesTransaction);
+
                     createTablesTransaction.Commit();
 
                 }
 
                 dbConnection.Close();
             }
+
+            InitializeCommands();
+        }
+
+
+        /// <summary>
+        /// Load in LastIDAssigned for all command classes
+        /// </summary>
+        private void InitializeCommands()
+        {
+            dbConnection.Open();
+
+            //Initialize Artists
+            artistCommands._InitializeValues();
+
+            //Initialize Albums
+            albumCommands._InitializeValues();
+
+            //Initialize Songs
+            songCommands._InitializeValues();
+
+            //Initialize Recordings
+            recordingCommands._InitializeValues();
+            
+            //Initialize Tracks
+            trackCommands._InitializeValues();
+
+            //Initialize Playlists
+            playlistCommands._InitializeValues();
+
+            dbConnection.Close();
         }
 
         private void LoadLibraryDictionaries(DBBuilderLookups lookups)
@@ -217,9 +268,6 @@ namespace MusicPlayer
             //Load Recordings
             recordingCommands._PopulateLookup(
                 loadedFilenames: lookups.loadedFilenames);
-
-            //Load Tracks
-            trackCommands._PopulateLookup();
 
             dbConnection.Close();
         }
@@ -566,10 +614,14 @@ namespace MusicPlayer
             long exclusiveArtistID = -1,
             long exclusiveRecordingID = -1)
         {
-            return recordingCommands._GetRecordingList(songID, exclusiveArtistID, exclusiveRecordingID);
+            return recordingCommands._GetRecordingList(
+                songID: songID,
+                exclusiveArtistID: exclusiveArtistID,
+                exclusiveRecordingID: exclusiveRecordingID);
         }
 
-        public List<SongDTO> GetSongDataFromRecordingID(long recordingID)
+        List<SongDTO> IPlaylistTransferRequestHandler.GetSongDataFromRecordingID(
+            long recordingID)
         {
             RecordingData data = recordingCommands.GetData(
                 recordingID: recordingID);
@@ -579,15 +631,15 @@ namespace MusicPlayer
                 return null;
             }
 
-            return GetSongData(
+            return thisTransfer.GetSongData(
                 songID: data.songID,
                 exclusiveRecordingID: recordingID);
         }
 
-        public List<SongDTO> GetSongData(
+        List<SongDTO> IPlaylistTransferRequestHandler.GetSongData(
             long songID,
-            long exclusiveArtistID = -1,
-            long exclusiveRecordingID = -1)
+            long exclusiveArtistID,
+            long exclusiveRecordingID)
         {
             List<SongDTO> songData = new List<SongDTO>();
 
@@ -602,13 +654,13 @@ namespace MusicPlayer
             }
             else if (exclusiveArtistID != -1)
             {
-                playlistName = artistCommands._GetPlaylistName(
+                playlistName = artistCommands._GetPlaylistSongName(
                     artistID: exclusiveArtistID,
                     songID: songID);
             }
             else
             {
-                playlistName = songCommands._GetPlaylistName(
+                playlistName = songCommands._GetPlaylistSongName(
                     songID: songID);
             }
 
@@ -629,9 +681,10 @@ namespace MusicPlayer
             return songData;
         }
 
-        public List<SongDTO> GetAlbumData(
+        List<SongDTO> IPlaylistTransferRequestHandler.GetAlbumData(
             long albumID,
-            long exclusiveArtistID = -1)
+            long exclusiveArtistID,
+            bool deep)
         {
             List<SongDTO> albumData = new List<SongDTO>();
 
@@ -657,23 +710,23 @@ namespace MusicPlayer
                 while (reader.Read())
                 {
                     long songID = (long)reader["song_id"];
-                    string playlistName;
+                    string playlistSongName;
 
                     if (exclusiveArtistID != -1)
                     {
-                        playlistName = artistCommands._GetPlaylistName(
+                        playlistSongName = artistCommands._GetPlaylistSongName(
                             artistID: exclusiveArtistID,
                             songID: songID);
                     }
                     else
                     {
-                        playlistName = songCommands._GetPlaylistName(
+                        playlistSongName = songCommands._GetPlaylistSongName(
                             songID: songID);
                     }
 
                     SongDTO newSong = new SongDTO(
                         songID: songID,
-                        title: playlistName);
+                        title: playlistSongName);
 
                     foreach (RecordingDTO recording in GetRecordingList(
                             songID: songID,
@@ -692,7 +745,9 @@ namespace MusicPlayer
             return albumData;
         }
 
-        public List<SongDTO> GetArtistData(long artistID, bool exclusive = false)
+        List<SongDTO> IPlaylistTransferRequestHandler.GetArtistData(
+            long artistID,
+            bool deep)
         {
             List<SongDTO> artistData = new List<SongDTO>();
 
@@ -717,15 +772,15 @@ namespace MusicPlayer
                     long songID = (long)reader["song_id"];
                     string playlistName;
 
-                    if (exclusive)
+                    if (deep)
                     {
-                        playlistName = artistCommands._GetPlaylistName(
+                        playlistName = artistCommands._GetPlaylistSongName(
                             artistID: artistID,
                             songID: songID);
                     }
                     else
                     {
-                        playlistName = songCommands._GetPlaylistName(
+                        playlistName = songCommands._GetPlaylistSongName(
                             songID: songID);
                     }
 
@@ -735,7 +790,7 @@ namespace MusicPlayer
 
                     foreach (RecordingDTO recording in GetRecordingList(
                             songID: songID,
-                            exclusiveArtistID: exclusive ? artistID : -1))
+                            exclusiveArtistID: deep ? artistID : -1))
                     {
                         newSong.Children.Add(recording);
                     }
@@ -1282,6 +1337,28 @@ namespace MusicPlayer
                         newDouble.GetType().ToString(),
                         record.ToString()));
             }
+        }
+
+        void IPlaylistRequestHandler.SavePlaylist(string title, ICollection<SongDTO> songs)
+        {
+            playlistCommands.SavePlaylist(
+                title: title,
+                songs: songs);
+        }
+
+        List<SongDTO> IPlaylistRequestHandler.LoadPlaylist(long playlistID)
+        {
+            return playlistCommands.LoadPlaylist(playlistID);
+        }
+
+        List<PlaylistData> IPlaylistRequestHandler.GetPlaylistInfo()
+        {
+            return playlistCommands.GetPlaylistInfo();
+        }
+
+        long IPlaylistRequestHandler.FindPlaylist(string title)
+        {
+            return playlistCommands.FindPlaylist(title);
         }
     }
 }

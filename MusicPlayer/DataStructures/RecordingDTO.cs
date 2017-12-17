@@ -21,9 +21,9 @@ namespace MusicPlayer.DataStructures
             {
                 if (Live)
                 {
-                    return Settings.LiveWeight;
+                    return Settings.Instance.LiveWeight;
                 }
-                return Settings.StudioWeight;
+                return Settings.Instance.StudioWeight;
             }
         }
     }

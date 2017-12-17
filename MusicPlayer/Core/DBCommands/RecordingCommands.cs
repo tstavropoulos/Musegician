@@ -470,6 +470,29 @@ namespace MusicPlayer.Core.DBCommands
 
         #endregion  //Search Commands
 
+        #region Initialization Commands
+
+        public void _InitializeValues()
+        {
+            SQLiteCommand loadSongs = dbConnection.CreateCommand();
+            loadSongs.CommandType = System.Data.CommandType.Text;
+            loadSongs.CommandText =
+                "SELECT recording_id " +
+                "FROM recording " +
+                "ORDER BY recording_id DESC " +
+                "LIMIT 1;";
+
+            using (SQLiteDataReader reader = loadSongs.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    _lastIDAssigned = (long)reader["recording_id"];
+                }
+            }
+        }
+
+        #endregion //Initialization Commands
+
         #region Lookup Commands
 
         public void _PopulateLookup(
@@ -490,11 +513,6 @@ namespace MusicPlayer.Core.DBCommands
                     bool valid = System.IO.File.Exists(filename);
 
                     loadedFilenames.Add(filename);
-
-                    if (recordingID > _lastIDAssigned)
-                    {
-                        _lastIDAssigned = recordingID;
-                    }
                 }
             }
         }
@@ -713,7 +731,7 @@ namespace MusicPlayer.Core.DBCommands
             createRecordings.Parameters.Add("@recordingID", DbType.Int64);
             createRecordings.Parameters.Add("@artistID", DbType.Int64);
             createRecordings.Parameters.Add("@songID", DbType.Int64);
-            createRecordings.Parameters.Add("@filename", DbType.AnsiString);
+            createRecordings.Parameters.Add("@filename", DbType.String);
             createRecordings.Parameters.Add("@live", DbType.Boolean);
 
             foreach (RecordingData recording in newRecordingRecords)

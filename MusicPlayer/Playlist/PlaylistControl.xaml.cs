@@ -242,5 +242,29 @@ namespace MusicPlayer.Playlist
         {
             _playlistTree.PlaylistViewModels.RemoveAt(index);
         }
+
+        private void Toolbar_NewPlaylist(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            playlistMan.ClearPlaylist();
+            playlistName.Text = "";
+        }
+
+        private void Toolbar_SavePlaylist(object sender, RoutedEventArgs e)
+        {
+            if (playlistName.Text != "")
+            {
+                playlistMan.SavePlaylistAs(playlistName.Text);
+            }
+        }
+
+        private void Toolbar_LoadPlaylist(object sender, RoutedEventArgs e)
+        {
+            if (playlistName.Text != "")
+            {
+                playlistMan.TryLoadPlaylist(playlistName.Text);
+            }
+        }
     }
 }

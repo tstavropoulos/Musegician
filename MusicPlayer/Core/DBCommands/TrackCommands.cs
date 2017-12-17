@@ -161,31 +161,28 @@ namespace MusicPlayer.Core.DBCommands
 
         #endregion  // Search Commands
 
-        #region Lookup Commands
+        #region Initialization Commands
 
-        public void _PopulateLookup()
+        public void _InitializeValues()
         {
-            SQLiteCommand loadTracks = dbConnection.CreateCommand();
-            loadTracks.CommandType = System.Data.CommandType.Text;
-            loadTracks.CommandText =
+            SQLiteCommand loadSongs = dbConnection.CreateCommand();
+            loadSongs.CommandType = System.Data.CommandType.Text;
+            loadSongs.CommandText =
                 "SELECT track_id " +
-                "FROM track;";
+                "FROM track " +
+                "ORDER BY track_id DESC " +
+                "LIMIT 1;";
 
-            using (SQLiteDataReader reader = loadTracks.ExecuteReader())
+            using (SQLiteDataReader reader = loadSongs.ExecuteReader())
             {
-                while (reader.Read())
+                if (reader.Read())
                 {
-                    long trackID = (long)reader["track_id"];
-
-                    if (trackID > _lastIDAssigned)
-                    {
-                        _lastIDAssigned = trackID;
-                    }
+                    _lastIDAssigned = (long)reader["track_id"];
                 }
             }
         }
 
-        #endregion  //Lookup Commands
+        #endregion //Initialization Commands
 
         #region Update Commands
 
@@ -276,12 +273,12 @@ namespace MusicPlayer.Core.DBCommands
             writeTrack.CommandText = "INSERT INTO track " +
                 "(track_id, album_id, recording_id, track_title, track_number, disc_number) VALUES " +
                 "(@trackID, @albumID, @recordingID, @trackTitle, @trackNumber, @discNumber);";
-            writeTrack.Parameters.Add(new SQLiteParameter("@trackID", -1));
-            writeTrack.Parameters.Add(new SQLiteParameter("@albumID", -1));
-            writeTrack.Parameters.Add(new SQLiteParameter("@recordingID", -1));
-            writeTrack.Parameters.Add(new SQLiteParameter("@trackTitle", ""));
-            writeTrack.Parameters.Add(new SQLiteParameter("@trackNumber", -1));
-            writeTrack.Parameters.Add(new SQLiteParameter("@discNumber", -1));
+            writeTrack.Parameters.Add("@trackID", DbType.Int64);
+            writeTrack.Parameters.Add("@albumID", DbType.Int64);
+            writeTrack.Parameters.Add("@recordingID", DbType.Int64);
+            writeTrack.Parameters.Add("@trackTitle", DbType.String);
+            writeTrack.Parameters.Add("@trackNumber", DbType.Int64);
+            writeTrack.Parameters.Add("@discNumber", DbType.Int64);
 
             foreach (TrackData track in newTrackRecords)
             {

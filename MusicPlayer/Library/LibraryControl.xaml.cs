@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Windows.Controls;
 using System.Windows.Input;
 using MusicPlayer.DataStructures;
+using IPlaylistTransferRequestHandler = MusicPlayer.Playlist.IPlaylistTransferRequestHandler;
 
 namespace MusicPlayer.Library
 {
@@ -29,12 +31,38 @@ namespace MusicPlayer.Library
         Edit
     }
 
+    public enum SearchChoices
+    {
+        All = 0,
+        Artist,
+        Album,
+        Song,
+        MAX
+    }
+
+    public enum ViewMode
+    {
+        Classic = 0,
+        Simple,
+        Album,
+        MAX
+    }
+
     public partial class LibraryControl : UserControl
     {
         #region Data
 
         MusicTreeViewModel _musicTree;
+
         ILibraryRequestHandler requestHandler
+        {
+            get
+            {
+                return FileManager.Instance;
+            }
+        }
+
+        IPlaylistTransferRequestHandler playlistTransferRequestHandler
         {
             get
             {
@@ -50,8 +78,15 @@ namespace MusicPlayer.Library
         {
             InitializeComponent();
 
-            _musicTree = new MusicTreeViewModel(requestHandler);
-            // Bind view-model to UI.
+            if (DesignerProperties.GetIsInDesignMode(this))
+            {
+                _musicTree = new MusicTreeViewModel();
+            }
+            else
+            {
+                _musicTree = new MusicTreeViewModel(requestHandler);
+            }
+
             DataContext = _musicTree;
         }
 
@@ -64,16 +99,104 @@ namespace MusicPlayer.Library
         #endregion // Construction
 
         #region Context Menu Events
-
+        
         public delegate void ContextMenuIDRequest(LibraryContext context, long id);
-        public delegate void ContextMenuMultiIDRequest(IList<ValueTuple<LibraryContext, long>> items);
+        public delegate void ContextMenuMultiIDRequest(IList<ValueTuple<LibraryContext, long>> items, bool deep);
 
-        public event ContextMenuIDRequest ContextMenu_Play;
-        public event ContextMenuIDRequest ContextMenu_Add;
         public event ContextMenuIDRequest ContextMenu_Edit;
         public event ContextMenuIDRequest ContextMenu_EditArt;
 
         #endregion // Context Menu Events
+
+
+
+        private void Play(LibraryContext context, long id, bool deep)
+        {
+            ICollection<SongDTO> songs;
+
+            switch (context)
+            {
+                case LibraryContext.Artist:
+                    {
+                        songs = playlistTransferRequestHandler.GetArtistData(
+                            artistID: id,
+                            deep: deep);
+                    }
+                    break;
+                case LibraryContext.Album:
+                    {
+                        songs = playlistTransferRequestHandler.GetAlbumData(
+                            albumID: id,
+                            deep: deep);
+                    }
+                    break;
+                case LibraryContext.Song:
+                    {
+                        songs = playlistTransferRequestHandler.GetSongData(id);
+                    }
+                    break;
+                case LibraryContext.Track:
+                    {
+                        throw new NotImplementedException();
+                    }
+                case LibraryContext.Recording:
+                    {
+                        songs = playlistTransferRequestHandler.GetSongDataFromRecordingID(id);
+                    }
+                    break;
+                case LibraryContext.MAX:
+                default:
+                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
+                    return;
+            }
+
+            Playlist.PlaylistManager.Instance.Rebuild(songs);
+            Player.MusicManager.Instance.Next();
+        }
+
+        private void Add(LibraryContext context, long id, bool deep)
+        {
+            ICollection<SongDTO> songs;
+
+            switch (context)
+            {
+                case LibraryContext.Artist:
+                    {
+                        songs = playlistTransferRequestHandler.GetArtistData(
+                            artistID: id,
+                            deep: deep);
+                    }
+                    break;
+                case LibraryContext.Album:
+                    {
+                        songs = playlistTransferRequestHandler.GetAlbumData(
+                            albumID: id,
+                            deep: deep);
+                    }
+                    break;
+                case LibraryContext.Song:
+                    {
+                        songs = playlistTransferRequestHandler.GetSongData(id);
+                    }
+                    break;
+                case LibraryContext.Track:
+                    {
+                        throw new NotImplementedException();
+                    }
+                case LibraryContext.Recording:
+                    {
+                        songs = playlistTransferRequestHandler.GetSongDataFromRecordingID(id);
+                    }
+                    break;
+                case LibraryContext.MAX:
+                default:
+                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
+                    return;
+            }
+
+            Playlist.PlaylistManager.Instance.AddBack(songs);
+
+        }
 
         #region Callbacks
 
@@ -101,7 +224,7 @@ namespace MusicPlayer.Library
                     }
 
                     e.Handled = true;
-                    ContextMenu_Play?.Invoke(LibraryContext.Song, songModel.ID);
+                    Play(LibraryContext.Song, songModel.ID, false);
                 }
                 else if (treeItem.Header is RecordingViewModel recordingModel)
                 {
@@ -111,30 +234,52 @@ namespace MusicPlayer.Library
                     }
 
                     e.Handled = true;
-                    ContextMenu_Play?.Invoke(LibraryContext.Recording, recordingModel.ID);
+                    Play(LibraryContext.Recording, recordingModel.ID, false);
                 }
             }
         }
 
-        private void Play(object sender, System.Windows.RoutedEventArgs e)
+        private void Play_Deep(object sender, System.Windows.RoutedEventArgs e)
         {
             (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Play);
 
             if (id != -1)
             {
                 e.Handled = true;
-                ContextMenu_Play?.Invoke(context, id);
+                Play(context, id, true);
             }
         }
 
-        private void Add(object sender, System.Windows.RoutedEventArgs e)
+        private void Play_Shallow(object sender, System.Windows.RoutedEventArgs e)
+        {
+            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Play);
+
+            if (id != -1)
+            {
+                e.Handled = true;
+                Play(context, id, false);
+            }
+        }
+
+        private void Add_Deep(object sender, System.Windows.RoutedEventArgs e)
         {
             (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Add);
 
             if (id != -1)
             {
                 e.Handled = true;
-                ContextMenu_Add?.Invoke(context, id);
+                Add(context, id, true);
+            }
+        }
+
+        private void Add_Shallow(object sender, System.Windows.RoutedEventArgs e)
+        {
+            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Add);
+
+            if (id != -1)
+            {
+                e.Handled = true;
+                Add(context, id, false);
             }
         }
 
@@ -226,8 +371,37 @@ namespace MusicPlayer.Library
                         return;
                     }
 
-                    libraryModel.LoadChildren(requestHandler);
+                    libraryModel.LoadChildren(FileManager.Instance);
                 }
+            }
+        }
+
+        private void LibraryView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if ((e.Source is TabControl libraryView) && (libraryView.SelectedItem is TabItem tabItem))
+            {
+                e.Handled = true;
+
+                switch (tabItem.Header)
+                {
+                    case "Classic":
+                        _musicTree.CurrentViewMode = ViewMode.Classic;
+                        break;
+                    case "Simple":
+                        _musicTree.CurrentViewMode = ViewMode.Simple;
+                        break;
+                    case "Album":
+                        _musicTree.CurrentViewMode = ViewMode.Album;
+                        break;
+                    default:
+                        throw new Exception("Unexpected tabItem.Header: " + tabItem.Header);
+                }
+
+                //Disable ArtistSearch for Album view
+                radioSearchArtist.IsEnabled = (_musicTree.CurrentViewMode != ViewMode.Album);
+
+                //Disable albumsearch for Simple view
+                radioSearchAlbum.IsEnabled = (_musicTree.CurrentViewMode != ViewMode.Simple);
             }
         }
 

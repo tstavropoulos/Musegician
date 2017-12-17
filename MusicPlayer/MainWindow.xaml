@@ -8,19 +8,17 @@
         xmlns:player="clr-namespace:MusicPlayer.Player"
         xmlns:playlist="clr-namespace:MusicPlayer.Playlist"
         mc:Ignorable="d"
-        Title="Musegician" Height="800" Width="1200"
+        Title="{Binding Source={x:Static player:MusicManager.Instance}, Path=WindowTitle}"
+        Height="800" Width="1200"
         Style="{StaticResource {x:Type Window}}">
   <DockPanel>
     <DockPanel DockPanel.Dock="Top">
       <DockPanel DockPanel.Dock="Right" Margin="10,2,10,2">
         <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center">🔊</TextBlock>
-        <Slider Name="volumeSlider" 
-                Orientation="Horizontal"
-                Minimum="0.0" 
-                Maximum="1.0" 
-                Value="{Binding Source={x:Static player:MusicManager.Instance}, Path=Volume, Mode=TwoWay}" 
-                Width="100" 
-                VerticalAlignment="Center"/>
+        <Slider Orientation="Horizontal" VerticalAlignment="Center" Width="100"
+                Minimum="0.0" Maximum="1.0" 
+                LargeChange="0.1" SmallChange="0.02"
+                Value="{Binding Source={x:Static player:MusicManager.Instance}, Path=Volume, Mode=TwoWay}"/>
       </DockPanel>
       <Menu>
         <MenuItem Header="_File">
@@ -85,10 +83,9 @@
       <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
       <library:LibraryControl x:Name="libraryControl"
                               Grid.Column="2" Grid.Row="0"
-                              ContextMenu_Play="Library_Request_Play"
-                              ContextMenu_Add="Library_Request_Add"
                               ContextMenu_Edit="Library_Request_Edit"
-                              ContextMenu_EditArt="Library_Request_Edit_Art"/>
+                              ContextMenu_EditArt="Library_Request_Edit_Art"
+                              d:DataContext="{d:DesignInstance Type=library:MockLibraryViewModel, IsDesignTimeCreatable=True}"/>
     </Grid>
   </DockPanel>
 </Window>

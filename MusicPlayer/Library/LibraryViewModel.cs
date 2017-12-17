@@ -135,6 +135,12 @@ namespace MusicPlayer.Library
                     _isSelected = value;
                     OnPropertyChanged("IsSelected");
                 }
+
+                //Expand Parent
+                if (_isSelected && _parent != null && !_parent.IsExpanded)
+                {
+                    _parent.IsExpanded = true;
+                }
             }
         }
 
@@ -142,12 +148,12 @@ namespace MusicPlayer.Library
 
         #region NameContainsText
 
-        public bool NameContainsText(string text)
+        public virtual bool NameContainsText(string text)
         {
-            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(this.Name))
+            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(Name))
                 return false;
 
-            return this.Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
+            return Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
         }
 
         #endregion // NameContainsText

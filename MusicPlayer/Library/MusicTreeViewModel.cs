@@ -6,28 +6,23 @@ using System.Windows;
 using System.Windows.Input;
 using System.Threading.Tasks;
 using MusicPlayer.DataStructures;
+using System.ComponentModel;
 
 namespace MusicPlayer.Library
 {
-    public enum ViewMode
-    {
-        Classic = 0,
-        Simple,
-        Album,
-        MAX
-    }
-
-    public class MusicTreeViewModel
+    public class MusicTreeViewModel : INotifyPropertyChanged
     {
         #region Data
 
-        readonly ObservableCollection<ArtistViewModel> _classicArtistViewModels;
-        readonly ObservableCollection<ArtistViewModel> _simpleArtistViewModels;
-        readonly ObservableCollection<AlbumViewModel> _albumViewModels;
+        readonly ObservableCollection<LibraryViewModel> _classicArtistViewModels;
+        readonly ObservableCollection<LibraryViewModel> _simpleArtistViewModels;
+        readonly ObservableCollection<LibraryViewModel> _albumViewModels;
         readonly ICommand _searchCommand;
 
-        IEnumerator<ArtistViewModel> _matchingArtistEnumerator;
+        IEnumerator<LibraryViewModel> _matchingRecordEnumerator;
         string _searchText = String.Empty;
+
+        ILibraryRequestHandler requestHandler;
 
         #endregion // Data
 
@@ -35,24 +30,29 @@ namespace MusicPlayer.Library
 
         public MusicTreeViewModel()
         {
-            _classicArtistViewModels = new ObservableCollection<ArtistViewModel>();
-            _searchCommand = new SearchMusicTreeCommand(this);
+            _classicArtistViewModels = new ObservableCollection<LibraryViewModel>();
+            _simpleArtistViewModels = new ObservableCollection<LibraryViewModel>();
+            _albumViewModels = new ObservableCollection<LibraryViewModel>();
+
+            _searchCommand = new SearchMusicTreeCommand(null);
         }
 
-        public MusicTreeViewModel(ILibraryRequestHandler dataHandler)
+        public MusicTreeViewModel(ILibraryRequestHandler requestHandler)
         {
-            _classicArtistViewModels = new ObservableCollection<ArtistViewModel>(
-                (from artist in dataHandler.GenerateArtistList()
+            this.requestHandler = requestHandler;
+
+            _classicArtistViewModels = new ObservableCollection<LibraryViewModel>(
+                (from artist in requestHandler.GenerateArtistList()
                  select new ArtistViewModel(artist, ViewMode.Classic))
                      .ToList());
 
-            _simpleArtistViewModels = new ObservableCollection<ArtistViewModel>(
-                (from artist in dataHandler.GenerateArtistList()
+            _simpleArtistViewModels = new ObservableCollection<LibraryViewModel>(
+                (from artist in requestHandler.GenerateArtistList()
                  select new ArtistViewModel(artist, ViewMode.Simple))
                      .ToList());
 
-            _albumViewModels = new ObservableCollection<AlbumViewModel>(
-                (from album in dataHandler.GenerateAlbumList()
+            _albumViewModels = new ObservableCollection<LibraryViewModel>(
+                (from album in requestHandler.GenerateAlbumList()
                  select new AlbumViewModel(album, null))
                      .ToList());
 
@@ -69,17 +69,17 @@ namespace MusicPlayer.Library
         /// Returns a read-only collection containing the first person 
         /// in the family tree, to which the TreeView can bind.
         /// </summary>
-        public ObservableCollection<ArtistViewModel> ClassicArtistViewModels
+        public ObservableCollection<LibraryViewModel> ClassicArtistViewModels
         {
             get { return _classicArtistViewModels; }
         }
 
-        public ObservableCollection<AlbumViewModel> AlbumViewModels
+        public ObservableCollection<LibraryViewModel> AlbumViewModels
         {
             get { return _albumViewModels; }
         }
 
-        public ObservableCollection<ArtistViewModel> SimpleViewModels
+        public ObservableCollection<LibraryViewModel> SimpleViewModels
         {
             get { return _simpleArtistViewModels; }
         }
@@ -87,6 +87,66 @@ namespace MusicPlayer.Library
         #endregion // ArtistViewModels
 
         #region SearchCommand
+
+        private SearchChoices _searchChoice = SearchChoices.All;
+        public SearchChoices SearchChoice
+        {
+            get
+            {
+                return _searchChoice;
+            }
+            set
+            {
+                if (_searchChoice != value)
+                {
+                    _searchChoice = value;
+                    //Clear the ongoing search
+                    _matchingRecordEnumerator = null;
+
+                    OnPropertyChanged("SearchChoice");
+                }
+            }
+        }
+
+        private ViewMode _currentViewMode = ViewMode.Classic;
+        public ViewMode CurrentViewMode
+        {
+            get { return _currentViewMode; }
+            set
+            {
+                if (_currentViewMode != value)
+                {
+                    _currentViewMode = value;
+
+                    //Clear the ongoing search
+                    _matchingRecordEnumerator = null;
+
+                    switch (_currentViewMode)
+                    {
+                        case ViewMode.Classic:
+                            //Do nothing
+                            break;
+                        case ViewMode.Simple:
+                            //Album search is invalid
+                            if (SearchChoice == SearchChoices.Album)
+                            {
+                                SearchChoice = SearchChoices.All;
+                            }
+                            break;
+                        case ViewMode.Album:
+                            //Artist search is invalid
+                            if (SearchChoice == SearchChoices.Artist)
+                            {
+                                SearchChoice = SearchChoices.All;
+                            }
+                            break;
+                        case ViewMode.MAX:
+                        default:
+                            throw new Exception("Unexpected ViewMode: " + _currentViewMode);
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Returns the command used to execute a search in the family tree.
@@ -112,10 +172,8 @@ namespace MusicPlayer.Library
 
             event EventHandler ICommand.CanExecuteChanged
             {
-                // I intentionally left these empty because
-                // this command never raises the event, and
-                // not using the WeakEvent pattern here can
-                // cause memory leaks.  WeakEvent pattern is
+                // I intentionally left these empty because this command never raises the event, and
+                // not using the WeakEvent pattern here can cause memory leaks.  WeakEvent pattern is
                 // not simple to implement, so why bother.
                 add { }
                 remove { }
@@ -139,12 +197,13 @@ namespace MusicPlayer.Library
             get { return _searchText; }
             set
             {
-                if (value == _searchText)
-                    return;
+                if (_searchText != value)
+                {
+                    _searchText = value;
 
-                _searchText = value;
-
-                _matchingArtistEnumerator = null;
+                    //Clear ongoing search
+                    _matchingRecordEnumerator = null;
+                }
             }
         }
 
@@ -156,30 +215,30 @@ namespace MusicPlayer.Library
 
         void PerformSearch()
         {
-            if (_matchingArtistEnumerator == null || !_matchingArtistEnumerator.MoveNext())
+            if (_matchingRecordEnumerator == null || !_matchingRecordEnumerator.MoveNext())
             {
-                VerifyMatchingArtistEnumerator();
+                VerifyMatches();
             }
 
-            var artist = _matchingArtistEnumerator.Current;
+            LibraryViewModel model = _matchingRecordEnumerator.Current;
 
-            if (artist == null)
+            if (model == null)
             {
                 return;
             }
 
-            artist.IsSelected = true;
+            model.IsSelected = true;
         }
 
-        void VerifyMatchingArtistEnumerator()
+        void VerifyMatches()
         {
-            var matches = FindMatchingArtists(_searchText);
-            _matchingArtistEnumerator = matches.GetEnumerator();
+            var matches = FindMatches(_searchText);
+            _matchingRecordEnumerator = matches.GetEnumerator();
 
-            if (!_matchingArtistEnumerator.MoveNext())
+            if (!_matchingRecordEnumerator.MoveNext())
             {
                 MessageBox.Show(
-                    "No matching artists were found.",
+                    "No matching records were found.",
                     "Try Again",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information
@@ -187,43 +246,130 @@ namespace MusicPlayer.Library
             }
         }
 
-        IEnumerable<ArtistViewModel> FindMatchingArtists(string searchText)
+        ICollection<LibraryViewModel> ActiveModelCollection
         {
-            foreach(ArtistViewModel artist in _classicArtistViewModels)
+            get
             {
-                if (artist.NameContainsText(searchText))
+                switch (CurrentViewMode)
                 {
-                    yield return artist;
-                }
-            }
-        }
-        /*
-        IEnumerable<SongViewModel> FindMatchingSongs(string searchText)
-        {
-            foreach (ArtistViewModel artist in _artistViewModels)
-            {
-                foreach(SongViewModel song in FindMatchingSongs(searchText, artist))
-                {
-                    yield return song;
+                    case ViewMode.Classic:
+                        return ClassicArtistViewModels;
+                    case ViewMode.Simple:
+                        return SimpleViewModels;
+                    case ViewMode.Album:
+                        return AlbumViewModels;
+                    case ViewMode.MAX:
+                    default:
+                        throw new Exception("Unexpected ViewMode: " + CurrentViewMode);
                 }
             }
         }
 
-        IEnumerable<SongViewModel> FindMatchingSongs(string searchText, ArtistViewModel artist)
+        IEnumerable<LibraryViewModel> FindMatches(string searchText)
         {
-            foreach (AlbumViewModel album in artist.Albums)
+            foreach (LibraryViewModel match in FindMatches(searchText, ActiveModelCollection))
             {
-                foreach (SongViewModel song in album.Songs)
+                yield return match;
+            }
+        }
+
+        IEnumerable<LibraryViewModel> FindMatches(string searchText, ICollection<LibraryViewModel> models)
+        {
+            bool initialized = false;
+
+            bool searchTier = false;
+            bool searchChildren = false;
+
+            foreach (LibraryViewModel model in models)
+            {
+                if (!initialized)
                 {
-                    if (song.NameContainsText(searchText))
+                    initialized = true;
+                    searchTier = SearchTypeMatch(model);
+                    searchChildren = SearchChildren(model);
+                }
+
+                if (searchTier && model.NameContainsText(searchText))
+                {
+                    yield return model;
+                }
+
+                if (searchChildren)
+                {
+                    //Can't lazy-load children if we need to search through them
+                    if (model.HasDummyChild)
                     {
-                        yield return song;
+                        model.LoadChildren(requestHandler);
+                    }
+
+                    foreach (LibraryViewModel match in FindMatches(searchText, model.Children))
+                    {
+                        yield return match;
                     }
                 }
             }
         }
-        */
+
+        bool SearchTypeMatch(LibraryViewModel model)
+        {
+            if (SearchChoice == SearchChoices.All)
+            {
+                return true;
+            }
+
+            if (model is ArtistViewModel)
+            {
+                return SearchChoice == SearchChoices.Artist;
+            }
+
+            if (model is AlbumViewModel)
+            {
+                return SearchChoice == SearchChoices.Album;
+            }
+
+            if (model is SongViewModel)
+            {
+                return SearchChoice == SearchChoices.Song;
+            }
+
+            if (model is RecordingViewModel)
+            {
+                throw new Exception("Unexpected: RecordingViewModel.");
+            }
+
+            throw new Exception("Unsupported LibraryViewModel: " + model.GetType().ToString());
+        }
+
+        bool SearchChildren(LibraryViewModel model)
+        {
+            if (model is SongViewModel)
+            {
+                //Nothing requires searching past songs
+                return false;
+            }
+
+            if (SearchChoice == SearchChoices.All)
+            {
+                //Always search deeper if All was selected (and we're not at Song yet, handled above)
+                return true;
+            }
+
+            //Otherwise, any tier that matches is the final tier
+            return !SearchTypeMatch(model);
+        }
+
         #endregion // Search Logic
+
+        #region INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion // INotifyPropertyChanged
 
     }
 }

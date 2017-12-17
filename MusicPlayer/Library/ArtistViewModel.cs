@@ -21,11 +21,11 @@ namespace MusicPlayer.Library
 
         #region Constructors
 
-        public ArtistViewModel(ArtistDTO artist, ViewMode mode) : 
+        public ArtistViewModel(ArtistDTO artist, ViewMode mode, bool lazyLoadChildren = true) : 
             base(
                 data: artist,
                 parent: null,
-                lazyLoadChildren: true)
+                lazyLoadChildren: lazyLoadChildren)
         {
             this.mode = mode;
         }
