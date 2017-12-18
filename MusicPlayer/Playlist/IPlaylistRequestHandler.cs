@@ -11,6 +11,8 @@ namespace MusicPlayer.Playlist
     {
         void SavePlaylist(string title, ICollection<SongDTO> songs);
 
+        void DeletePlaylist(long playlistID);
+
         long FindPlaylist(string title);
 
         List<SongDTO> LoadPlaylist(long playlistID);

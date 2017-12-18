@@ -146,18 +146,21 @@
       <TabItem Header="Classic" FontSize="14">
         <TreeView ItemsSource="{Binding ClassicArtistViewModels}"
                   TreeViewItem.Expanded="TreeViewItem_Expanded"
-                  ItemContainerStyle="{StaticResource LibraryStyle}">
+                  ItemContainerStyle="{StaticResource LibraryStyle}"
+                  KeyDown="Tree_KeyDown">
         </TreeView>
       </TabItem>
       <TabItem Header="Simple"  FontSize="14">
         <TreeView ItemsSource="{Binding SimpleViewModels}" 
                   TreeViewItem.Expanded="TreeViewItem_Expanded"
-                  ItemContainerStyle="{StaticResource LibraryStyle}"/>
+                  ItemContainerStyle="{StaticResource LibraryStyle}"
+                  KeyDown="Tree_KeyDown"/>
       </TabItem>
       <TabItem Header="Album"  FontSize="14">
         <TreeView ItemsSource="{Binding AlbumViewModels}" 
                   TreeViewItem.Expanded="TreeViewItem_Expanded"
-                  ItemContainerStyle="{StaticResource LibraryStyle}"/>
+                  ItemContainerStyle="{StaticResource LibraryStyle}"
+                  KeyDown="Tree_KeyDown"/>
       </TabItem>
     </TabControl>
   </DockPanel>

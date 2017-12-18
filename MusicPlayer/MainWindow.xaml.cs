@@ -83,14 +83,24 @@ namespace MusicPlayer
         {
             e.Handled = true;
 
-            MessageBox.Show("Not Yet Implemented.");
+            Playlist.PlaylistWindow window = new Playlist.PlaylistWindow(false);
+
+            window.Show();
         }
 
         private void Menu_SavePlaylist(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
 
-            MessageBox.Show("Not Yet Implemented.");
+            if (Playlist.PlaylistManager.Instance.ItemCount == 0)
+            {
+                MessageBox.Show("Cannot save empty playlist.", "Empty Playlist");
+                return;
+            }
+
+            Playlist.PlaylistWindow window = new Playlist.PlaylistWindow(true);
+
+            window.Show();
         }
 
         private void Quitting()

@@ -43,5 +43,14 @@ namespace MusicPlayer.TinyPlayer
         {
             Topmost = true;
         }
+
+        private void Toolbar_LoadPlaylist(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            Playlist.PlaylistWindow window = new Playlist.PlaylistWindow(false);
+
+            window.Show();
+        }
     }
 }

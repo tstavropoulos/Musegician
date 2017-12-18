@@ -578,37 +578,6 @@ namespace MusicPlayer
             });
         }
 
-        List<ArtistDTO> ILibraryRequestHandler.GenerateArtistList()
-        {
-            return artistCommands.GeneratArtistList();
-        }
-
-        List<AlbumDTO> ILibraryRequestHandler.GenerateArtistAlbumList(long artistID, string artistName)
-        {
-            return albumCommands.GenerateArtistAlbumList(artistID, artistName);
-        }
-
-        List<SongDTO> ILibraryRequestHandler.GenerateAlbumSongList(long artistID, long albumID)
-        {
-
-            return songCommands.GenerateAlbumSongList(artistID, albumID);
-        }
-
-        List<RecordingDTO> ILibraryRequestHandler.GenerateSongRecordingList(long songID, long albumID)
-        {
-            return recordingCommands.GenerateSongRecordingList(songID, albumID);
-        }
-
-        List<AlbumDTO> ILibraryRequestHandler.GenerateAlbumList()
-        {
-            return albumCommands.GenerateAlbumList();
-        }
-
-        List<SongDTO> ILibraryRequestHandler.GenerateArtistSongList(long artistID, string artistName)
-        {
-            return songCommands.GenerateArtistSongList(artistID, artistName);
-        }
-
         private List<RecordingDTO> GetRecordingList(
             long songID,
             long exclusiveArtistID = -1,
@@ -618,190 +587,6 @@ namespace MusicPlayer
                 songID: songID,
                 exclusiveArtistID: exclusiveArtistID,
                 exclusiveRecordingID: exclusiveRecordingID);
-        }
-
-        List<SongDTO> IPlaylistTransferRequestHandler.GetSongDataFromRecordingID(
-            long recordingID)
-        {
-            RecordingData data = recordingCommands.GetData(
-                recordingID: recordingID);
-
-            if (!data.RecordFound())
-            {
-                return null;
-            }
-
-            return thisTransfer.GetSongData(
-                songID: data.songID,
-                exclusiveRecordingID: recordingID);
-        }
-
-        List<SongDTO> IPlaylistTransferRequestHandler.GetSongData(
-            long songID,
-            long exclusiveArtistID,
-            long exclusiveRecordingID)
-        {
-            List<SongDTO> songData = new List<SongDTO>();
-
-            dbConnection.Open();
-
-            string playlistName;
-
-            if (exclusiveRecordingID != -1)
-            {
-                playlistName = recordingCommands._GetPlaylistName(
-                    recordingID: exclusiveRecordingID);
-            }
-            else if (exclusiveArtistID != -1)
-            {
-                playlistName = artistCommands._GetPlaylistSongName(
-                    artistID: exclusiveArtistID,
-                    songID: songID);
-            }
-            else
-            {
-                playlistName = songCommands._GetPlaylistSongName(
-                    songID: songID);
-            }
-
-            songData.Add(new SongDTO(
-                songID: songID,
-                title: playlistName));
-
-            foreach (RecordingDTO data in GetRecordingList(
-                                            songID: songID,
-                                            exclusiveArtistID: exclusiveArtistID,
-                                            exclusiveRecordingID: exclusiveRecordingID))
-            {
-                songData[0].Children.Add(data);
-            }
-
-            dbConnection.Close();
-
-            return songData;
-        }
-
-        List<SongDTO> IPlaylistTransferRequestHandler.GetAlbumData(
-            long albumID,
-            long exclusiveArtistID,
-            bool deep)
-        {
-            List<SongDTO> albumData = new List<SongDTO>();
-
-            dbConnection.Open();
-
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.CommandText =
-                "SELECT " +
-                    "song.song_id AS song_id, " +
-                    "song.song_title AS song_title, " +
-                    "artist.artist_name AS artist_name " +
-                "FROM track " +
-                "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
-                "LEFT JOIN album ON track.album_id=album.album_id " +
-                "LEFT JOIN song ON recording.song_id=song.song_id " +
-                "LEFT JOIN artist ON recording.artist_id=artist.artist_id " +
-                "WHERE track.album_id=@albumID ORDER BY track.disc_number ASC, track.track_number ASC;";
-            readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
-
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    long songID = (long)reader["song_id"];
-                    string playlistSongName;
-
-                    if (exclusiveArtistID != -1)
-                    {
-                        playlistSongName = artistCommands._GetPlaylistSongName(
-                            artistID: exclusiveArtistID,
-                            songID: songID);
-                    }
-                    else
-                    {
-                        playlistSongName = songCommands._GetPlaylistSongName(
-                            songID: songID);
-                    }
-
-                    SongDTO newSong = new SongDTO(
-                        songID: songID,
-                        title: playlistSongName);
-
-                    foreach (RecordingDTO recording in GetRecordingList(
-                            songID: songID,
-                            exclusiveArtistID: exclusiveArtistID))
-                    {
-                        newSong.Children.Add(recording);
-                    }
-
-
-                    albumData.Add(newSong);
-                }
-            }
-
-            dbConnection.Close();
-
-            return albumData;
-        }
-
-        List<SongDTO> IPlaylistTransferRequestHandler.GetArtistData(
-            long artistID,
-            bool deep)
-        {
-            List<SongDTO> artistData = new List<SongDTO>();
-
-            dbConnection.Open();
-
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.CommandText =
-                "SELECT song_id " +
-                "FROM song " +
-                "WHERE song_id IN ( " +
-                    "SELECT song_id " +
-                    "FROM recording " +
-                    "WHERE artist_id=@artistID ) " +
-                "ORDER BY song_title ASC;";
-            readTracks.Parameters.Add(new SQLiteParameter("@artistID", artistID));
-
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    long songID = (long)reader["song_id"];
-                    string playlistName;
-
-                    if (deep)
-                    {
-                        playlistName = artistCommands._GetPlaylistSongName(
-                            artistID: artistID,
-                            songID: songID);
-                    }
-                    else
-                    {
-                        playlistName = songCommands._GetPlaylistSongName(
-                            songID: songID);
-                    }
-
-                    SongDTO newSong = new SongDTO(
-                        songID: songID,
-                        title: playlistName);
-
-                    foreach (RecordingDTO recording in GetRecordingList(
-                            songID: songID,
-                            exclusiveArtistID: deep ? artistID : -1))
-                    {
-                        newSong.Children.Add(recording);
-                    }
-
-                    artistData.Add(newSong);
-                }
-            }
-
-            dbConnection.Close();
-
-            return artistData;
         }
 
         public void SetAlbumArt(long albumID, string path)
@@ -834,60 +619,60 @@ namespace MusicPlayer
                 case LibraryContext.Artist:
                     {
                         readTracks.CommandText =
-                            "SELECT artist_name " +
+                            "SELECT name AS artist_name " +
                             "FROM artist " +
-                            "WHERE artist_id=@ID;";
+                            "WHERE id=@ID;";
                     }
                     break;
                 case LibraryContext.Album:
                     {
                         readTracks.CommandText =
-                            "SELECT album_title, album_year " +
+                            "SELECT title AS album_title, year " +
                             "FROM album " +
-                            "WHERE album_id=@ID;";
+                            "WHERE id=@ID;";
                     }
                     break;
                 case LibraryContext.Song:
                     {
                         readTracks.CommandText =
-                            "SELECT song_title " +
+                            "SELECT title AS song_title " +
                             "FROM song " +
-                            "WHERE song_id=@ID;";
+                            "WHERE id=@ID;";
                     }
                     break;
                 case LibraryContext.Track:
                     {
                         readTracks.CommandText =
                             "SELECT " +
-                                "song.song_title AS song_title, " +
-                                "artist.artist_name AS artist_name, " +
-                                "album.album_title AS album_title, " +
-                                "album.album_year AS album_year, " +
-                                "track.track_title AS track_title, " +
+                                "song.title AS song_title, " +
+                                "artist.name AS artist_name, " +
+                                "album.title AS album_title, " +
+                                "album.year AS year, " +
+                                "track.title AS track_title, " +
                                 "track.track_number AS track_number, " +
                                 "track.disc_number AS disc_number," +
                                 "recording.filename AS filename, " +
                                 "recording.live AS live " +
                             "FROM track " +
-                            "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
-                            "LEFT JOIN song ON recording.song_id=song.song_id " +
-                            "LEFT JOIN artist ON recording.artist_id=artist.artist_id " +
-                            "LEFT JOIN album ON track.album_id=album.album_id " +
-                            "WHERE track.track_id=@ID;";
+                            "LEFT JOIN recording ON track.recording_id=recording.id " +
+                            "LEFT JOIN song ON recording.song_id=song.id " +
+                            "LEFT JOIN artist ON recording.artist_id=artist.id " +
+                            "LEFT JOIN album ON track.album_id=album.id " +
+                            "WHERE track.id=@ID;";
                     }
                     break;
                 case LibraryContext.Recording:
                     {
                         readTracks.CommandText =
                             "SELECT " +
-                                "song.song_title AS song_title, " +
-                                "artist.artist_name AS artist_name, " +
+                                "song.title AS song_title, " +
+                                "artist.name AS artist_name, " +
                                 "recording.filename AS filename, " +
                                 "recording.live AS live " +
                             "FROM recording " +
-                            "LEFT JOIN song ON recording.song_id=song.song_id " +
-                            "LEFT JOIN artist ON recording.artist_id=artist.artist_id " +
-                            "WHERE recording.recording_id=@ID;";
+                            "LEFT JOIN song ON recording.song_id=song.id " +
+                            "LEFT JOIN artist ON recording.artist_id=artist.id " +
+                            "WHERE recording.id=@ID;";
                     }
                     break;
                 case LibraryContext.MAX:
@@ -969,8 +754,8 @@ namespace MusicPlayer
 
                         tagList.Add(new TagDataLong
                         {
-                            _currentValue = (long)reader["album_year"],
-                            _newValue = (long)reader["album_year"],
+                            _currentValue = (long)reader["year"],
+                            _newValue = (long)reader["year"],
                             recordType = MusicRecord.AlbumYear,
                             tagType = ID3TagType.Year
                         });
@@ -1022,7 +807,7 @@ namespace MusicPlayer
                     readTracks.CommandText =
                         "SELECT recording.filename AS filename " +
                         "FROM track " +
-                        "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
+                        "LEFT JOIN recording ON track.recording_id=recording.id " +
                         "WHERE track.album_id=@ID;";
                     break;
                 case LibraryContext.Song:
@@ -1035,14 +820,14 @@ namespace MusicPlayer
                     readTracks.CommandText =
                         "SELECT recording.filename AS filename " +
                         "FROM track " +
-                        "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
-                        "WHERE track.track_id=@ID;";
+                        "LEFT JOIN recording ON track.recording_id=recording.id " +
+                        "WHERE track.id=@ID;";
                     break;
                 case LibraryContext.Recording:
                     readTracks.CommandText =
                         "SELECT filename " +
                         "FROM recording " +
-                        "WHERE recording.recording_id=@ID;";
+                        "WHERE recording.id=@ID;";
                     break;
                 case LibraryContext.MAX:
                 default:
@@ -1339,6 +1124,73 @@ namespace MusicPlayer
             }
         }
 
+        #region ILibraryRequestHandler
+
+        List<ArtistDTO> ILibraryRequestHandler.GenerateArtistList()
+        {
+            return artistCommands.GeneratArtistList();
+        }
+
+        List<AlbumDTO> ILibraryRequestHandler.GenerateArtistAlbumList(long artistID, string artistName)
+        {
+            return albumCommands.GenerateArtistAlbumList(artistID, artistName);
+        }
+
+        List<SongDTO> ILibraryRequestHandler.GenerateAlbumSongList(long artistID, long albumID)
+        {
+            return songCommands.GenerateAlbumSongList(artistID, albumID);
+        }
+
+        List<RecordingDTO> ILibraryRequestHandler.GenerateSongRecordingList(long songID, long albumID)
+        {
+            return recordingCommands.GenerateSongRecordingList(songID, albumID);
+        }
+
+        List<AlbumDTO> ILibraryRequestHandler.GenerateAlbumList()
+        {
+            return albumCommands.GenerateAlbumList();
+        }
+
+        List<SongDTO> ILibraryRequestHandler.GenerateArtistSongList(long artistID, string artistName)
+        {
+            return songCommands.GenerateArtistSongList(artistID, artistName);
+        }
+
+        void ILibraryRequestHandler.UpdateWeight(LibraryContext context, long id, double weight)
+        {
+            switch (context)
+            {
+                case LibraryContext.Artist:
+                    artistCommands.UpdateWeight(
+                        artistID: id,
+                        weight: weight);
+                    break;
+                case LibraryContext.Album:
+                    albumCommands.UpdateWeight(
+                        albumID: id,
+                        weight: weight);
+                    break;
+                case LibraryContext.Song:
+                    songCommands.UpdateWeight(
+                        songID: id,
+                        weight: weight);
+                    break;
+                case LibraryContext.Track:
+                    trackCommands.UpdateWeight(
+                        trackID: id,
+                        weight: weight);
+                    break;
+                case LibraryContext.Recording:
+                case LibraryContext.MAX:
+                default:
+                    throw new Exception("Unexpected LibraryContext: " + context);
+            }
+        }
+
+        #endregion // ILibraryRequestHandler
+
+        #region IPlaylistRequestHandler
+
         void IPlaylistRequestHandler.SavePlaylist(string title, ICollection<SongDTO> songs)
         {
             playlistCommands.SavePlaylist(
@@ -1360,5 +1212,221 @@ namespace MusicPlayer
         {
             return playlistCommands.FindPlaylist(title);
         }
+
+        void IPlaylistRequestHandler.DeletePlaylist(long playlistID)
+        {
+            playlistCommands.DeletePlaylist(
+                playlistID: playlistID);
+        }
+
+        #endregion // IPlaylistRequestHandler
+
+        #region IPlaylistTransferRequestHandler
+
+        List<SongDTO> IPlaylistTransferRequestHandler.GetSongDataFromRecordingID(
+            long recordingID)
+        {
+            RecordingData data = recordingCommands.GetData(
+                recordingID: recordingID);
+
+            if (!data.RecordFound())
+            {
+                return null;
+            }
+
+            return thisTransfer.GetSongData(
+                songID: data.songID,
+                exclusiveRecordingID: recordingID);
+        }
+
+        List<SongDTO> IPlaylistTransferRequestHandler.GetSongData(
+            long songID,
+            long exclusiveArtistID,
+            long exclusiveRecordingID)
+        {
+            List<SongDTO> songData = new List<SongDTO>();
+
+            dbConnection.Open();
+
+            string playlistName;
+
+            if (exclusiveRecordingID != -1)
+            {
+                playlistName = recordingCommands._GetPlaylistName(
+                    recordingID: exclusiveRecordingID);
+            }
+            else if (exclusiveArtistID != -1)
+            {
+                playlistName = artistCommands._GetPlaylistSongName(
+                    artistID: exclusiveArtistID,
+                    songID: songID);
+            }
+            else
+            {
+                playlistName = songCommands._GetPlaylistSongName(
+                    songID: songID);
+            }
+
+            songData.Add(new SongDTO(
+                songID: songID,
+                title: playlistName));
+
+            foreach (RecordingDTO data in GetRecordingList(
+                                            songID: songID,
+                                            exclusiveArtistID: exclusiveArtistID,
+                                            exclusiveRecordingID: exclusiveRecordingID))
+            {
+                songData[0].Children.Add(data);
+            }
+
+            dbConnection.Close();
+
+            return songData;
+        }
+
+        List<SongDTO> IPlaylistTransferRequestHandler.GetAlbumData(
+            long albumID,
+            long exclusiveArtistID,
+            bool deep)
+        {
+            List<SongDTO> albumData = new List<SongDTO>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.CommandText =
+                "SELECT " +
+                    "song.id AS song_id, " +
+                    "song.title AS song_title, " +
+                    "artist.name AS artist_name " +
+                "FROM track " +
+                "LEFT JOIN recording ON track.recording_id=recording.id " +
+                "LEFT JOIN album ON track.album_id=album.id " +
+                "LEFT JOIN song ON recording.song_id=song.id " +
+                "LEFT JOIN artist ON recording.artist_id=artist.id " +
+                "WHERE track.album_id=@albumID ORDER BY track.disc_number ASC, track.track_number ASC;";
+            readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    long songID = (long)reader["song_id"];
+                    string playlistSongName;
+
+                    if (exclusiveArtistID != -1)
+                    {
+                        playlistSongName = artistCommands._GetPlaylistSongName(
+                            artistID: exclusiveArtistID,
+                            songID: songID);
+                    }
+                    else
+                    {
+                        playlistSongName = songCommands._GetPlaylistSongName(
+                            songID: songID);
+                    }
+
+                    SongDTO newSong = new SongDTO(
+                        songID: songID,
+                        title: playlistSongName);
+
+                    foreach (RecordingDTO recording in GetRecordingList(
+                            songID: songID,
+                            exclusiveArtistID: exclusiveArtistID))
+                    {
+                        newSong.Children.Add(recording);
+                    }
+
+
+                    albumData.Add(newSong);
+                }
+            }
+
+            dbConnection.Close();
+
+            return albumData;
+        }
+
+        List<SongDTO> IPlaylistTransferRequestHandler.GetArtistData(
+            long artistID,
+            bool deep)
+        {
+            List<SongDTO> artistData = new List<SongDTO>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.CommandText =
+                "SELECT id " +
+                "FROM song " +
+                "WHERE id IN ( " +
+                    "SELECT song_id " +
+                    "FROM recording " +
+                    "WHERE artist_id=@artistID ) " +
+                "ORDER BY title ASC;";
+            readTracks.Parameters.Add(new SQLiteParameter("@artistID", artistID));
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    long songID = (long)reader["id"];
+                    string playlistName;
+
+                    if (deep)
+                    {
+                        playlistName = artistCommands._GetPlaylistSongName(
+                            artistID: artistID,
+                            songID: songID);
+                    }
+                    else
+                    {
+                        playlistName = songCommands._GetPlaylistSongName(
+                            songID: songID);
+                    }
+
+                    SongDTO newSong = new SongDTO(
+                        songID: songID,
+                        title: playlistName);
+
+                    foreach (RecordingDTO recording in GetRecordingList(
+                            songID: songID,
+                            exclusiveArtistID: deep ? artistID : -1))
+                    {
+                        newSong.Children.Add(recording);
+                    }
+
+                    artistData.Add(newSong);
+                }
+            }
+
+            dbConnection.Close();
+
+            return artistData;
+        }
+
+        string IPlaylistTransferRequestHandler.GetDefaultPlaylistName(LibraryContext context, long id)
+        {
+            switch (context)
+            {
+                case LibraryContext.Artist:
+                    return artistCommands.GetArtistName(id);
+                case LibraryContext.Album:
+                    return albumCommands.GetAlbumTitle(id);
+                case LibraryContext.Song:
+                case LibraryContext.Track:
+                case LibraryContext.Recording:
+                    //Blank default name for Single songs, tracks, and recordings
+                    return "";
+                case LibraryContext.MAX:
+                default:
+                    throw new Exception("Unexpected LibraryContext: " + context);
+            }
+        }
+
+
+        #endregion // IPlaylistTransferRequestHandler
     }
 }

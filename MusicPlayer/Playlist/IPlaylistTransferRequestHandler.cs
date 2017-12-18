@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MusicPlayer.DataStructures;
+using LibraryContext = MusicPlayer.Library.LibraryContext;
 
 namespace MusicPlayer.Playlist
 {
@@ -25,5 +26,9 @@ namespace MusicPlayer.Playlist
 
         List<SongDTO> GetSongDataFromRecordingID(
             long recordingID);
+
+        string GetDefaultPlaylistName(
+            LibraryContext context,
+            long id);
     }
 }

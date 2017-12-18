@@ -8,68 +8,69 @@
         mc:Ignorable="d"
         Title="Artist Editor" Height="400" Width="800"
         Style="{StaticResource {x:Type Window}}">
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
-    </Window.Resources>
-    <DockPanel>
-        <Label HorizontalAlignment="Center" DockPanel.Dock="Top">Music Tag Editor</Label>
-        <Grid DockPanel.Dock="Bottom" Margin="5">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Content="Apply" Click="Click_Apply"/>
-            <Button Grid.Column="2" Content="Reset" Click="Click_Reset"/>
-            <Button Grid.Column="4" Content="Cancel" Click="Click_Cancel"/>
-        </Grid>
-        <ListView Margin="10" Name="tagView" HorizontalContentAlignment="Stretch" Style="{StaticResource ListViewWithGridViewStyle}" >
-            <ListView.Resources>
-                <DataTemplate x:Key="BoolEditorTemplate" DataType="{x:Type data:TagDataBool}">
-                    <CheckBox IsChecked="{Binding NewValue, Mode=TwoWay}"
-                              VerticalAlignment="Center"/>
-                </DataTemplate>
-                <DataTemplate x:Key="StringGridCellTemplate" DataType="{x:Type data:TagDataString}">
-                    <TextBox Text="{Binding NewValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Center" />
-                </DataTemplate>
-                <DataTemplate x:Key="LongGridCellTemplate" DataType="{x:Type data:TagDataLong}">
-                    <TextBox Text="{Binding NewValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             PreviewTextInput="NumberValidationTextBox"
-                             HorizontalAlignment="Stretch"
-                             VerticalAlignment="Center"/>
-                </DataTemplate>
-                <DataTemplate x:Key="ViewableGridCellTemplate" DataType="{x:Type data:TagViewable}">
-                    <Grid></Grid>
-                </DataTemplate>
-                <DataTemplate x:Key="ID3TagPush" DataType="{x:Type data:TagData}">
-                    <CheckBox IsChecked="{Binding Push, Mode=TwoWay}"
-                              VerticalAlignment="Center"
-                              Visibility="{Binding Pushable, Converter={StaticResource BoolToVisConverter}}"/>
-                </DataTemplate>
-                <DataTemplate x:Key="ApplyChangesTemplate" DataType="{x:Type data:TagData}">
-                    <CheckBox IsChecked="{Binding ApplyChanges, Mode=TwoWay}"
-                              VerticalAlignment="Center"
-                              Visibility="{Binding TagModified, Converter={StaticResource BoolToVisConverter}}"/>
-                </DataTemplate>
-                <local:TagTemplateSelector x:Key="TagEditorSelector"
-                                           BoolTemplate="{StaticResource BoolEditorTemplate}"
-                                           StringTemplate="{StaticResource StringGridCellTemplate}"
-                                           LongTemplate="{StaticResource LongGridCellTemplate}"
-                                           ViewableTemplate="{StaticResource ViewableGridCellTemplate}"/>
-            </ListView.Resources>
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Width="100" Header="Tag Name" DisplayMemberBinding="{Binding TagName}"/>
-                    <GridViewColumn Width="150" Header="Current Value" DisplayMemberBinding="{Binding CurrentValue}"/>
-                    <GridViewColumn Width="80" Header="Update ID3" CellTemplate="{StaticResource ID3TagPush}"/>
-                    <GridViewColumn Width="200" Header="New Value" CellTemplateSelector="{StaticResource TagEditorSelector}"/>
-                    <GridViewColumn Width="80" Header="Apply Changes" CellTemplate="{StaticResource ApplyChangesTemplate}"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
-    </DockPanel>
+  <Window.Resources>
+    <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+  </Window.Resources>
+  <DockPanel>
+    <Label HorizontalAlignment="Center" DockPanel.Dock="Top">Music Tag Editor</Label>
+    <Grid DockPanel.Dock="Bottom" Margin="5">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition />
+        <ColumnDefinition />
+        <ColumnDefinition />
+        <ColumnDefinition />
+      </Grid.ColumnDefinitions>
+      <Button Grid.Column="0" Content="Apply" Click="Click_Apply"/>
+      <Button Grid.Column="2" Content="Reset" Click="Click_Reset"/>
+      <Button Grid.Column="4" Content="Cancel" Click="Click_Cancel"/>
+    </Grid>
+    <ListView Name="tagView" HorizontalContentAlignment="Stretch" Margin="10"
+              Style="{StaticResource ListViewWithGridViewStyle}">
+      <ListView.Resources>
+        <DataTemplate x:Key="BoolEditorTemplate" DataType="{x:Type data:TagDataBool}">
+          <CheckBox IsChecked="{Binding NewValue, Mode=TwoWay}"
+                    VerticalAlignment="Center"/>
+        </DataTemplate>
+        <DataTemplate x:Key="StringGridCellTemplate" DataType="{x:Type data:TagDataString}">
+          <TextBox Text="{Binding NewValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Center" />
+        </DataTemplate>
+        <DataTemplate x:Key="LongGridCellTemplate" DataType="{x:Type data:TagDataLong}">
+          <TextBox Text="{Binding NewValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                   PreviewTextInput="NumberValidationTextBox"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Center"/>
+        </DataTemplate>
+        <DataTemplate x:Key="ViewableGridCellTemplate" DataType="{x:Type data:TagViewable}">
+          <Grid></Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="ID3TagPush" DataType="{x:Type data:TagData}">
+          <CheckBox IsChecked="{Binding Push, Mode=TwoWay}"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding Pushable, Converter={StaticResource BoolToVisConverter}}"/>
+        </DataTemplate>
+        <DataTemplate x:Key="ApplyChangesTemplate" DataType="{x:Type data:TagData}">
+          <CheckBox IsChecked="{Binding ApplyChanges, Mode=TwoWay}"
+                    VerticalAlignment="Center"
+                    Visibility="{Binding TagModified, Converter={StaticResource BoolToVisConverter}}"/>
+        </DataTemplate>
+        <local:TagTemplateSelector x:Key="TagEditorSelector"
+                                   BoolTemplate="{StaticResource BoolEditorTemplate}"
+                                   StringTemplate="{StaticResource StringGridCellTemplate}"
+                                   LongTemplate="{StaticResource LongGridCellTemplate}"
+                                   ViewableTemplate="{StaticResource ViewableGridCellTemplate}"/>
+      </ListView.Resources>
+      <ListView.View>
+        <GridView>
+          <GridViewColumn Width="100" Header="Tag Name" DisplayMemberBinding="{Binding TagName}"/>
+          <GridViewColumn Width="150" Header="Current Value" DisplayMemberBinding="{Binding CurrentValue}"/>
+          <GridViewColumn Width="80" Header="Update ID3" CellTemplate="{StaticResource ID3TagPush}"/>
+          <GridViewColumn Width="200" Header="New Value" CellTemplateSelector="{StaticResource TagEditorSelector}"/>
+          <GridViewColumn Width="80" Header="Apply Changes" CellTemplate="{StaticResource ApplyChangesTemplate}"/>
+        </GridView>
+      </ListView.View>
+    </ListView>
+  </DockPanel>
 </Window>

@@ -80,6 +80,20 @@ namespace MusicPlayer.Playlist
             }
         }
 
+        private string _playlistName = "";
+        public string PlaylistName
+        {
+            get { return _playlistName; }
+            set
+            {
+                if (_playlistName != value)
+                {
+                    _playlistName = value;
+                    OnPropertyChanged("PlaylistName");
+                }
+            }
+        }
+
         private static bool _shuffle = true;
         public bool Shuffle
         {
@@ -96,7 +110,7 @@ namespace MusicPlayer.Playlist
                         PrepareShuffleList();
                     }
 
-                    Instance.OnPropertyChanged("Shuffle");
+                    OnPropertyChanged("Shuffle");
                 }
             }
         }
@@ -110,7 +124,7 @@ namespace MusicPlayer.Playlist
                 if (_repeat != value)
                 {
                     _repeat = value;
-                    Instance.OnPropertyChanged("Repeat");
+                    OnPropertyChanged("Repeat");
                 }
             }
         }
@@ -370,6 +384,8 @@ namespace MusicPlayer.Playlist
         public void ClearPlaylist()
         {
             Rebuild(new List<SongDTO>());
+
+            PlaylistName = "";
         }
 
         public void LoadPlaylist(long playlistID)
@@ -401,6 +417,17 @@ namespace MusicPlayer.Playlist
             {
                 requestHandler.SavePlaylist(title, playlist);
             }
+        }
+
+        public void DeletePlaylist(long playlistID)
+        {
+            requestHandler.DeletePlaylist(
+                playlistID: playlistID);
+        }
+
+        public void AppendPlaylist(long playlistID)
+        {
+            AddBack(requestHandler.LoadPlaylist(playlistID));
         }
 
         #region INotifyPropertyChanged

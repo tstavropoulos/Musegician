@@ -99,7 +99,7 @@ namespace MusicPlayer.Library
         #endregion // Construction
 
         #region Context Menu Events
-        
+
         public delegate void ContextMenuIDRequest(LibraryContext context, long id);
         public delegate void ContextMenuMultiIDRequest(IList<ValueTuple<LibraryContext, long>> items, bool deep);
 
@@ -149,6 +149,11 @@ namespace MusicPlayer.Library
                     Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
                     return;
             }
+
+            Playlist.PlaylistManager.Instance.PlaylistName =
+                playlistTransferRequestHandler.GetDefaultPlaylistName(
+                    context: context,
+                    id: id);
 
             Playlist.PlaylistManager.Instance.Rebuild(songs);
             Player.MusicManager.Instance.Next();
@@ -402,6 +407,119 @@ namespace MusicPlayer.Library
 
                 //Disable albumsearch for Simple view
                 radioSearchAlbum.IsEnabled = (_musicTree.CurrentViewMode != ViewMode.Simple);
+            }
+        }
+
+        private void Tree_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (sender is TreeView tree)
+            {
+                e.Handled = true;
+
+                KeyboardActions action = TranslateKey(e.Key);
+
+                if (action == KeyboardActions.None)
+                {
+                    //Do nothing
+                    return;
+                }
+
+                (LibraryContext context, long id, double weight) = ExtractContextAndID(tree.SelectedItem);
+
+                if (id ==-1)
+                {
+                    throw new Exception("Unexpected id = -1!");
+                }
+
+                switch (action)
+                {
+                    case KeyboardActions.WeightUp:
+                        weight = Math.Min(weight + 0.05, 1.0);
+                        break;
+                    case KeyboardActions.WeightDown:
+                        weight = Math.Max(weight - 0.05, 0.0);
+                        break;
+                    case KeyboardActions.Play:
+                        //Play thing
+
+                        return;
+                    case KeyboardActions.None:
+                    case KeyboardActions.MAX:
+                    default:
+                        throw new Exception("Unexpected KeyboardAction: " + action);
+                }
+
+                requestHandler.UpdateWeight(context, id, weight);
+                UpdateWeight(tree.SelectedItem as LibraryViewModel, weight);
+            }
+        }
+
+        private (LibraryContext, long, double) ExtractContextAndID(object selectedItem)
+        {
+            LibraryContext context = LibraryContext.MAX;
+            long id = -1;
+            double weight = float.NaN;
+
+            if(selectedItem is LibraryViewModel model)
+            {
+                id = model.ID;
+                weight = model.Weight; 
+            }
+
+            if (selectedItem is ArtistViewModel artist)
+            {
+                context = LibraryContext.Artist;
+            }
+            else if (selectedItem is AlbumViewModel album)
+            {
+                context = LibraryContext.Album;
+            }
+            else if (selectedItem is SongViewModel song)
+            {
+                context = LibraryContext.Song;
+            }
+            else if (selectedItem is RecordingViewModel recording)
+            {
+                context = LibraryContext.Track;
+                id = (recording.Parent as SongViewModel).ContextualTrackID;
+            }
+
+            return (context, id, weight);
+        }
+
+        private void UpdateWeight(LibraryViewModel selectedItem, double weight)
+        {
+            if (selectedItem == null)
+            {
+                throw new Exception("Unexpected selectedItem is null");
+            }
+
+            selectedItem.Weight = weight;
+        }
+
+        private enum KeyboardActions
+        {
+            None = 0,
+            WeightUp,
+            WeightDown,
+            Play,
+            MAX
+        }
+
+        private KeyboardActions TranslateKey(Key key)
+        {
+            switch (key)
+            {
+                case Key.Return:
+                    return KeyboardActions.Play;
+                case Key.Add:
+                case Key.OemPlus:
+                    return KeyboardActions.WeightUp;
+                case Key.Subtract:
+                case Key.OemMinus:
+                    return KeyboardActions.WeightDown;
+                default:
+                    return KeyboardActions.None;
             }
         }
 

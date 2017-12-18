@@ -42,6 +42,8 @@ namespace MusicPlayer.Core.DBCommands
             _lastIDAssigned = 0;
         }
 
+        #region High Level Commands
+
         /// <summary>
         /// Renaming And/Or Consolidating Songs
         /// </summary>
@@ -111,12 +113,14 @@ namespace MusicPlayer.Core.DBCommands
                 "SELECT " +
                     "recording.artist_id AS artist_id, " +
                     "recording.song_id AS song_id, " +
-                    "track.track_id AS track_id, " +
-                    "track.track_title AS track_title, " +
-                    "track.track_number AS track_number " +
+                    "track.id AS track_id, " +
+                    "track.title AS track_title, " +
+                    "track.track_number AS track_number, " +
+                    "song_weight.weight AS weight " +
                 "FROM track " +
-                "LEFT JOIN album ON track.album_id=album.album_id " +
-                "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
+                "LEFT JOIN album ON track.album_id=album.id " +
+                "LEFT JOIN recording ON track.recording_id=recording.id " +
+                "LEFT JOIN song_weight ON recording.song_id=song_weight.song_id " +
                 "WHERE track.album_id=@albumID ORDER BY track.disc_number ASC, track.track_number ASC;";
             readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
 
@@ -124,12 +128,22 @@ namespace MusicPlayer.Core.DBCommands
             {
                 while (reader.Read())
                 {
+                    double weight = double.NaN;
+
+                    if (!(reader["weight"] is DBNull))
+                    {
+                        weight = (double)reader["weight"];
+                    }
+
                     songList.Add(new SongDTO(
                         songID: (long)reader["song_id"],
                         titlePrefix: ((long)reader["track_number"]).ToString("D2") + ". ",
                         title: (string)reader["track_title"],
                         trackID: (long)reader["track_id"],
-                        isHome: (artistID == (long)reader["artist_id"] || artistID == -1)));
+                        isHome: (artistID == (long)reader["artist_id"] || artistID == -1))
+                    {
+                        Weight = weight
+                    });
                 }
             }
 
@@ -149,27 +163,24 @@ namespace MusicPlayer.Core.DBCommands
             readSongs.CommandType = System.Data.CommandType.Text;
             readSongs.Parameters.Add(new SQLiteParameter("@artistID", artistID));
             readSongs.CommandText =
-                "SELECT " +
-                    "song_title AS song_title, " +
-                    "song_id AS song_id " +
+                "SELECT id, title " +
                 "FROM song " +
-                "WHERE song_id IN ( " +
+                "WHERE id IN ( " +
                     "SELECT song_id " +
                     "FROM recording " +
                     "WHERE artist_id=@artistID ) " +
-                "ORDER BY song_title ASC;";
-
+                "ORDER BY title ASC;";
 
             using (SQLiteDataReader reader = readSongs.ExecuteReader())
             {
                 while (reader.Read())
                 {
                     songList.Add(new SongDTO(
-                        songID: (long)reader["song_id"],
+                        songID: (long)reader["id"],
                         title: string.Format(
                             "{0} - {1}",
                             artistName,
-                            (string)reader["song_title"])));
+                            (string)reader["title"])));
                 }
             }
 
@@ -178,6 +189,25 @@ namespace MusicPlayer.Core.DBCommands
             return songList;
         }
 
+        public void UpdateWeight(long songID, double weight)
+        {
+            dbConnection.Open();
+
+            SQLiteCommand updateWeight = dbConnection.CreateCommand();
+            updateWeight.CommandType = System.Data.CommandType.Text;
+            updateWeight.CommandText =
+                "INSERT OR REPLACE INTO song_weight " +
+                "(song_id, weight) VALUES " +
+                "(@songID, @weight);";
+            updateWeight.Parameters.Add(new SQLiteParameter("@songID", songID));
+            updateWeight.Parameters.Add(new SQLiteParameter("@weight", weight));
+
+            updateWeight.ExecuteNonQuery();
+
+            dbConnection.Close();
+        }
+
+        #endregion // High Level Commands
 
         #region Search Commands
 
@@ -190,10 +220,10 @@ namespace MusicPlayer.Core.DBCommands
             findSongID_ByTitle_SameArtist.Parameters.Add(new SQLiteParameter("@newSongTitle", songTitle));
             findSongID_ByTitle_SameArtist.Parameters.Add(new SQLiteParameter("@oldSongID", oldSongID));
             findSongID_ByTitle_SameArtist.CommandText =
-                "SELECT song.song_id AS song_id " +
+                "SELECT id " +
                 "FROM song " +
-                "WHERE song_title=@newSongTitle COLLATE NOCASE AND " +
-                    "song_id IN ( " +
+                "WHERE title=@newSongTitle COLLATE NOCASE AND " +
+                    "id IN ( " +
                         "SELECT song_id " +
                         "FROM recording " +
                         "WHERE artist_id IN ( " +
@@ -209,7 +239,7 @@ namespace MusicPlayer.Core.DBCommands
             {
                 if (reader.Read())
                 {
-                    newSongID = (long)reader["song_id"];
+                    newSongID = (long)reader["id"];
                 }
             }
 
@@ -226,7 +256,7 @@ namespace MusicPlayer.Core.DBCommands
             findSongID_ByTitle_SameArtist.CommandText =
                 "SELECT artist_id " +
                 "FROM song " +
-                "WHERE song_id=@songID);";
+                "WHERE id=@songID);";
 
             using (SQLiteDataReader reader = findSongID_ByTitle_SameArtist.ExecuteReader())
             {
@@ -249,12 +279,12 @@ namespace MusicPlayer.Core.DBCommands
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
                 "SELECT " +
-                    "song.song_title AS song_title, " +
-                    "artist.artist_name AS artist_name, " +
+                    "song.title AS title, " +
+                    "artist.name AS name, " +
                     "recording.artist_id AS artist_id " +
                 "FROM recording " +
-                "LEFT JOIN song ON recording.song_id=song.song_id " +
-                "LEFT JOIN artist ON recording.artist_id=artist.artist_id " +
+                "LEFT JOIN song ON recording.song_id=song.id " +
+                "LEFT JOIN artist ON recording.artist_id=artist.id " +
                 "WHERE recording.song_id=@songID;";
             readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
 
@@ -262,8 +292,8 @@ namespace MusicPlayer.Core.DBCommands
             {
                 if (reader.Read())
                 {
-                    songName = (string)reader["song_title"];
-                    artistName = (string)reader["artist_name"];
+                    songName = (string)reader["title"];
+                    artistName = (string)reader["name"];
                     artistID = (long)reader["artist_id"];
 
                     while (reader.Read())
@@ -290,16 +320,16 @@ namespace MusicPlayer.Core.DBCommands
             SQLiteCommand loadSongs = dbConnection.CreateCommand();
             loadSongs.CommandType = System.Data.CommandType.Text;
             loadSongs.CommandText =
-                "SELECT song_id " +
+                "SELECT id " +
                 "FROM song " +
-                "ORDER BY song_id DESC " +
+                "ORDER BY id DESC " +
                 "LIMIT 1;";
 
             using (SQLiteDataReader reader = loadSongs.ExecuteReader())
             {
                 if (reader.Read())
                 {
-                    _lastIDAssigned = (long)reader["song_id"];
+                    _lastIDAssigned = (long)reader["id"];
                 }
             }
         }
@@ -315,18 +345,18 @@ namespace MusicPlayer.Core.DBCommands
             loadSongs.CommandType = System.Data.CommandType.Text;
             loadSongs.CommandText =
                 "SELECT " +
-                    "song.song_id AS song_id, " +
-                    "song.song_title AS song_title, " +
+                    "song.id AS song_id, " +
+                    "song.title AS title, " +
                     "recording.artist_id AS artist_id " +
                 "FROM song " +
-                "LEFT JOIN recording ON song.song_id=recording.song_id;";
+                "LEFT JOIN recording ON song.id=recording.song_id;";
 
             using (SQLiteDataReader reader = loadSongs.ExecuteReader())
             {
                 while (reader.Read())
                 {
                     long songID = (long)reader["song_id"];
-                    string songTitle = (string)reader["song_title"];
+                    string songTitle = (string)reader["title"];
                     long artistID = (long)reader["artist_id"];
 
                     var key = (artistID, songTitle.ToLowerInvariant());
@@ -355,8 +385,8 @@ namespace MusicPlayer.Core.DBCommands
             updateSongTitle_BySongID.Parameters.Add(new SQLiteParameter("@songID", songID));
             updateSongTitle_BySongID.CommandText =
                 "UPDATE song " +
-                    "SET song.song_title=@songTitle " +
-                    "WHERE song.song_id=@songID;";
+                    "SET song.title=@songTitle " +
+                    "WHERE song.id=@songID;";
 
             updateSongTitle_BySongID.ExecuteNonQuery();
         }
@@ -383,8 +413,8 @@ namespace MusicPlayer.Core.DBCommands
             createSongTable.CommandType = System.Data.CommandType.Text;
             createSongTable.CommandText =
                 "CREATE TABLE IF NOT EXISTS song (" +
-                    "song_id INTEGER PRIMARY KEY, " +
-                    "song_title TEXT);";
+                    "id INTEGER PRIMARY KEY, " +
+                    "title TEXT);";
             createSongTable.ExecuteNonQuery();
 
             SQLiteCommand createSongWeightTable = dbConnection.CreateCommand();
@@ -400,7 +430,7 @@ namespace MusicPlayer.Core.DBCommands
             createSongTitleIndex.Transaction = transaction;
             createSongTitleIndex.CommandType = System.Data.CommandType.Text;
             createSongTitleIndex.CommandText =
-                    "CREATE INDEX IF NOT EXISTS idx_song_songTitle ON song (song_title COLLATE NOCASE);";
+                    "CREATE INDEX IF NOT EXISTS idx_song_title ON song (title COLLATE NOCASE);";
             createSongTitleIndex.ExecuteNonQuery();
         }
 
@@ -419,7 +449,7 @@ namespace MusicPlayer.Core.DBCommands
             writeSong.CommandType = System.Data.CommandType.Text;
             writeSong.CommandText =
                 "INSERT INTO song " +
-                    "(song_id, song_title) VALUES " +
+                    "(id, title) VALUES " +
                     "(@songID, @songTitle);";
             writeSong.Parameters.Add(new SQLiteParameter("@songID", songID));
             writeSong.Parameters.Add(new SQLiteParameter("@songTitle", songTitle));
@@ -437,7 +467,7 @@ namespace MusicPlayer.Core.DBCommands
             writeSong.CommandType = System.Data.CommandType.Text;
             writeSong.CommandText =
                 "INSERT INTO song " +
-                    "(song_id, song_title) VALUES " +
+                    "(id, title) VALUES " +
                     "(@songID, @songTitle);";
             writeSong.Parameters.Add("@songID", DbType.Int64);
             writeSong.Parameters.Add("@songTitle", DbType.String);
@@ -464,7 +494,7 @@ namespace MusicPlayer.Core.DBCommands
             deleteSong_BySongID.Parameters.Add("@songID", DbType.Int64);
             deleteSong_BySongID.CommandText =
                 "DELETE FROM song " +
-                "WHERE song.song_id=@songID;";
+                "WHERE id=@songID;";
             foreach (long id in songIDs)
             {
                 deleteSong_BySongID.Parameters["@songID"].Value = id;
@@ -480,10 +510,10 @@ namespace MusicPlayer.Core.DBCommands
             deleteLeafs.CommandType = System.Data.CommandType.Text;
             deleteLeafs.CommandText =
                 "DELETE FROM song " +
-                "WHERE song_id IN ( " +
-                    "SELECT song.song_id " +
+                "WHERE id IN ( " +
+                    "SELECT song.id " +
                     "FROM song " +
-                    "LEFT JOIN recording ON song.song_id=recording.song_id " +
+                    "LEFT JOIN recording ON song.id=recording.song_id " +
                     "WHERE recording.song_id IS NULL );";
             deleteLeafs.ExecuteNonQuery();
         }

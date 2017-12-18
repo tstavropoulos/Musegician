@@ -17,5 +17,7 @@ namespace MusicPlayer.Library
 
         List<AlbumDTO> GenerateAlbumList();
         List<SongDTO> GenerateArtistSongList(long artistID, string artistName);
+
+        void UpdateWeight(LibraryContext context, long id, double weight);
     }
 }

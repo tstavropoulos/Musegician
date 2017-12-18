@@ -99,21 +99,80 @@ namespace MusicPlayer.Core.DBCommands
             SQLiteCommand readArtists = dbConnection.CreateCommand();
             readArtists.CommandType = System.Data.CommandType.Text;
             readArtists.CommandText =
-                "SELECT artist_id, artist_name " +
-                "FROM artist ORDER BY artist_name ASC;";
+                "SELECT " +
+                    "artist.id AS id, " +
+                    "artist.name AS name, " +
+                    "artist_weight.weight AS weight " +
+                "FROM artist " +
+                "LEFT JOIN artist_weight ON artist.id=artist_weight.artist_id " +
+                "ORDER BY name ASC;";
             using (SQLiteDataReader reader = readArtists.ExecuteReader())
             {
                 while (reader.Read())
                 {
+                    double weight = double.NaN;
+
+                    if (!(reader["weight"] is DBNull))
+                    {
+                        weight = (double)reader["weight"];
+                    }
+
                     artistList.Add(new ArtistDTO(
-                        id: (long)reader["artist_id"],
-                        name: (string)reader["artist_name"]));
+                        id: (long)reader["id"],
+                        name: (string)reader["name"])
+                    {
+                        Weight = weight
+                    });
                 }
             }
 
             dbConnection.Close();
 
             return artistList;
+        }
+
+        public string GetArtistName(long artistID)
+        {
+            string artistName = "";
+
+            dbConnection.Open();
+
+            SQLiteCommand findArtist = dbConnection.CreateCommand();
+            findArtist.CommandType = System.Data.CommandType.Text;
+            findArtist.CommandText =
+                "SELECT name " +
+                "FROM artist " +
+                "WHERE id=@artistID;";
+            findArtist.Parameters.Add(new SQLiteParameter("@artistID", artistID));
+            using (SQLiteDataReader reader = findArtist.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    artistName = (string)reader["name"];
+                }
+            }
+
+            dbConnection.Close();
+
+            return artistName;
+        }
+
+        public void UpdateWeight(long artistID, double weight)
+        {
+            dbConnection.Open();
+
+            SQLiteCommand updateWeight = dbConnection.CreateCommand();
+            updateWeight.CommandType = System.Data.CommandType.Text;
+            updateWeight.CommandText =
+                "INSERT OR REPLACE INTO artist_weight " +
+                "(artist_id, weight) VALUES " +
+                "(@artistID, @weight);";
+            updateWeight.Parameters.Add(new SQLiteParameter("@artistID", artistID));
+            updateWeight.Parameters.Add(new SQLiteParameter("@weight", weight));
+
+            updateWeight.ExecuteNonQuery();
+
+            dbConnection.Close();
         }
 
         #endregion // High Level Commands
@@ -128,16 +187,16 @@ namespace MusicPlayer.Core.DBCommands
             findArtist.CommandType = System.Data.CommandType.Text;
             findArtist.Parameters.Add(new SQLiteParameter("@artistName", artistName));
             findArtist.CommandText =
-                "SELECT artist_id " +
+                "SELECT id " +
                 "FROM artist " +
-                "WHERE artist.artist_name=@artistName COLLATE NOCASE " +
+                "WHERE artist.name=@artistName COLLATE NOCASE " +
                 "LIMIT 1;";
 
             using (SQLiteDataReader reader = findArtist.ExecuteReader())
             {
                 if (reader.Read())
                 {
-                    artistID = (long)reader["artist_id"];
+                    artistID = (long)reader["id"];
                 }
             }
 
@@ -150,11 +209,11 @@ namespace MusicPlayer.Core.DBCommands
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
                 "SELECT " +
-                    "song.song_title AS song_title, " +
-                    "artist.artist_name AS artist_name, " +
+                    "song.title AS title, " +
+                    "artist.name AS name, " +
                 "FROM artist " +
-                "LEFT JOIN song ON song.song_id=@songID " +
-                "WHERE artist.artist_id=@artistID;";
+                "LEFT JOIN song ON song.id=@songID " +
+                "WHERE artist.id=@artistID;";
             readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
             readTracks.Parameters.Add(new SQLiteParameter("@artistID", artistID));
 
@@ -164,8 +223,8 @@ namespace MusicPlayer.Core.DBCommands
                 {
                     return string.Format(
                         "{0} - {1}",
-                        (string)reader["artist_name"],
-                        (string)reader["song_title"]);
+                        (string)reader["name"],
+                        (string)reader["title"]);
                 }
             }
 
@@ -173,7 +232,7 @@ namespace MusicPlayer.Core.DBCommands
         }
 
         #endregion  //Search Commands
-        
+
         #region Initialization Commands
 
         public void _InitializeValues()
@@ -181,16 +240,16 @@ namespace MusicPlayer.Core.DBCommands
             SQLiteCommand loadArtists = dbConnection.CreateCommand();
             loadArtists.CommandType = System.Data.CommandType.Text;
             loadArtists.CommandText =
-                "SELECT artist_id " +
+                "SELECT id " +
                 "FROM artist " +
-                "ORDER BY artist_id DESC " +
+                "ORDER BY id DESC " +
                 "LIMIT 1;";
 
             using (SQLiteDataReader reader = loadArtists.ExecuteReader())
             {
                 if (reader.Read())
                 {
-                    _lastIDAssigned = (long)reader["artist_id"];
+                    _lastIDAssigned = (long)reader["id"];
                 }
             }
         }
@@ -205,15 +264,15 @@ namespace MusicPlayer.Core.DBCommands
             SQLiteCommand loadArtists = dbConnection.CreateCommand();
             loadArtists.CommandType = System.Data.CommandType.Text;
             loadArtists.CommandText =
-                "SELECT artist_id, artist_name " +
+                "SELECT id, name " +
                 "FROM artist;";
 
             using (SQLiteDataReader reader = loadArtists.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                    string artistName = (string)reader["artist_name"];
-                    long artistID = (long)reader["artist_id"];
+                    string artistName = (string)reader["name"];
+                    long artistID = (long)reader["id"];
 
                     if (!artistNameDict.ContainsKey(artistName.ToLowerInvariant()))
                     {
@@ -239,8 +298,8 @@ namespace MusicPlayer.Core.DBCommands
             updateArtistName_ByArtistID.Parameters.Add(new SQLiteParameter("@artistID", artistID));
             updateArtistName_ByArtistID.CommandText =
                 "UPDATE artist " +
-                    "SET artist.artist_name=@artistName " +
-                    "WHERE artist.artist_id=@artistID;";
+                    "SET artist.name=@artistName " +
+                    "WHERE artist.id=@artistID;";
 
             updateArtistName_ByArtistID.ExecuteNonQuery();
         }
@@ -267,8 +326,8 @@ namespace MusicPlayer.Core.DBCommands
             createArtistTable.CommandType = System.Data.CommandType.Text;
             createArtistTable.CommandText =
                 "CREATE TABLE IF NOT EXISTS artist (" +
-                    "artist_id INTEGER PRIMARY KEY, " +
-                    "artist_name TEXT);";
+                    "id INTEGER PRIMARY KEY, " +
+                    "name TEXT);";
             createArtistTable.ExecuteNonQuery();
 
             SQLiteCommand createWeightTable = dbConnection.CreateCommand();
@@ -296,7 +355,7 @@ namespace MusicPlayer.Core.DBCommands
             createArtist.CommandType = System.Data.CommandType.Text;
             createArtist.CommandText =
                 "INSERT INTO artist " +
-                    "(artist_id, artist_name) VALUES " +
+                    "(id, name) VALUES " +
                     "(@artistID, @artistName);";
             createArtist.Parameters.Add(new SQLiteParameter("@artistID", artistID));
             createArtist.Parameters.Add(new SQLiteParameter("@artistName", artistName));
@@ -314,7 +373,7 @@ namespace MusicPlayer.Core.DBCommands
             writeArtist.CommandType = System.Data.CommandType.Text;
             writeArtist.CommandText =
                 "INSERT INTO artist " +
-                    "(artist_id, artist_name) VALUES " +
+                    "(id, name) VALUES " +
                     "(@artistID, @artistName);";
             writeArtist.Parameters.Add("@artistID", DbType.Int64);
             writeArtist.Parameters.Add("@artistName", DbType.String);
@@ -342,7 +401,7 @@ namespace MusicPlayer.Core.DBCommands
             deleteArtist_ByArtistID.Parameters.Add("@artistID", DbType.Int64);
             deleteArtist_ByArtistID.CommandText =
                 "DELETE FROM artist " +
-                "WHERE artist.artist_id=@artistID;";
+                "WHERE artist.id=@artistID;";
             foreach (long id in artistIDs)
             {
                 deleteArtist_ByArtistID.Parameters["@artistID"].Value = id;
@@ -362,10 +421,10 @@ namespace MusicPlayer.Core.DBCommands
             deleteLeafs.CommandType = System.Data.CommandType.Text;
             deleteLeafs.CommandText =
                 "DELETE FROM artist " +
-                "WHERE artist_id IN ( " +
-                    "SELECT artist.artist_id " +
+                "WHERE id IN ( " +
+                    "SELECT artist.id " +
                     "FROM artist " +
-                    "LEFT JOIN recording ON artist.artist_id=recording.artist_id " +
+                    "LEFT JOIN recording ON artist.id=recording.artist_id " +
                     "WHERE recording.artist_id IS NULL );";
             deleteLeafs.ExecuteNonQuery();
         }

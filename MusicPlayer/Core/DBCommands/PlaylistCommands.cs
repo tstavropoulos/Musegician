@@ -169,6 +169,22 @@ namespace MusicPlayer.Core.DBCommands
             dbConnection.Close();
         }
 
+        public void DeletePlaylist(long playlistID)
+        {
+            dbConnection.Open();
+
+            using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
+            {
+                _DeepDeletePlaylist(
+                    transaction: transaction,
+                    id: playlistID);
+
+                transaction.Commit();
+            }
+
+            dbConnection.Close();
+        }
+
         public void TranslateSongData(
             long playlistID,
             ICollection<SongDTO> songs,
@@ -255,20 +271,20 @@ namespace MusicPlayer.Core.DBCommands
                 "SELECT " +
                     "playlist_recordings.recording_id AS recording_id, " +
                     "playlist_recordings.weight AS weight, " +
-                    "artist.artist_name AS artist_name, " +
-                    "album.album_title AS album_title, " +
-                    "track.track_title AS track_title " +
+                    "artist.name AS artist_name, " +
+                    "album.title AS album_title, " +
+                    "track.title AS track_title " +
                 "FROM playlist_recordings " +
-                "LEFT JOIN recording ON playlist_recordings.recording_id=recording.recording_id " +
-                "LEFT JOIN artist ON recording.artist_id=artist.artist_id " +
-                "LEFT JOIN track ON track.track_id IN ( " +
-                    "SELECT track.track_id " +
+                "LEFT JOIN recording ON playlist_recordings.recording_id=recording.id " +
+                "LEFT JOIN artist ON recording.artist_id=artist.id " +
+                "LEFT JOIN track ON track.id IN ( " +
+                    "SELECT track.id " +
                     "FROM track " +
-                    "LEFT JOIN album ON track.album_id=album.album_id " +
-                    "WHERE track.recording_id=recording.recording_id " +
-                    "ORDER BY album.album_year ASC " +
+                    "LEFT JOIN album ON track.album_id=album.id " +
+                    "WHERE track.recording_id=recording.id " +
+                    "ORDER BY album.year ASC " +
                     "LIMIT 1) " +
-                "LEFT JOIN album ON track.album_id=album.album_id " +
+                "LEFT JOIN album ON track.album_id=album.id " +
                 "WHERE playlist_song_id=@ID;";
             loadPlaylistRecordings.Parameters.Add(new SQLiteParameter("@ID", playlistSongID));
 

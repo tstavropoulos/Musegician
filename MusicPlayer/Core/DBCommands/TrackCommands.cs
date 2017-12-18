@@ -42,6 +42,8 @@ namespace MusicPlayer.Core.DBCommands
             _lastIDAssigned = 0;
         }
 
+        #region High Level Commands
+
         /// <summary>
         /// Splitting, Renaming, And/Or Consolidating Tracks by Song Title
         /// </summary>
@@ -134,6 +136,26 @@ namespace MusicPlayer.Core.DBCommands
         }
 
 
+        public void UpdateWeight(long trackID, double weight)
+        {
+            dbConnection.Open();
+
+            SQLiteCommand updateWeight = dbConnection.CreateCommand();
+            updateWeight.CommandType = System.Data.CommandType.Text;
+            updateWeight.CommandText =
+                "INSERT OR REPLACE INTO track_weight " +
+                "(track_id, weight) VALUES " +
+                "(@trackID, @weight);";
+            updateWeight.Parameters.Add(new SQLiteParameter("@trackID", trackID));
+            updateWeight.Parameters.Add(new SQLiteParameter("@weight", weight));
+
+            updateWeight.ExecuteNonQuery();
+
+            dbConnection.Close();
+        }
+
+        #endregion // High Level Commands
+
         #region Search Commands
 
         public long _FindSongID_ByTrackID(long trackID)
@@ -146,7 +168,7 @@ namespace MusicPlayer.Core.DBCommands
             findSongID.CommandText =
                 "SELECT song_id " +
                 "FROM track " +
-                "WHERE track_id=@trackID;";
+                "WHERE id=@trackID;";
 
             using (SQLiteDataReader reader = findSongID.ExecuteReader())
             {
@@ -168,16 +190,16 @@ namespace MusicPlayer.Core.DBCommands
             SQLiteCommand loadSongs = dbConnection.CreateCommand();
             loadSongs.CommandType = System.Data.CommandType.Text;
             loadSongs.CommandText =
-                "SELECT track_id " +
+                "SELECT id " +
                 "FROM track " +
-                "ORDER BY track_id DESC " +
+                "ORDER BY id DESC " +
                 "LIMIT 1;";
 
             using (SQLiteDataReader reader = loadSongs.ExecuteReader())
             {
                 if (reader.Read())
                 {
-                    _lastIDAssigned = (long)reader["track_id"];
+                    _lastIDAssigned = (long)reader["id"];
                 }
             }
         }
@@ -199,7 +221,7 @@ namespace MusicPlayer.Core.DBCommands
             remapSongID.CommandText =
                 "UPDATE track " +
                     "SET album_id=@albumID " +
-                    "WHERE track_id=@trackID;";
+                    "WHERE id=@trackID;";
             foreach (long id in trackIDs)
             {
                 remapSongID.Parameters["@trackID"].Value = id;
@@ -212,19 +234,19 @@ namespace MusicPlayer.Core.DBCommands
             long newAlbumID,
             ICollection<long> oldAlbumIDs)
         {
-            SQLiteCommand remapSongID = dbConnection.CreateCommand();
-            remapSongID.Transaction = transaction;
-            remapSongID.CommandType = System.Data.CommandType.Text;
-            remapSongID.Parameters.Add(new SQLiteParameter("@newAlbumID", newAlbumID));
-            remapSongID.Parameters.Add("@oldAlbumID", DbType.Int64);
-            remapSongID.CommandText =
+            SQLiteCommand remapAlbumID = dbConnection.CreateCommand();
+            remapAlbumID.Transaction = transaction;
+            remapAlbumID.CommandType = System.Data.CommandType.Text;
+            remapAlbumID.Parameters.Add(new SQLiteParameter("@newAlbumID", newAlbumID));
+            remapAlbumID.Parameters.Add("@oldAlbumID", DbType.Int64);
+            remapAlbumID.CommandText =
                 "UPDATE track " +
                     "SET track.album_id=@newAlbumID " +
                     "WHERE track.album_id=@oldAlbumID;";
             foreach (long id in oldAlbumIDs)
             {
-                remapSongID.Parameters["@oldAlbumID"].Value = id;
-                remapSongID.ExecuteNonQuery();
+                remapAlbumID.Parameters["@oldAlbumID"].Value = id;
+                remapAlbumID.ExecuteNonQuery();
             }
         }
 
@@ -240,10 +262,10 @@ namespace MusicPlayer.Core.DBCommands
             createTrackTable.CommandType = System.Data.CommandType.Text;
             createTrackTable.CommandText =
                 "CREATE TABLE IF NOT EXISTS track (" +
-                    "track_id INTEGER PRIMARY KEY, " +
+                    "id INTEGER PRIMARY KEY, " +
                     "album_id INTEGER REFERENCES album, " +
                     "recording_id INTEGER REFERENCES recording, " +
-                    "track_title TEXT, " +
+                    "title TEXT, " +
                     "track_number INTEGER, " +
                     "disc_number INTEGER);";
             createTrackTable.ExecuteNonQuery();
@@ -271,7 +293,7 @@ namespace MusicPlayer.Core.DBCommands
             writeTrack.Transaction = transaction;
             writeTrack.CommandType = System.Data.CommandType.Text;
             writeTrack.CommandText = "INSERT INTO track " +
-                "(track_id, album_id, recording_id, track_title, track_number, disc_number) VALUES " +
+                "(id, album_id, recording_id, title, track_number, disc_number) VALUES " +
                 "(@trackID, @albumID, @recordingID, @trackTitle, @trackNumber, @discNumber);";
             writeTrack.Parameters.Add("@trackID", DbType.Int64);
             writeTrack.Parameters.Add("@albumID", DbType.Int64);

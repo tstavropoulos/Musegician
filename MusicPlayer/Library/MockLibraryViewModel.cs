@@ -267,6 +267,11 @@ namespace MusicPlayer.Library
             return recordingList;
         }
 
+        void ILibraryRequestHandler.UpdateWeight(LibraryContext context, long id, double weight)
+        {
+            throw new NotImplementedException();
+        }
+
         private string GetAlbumName(long albumID)
         {
             foreach(var album in albums)

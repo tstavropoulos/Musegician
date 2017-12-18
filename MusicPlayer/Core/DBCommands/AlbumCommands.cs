@@ -57,28 +57,28 @@ namespace MusicPlayer.Core.DBCommands
             SQLiteCommand readAlbums = dbConnection.CreateCommand();
             readAlbums.CommandType = System.Data.CommandType.Text;
             readAlbums.CommandText =
-                "SELECT album_id, album_title, album_year " +
+                "SELECT id, title, year " +
                 "FROM album " +
-                "WHERE album_id IN ( " +
+                "WHERE id IN ( " +
                     "SELECT track.album_id " +
                     "FROM recording " +
-                    "LEFT JOIN track ON recording.recording_id=track.recording_id " +
+                    "LEFT JOIN track ON recording.id=track.recording_id " +
                     "WHERE recording.artist_id=@artistID ) " +
-                "ORDER BY album_year ASC;";
+                "ORDER BY year ASC;";
             readAlbums.Parameters.Add(new SQLiteParameter("@artistID", artistID));
 
             using (SQLiteDataReader reader = readAlbums.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                    long albumID = (long)reader["album_id"];
+                    long albumID = (long)reader["id"];
 
                     albumList.Add(new AlbumDTO(
                         albumID: albumID,
                         albumTitle: String.Format(
                             "{0} ({1})",
-                            (string)reader["album_title"],
-                            ((long)reader["album_year"]).ToString()),
+                            (string)reader["title"],
+                            ((long)reader["year"]).ToString()),
                         albumArt: LoadImage(_GetArt(albumID))));
                 }
             }
@@ -97,17 +97,18 @@ namespace MusicPlayer.Core.DBCommands
             SQLiteCommand readAlbums = dbConnection.CreateCommand();
             readAlbums.CommandType = System.Data.CommandType.Text;
             readAlbums.CommandText =
-                "SELECT album_id, album_title " +
-                "FROM album ORDER BY album_title ASC;";
+                "SELECT id, title " +
+                "FROM album " +
+                "ORDER BY title ASC;";
             using (SQLiteDataReader reader = readAlbums.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                    long albumID = (long)reader["album_id"];
+                    long albumID = (long)reader["id"];
 
                     albumList.Add(new AlbumDTO(
                         albumID: albumID,
-                        albumTitle: (string)reader["album_title"],
+                        albumTitle: (string)reader["title"],
                         albumArt: LoadImage(_GetArt(albumID))));
                 }
             }
@@ -130,32 +131,54 @@ namespace MusicPlayer.Core.DBCommands
             return image;
         }
 
-        #endregion // High Level Commands
-
-        #region Search Commands
-
-        public long _FindArtistID_ByAlbumID(long albumID)
+        public string GetAlbumTitle(long albumID)
         {
-            long artistID = -1;
+            string albumName = "";
 
-            SQLiteCommand findSongID_ByTitle_SameArtist = dbConnection.CreateCommand();
-            findSongID_ByTitle_SameArtist.CommandType = System.Data.CommandType.Text;
-            findSongID_ByTitle_SameArtist.Parameters.Add(new SQLiteParameter("@albumID", albumID));
-            findSongID_ByTitle_SameArtist.CommandText =
-                "SELECT artist_id " +
-                "FROM song " +
-                "WHERE song_id=@albumID);";
+            dbConnection.Open();
 
-            using (SQLiteDataReader reader = findSongID_ByTitle_SameArtist.ExecuteReader())
+            SQLiteCommand findArtist = dbConnection.CreateCommand();
+            findArtist.CommandType = System.Data.CommandType.Text;
+            findArtist.CommandText =
+                "SELECT title " +
+                "FROM album " +
+                "WHERE id=@albumID;";
+            findArtist.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+            using (SQLiteDataReader reader = findArtist.ExecuteReader())
             {
                 if (reader.Read())
                 {
-                    artistID = (long)reader["artist_id"];
+                    albumName = (string)reader["title"];
                 }
             }
 
-            return artistID;
+            dbConnection.Close();
+
+            return albumName;
         }
+
+        public void UpdateWeight(long albumID, double weight)
+        {
+            dbConnection.Open();
+
+            SQLiteCommand updateWeight = dbConnection.CreateCommand();
+            updateWeight.CommandType = System.Data.CommandType.Text;
+            updateWeight.CommandText =
+                "INSERT OR REPLACE INTO album_weight " +
+                "(album_id, weight) VALUES " +
+                "(@albumID, @weight);";
+            updateWeight.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+            updateWeight.Parameters.Add(new SQLiteParameter("@weight", weight));
+
+            updateWeight.ExecuteNonQuery();
+
+            dbConnection.Close();
+        }
+
+
+        #endregion // High Level Commands
+
+        #region Search Commands
 
         public byte[] _GetArt(long albumID)
         {
@@ -189,16 +212,16 @@ namespace MusicPlayer.Core.DBCommands
             SQLiteCommand loadAlbums = dbConnection.CreateCommand();
             loadAlbums.CommandType = System.Data.CommandType.Text;
             loadAlbums.CommandText =
-                "SELECT album_id " +
+                "SELECT id " +
                 "FROM album " +
-                "ORDER BY album_id DESC " +
+                "ORDER BY id DESC " +
                 "LIMIT 1;";
 
             using (SQLiteDataReader reader = loadAlbums.ExecuteReader())
             {
                 if (reader.Read())
                 {
-                    _lastIDAssigned = (long)reader["album_id"];
+                    _lastIDAssigned = (long)reader["id"];
                 }
             }
         }
@@ -215,15 +238,15 @@ namespace MusicPlayer.Core.DBCommands
             loadAlbums.CommandType = System.Data.CommandType.Text;
             loadAlbums.CommandText =
                 "SELECT " +
-                    "album.album_id AS album_id, " +
-                    "album.album_title AS album_title, " +
-                    "artist.artist_id AS artist_id " +
+                    "album.id AS album_id, " +
+                    "album.title AS title, " +
+                    "artist.id AS artist_id " +
                 "FROM album " +
-                "LEFT JOIN artist ON artist.artist_id IN ( " +
+                "LEFT JOIN artist ON artist.id IN ( " +
                     "SELECT recording.artist_id " +
                     "FROM track " +
-                    "LEFT JOIN recording ON track.recording_id= recording.recording_id " +
-                    "WHERE track.album_id= album.album_id); ";
+                    "LEFT JOIN recording ON track.recording_id= recording.id " +
+                    "WHERE track.album_id= album.id); ";
 
             using (SQLiteDataReader reader = loadAlbums.ExecuteReader())
             {
@@ -231,7 +254,7 @@ namespace MusicPlayer.Core.DBCommands
                 {
                     long albumID = (long)reader["album_id"];
                     long artistID = (long)reader["artist_id"];
-                    string albumTitle = (string)reader["album_title"];
+                    string albumTitle = (string)reader["title"];
 
                     var key = (artistID, albumTitle.ToLowerInvariant());
 
@@ -278,8 +301,8 @@ namespace MusicPlayer.Core.DBCommands
             updateAlbumTitle_ByAlbumID.Parameters.Add(new SQLiteParameter("@albumID", albumID));
             updateAlbumTitle_ByAlbumID.CommandText =
                 "UPDATE album " +
-                    "SET album.album_title=@albumTitle " +
-                    "WHERE album.album_id=@albumID;";
+                    "SET album.title=@albumTitle " +
+                    "WHERE album.id=@albumID;";
 
             updateAlbumTitle_ByAlbumID.ExecuteNonQuery();
         }
@@ -295,9 +318,9 @@ namespace MusicPlayer.Core.DBCommands
             createAlbumTable.CommandType = System.Data.CommandType.Text;
             createAlbumTable.CommandText =
                 "CREATE TABLE IF NOT EXISTS album (" +
-                    "album_id INTEGER PRIMARY KEY, " +
-                    "album_title TEXT, " +
-                    "album_year INTEGER);";
+                    "id INTEGER PRIMARY KEY, " +
+                    "title TEXT, " +
+                    "year INTEGER);";
             createAlbumTable.ExecuteNonQuery();
 
             SQLiteCommand createWeightTable = dbConnection.CreateCommand();
@@ -336,7 +359,7 @@ namespace MusicPlayer.Core.DBCommands
             writeAlbum.CommandType = System.Data.CommandType.Text;
             writeAlbum.CommandText =
                 "INSERT INTO album " +
-                    "(album_id, album_title, album_year) VALUES " +
+                    "(id, title, year) VALUES " +
                     "(@albumID, @albumTitle, @albumYear);";
             writeAlbum.Parameters.Add(new SQLiteParameter("@albumID", albumID));
             writeAlbum.Parameters.Add(new SQLiteParameter("@albumTitle", albumTitle));
@@ -373,7 +396,7 @@ namespace MusicPlayer.Core.DBCommands
             writeAlbum.CommandType = System.Data.CommandType.Text;
             writeAlbum.CommandText =
                 "INSERT INTO album " +
-                    "(album_id, album_title, album_year) VALUES " +
+                    "(id, title, year) VALUES " +
                     "(@albumID, @albumTitle, @albumYear);";
             writeAlbum.Parameters.Add("@albumID", DbType.Int64);
             writeAlbum.Parameters.Add("@albumTitle", DbType.String);
@@ -426,7 +449,7 @@ namespace MusicPlayer.Core.DBCommands
             deleteAlbum_ByAlbumID.Parameters.Add("@albumID", DbType.Int64);
             deleteAlbum_ByAlbumID.CommandText =
                 "DELETE FROM album " +
-                "WHERE album.album_id=@albumID;";
+                "WHERE album.id=@albumID;";
             foreach (long id in albumIDs)
             {
                 deleteAlbum_ByAlbumID.Parameters["@albumID"].Value = id;
@@ -445,10 +468,10 @@ namespace MusicPlayer.Core.DBCommands
             deleteLeafs.CommandType = System.Data.CommandType.Text;
             deleteLeafs.CommandText =
                 "DELETE FROM album " +
-                "WHERE album_id IN ( " +
-                    "SELECT album.album_id " +
+                "WHERE id IN ( " +
+                    "SELECT album.id " +
                     "FROM album " +
-                    "LEFT JOIN track ON album.album_id=track.album_id " +
+                    "LEFT JOIN track ON album.id=track.album_id " +
                     "WHERE track.album_id IS NULL );";
             deleteLeafs.ExecuteNonQuery();
         }
@@ -492,11 +515,11 @@ namespace MusicPlayer.Core.DBCommands
             SQLiteCommand readFiles = dbConnection.CreateCommand();
             readFiles.CommandType = System.Data.CommandType.Text;
             readFiles.CommandText =
-                "SELECT recording.filename AS filename, album.album_title AS album_title " +
+                "SELECT recording.filename AS filename, album.title AS title " +
                 "FROM album " +
-                "LEFT JOIN track ON album.album_id=track.album_id " +
-                "LEFT JOIN recording ON track.recording_id=recording.recording_id " +
-                "WHERE album.album_id=@albumID " +
+                "LEFT JOIN track ON album.id=track.album_id " +
+                "LEFT JOIN recording ON track.recording_id=recording.id " +
+                "WHERE album.id=@albumID " +
                 "ORDER BY track.track_number ASC;";
             readFiles.Parameters.Add(new SQLiteParameter("@albumID", albumID));
 
@@ -504,7 +527,7 @@ namespace MusicPlayer.Core.DBCommands
             {
                 while (reader.Read())
                 {
-                    string albumTitle = ((string)reader["album_title"]).ToLowerInvariant();
+                    string albumTitle = ((string)reader["title"]).ToLowerInvariant();
                     string filename = (string)reader["filename"];
 
                     TagLib.Mpeg.AudioFile audioFile = TagLib.File.Create(filename) as TagLib.Mpeg.AudioFile;

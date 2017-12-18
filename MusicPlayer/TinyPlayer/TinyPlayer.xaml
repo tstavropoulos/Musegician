@@ -37,15 +37,14 @@
         <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>
-        <Button Name="loadPlaylist"
+        <Button Name="loadPlaylist" Click="Toolbar_LoadPlaylist"
               Content="📂" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
               Margin="0,0,4,0" Height="33" Width="33"/>
         <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>
-        <Button Name="restoreWindow"
+        <Button Name="restoreWindow" Click="Toolbar_RestoreWindow"
               Content="🗔" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
-              Click="Toolbar_RestoreWindow"
               Margin="0,0,4,0" Height="33" Width="33"/>
       </StackPanel>
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,2,5,2" 

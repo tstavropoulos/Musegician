@@ -81,6 +81,11 @@ namespace MusicPlayer.Library
         public double Weight
         {
             get { return _data.Weight; }
+            set
+            {
+                _data.Weight = value;
+                OnPropertyChanged("Weight");
+            }
         }
 
         public virtual bool IsDim

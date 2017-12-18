@@ -187,6 +187,11 @@ namespace MusicPlayer.Playlist
 
                 playlistMan.RemoveIndex(indexToRemove);
             }
+            else if (menuItem.DataContext is PlaylistRecordingData recording)
+            {
+                e.Handled = true;
+                MessageBox.Show("Not Yet Implemented.");
+            }
             else
             {
                 Console.WriteLine("Unhandled ViewModel.  Likely Error.");
@@ -198,6 +203,31 @@ namespace MusicPlayer.Playlist
             MenuItem menuItem = sender as MenuItem;
 
             if (menuItem.DataContext is PlaylistSongViewModel song)
+            {
+                e.Handled = true;
+                MessageBox.Show("Not Yet Implemented.");
+            }
+            else if (menuItem.DataContext is PlaylistRecordingData recording)
+            {
+                e.Handled = true;
+                MessageBox.Show("Not Yet Implemented.");
+            }
+            else
+            {
+                Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+            }
+        }
+
+        private void Find(object sender, RoutedEventArgs e)
+        {
+            MenuItem menuItem = sender as MenuItem;
+
+            if (menuItem.DataContext is PlaylistSongViewModel song)
+            {
+                e.Handled = true;
+                MessageBox.Show("Not Yet Implemented.");
+            }
+            else if (menuItem.DataContext is PlaylistRecordingData recording)
             {
                 e.Handled = true;
                 MessageBox.Show("Not Yet Implemented.");
@@ -248,23 +278,30 @@ namespace MusicPlayer.Playlist
             e.Handled = true;
 
             playlistMan.ClearPlaylist();
-            playlistName.Text = "";
         }
 
         private void Toolbar_SavePlaylist(object sender, RoutedEventArgs e)
         {
-            if (playlistName.Text != "")
+            e.Handled = true;
+
+            if (playlistMan.ItemCount == 0)
             {
-                playlistMan.SavePlaylistAs(playlistName.Text);
+                MessageBox.Show("Cannot save empty playlist.", "Empty Playlist");
+                return;
             }
+
+            PlaylistWindow window = new PlaylistWindow(true);
+
+            window.Show();
         }
 
         private void Toolbar_LoadPlaylist(object sender, RoutedEventArgs e)
         {
-            if (playlistName.Text != "")
-            {
-                playlistMan.TryLoadPlaylist(playlistName.Text);
-            }
+            e.Handled = true;
+
+            PlaylistWindow window = new PlaylistWindow(false);
+
+            window.Show();
         }
     }
 }

@@ -10,14 +10,18 @@
   <UserControl.Resources>
     <ContextMenu x:Key="PlaylistSongCM">
       <MenuItem Header="Play Song" Click="Play"/>
-      <MenuItem Header="Remove Song" Click="Remove"/>
       <MenuItem Header="Edit Song Information" Click="Edit"/>
+      <MenuItem Header="Find In Library" Click="Find"/>
+      <Separator/>
+      <MenuItem Header="Remove Song" Click="Remove"/>
     </ContextMenu>
 
     <ContextMenu x:Key="PlaylistRecordingCM">
       <MenuItem Header="Play Recording" Click="Play"/>
-      <MenuItem Header="Remove Recording" Click="Remove"/>
       <MenuItem Header="Edit Recording Information" Click="Edit"/>
+      <MenuItem Header="Find In Library" Click="Find"/>
+      <Separator/>
+      <MenuItem Header="Remove Recording" Click="Remove"/>
     </ContextMenu>
 
     <HierarchicalDataTemplate DataType="{x:Type local:PlaylistSongViewModel}"
@@ -88,10 +92,8 @@
                 Content="📂" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
                 Margin="0,0,4,0" Height="33" Width="33"/>
       </StackPanel>
-      <TextBox Name="playlistName"
-               Text="" FontSize="24"
-               VerticalContentAlignment="Center" HorizontalAlignment="Stretch"
-               Margin="6"/>
+      <TextBlock Name="playlistName" Text="{Binding Source={x:Static local:PlaylistManager.Instance}, Path=PlaylistName}" FontSize="24" Margin="6"
+                 HorizontalAlignment="Center"/>
     </DockPanel>
     <TreeView ItemsSource="{Binding PlaylistViewModels}">
       <TreeView.ItemContainerStyle>
