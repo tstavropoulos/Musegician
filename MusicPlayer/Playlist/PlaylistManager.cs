@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -7,14 +8,29 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using MusicPlayer.DataStructures;
+using MusicPlayer.Core;
 
 namespace MusicPlayer.Playlist
 {
+    public struct PlayHistory
+    {
+        public SongDTO song;
+        public RecordingDTO recording;
+    }
+
+
     public class PlaylistManager : INotifyPropertyChanged
     {
         private Random random = new Random();
         private List<SongDTO> playlist = new List<SongDTO>();
         private List<int> shuffleList = new List<int>();
+
+        /// <summary>
+        /// A buffer holding the last 30 songs to play in Shuffle mode
+        /// </summary>
+        private RingBuffer<PlayHistory> ringBuffer = new RingBuffer<PlayHistory>(30);
+
+        private int bufferIndex = 0;
 
         private IPlaylistRequestHandler requestHandler
         {
@@ -187,13 +203,33 @@ namespace MusicPlayer.Playlist
             if (ItemCount > index)
             {
                 CurrentIndex = index;
+                long recordingID = SelectRecording(playlist[CurrentIndex]);
 
-                if (shuffleList.Contains(CurrentIndex))
+                //Add the item to the current shuffle buffer, and remove from shuffleList
+                if (Shuffle)
                 {
-                    shuffleList.Remove(CurrentIndex);
+                    if (shuffleList.Contains(CurrentIndex))
+                    {
+                        shuffleList.Remove(CurrentIndex);
+                    }
+
+                    //Pop off history elements in front of it
+                    while (bufferIndex > 0)
+                    {
+                        --bufferIndex;
+                        ringBuffer.RemoveAt(bufferIndex);
+                    }
+
+                    bufferIndex = 0;
+
+                    ringBuffer.Add(new PlayHistory
+                    {
+                        song = playlist[CurrentIndex],
+                        recording = playlist[CurrentIndex].Children[LastRecordingIndex] as RecordingDTO
+                    });
                 }
 
-                PlayRecording(SelectRecording(playlist[CurrentIndex]));
+                PlayRecording(recordingID);
             }
         }
 
@@ -203,6 +239,30 @@ namespace MusicPlayer.Playlist
             {
                 CurrentIndex = songIndex;
                 LastRecordingIndex = recordingIndex;
+
+                //Add the item to the current shuffle buffer, and remove from shuffleList
+                if (Shuffle)
+                {
+                    if (shuffleList.Contains(CurrentIndex))
+                    {
+                        shuffleList.Remove(CurrentIndex);
+                    }
+
+                    //Pop off history elements in front of it
+                    while (bufferIndex > 0)
+                    {
+                        --bufferIndex;
+                        ringBuffer.RemoveAt(bufferIndex);
+                    }
+
+                    bufferIndex = 0;
+
+                    ringBuffer.Add(new PlayHistory
+                    {
+                        song = playlist[CurrentIndex],
+                        recording = playlist[CurrentIndex].Children[LastRecordingIndex] as RecordingDTO
+                    });
+                }
 
                 PlayRecording(playlist[CurrentIndex].Children[LastRecordingIndex].ID);
             }
@@ -217,26 +277,135 @@ namespace MusicPlayer.Playlist
 
             if (Shuffle)
             {
-                if (shuffleList.Count == 0 && Repeat)
+                //Shuffle Logic
+
+                //If we had backtracked, we retread before continuing to shuffle
+                //First, cull elements who are now invalid
+                while (bufferIndex > 0)
                 {
-                    PrepareShuffleList();
+                    --bufferIndex;
+
+                    if (!playlist.Contains(ringBuffer[bufferIndex].song))
+                    {
+                        //Bad values - Song not found - Probably Deleted
+
+                        ringBuffer.RemoveAt(bufferIndex);
+                        continue;
+                    }
+
+                    int index = playlist.IndexOf(ringBuffer[bufferIndex].song);
+
+                    if (!playlist[index].Children.Contains(ringBuffer[bufferIndex].recording))
+                    {
+                        //Bad Values - Recording not found - Probably Deleted
+
+                        ringBuffer.RemoveAt(bufferIndex);
+                        continue;
+                    }
+
+                    int recordingIndex = playlist[index].Children.IndexOf(ringBuffer[bufferIndex].recording);
+
+                    //Update vales to select the correct song in the UI
+                    CurrentIndex = index;
+                    LastRecordingIndex = recordingIndex;
+
+                    return FileManager.Instance.GetRecordingPlayData(ringBuffer[bufferIndex].recording.ID);
                 }
 
-                if (shuffleList.Count > 0)
-                {
-                    int nextIndex = random.Next(0, shuffleList.Count);
-                    CurrentIndex = shuffleList[nextIndex];
-                    shuffleList.RemoveAt(nextIndex);
+                //Move on to a new song
 
-                    return FileManager.Instance.GetRecordingPlayData(
-                        SelectRecording(playlist[CurrentIndex]));
+                //Track the number of reshuffles, in case the user has a stupid setup
+                int reshuffles = 0;
+
+                //Select the next song if we're not out of songs yet
+                while (shuffleList.Count > 0 || Repeat)
+                {
+                    //Reshuffle list if Repeat is turned on
+                    if (shuffleList.Count == 0 && Repeat)
+                    {
+                        PrepareShuffleList();
+
+                        if (++reshuffles >= 3)
+                        {
+                            MessageBox.Show(
+                                messageBoxText: "Reshuffled list twice without playing a song.\n" +
+                                    "Try Increasing Weights.",
+                                caption: "Error",
+                                button: MessageBoxButton.OK,
+                                icon: MessageBoxImage.Warning);
+
+                            return new PlayData();
+                        }
+
+                    }
+
+                    int nextShuffleIndex = random.Next(0, shuffleList.Count);
+                    int nextIndex = shuffleList[nextShuffleIndex];
+                    shuffleList.RemoveAt(nextShuffleIndex);
+
+                    if (!TestSongWeight(nextIndex))
+                    {
+                        //Skip it if the selected song fails a weight test
+                        continue;
+                    }
+
+                    //Song passed weight test
+                    CurrentIndex = nextIndex;
+                    long recordingID = SelectRecording(playlist[CurrentIndex]);
+
+                    //Stash 
+                    ringBuffer.Add(new PlayHistory
+                    {
+                        song = playlist[CurrentIndex],
+                        recording = playlist[CurrentIndex].Children[LastRecordingIndex] as RecordingDTO
+                    });
+
+                    return FileManager.Instance.GetRecordingPlayData(recordingID);
                 }
             }
             else
             {
-                if (ItemCount > CurrentIndex + 1)
+                ringBuffer.Clear();
+                bufferIndex = 0;
+
+                int nextPlaylistIndex = CurrentIndex;
+
+                //Track the number of restarts, in case the user has a stupid setup
+                int restarts = 0;
+
+                while (nextPlaylistIndex < ItemCount || Repeat)
                 {
-                    ++CurrentIndex;
+                    ++nextPlaylistIndex;
+
+                    if (nextPlaylistIndex >= ItemCount)
+                    {
+                        //Only true if Repeat
+
+                        //Start from top of list
+                        nextPlaylistIndex = 0;
+
+                        if (++restarts >= 3)
+                        {
+                            MessageBox.Show(
+                                messageBoxText: "Restarted list twice without playing a song.\n" +
+                                    "Try Increasing Weights.",
+                                caption: "Error",
+                                button: MessageBoxButton.OK,
+                                icon: MessageBoxImage.Warning);
+
+                            return new PlayData();
+                        }
+                    }
+
+                    //Test the next song to see if its weight passes muster
+                    if (!TestSongWeight(nextPlaylistIndex))
+                    {
+                        //Skip it if the selected song fails a weight test
+                        continue;
+                    }
+
+                    //Song passed weight test
+                    CurrentIndex = nextPlaylistIndex;
 
                     return FileManager.Instance.GetRecordingPlayData(
                         SelectRecording(playlist[CurrentIndex]));
@@ -248,12 +417,95 @@ namespace MusicPlayer.Playlist
 
         public PlayData Previous()
         {
-            if (CurrentIndex > 0)
+            if (ItemCount == 0)
             {
-                --CurrentIndex;
+                return new PlayData();
+            }
 
-                return FileManager.Instance.GetRecordingPlayData(
-                    SelectRecording(playlist[CurrentIndex]));
+
+            if (Shuffle)
+            {
+                //Shuffle logic
+
+                //Use the ringbuffer until it runs out
+                while (bufferIndex < ringBuffer.Count - 1)
+                {
+                    ++bufferIndex;
+
+                    if (!playlist.Contains(ringBuffer[bufferIndex].song))
+                    {
+                        //Bad values - Song not found - Probably Deleted
+
+                        ringBuffer.RemoveAt(bufferIndex);
+                        continue;
+                    }
+
+                    int index = playlist.IndexOf(ringBuffer[bufferIndex].song);
+
+                    if (!playlist[index].Children.Contains(ringBuffer[bufferIndex].recording))
+                    {
+                        //Bad Values - Recording not found - Probably Deleted
+
+                        ringBuffer.RemoveAt(bufferIndex);
+                        continue;
+                    }
+
+                    int recordingIndex = playlist[index].Children.IndexOf(ringBuffer[bufferIndex].recording);
+
+                    //Update vales to select the correct song in the UI
+                    CurrentIndex = index;
+                    LastRecordingIndex = recordingIndex;
+
+                    return FileManager.Instance.GetRecordingPlayData(ringBuffer[bufferIndex].recording.ID);
+                }
+            }
+            else
+            {
+                ringBuffer.Clear();
+                bufferIndex = 0;
+
+                //Linear logic
+                int nextPlaylistIndex = CurrentIndex;
+
+                //Track the number of restarts, in case the user has a stupid setup
+                int restarts = 0;
+
+                while (nextPlaylistIndex > 0 || Repeat)
+                {
+                    --nextPlaylistIndex;
+
+                    //Restart index if Repeat is on
+                    if (nextPlaylistIndex < 0)
+                    {
+                        nextPlaylistIndex = ItemCount - 1;
+
+                        if (++restarts >= 3)
+                        {
+                            MessageBox.Show(
+                                messageBoxText: "Restarted list twice without playing a song.\n" +
+                                    "Try Increasing Weights.",
+                                caption: "Error",
+                                button: MessageBoxButton.OK,
+                                icon: MessageBoxImage.Warning);
+
+                            return new PlayData();
+                        }
+                    }
+
+                    //Test the next song to see if its weight passes muster
+                    if (!TestSongWeight(nextPlaylistIndex))
+                    {
+                        //Skip it if the selected song fails a weight test
+                        continue;
+                    }
+
+                    //Song passed weight test
+                    CurrentIndex = nextPlaylistIndex;
+
+                    return FileManager.Instance.GetRecordingPlayData(
+                        SelectRecording(playlist[CurrentIndex]));
+                }
+
             }
 
             return new PlayData();
@@ -264,6 +516,9 @@ namespace MusicPlayer.Playlist
             _currentIndex = -1;
             playlist = new List<SongDTO>(songs);
             PrepareShuffleList();
+
+            ringBuffer.Clear();
+            bufferIndex = 0;
 
             _rebuild?.Invoke(songs);
         }
@@ -428,6 +683,28 @@ namespace MusicPlayer.Playlist
         public void AppendPlaylist(long playlistID)
         {
             AddBack(requestHandler.LoadPlaylist(playlistID));
+        }
+
+        /// <summary>
+        /// Use the weight of a song (at playlistIndex) to determine if it should play.
+        /// Probability is equal to its weight.
+        /// </summary>
+        /// <param name="playlistIndex"></param>
+        /// <returns></returns>
+        private bool TestSongWeight(int playlistIndex)
+        {
+            if (playlist[playlistIndex].Weight.AlmostEqualRelative(1.0))
+            {
+                return true;
+            }
+
+            if (playlist[playlistIndex].Weight.AlmostEqualRelative(0.0))
+            {
+                return false;
+            }
+
+            return random.NextDouble() <= playlist[playlistIndex].Weight;
+
         }
 
         #region INotifyPropertyChanged

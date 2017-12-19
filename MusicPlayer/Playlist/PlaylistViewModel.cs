@@ -1,81 +1,89 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows;
 using MusicPlayer.DataStructures;
 
-namespace MusicPlayer.Library
+namespace MusicPlayer.Playlist
 {
-    public class LibraryViewModel : INotifyPropertyChanged
+    abstract class PlaylistViewModel : INotifyPropertyChanged
     {
         #region Data
 
-        static readonly LibraryViewModel DummyChild = new LibraryViewModel();
-
-        readonly ObservableCollection<LibraryViewModel> _children;
-        readonly LibraryViewModel _parent;
-        readonly DTO _data;
+        protected readonly ObservableCollection<PlaylistViewModel> _children;
+        protected readonly DTO _data;
+        protected readonly PlaylistViewModel _parent;
 
         bool _isExpanded;
         bool _isSelected;
 
         #endregion // Data
 
-        #region Constructors
+        #region Constructor
 
-        public LibraryViewModel(DTO data, LibraryViewModel parent, bool lazyLoadChildren)
+        public PlaylistViewModel(DTO data, PlaylistViewModel parent)
         {
             _data = data;
             _parent = parent;
 
-            _children = new ObservableCollection<LibraryViewModel>();
-
-            if (lazyLoadChildren)
-            {
-                _children.Add(DummyChild);
-            }
+            _children = new ObservableCollection<PlaylistViewModel>();
         }
 
-        //For dummy child
-        private LibraryViewModel()
-        {
-        }
+        #endregion // Constructor
 
-        #endregion // Constructors
+        #region PlaylistItem Properties
 
-        #region Artist Properties
-
-        public ObservableCollection<LibraryViewModel> Children
+        public ObservableCollection<PlaylistViewModel> Children
         {
             get { return _children; }
         }
 
-        /// <summary>
-        /// Returns true if this object's Children have not yet been populated.
-        /// </summary>
-        public bool HasDummyChild
-        {
-            get { return Children.Count == 1 && Children[0] == DummyChild; }
-        }
-
-        public DTO Data
-        {
-            get { return _data; }
-        }
-
-        public string Name
+        public string Title
         {
             get { return _data.Name; }
+            set
+            {
+                _data.Name = value;
+                OnPropertyChanged("Title");
+            }
+        }
+
+        private bool _playing = false;
+
+        public bool Playing
+        {
+            get { return _playing; }
+            set
+            {
+                _playing = value;
+                OnPropertyChanged("Playing");
+                OnPropertyChanged("PlayingString");
+            }
+        }
+
+        public string PlayingString
+        {
+            get
+            {
+                if (Playing)
+                {
+                    return "🔊";
+                }
+                return " ";
+            }
         }
 
         public long ID
         {
             get { return _data.ID; }
+            set
+            {
+                _data.ID = value;
+                OnPropertyChanged("ID");
+            }
         }
 
         public double Weight
@@ -93,19 +101,19 @@ namespace MusicPlayer.Library
                 _data.Weight = value;
                 OnPropertyChanged("Weight");
 
-                if(dimUpdate)
+                if (dimUpdate)
                 {
                     OnPropertyChanged("IsDim");
                 }
             }
         }
 
-        public virtual bool IsDim
+        public bool IsDim
         {
             get { return Weight == 0.0; }
         }
 
-        #endregion // Artist Properties
+        #endregion
 
         #region Presentation Members
 
@@ -126,7 +134,6 @@ namespace MusicPlayer.Library
                     OnPropertyChanged("IsExpanded");
                 }
 
-                // Expand all the way up to the root.
                 if (_isExpanded && _parent != null)
                 {
                     _parent.IsExpanded = true;
@@ -152,45 +159,14 @@ namespace MusicPlayer.Library
                     _isSelected = value;
                     OnPropertyChanged("IsSelected");
                 }
-
-                //Expand Parent
-                if (_isSelected && _parent != null && !_parent.IsExpanded)
-                {
-                    _parent.IsExpanded = true;
-                }
             }
         }
 
         #endregion // IsSelected
 
-        #region NameContainsText
-
-        public virtual bool NameContainsText(string text)
-        {
-            if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(Name))
-                return false;
-
-            return Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
-        }
-
-        #endregion // NameContainsText
-
-        #region LoadChildren
-
-        /// <summary>
-        /// Invoked when the child items need to be loaded on demand.
-        /// Subclasses can override this to populate the Children collection.
-        /// </summary>
-        public virtual void LoadChildren(ILibraryRequestHandler dataManager)
-        {
-            Children.Clear();
-        }
-
-        #endregion // LoadChildren
-
         #region Parent
 
-        public LibraryViewModel Parent
+        public PlaylistViewModel Parent
         {
             get { return _parent; }
         }

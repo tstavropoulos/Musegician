@@ -302,6 +302,50 @@ namespace MusicPlayer.Core.DBCommands
             return RecordingData.Invalid;
         }
 
+        public RecordingDTO _GetRecording(long recordingID, long albumID)
+        {
+            RecordingDTO recording = null;
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.CommandText =
+                "SELECT " +
+                    "album.title AS album_title, " +
+                    "artist.name AS artist_name, " +
+                    "track.title AS track_title, " +
+                    "recording.live AS live " +
+                "FROM recording " +
+                "LEFT JOIN artist ON recording.artist_id=artist.id " +
+                "LEFT JOIN song ON recording.song_id=song.id " +
+                "LEFT JOIN track ON recording.id=track.recording_id " +
+                "LEFT JOIN album ON track.album_id=album.id " +
+                "WHERE recording.id=@recordingID AND track.album_id=@albumID " +
+                "LIMIT 1;";
+            readTracks.Parameters.Add(new SQLiteParameter("@recordingID", recordingID));
+            readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    recording = new RecordingDTO()
+                    {
+                        Name = string.Format(
+                            "{0} - {1} - {2}",
+                            (string)reader["artist_name"],
+                            (string)reader["album_title"],
+                            (string)reader["track_title"]),
+                        ID = recordingID,
+                        Weight = Double.NaN,
+                        Live = (bool)reader["live"]
+                    };
+                }
+            }
+
+            return recording;
+        }
+
         public string _GetPlaylistName(long recordingID)
         {
             SQLiteCommand readTracks = dbConnection.CreateCommand();

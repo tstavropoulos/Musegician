@@ -6,7 +6,8 @@
              xmlns:local="clr-namespace:MusicPlayer.Playlist"
              xmlns:core="clr-namespace:MusicPlayer"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="500">
+             d:DesignHeight="600" d:DesignWidth="500"
+             d:DataContext="{d:DesignInstance Type=local:MockPlaylistViewModel, IsDesignTimeCreatable=True}">
   <UserControl.Resources>
     <ContextMenu x:Key="PlaylistSongCM">
       <MenuItem Header="Play Song" Click="Play"/>
@@ -25,20 +26,20 @@
     </ContextMenu>
 
     <HierarchicalDataTemplate DataType="{x:Type local:PlaylistSongViewModel}"
-                                            ItemsSource="{Binding Recordings}">
+                              ItemsSource="{Binding Children}">
       <StackPanel Orientation="Horizontal" ContextMenu="{StaticResource PlaylistSongCM}">
         <core:WeightBar Margin="0,0,5,0"/>
-        <TextBlock Text="{Binding PlayingString}" VerticalAlignment="Center" MinWidth="20"/>
-        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding PlayingString}" FontSize="14" VerticalAlignment="Center" MinWidth="20"/>
+        <TextBlock Text="{Binding Title}" FontSize="14" VerticalAlignment="Center"/>
       </StackPanel>
     </HierarchicalDataTemplate>
 
     <HierarchicalDataTemplate DataType="{x:Type local:PlaylistRecordingViewModel}">
       <StackPanel Orientation="Horizontal" ContextMenu="{StaticResource PlaylistRecordingCM}">
         <core:WeightBar Margin="0,0,5,0"/>
-        <TextBlock Text="{Binding PlayingString}" VerticalAlignment="Center" MinWidth="20"/>
-        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
-        <TextBlock Text="{Binding LiveString}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+        <TextBlock Text="{Binding PlayingString}" FontSize="14" VerticalAlignment="Center" MinWidth="20"/>
+        <TextBlock Text="{Binding Title}" FontSize="14" VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding LiveString}" FontSize="14" VerticalAlignment="Center" Margin="5,0,0,0"/>
       </StackPanel>
     </HierarchicalDataTemplate>
   </UserControl.Resources>
@@ -95,13 +96,15 @@
       <TextBlock Name="playlistName" Text="{Binding Source={x:Static local:PlaylistManager.Instance}, Path=PlaylistName}" FontSize="24" Margin="6"
                  HorizontalAlignment="Center"/>
     </DockPanel>
-    <TreeView ItemsSource="{Binding PlaylistViewModels}">
+    <TreeView ItemsSource="{Binding PlaylistViewModels}"
+              KeyDown="Tree_KeyDown">
       <TreeView.ItemContainerStyle>
         <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource {x:Type TreeViewItem}}">
           <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick" />
           <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
           <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
           <Setter Property="FontWeight" Value="Normal" />
+          <Setter Property="TextBlock.Foreground" Value="WhiteSmoke"/>
           <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
               <Setter Property="FontWeight" Value="Bold" />

@@ -109,7 +109,9 @@
     <Compile Include="Core\DBCommands\AlbumCommands.cs" />
     <Compile Include="Core\DBCommands\TrackCommands.cs" />
     <Compile Include="Core\DBCommands\SongCommands.cs" />
+    <Compile Include="Core\DoubleComparisonExtension.cs" />
     <Compile Include="Core\EnumBoolConverter.cs" />
+    <Compile Include="Core\RingBuffer.cs" />
     <Compile Include="Core\WeightBar.xaml.cs">
       <DependentUpon>WeightBar.xaml</DependentUpon>
     </Compile>
@@ -137,9 +139,11 @@
     <Compile Include="Player\MusicManager.cs" />
     <Compile Include="Playlist\IPlaylistRequestHandler.cs" />
     <Compile Include="Playlist\IPlaylistTransferRequestHandler.cs" />
+    <Compile Include="Playlist\MockPlaylistViewModel.cs" />
     <Compile Include="Playlist\PlaylistManager.cs" />
     <Compile Include="Playlist\PlaylistRecordingViewModel.cs" />
     <Compile Include="Playlist\PlaylistModelView.cs" />
+    <Compile Include="Playlist\PlaylistViewModel.cs" />
     <Compile Include="Playlist\PlaylistWindow.xaml.cs">
       <DependentUpon>PlaylistWindow.xaml</DependentUpon>
     </Compile>

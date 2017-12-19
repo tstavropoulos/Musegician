@@ -18,8 +18,8 @@ using IPlaylistRequestHandler = MusicPlayer.Playlist.IPlaylistRequestHandler;
 namespace MusicPlayer
 {
     public class FileManager :
-        ILibraryRequestHandler, 
-        IPlaylistRequestHandler, 
+        ILibraryRequestHandler,
+        IPlaylistRequestHandler,
         IPlaylistTransferRequestHandler
     {
         private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3" };
@@ -238,7 +238,7 @@ namespace MusicPlayer
 
             //Initialize Recordings
             recordingCommands._InitializeValues();
-            
+
             //Initialize Tracks
             trackCommands._InitializeValues();
 
@@ -1286,66 +1286,18 @@ namespace MusicPlayer
 
         List<SongDTO> IPlaylistTransferRequestHandler.GetAlbumData(
             long albumID,
-            long exclusiveArtistID,
             bool deep)
         {
-            List<SongDTO> albumData = new List<SongDTO>();
-
-            dbConnection.Open();
-
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.CommandText =
-                "SELECT " +
-                    "song.id AS song_id, " +
-                    "song.title AS song_title, " +
-                    "artist.name AS artist_name " +
-                "FROM track " +
-                "LEFT JOIN recording ON track.recording_id=recording.id " +
-                "LEFT JOIN album ON track.album_id=album.id " +
-                "LEFT JOIN song ON recording.song_id=song.id " +
-                "LEFT JOIN artist ON recording.artist_id=artist.id " +
-                "WHERE track.album_id=@albumID ORDER BY track.disc_number ASC, track.track_number ASC;";
-            readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
-
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            if (deep)
             {
-                while (reader.Read())
-                {
-                    long songID = (long)reader["song_id"];
-                    string playlistSongName;
-
-                    if (exclusiveArtistID != -1)
-                    {
-                        playlistSongName = artistCommands._GetPlaylistSongName(
-                            artistID: exclusiveArtistID,
-                            songID: songID);
-                    }
-                    else
-                    {
-                        playlistSongName = songCommands._GetPlaylistSongName(
-                            songID: songID);
-                    }
-
-                    SongDTO newSong = new SongDTO(
-                        songID: songID,
-                        title: playlistSongName);
-
-                    foreach (RecordingDTO recording in GetRecordingList(
-                            songID: songID,
-                            exclusiveArtistID: exclusiveArtistID))
-                    {
-                        newSong.Children.Add(recording);
-                    }
-
-
-                    albumData.Add(newSong);
-                }
+                return albumCommands.GetAlbumDataDeep(
+                    albumID: albumID);
             }
-
-            dbConnection.Close();
-
-            return albumData;
+            else
+            {
+                return albumCommands.GetAlbumData(
+                    albumID: albumID);
+            }
         }
 
         List<SongDTO> IPlaylistTransferRequestHandler.GetArtistData(
@@ -1359,8 +1311,11 @@ namespace MusicPlayer
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT id " +
+                "SELECT " +
+                    "song.id AS id, " +
+                    "song_weight.weight AS weight " +
                 "FROM song " +
+                "LEFT JOIN song_weight ON song.id=song_weight.song_id " +
                 "WHERE id IN ( " +
                     "SELECT song_id " +
                     "FROM recording " +
@@ -1375,6 +1330,8 @@ namespace MusicPlayer
                     long songID = (long)reader["id"];
                     string playlistName;
 
+                    double weight = double.NaN;
+
                     if (deep)
                     {
                         playlistName = artistCommands._GetPlaylistSongName(
@@ -1387,9 +1344,18 @@ namespace MusicPlayer
                             songID: songID);
                     }
 
+
+                    if (reader["weight"].GetType() != typeof(DBNull))
+                    {
+                        weight = (double)reader["weight"];
+                    }
+
                     SongDTO newSong = new SongDTO(
                         songID: songID,
-                        title: playlistName);
+                        title: playlistName)
+                    {
+                        Weight = weight
+                    };
 
                     foreach (RecordingDTO recording in GetRecordingList(
                             songID: songID,

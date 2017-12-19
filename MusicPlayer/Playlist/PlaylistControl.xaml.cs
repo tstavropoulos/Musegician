@@ -144,7 +144,7 @@ namespace MusicPlayer.Playlist
                     }
 
                     int songIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
-                    int recordingIndex = _playlistTree.PlaylistViewModels[songIndex].Recordings.IndexOf(recording);
+                    int recordingIndex = _playlistTree.PlaylistViewModels[songIndex].Children.IndexOf(recording);
 
                     playlistMan.PlayRecording(songIndex, recordingIndex);
                 }
@@ -166,7 +166,7 @@ namespace MusicPlayer.Playlist
             {
                 e.Handled = true;
                 int songIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
-                int recordingIndex = _playlistTree.PlaylistViewModels[songIndex].Recordings.IndexOf(recording);
+                int recordingIndex = _playlistTree.PlaylistViewModels[songIndex].Children.IndexOf(recording);
 
                 playlistMan.PlayRecording(songIndex, recordingIndex);
             }
@@ -258,9 +258,9 @@ namespace MusicPlayer.Playlist
 
         private void MarkRecordingIndex(int index)
         {
-            if (index >= 0 && index < playingSong.Recordings.Count)
+            if (index >= 0 && index < playingSong.Children.Count)
             {
-                playingRecording = playingSong.Recordings[index];
+                playingRecording = playingSong.Children[index] as PlaylistRecordingViewModel;
             }
             else
             {
@@ -302,6 +302,117 @@ namespace MusicPlayer.Playlist
             PlaylistWindow window = new PlaylistWindow(false);
 
             window.Show();
+        }
+
+        private enum KeyboardActions
+        {
+            None = 0,
+            WeightUp,
+            WeightDown,
+            Play,
+            MAX
+        }
+
+        private KeyboardActions TranslateKey(Key key)
+        {
+            switch (key)
+            {
+                case Key.Return:
+                    return KeyboardActions.Play;
+                case Key.Add:
+                case Key.OemPlus:
+                    return KeyboardActions.WeightUp;
+                case Key.Subtract:
+                case Key.OemMinus:
+                    return KeyboardActions.WeightDown;
+                default:
+                    return KeyboardActions.None;
+            }
+        }
+
+        public enum PlaylistContext
+        {
+            Song = 0,
+            Recording,
+            MAX
+        }
+
+        private void Tree_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (sender is TreeView tree)
+            {
+                e.Handled = true;
+
+                KeyboardActions action = TranslateKey(e.Key);
+
+                if (action == KeyboardActions.None)
+                {
+                    //Do nothing
+                    return;
+                }
+
+                (PlaylistContext context, long id, double weight) = ExtractContextAndID(tree.SelectedItem);
+
+                if (id == -1)
+                {
+                    throw new Exception("Unexpected id = -1!");
+                }
+
+                switch (action)
+                {
+                    case KeyboardActions.WeightUp:
+                        weight = Math.Min(weight + 0.05, 1.0);
+                        break;
+                    case KeyboardActions.WeightDown:
+                        weight = Math.Max(weight - 0.05, 0.0);
+                        break;
+                    case KeyboardActions.Play:
+                        //Play thing
+
+                        return;
+                    case KeyboardActions.None:
+                    case KeyboardActions.MAX:
+                    default:
+                        throw new Exception("Unexpected KeyboardAction: " + action);
+                }
+                
+                UpdateWeight(tree.SelectedItem as PlaylistViewModel, weight);
+            }
+        }
+
+
+        private (PlaylistContext, long, double) ExtractContextAndID(object selectedItem)
+        {
+            PlaylistContext context = PlaylistContext.MAX;
+            long id = -1;
+            double weight = float.NaN;
+
+            if (selectedItem is PlaylistViewModel model)
+            {
+                id = model.ID;
+                weight = model.Weight;
+            }
+
+            if (selectedItem is PlaylistSongViewModel song)
+            {
+                context = PlaylistContext.Song;
+            }
+            else if (selectedItem is PlaylistRecordingViewModel recording)
+            {
+                context = PlaylistContext.Recording;
+            }
+
+            return (context, id, weight);
+        }
+
+        private void UpdateWeight(PlaylistViewModel selectedItem, double weight)
+        {
+            if (selectedItem == null)
+            {
+                throw new Exception("Unexpected selectedItem is null");
+            }
+
+            selectedItem.Weight = weight;
         }
     }
 }

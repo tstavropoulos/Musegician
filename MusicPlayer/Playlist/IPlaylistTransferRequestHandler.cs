@@ -12,7 +12,6 @@ namespace MusicPlayer.Playlist
     {
         List<SongDTO> GetAlbumData(
             long albumID,
-            long exclusiveArtistID = -1,
             bool deep = true);
 
         List<SongDTO> GetArtistData(
