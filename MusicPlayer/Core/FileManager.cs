@@ -7,20 +7,32 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Data.SQLite;
 using MusicPlayer.DataStructures;
-using MusicPlayer.Library;
 using System.Windows;
 using MusicPlayer.TagEditor;
 using MusicPlayer.Core.DBCommands;
 using System.Windows.Media.Imaging;
+
+//Interfaces
+using ILibraryRequestHandler = MusicPlayer.Library.ILibraryRequestHandler;
 using IPlaylistTransferRequestHandler = MusicPlayer.Playlist.IPlaylistTransferRequestHandler;
 using IPlaylistRequestHandler = MusicPlayer.Playlist.IPlaylistRequestHandler;
+using ITagRequestHandler = MusicPlayer.TagEditor.ITagRequestHandler;
+
+//Enums
+using LibraryContext = MusicPlayer.Library.LibraryContext;
 
 namespace MusicPlayer
 {
+    public class LibraryContextException : Exception
+    {
+        public LibraryContextException(string message) : base(message) { }
+    }
+
     public class FileManager :
         ILibraryRequestHandler,
         IPlaylistRequestHandler,
-        IPlaylistTransferRequestHandler
+        IPlaylistTransferRequestHandler,
+        ITagRequestHandler
     {
         private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3" };
         private readonly string[] songNameDelimiter = new string[] { " - " };
@@ -44,7 +56,7 @@ namespace MusicPlayer
 
         private PlaylistCommands playlistCommands = null;
 
-        private IPlaylistTransferRequestHandler thisTransfer
+        private IPlaylistTransferRequestHandler ThisTransfer
         {
             get { return this; }
         }
@@ -604,7 +616,9 @@ namespace MusicPlayer
             return recordingCommands.GetRecordingPlayData(recordingID);
         }
 
-        public List<TagData> GetTagData(LibraryContext context, long id)
+        #region ITagRequestHandler
+
+        IEnumerable<TagData> ITagRequestHandler.GetTagData(LibraryContext context, long id)
         {
             List<TagData> tagList = new List<TagData>();
 
@@ -782,10 +796,193 @@ namespace MusicPlayer
             return tagList;
         }
 
+
+        IEnumerable<TagData> ITagRequestHandler.GetTagData(
+            LibraryContext context,
+            IEnumerable<long> ids)
+        {
+            List<TagData> tagList = new List<TagData>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.Parameters.Add(new SQLiteParameter("@ID", ids.First()));
+
+            switch (context)
+            {
+                case LibraryContext.Artist:
+                    {
+                        readTracks.CommandText =
+                            "SELECT name AS artist_name " +
+                            "FROM artist " +
+                            "WHERE id=@ID;";
+                    }
+                    break;
+                case LibraryContext.Album:
+                    {
+                        readTracks.CommandText =
+                            "SELECT title AS album_title, year " +
+                            "FROM album " +
+                            "WHERE id=@ID;";
+                    }
+                    break;
+                case LibraryContext.Song:
+                    {
+                        readTracks.CommandText =
+                            "SELECT title AS song_title " +
+                            "FROM song " +
+                            "WHERE id=@ID;";
+                    }
+                    break;
+                case LibraryContext.Track:
+                    {
+                        readTracks.CommandText =
+                            "SELECT " +
+                                "song.title AS song_title, " +
+                                "artist.name AS artist_name, " +
+                                "album.title AS album_title, " +
+                                "album.year AS year, " +
+                                "track.title AS track_title, " +
+                                "track.track_number AS track_number, " +
+                                "track.disc_number AS disc_number," +
+                                "recording.filename AS filename, " +
+                                "recording.live AS live " +
+                            "FROM track " +
+                            "LEFT JOIN recording ON track.recording_id=recording.id " +
+                            "LEFT JOIN song ON recording.song_id=song.id " +
+                            "LEFT JOIN artist ON recording.artist_id=artist.id " +
+                            "LEFT JOIN album ON track.album_id=album.id " +
+                            "WHERE track.id=@ID;";
+                    }
+                    break;
+                case LibraryContext.Recording:
+                    {
+                        readTracks.CommandText =
+                            "SELECT " +
+                                "song.title AS song_title, " +
+                                "artist.name AS artist_name, " +
+                                "recording.filename AS filename, " +
+                                "recording.live AS live " +
+                            "FROM recording " +
+                            "LEFT JOIN song ON recording.song_id=song.id " +
+                            "LEFT JOIN artist ON recording.artist_id=artist.id " +
+                            "WHERE recording.id=@ID;";
+                    }
+                    break;
+                case LibraryContext.MAX:
+                default:
+                    dbConnection.Close();
+                    throw new Exception("Unexpected LibraryContext: " + context);
+            }
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    if (context == LibraryContext.Track ||
+                        context == LibraryContext.Recording)
+                    {
+                        tagList.Add(new TagViewable()
+                        {
+                            _CurrentValue = (string)reader["filename"],
+                            recordType = MusicRecord.Filename
+                        });
+
+                        tagList.Add(new TagDataBool()
+                        {
+                            _currentValue = (bool)reader["live"],
+                            NewValue = (bool)reader["live"],
+                            recordType = MusicRecord.Live
+                        });
+                    }
+
+                    if (context == LibraryContext.Track)
+                    {
+                        tagList.Add(new TagDataString
+                        {
+                            _currentValue = (string)reader["track_title"],
+                            NewValue = (string)reader["track_title"],
+                            recordType = MusicRecord.TrackTitle,
+                            tagType = ID3TagType.Title
+                        });
+
+                        tagList.Add(new TagDataLong
+                        {
+                            _currentValue = (long)reader["track_number"],
+                            _newValue = (long)reader["track_number"],
+                            recordType = MusicRecord.TrackNumber,
+                            tagType = ID3TagType.Track
+                        });
+
+                        tagList.Add(new TagDataLong
+                        {
+                            _currentValue = (long)reader["disc_number"],
+                            _newValue = (long)reader["disc_number"],
+                            recordType = MusicRecord.DiscNumber,
+                            tagType = ID3TagType.Disc
+                        });
+                    }
+
+                    if (context == LibraryContext.Song ||
+                        context == LibraryContext.Track ||
+                        context == LibraryContext.Recording)
+                    {
+                        tagList.Add(new TagDataString
+                        {
+                            _currentValue = (string)reader["song_title"],
+                            NewValue = (string)reader["song_title"],
+                            recordType = MusicRecord.SongTitle
+                        });
+                    }
+
+                    if (context == LibraryContext.Album ||
+                        context == LibraryContext.Track)
+                    {
+                        tagList.Add(new TagDataString
+                        {
+                            _currentValue = (string)reader["album_title"],
+                            NewValue = (string)reader["album_title"],
+                            recordType = MusicRecord.AlbumTitle,
+                            tagType = ID3TagType.Album
+                        });
+
+                        tagList.Add(new TagDataLong
+                        {
+                            _currentValue = (long)reader["year"],
+                            _newValue = (long)reader["year"],
+                            recordType = MusicRecord.AlbumYear,
+                            tagType = ID3TagType.Year
+                        });
+                    }
+
+                    if (context == LibraryContext.Artist ||
+                        context == LibraryContext.Track ||
+                        context == LibraryContext.Recording)
+                    {
+                        tagList.Add(new TagDataString
+                        {
+                            _currentValue = (string)reader["artist_name"],
+                            NewValue = (string)reader["artist_name"],
+                            recordType = MusicRecord.ArtistName,
+                            tagType = ID3TagType.Performer,
+                            tagTypeIndex = 0
+                        });
+                    }
+                }
+            }
+
+            dbConnection.Close();
+
+            return tagList;
+        }
+
         /// <summary>
         /// Identifies all of the files potentially requiring ID3 tag updates
         /// </summary>
-        public List<string> GetAffectedFiles(LibraryContext context, long id)
+        IEnumerable<string> ITagRequestHandler.GetAffectedFiles(
+            LibraryContext context,
+            long id)
         {
             List<string> affectedFiles = new List<string>();
 
@@ -835,7 +1032,6 @@ namespace MusicPlayer
                     throw new Exception("Unexpected LibraryContext: " + context);
             }
 
-
             using (SQLiteDataReader reader = readTracks.ExecuteReader())
             {
                 while (reader.Read())
@@ -849,9 +1045,76 @@ namespace MusicPlayer
             return affectedFiles;
         }
 
-        public class LibraryContextException : Exception
+        /// <summary>
+        /// Identifies all of the files potentially requiring ID3 tag updates
+        /// </summary>
+        IEnumerable<string> ITagRequestHandler.GetAffectedFiles(
+            LibraryContext context,
+            IEnumerable<long> ids)
         {
-            public LibraryContextException(string message) : base(message) { }
+            List<string> affectedFiles = new List<string>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.Parameters.Add("@ID", System.Data.DbType.Int64);
+
+            switch (context)
+            {
+                case LibraryContext.Artist:
+                    readTracks.CommandText =
+                        "SELECT filename " +
+                        "FROM recording " +
+                        "WHERE recording.artist_id=@ID;";
+                    break;
+                case LibraryContext.Album:
+                    readTracks.CommandText =
+                        "SELECT recording.filename AS filename " +
+                        "FROM track " +
+                        "LEFT JOIN recording ON track.recording_id=recording.id " +
+                        "WHERE track.album_id=@ID;";
+                    break;
+                case LibraryContext.Song:
+                    readTracks.CommandText =
+                        "SELECT filename " +
+                        "FROM recording " +
+                        "WHERE recording.song_id=@ID;";
+                    break;
+                case LibraryContext.Track:
+                    readTracks.CommandText =
+                        "SELECT recording.filename AS filename " +
+                        "FROM track " +
+                        "LEFT JOIN recording ON track.recording_id=recording.id " +
+                        "WHERE track.id=@ID;";
+                    break;
+                case LibraryContext.Recording:
+                    readTracks.CommandText =
+                        "SELECT filename " +
+                        "FROM recording " +
+                        "WHERE recording.id=@ID;";
+                    break;
+                case LibraryContext.MAX:
+                default:
+                    dbConnection.Close();
+                    throw new Exception("Unexpected LibraryContext: " + context);
+            }
+
+            foreach (long id in ids)
+            {
+                readTracks.Parameters["@ID"].Value = id;
+                using (SQLiteDataReader reader = readTracks.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        affectedFiles.Add((string)reader["filename"]);
+                    }
+                }
+            }
+
+            dbConnection.Close();
+
+            return affectedFiles;
         }
 
         /// <summary>
@@ -862,9 +1125,13 @@ namespace MusicPlayer
         /// <param name="record"></param>
         /// <param name="newString"></param>
         /// <exception cref="LibraryContextException"/>
-        public void UpdateRecord(LibraryContext context, IList<long> ids, MusicRecord record, string newString)
+        void ITagRequestHandler.UpdateRecord(
+            LibraryContext context,
+            IEnumerable<long> ids,
+            MusicRecord record,
+            string newString)
         {
-            if (ids.Count == 0)
+            if (ids.Count() == 0)
             {
                 throw new InvalidOperationException(string.Format(
                     "Found 0 records to modify for LibraryContext {0}, MusicRecord {1}",
@@ -991,7 +1258,11 @@ namespace MusicPlayer
             }
         }
 
-        public void UpdateRecord(LibraryContext context, IList<long> ids, MusicRecord record, long newLong)
+        void ITagRequestHandler.UpdateRecord(
+            LibraryContext context,
+            IEnumerable<long> ids,
+            MusicRecord record,
+            long newLong)
         {
             switch (record)
             {
@@ -1035,7 +1306,11 @@ namespace MusicPlayer
             }
         }
 
-        public void UpdateRecord(LibraryContext context, IList<long> ids, MusicRecord record, bool newBool)
+        void ITagRequestHandler.UpdateRecord(
+            LibraryContext context,
+            IEnumerable<long> ids,
+            MusicRecord record,
+            bool newBool)
         {
             switch (record)
             {
@@ -1060,7 +1335,11 @@ namespace MusicPlayer
             }
         }
 
-        public void UpdateRecord(LibraryContext context, IList<long> ids, MusicRecord record, double newDouble)
+        void ITagRequestHandler.UpdateRecord(
+            LibraryContext context,
+            IEnumerable<long> ids,
+            MusicRecord record,
+            double newDouble)
         {
             switch (record)
             {
@@ -1124,6 +1403,7 @@ namespace MusicPlayer
             }
         }
 
+        #endregion ITagRequestHandler
         #region ILibraryRequestHandler
 
         List<ArtistDTO> ILibraryRequestHandler.GenerateArtistList()
@@ -1156,29 +1436,23 @@ namespace MusicPlayer
             return songCommands.GenerateArtistSongList(artistID, artistName);
         }
 
-        void ILibraryRequestHandler.UpdateWeight(LibraryContext context, long id, double weight)
+        void ILibraryRequestHandler.UpdateWeights(
+            LibraryContext context,
+            IList<(long id, double weight)> values)
         {
             switch (context)
             {
                 case LibraryContext.Artist:
-                    artistCommands.UpdateWeight(
-                        artistID: id,
-                        weight: weight);
+                    artistCommands.UpdateWeights(values);
                     break;
                 case LibraryContext.Album:
-                    albumCommands.UpdateWeight(
-                        albumID: id,
-                        weight: weight);
+                    albumCommands.UpdateWeights(values);
                     break;
                 case LibraryContext.Song:
-                    songCommands.UpdateWeight(
-                        songID: id,
-                        weight: weight);
+                    songCommands.UpdateWeights(values);
                     break;
                 case LibraryContext.Track:
-                    trackCommands.UpdateWeight(
-                        trackID: id,
-                        weight: weight);
+                    trackCommands.UpdateWeights(values);
                     break;
                 case LibraryContext.Recording:
                 case LibraryContext.MAX:
@@ -1187,8 +1461,7 @@ namespace MusicPlayer
             }
         }
 
-        #endregion // ILibraryRequestHandler
-
+        #endregion ILibraryRequestHandler
         #region IPlaylistRequestHandler
 
         void IPlaylistRequestHandler.SavePlaylist(string title, ICollection<SongDTO> songs)
@@ -1219,8 +1492,7 @@ namespace MusicPlayer
                 playlistID: playlistID);
         }
 
-        #endregion // IPlaylistRequestHandler
-
+        #endregion IPlaylistRequestHandler
         #region IPlaylistTransferRequestHandler
 
         List<SongDTO> IPlaylistTransferRequestHandler.GetSongDataFromRecordingID(
@@ -1234,7 +1506,7 @@ namespace MusicPlayer
                 return null;
             }
 
-            return thisTransfer.GetSongData(
+            return ThisTransfer.GetSongData(
                 songID: data.songID,
                 exclusiveRecordingID: recordingID);
         }
@@ -1393,6 +1665,6 @@ namespace MusicPlayer
         }
 
 
-        #endregion // IPlaylistTransferRequestHandler
+        #endregion IPlaylistTransferRequestHandler
     }
 }

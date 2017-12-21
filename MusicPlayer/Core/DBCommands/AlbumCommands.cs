@@ -268,7 +268,7 @@ namespace MusicPlayer.Core.DBCommands
             return albumData;
         }
 
-        public void UpdateWeight(long albumID, double weight)
+        public void UpdateWeights(IList<(long albumID, double weight)> values)
         {
             dbConnection.Open();
 
@@ -278,10 +278,16 @@ namespace MusicPlayer.Core.DBCommands
                 "INSERT OR REPLACE INTO album_weight " +
                 "(album_id, weight) VALUES " +
                 "(@albumID, @weight);";
-            updateWeight.Parameters.Add(new SQLiteParameter("@albumID", albumID));
-            updateWeight.Parameters.Add(new SQLiteParameter("@weight", weight));
 
-            updateWeight.ExecuteNonQuery();
+            updateWeight.Parameters.Add("@albumID", DbType.Int64);
+            updateWeight.Parameters.Add("@weight", DbType.Double);
+
+            foreach(var value in values)
+            {
+                updateWeight.Parameters["@albumID"].Value = value.albumID;
+                updateWeight.Parameters["@weight"].Value = value.weight;
+                updateWeight.ExecuteNonQuery();
+            }
 
             dbConnection.Close();
         }

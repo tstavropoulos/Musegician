@@ -267,7 +267,9 @@ namespace MusicPlayer.Library
             return recordingList;
         }
 
-        void ILibraryRequestHandler.UpdateWeight(LibraryContext context, long id, double weight)
+        void ILibraryRequestHandler.UpdateWeights(
+            LibraryContext context, 
+            IList<(long id, double weight)> values)
         {
             throw new NotImplementedException();
         }

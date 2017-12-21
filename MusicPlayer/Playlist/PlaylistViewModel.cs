@@ -9,7 +9,7 @@ using MusicPlayer.DataStructures;
 
 namespace MusicPlayer.Playlist
 {
-    abstract class PlaylistViewModel : INotifyPropertyChanged
+    public abstract class PlaylistViewModel : INotifyPropertyChanged
     {
         #region Data
 
@@ -60,19 +60,6 @@ namespace MusicPlayer.Playlist
             {
                 _playing = value;
                 OnPropertyChanged("Playing");
-                OnPropertyChanged("PlayingString");
-            }
-        }
-
-        public string PlayingString
-        {
-            get
-            {
-                if (Playing)
-                {
-                    return "🔊";
-                }
-                return " ";
             }
         }
 

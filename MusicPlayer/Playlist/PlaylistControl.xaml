@@ -3,11 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:MusicPlayer.Playlist"
-             xmlns:core="clr-namespace:MusicPlayer"
+             xmlns:playlist="clr-namespace:MusicPlayer.Playlist"
+             xmlns:core="clr-namespace:MusicPlayer.Core"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="500"
-             d:DataContext="{d:DesignInstance Type=local:MockPlaylistViewModel, IsDesignTimeCreatable=True}">
+             d:DataContext="{d:DesignInstance Type=playlist:MockPlaylistViewModel, IsDesignTimeCreatable=True}">
   <UserControl.Resources>
     <ContextMenu x:Key="PlaylistSongCM">
       <MenuItem Header="Play Song" Click="Play"/>
@@ -25,19 +25,19 @@
       <MenuItem Header="Remove Recording" Click="Remove"/>
     </ContextMenu>
 
-    <HierarchicalDataTemplate DataType="{x:Type local:PlaylistSongViewModel}"
+    <HierarchicalDataTemplate DataType="{x:Type playlist:PlaylistSongViewModel}"
                               ItemsSource="{Binding Children}">
-      <StackPanel Orientation="Horizontal" ContextMenu="{StaticResource PlaylistSongCM}">
+      <StackPanel Orientation="Horizontal" Background="Transparent"
+                  ContextMenu="{StaticResource PlaylistSongCM}">
         <core:WeightBar Margin="0,0,5,0"/>
-        <TextBlock Text="{Binding PlayingString}" FontSize="14" VerticalAlignment="Center" MinWidth="20"/>
         <TextBlock Text="{Binding Title}" FontSize="14" VerticalAlignment="Center"/>
       </StackPanel>
     </HierarchicalDataTemplate>
 
-    <HierarchicalDataTemplate DataType="{x:Type local:PlaylistRecordingViewModel}">
-      <StackPanel Orientation="Horizontal" ContextMenu="{StaticResource PlaylistRecordingCM}">
+    <HierarchicalDataTemplate DataType="{x:Type playlist:PlaylistRecordingViewModel}">
+      <StackPanel Orientation="Horizontal" Background="Transparent"
+                  ContextMenu="{StaticResource PlaylistRecordingCM}">
         <core:WeightBar Margin="0,0,5,0"/>
-        <TextBlock Text="{Binding PlayingString}" FontSize="14" VerticalAlignment="Center" MinWidth="20"/>
         <TextBlock Text="{Binding Title}" FontSize="14" VerticalAlignment="Center"/>
         <TextBlock Text="{Binding LiveString}" FontSize="14" VerticalAlignment="Center" Margin="5,0,0,0"/>
       </StackPanel>
@@ -48,7 +48,7 @@
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
         <ToggleButton Name="shuffleToggleButton"
                       ToolTip="Shuffle"
-                      IsChecked="{Binding Source={x:Static local:PlaylistManager.Instance}, Path=Shuffle, Mode=TwoWay}"
+                      IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Shuffle, Mode=TwoWay}"
                       TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
                       Margin="1,2,4,2" Height="34" Width="34">
           <ToggleButton.Style>
@@ -64,7 +64,7 @@
         </ToggleButton>
         <ToggleButton Name="repeatToggleButton"
                       ToolTip="Repeat"
-                      IsChecked="{Binding Source={x:Static local:PlaylistManager.Instance}, Path=Repeat, Mode=TwoWay}"
+                      IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Repeat, Mode=TwoWay}"
                       Content="🔁" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
                       Margin="0,0,0,0" Height="34" Width="34"/>
         <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
@@ -93,18 +93,23 @@
                 Content="📂" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
                 Margin="0,0,4,0" Height="33" Width="33"/>
       </StackPanel>
-      <TextBlock Name="playlistName" Text="{Binding Source={x:Static local:PlaylistManager.Instance}, Path=PlaylistName}" FontSize="24" Margin="6"
-                 HorizontalAlignment="Center"/>
+      <TextBlock Name="playlistName"
+                 Text="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=PlaylistName}"
+                 FontSize="24" Margin="6" HorizontalAlignment="Center"/>
     </DockPanel>
-    <TreeView ItemsSource="{Binding PlaylistViewModels}"
-              KeyDown="Tree_KeyDown">
-      <TreeView.ItemContainerStyle>
-        <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource {x:Type TreeViewItem}}">
-          <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick" />
-          <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
-          <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
+    <core:MultiSelectTreeView x:Name="PlaylistTree"
+                              ItemsSource="{Binding PlaylistViewModels}"
+                              KeyDown="Tree_KeyDown">
+      <core:MultiSelectTreeView.ItemContainerStyle>
+        <Style TargetType="core:MultiSelectTreeViewItem"
+               BasedOn="{StaticResource {x:Type core:MultiSelectTreeViewItem}}">
+          <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick"/>
+          <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+          <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+          <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+          <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+          <Setter Property="IsAltState" Value="{Binding Playing}" />
           <Setter Property="FontWeight" Value="Normal" />
-          <Setter Property="TextBlock.Foreground" Value="WhiteSmoke"/>
           <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
               <Setter Property="FontWeight" Value="Bold" />
@@ -114,7 +119,7 @@
             </DataTrigger>
           </Style.Triggers>
         </Style>
-      </TreeView.ItemContainerStyle>
-    </TreeView>
+      </core:MultiSelectTreeView.ItemContainerStyle>
+    </core:MultiSelectTreeView>
   </DockPanel>
 </UserControl>

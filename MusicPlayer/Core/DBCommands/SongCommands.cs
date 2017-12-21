@@ -49,7 +49,7 @@ namespace MusicPlayer.Core.DBCommands
         /// </summary>
         /// <param name="songIDs"></param>
         /// <param name="newTitle"></param>
-        public void UpdateSongTitle(ICollection<long> songIDs, string newTitle)
+        public void UpdateSongTitle(IEnumerable<long> songIDs, string newTitle)
         {
             List<long> songIDsCopy = new List<long>(songIDs);
 
@@ -189,7 +189,7 @@ namespace MusicPlayer.Core.DBCommands
             return songList;
         }
 
-        public void UpdateWeight(long songID, double weight)
+        public void UpdateWeights(IList<(long songID, double weight)> values)
         {
             dbConnection.Open();
 
@@ -199,10 +199,15 @@ namespace MusicPlayer.Core.DBCommands
                 "INSERT OR REPLACE INTO song_weight " +
                 "(song_id, weight) VALUES " +
                 "(@songID, @weight);";
-            updateWeight.Parameters.Add(new SQLiteParameter("@songID", songID));
-            updateWeight.Parameters.Add(new SQLiteParameter("@weight", weight));
+            updateWeight.Parameters.Add("@songID", DbType.Int64);
+            updateWeight.Parameters.Add("@weight", DbType.Double);
 
-            updateWeight.ExecuteNonQuery();
+            foreach (var value in values)
+            {
+                updateWeight.Parameters["@songID"].Value = value.songID;
+                updateWeight.Parameters["@weight"].Value = value.weight;
+                updateWeight.ExecuteNonQuery();
+            }
 
             dbConnection.Close();
         }

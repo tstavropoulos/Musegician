@@ -9,7 +9,7 @@ using MusicPlayer.DataStructures;
 
 namespace MusicPlayer.Playlist
 {
-    class PlaylistRecordingViewModel : PlaylistViewModel
+    public class PlaylistRecordingViewModel : PlaylistViewModel
     {
         #region Constructor
 

@@ -49,7 +49,7 @@ namespace MusicPlayer.Core.DBCommands
         /// </summary>
         /// <param name="songIDs"></param>
         /// <param name="newTitle"></param>
-        public void UpdateSongTitle(ICollection<long> trackIDs, string newTitle)
+        public void UpdateSongTitle(IEnumerable<long> trackIDs, string newTitle)
         {
             List<long> trackIDsCopy = new List<long>(trackIDs);
 
@@ -96,7 +96,7 @@ namespace MusicPlayer.Core.DBCommands
         /// </summary>
         /// <param name="songIDs"></param>
         /// <param name="newTitle"></param>
-        public void UpdateArtistName(ICollection<long> trackIDs, string newArtistName)
+        public void UpdateArtistName(IEnumerable<long> trackIDs, string newArtistName)
         {
             List<long> songIDsCopy = new List<long>(trackIDs);
 
@@ -136,7 +136,7 @@ namespace MusicPlayer.Core.DBCommands
         }
 
 
-        public void UpdateWeight(long trackID, double weight)
+        public void UpdateWeights(IList<(long trackID, double weight)> values)
         {
             dbConnection.Open();
 
@@ -146,10 +146,15 @@ namespace MusicPlayer.Core.DBCommands
                 "INSERT OR REPLACE INTO track_weight " +
                 "(track_id, weight) VALUES " +
                 "(@trackID, @weight);";
-            updateWeight.Parameters.Add(new SQLiteParameter("@trackID", trackID));
-            updateWeight.Parameters.Add(new SQLiteParameter("@weight", weight));
+            updateWeight.Parameters.Add("@trackID", DbType.Int64);
+            updateWeight.Parameters.Add("@weight", DbType.Double);
 
-            updateWeight.ExecuteNonQuery();
+            foreach (var value in values)
+            {
+                updateWeight.Parameters["@trackID"].Value = value.trackID;
+                updateWeight.Parameters["@weight"].Value = value.weight;
+                updateWeight.ExecuteNonQuery();
+            }
 
             dbConnection.Close();
         }

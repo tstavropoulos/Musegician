@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 
-namespace MusicPlayer
+namespace MusicPlayer.Core
 {
     /// <summary>
     /// Example Usage:

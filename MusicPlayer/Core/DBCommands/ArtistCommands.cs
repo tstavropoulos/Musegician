@@ -44,7 +44,7 @@ namespace MusicPlayer.Core.DBCommands
 
         #region High Level Commands
 
-        public void UpdateArtistName(ICollection<long> artistIDs, string newArtistName)
+        public void UpdateArtistName(IEnumerable<long> artistIDs, string newArtistName)
         {
             List<long> artistIDsCopy = new List<long>(artistIDs);
 
@@ -157,7 +157,7 @@ namespace MusicPlayer.Core.DBCommands
             return artistName;
         }
 
-        public void UpdateWeight(long artistID, double weight)
+        public void UpdateWeights(IList<(long artistID, double weight)> values)
         {
             dbConnection.Open();
 
@@ -167,10 +167,16 @@ namespace MusicPlayer.Core.DBCommands
                 "INSERT OR REPLACE INTO artist_weight " +
                 "(artist_id, weight) VALUES " +
                 "(@artistID, @weight);";
-            updateWeight.Parameters.Add(new SQLiteParameter("@artistID", artistID));
-            updateWeight.Parameters.Add(new SQLiteParameter("@weight", weight));
 
-            updateWeight.ExecuteNonQuery();
+            updateWeight.Parameters.Add("@artistID", DbType.Int64);
+            updateWeight.Parameters.Add("@weight", DbType.Double);
+
+            foreach (var value in values)
+            {
+                updateWeight.Parameters["@artistID"].Value = value.artistID;
+                updateWeight.Parameters["@weight"].Value = value.weight;
+                updateWeight.ExecuteNonQuery();
+            }
 
             dbConnection.Close();
         }
@@ -210,7 +216,7 @@ namespace MusicPlayer.Core.DBCommands
             readTracks.CommandText =
                 "SELECT " +
                     "song.title AS title, " +
-                    "artist.name AS name, " +
+                    "artist.name AS name " +
                 "FROM artist " +
                 "LEFT JOIN song ON song.id=@songID " +
                 "WHERE artist.id=@artistID;";

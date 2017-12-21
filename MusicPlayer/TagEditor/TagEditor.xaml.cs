@@ -54,39 +54,41 @@ namespace MusicPlayer.TagEditor
     /// </summary>
     public partial class TagEditor : Window
     {
-        private FileManager fileManager;
-        private List<long> ids;
+        private IList<long> ids;
         private LibraryContext context;
 
-        List<TagData> tags;
+        IEnumerable<TagData> tags;
 
-        public List<TagData> Tags
+        public IEnumerable<TagData> Tags
         {
             get { return tags; }
         }
 
-        public TagEditor(LibraryContext context, long id, FileManager fileManager)
+        private ITagRequestHandler requestHandler
+        {
+            get { return FileManager.Instance; }
+        }
+
+        public TagEditor(LibraryContext context, long id)
         {
             InitializeComponent();
 
             this.context = context;
             this.ids = new List<long>(new long[] { id });
-            this.fileManager = fileManager;
 
-            tags = fileManager.GetTagData(context, id);
+            tags = requestHandler.GetTagData(context, id);
 
             tagView.ItemsSource = Tags;
         }
 
-        public TagEditor(LibraryContext context, List<long> ids, FileManager fileManager)
+        public TagEditor(LibraryContext context, IList<long> ids)
         {
             InitializeComponent();
 
             this.context = context;
             this.ids = ids;
-            this.fileManager = fileManager;
 
-            tags = fileManager.GetTagData(context, ids[0]);
+            tags = requestHandler.GetTagData(context, ids[0]);
 
             tagView.ItemsSource = Tags;
         }
@@ -115,9 +117,7 @@ namespace MusicPlayer.TagEditor
                         case MusicRecord.Filename:
                         case MusicRecord.MAX:
                         default:
-                            {
-                                throw new Exception("Unexpected MusicRecord value: " + tag.recordType);
-                            }
+                            throw new Exception("Unexpected MusicRecord value: " + tag.recordType);
                     }
                 }
 
@@ -131,7 +131,7 @@ namespace MusicPlayer.TagEditor
             {
                 foreach (long id in ids)
                 {
-                    List<string> paths = fileManager.GetAffectedFiles(context, id);
+                    IEnumerable<string> paths = requestHandler.GetAffectedFiles(context, id);
 
                     foreach (string path in paths)
                     {
@@ -208,7 +208,7 @@ namespace MusicPlayer.TagEditor
                     {
                         if (tag is TagDataString data)
                         {
-                            fileManager.UpdateRecord(context, ids, record, data.NewValue);
+                            requestHandler.UpdateRecord(context, ids, record, data.NewValue);
                         }
                     }
                     break;
@@ -218,7 +218,7 @@ namespace MusicPlayer.TagEditor
                     {
                         if (tag is TagDataLong data)
                         {
-                            fileManager.UpdateRecord(context, ids, record, data.NewLong);
+                            requestHandler.UpdateRecord(context, ids, record, data.NewLong);
                         }
                     }
                     break;
@@ -226,7 +226,7 @@ namespace MusicPlayer.TagEditor
                     {
                         if (tag is TagDataBool data)
                         {
-                            fileManager.UpdateRecord(context, ids, record, data.NewValue);
+                            requestHandler.UpdateRecord(context, ids, record, data.NewValue);
                         }
                     }
                     break;
@@ -238,7 +238,7 @@ namespace MusicPlayer.TagEditor
             Console.WriteLine("Not yet implemented.");
         }
 
-        private void UpdateTags(TagLib.File file, IList<TagData> tags)
+        private void UpdateTags(TagLib.File file, IEnumerable<TagData> tags)
         {
             foreach (TagData tag in tags)
             {

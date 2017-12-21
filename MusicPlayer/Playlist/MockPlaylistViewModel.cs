@@ -10,7 +10,7 @@ using System.Windows.Media.Imaging;
 
 namespace MusicPlayer.Playlist
 {
-    class MockPlaylistViewModel
+    public class MockPlaylistViewModel
     {
         readonly ObservableCollection<PlaylistSongViewModel> _playlistViewModels;
 
@@ -27,6 +27,7 @@ namespace MusicPlayer.Playlist
 
             _playlistViewModels[7].IsExpanded = true;
             _playlistViewModels[7].Playing = true;
+            _playlistViewModels[7].Children[0].IsSelected = true;
             _playlistViewModels[7].Children[0].Playing = true;
             _playlistViewModels[10].IsExpanded = true;
         }

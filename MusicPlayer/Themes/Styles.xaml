@@ -3,6 +3,7 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:darkBlendTheme="clr-namespace:DarkBlendTheme"
+                    xmlns:core="clr-namespace:MusicPlayer.Core"
                     mc:Ignorable="d">
 
   <!--#region Converters-->
@@ -91,6 +92,8 @@
   <SolidColorBrush x:Key="ListBorder" Color="{StaticResource DarkBackgroundColor}"/>
   <SolidColorBrush x:Key="ListBackground" Color="{StaticResource DarkBackgroundColor}"/>
   <SolidColorBrush x:Key="SelectedListItem" Color="{StaticResource HighlightColor}"/>
+  <SolidColorBrush x:Key="AltListItem" Color="DarkBlue"/>
+  <SolidColorBrush x:Key="AltSelectedListItem" Color="DarkSlateBlue"/>
   <SolidColorBrush x:Key="SelectedListItemForeground" Color="{StaticResource DarkBackgroundColor}"/>
   <SolidColorBrush x:Key="MouseOverListItem" Color="#4A4A4A"/>
 
@@ -2191,24 +2194,10 @@
             <Trigger Property="IsEnabled" Value="false">
               <Setter Property="Foreground" Value="{StaticResource TreeViewDisabledForeground}"/>
             </Trigger>
-            <!--<Trigger Property="VirtualizingPanel.IsVirtualizing" Value="true">
-    							<Setter Property="CanContentScroll" TargetName="_tv_scrollviewer_" Value="true"/>
-    						</Trigger>-->
           </ControlTemplate.Triggers>
         </ControlTemplate>
       </Setter.Value>
     </Setter>
-    <!--<Style.Triggers>
-            <Trigger Property="VirtualizingPanel.IsVirtualizing" Value="true">
-                <Setter Property="ItemsPanel">
-                    <Setter.Value>
-                        <ItemsPanelTemplate>
-                            <VirtualizingStackPanel/>
-                        </ItemsPanelTemplate>
-                    </Setter.Value>
-                </Setter>
-            </Trigger>
-        </Style.Triggers>-->
   </Style>
   <Style x:Key="TreeViewItemFocusVisual">
     <Setter Property="Control.Template">
@@ -2219,6 +2208,7 @@
       </Setter.Value>
     </Setter>
   </Style>
+
   <Style TargetType="{x:Type TreeViewItem}">
     <Setter Property="Background" Value="Transparent"/>
     <Setter Property="MinHeight" Value="21"/>
@@ -2303,6 +2293,7 @@
       </Setter.Value>
     </Setter>
   </Style>
+  
   <Style x:Key="TreeViewToggleButtonStyle" TargetType="{x:Type ToggleButton}">
     <Setter Property="Focusable" Value="False"/>
     <Setter Property="Template">
@@ -2453,6 +2444,7 @@
   </Style>
   <!--#endregion-->
 
+  
   <!--#region StatusBar-->
   <Style TargetType="{x:Type StatusBar}">
     <Setter Property="Margin" Value="1 0 3 0"/>
@@ -3457,5 +3449,4 @@
     </Setter>
   </Style>
 
-  <!--#endregion-->
 </ResourceDictionary>

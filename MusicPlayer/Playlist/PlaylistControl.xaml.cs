@@ -23,7 +23,7 @@ namespace MusicPlayer.Playlist
     {
         PlaylistTreeViewModel _playlistTree;
 
-        PlaylistManager playlistMan
+        PlaylistManager PlaylistMan
         {
             get { return PlaylistManager.Instance; }
         }
@@ -42,7 +42,7 @@ namespace MusicPlayer.Playlist
 
 
         private PlaylistSongViewModel _playingSong;
-        private PlaylistSongViewModel playingSong
+        private PlaylistSongViewModel PlayingSong
         {
             get { return _playingSong; }
             set
@@ -65,7 +65,7 @@ namespace MusicPlayer.Playlist
         }
 
         private PlaylistRecordingViewModel _playingRecording;
-        private PlaylistRecordingViewModel playingRecording
+        private PlaylistRecordingViewModel PlayingRecording
         {
             get { return _playingRecording; }
             set
@@ -96,13 +96,15 @@ namespace MusicPlayer.Playlist
         {
             InitializeComponent();
 
-            playlistMan.addBack += AddBack;
-            playlistMan.rebuild += Rebuild;
-            playlistMan.RemoveAt += RemoveAt;
+            PlaylistMan.addBack += AddBack;
+            PlaylistMan.rebuild += Rebuild;
+            PlaylistMan.RemoveAt += RemoveAt;
 
-            playlistMan.MarkIndex += MarkIndex;
-            playlistMan.MarkRecordingIndex += MarkRecordingIndex;
-            playlistMan.UnmarkAll += UnmarkAll;
+            PlaylistMan.MarkIndex += MarkIndex;
+            PlaylistMan.MarkRecordingIndex += MarkRecordingIndex;
+            PlaylistMan.UnmarkAll += UnmarkAll;
+
+            _playlistTree = new PlaylistTreeViewModel();
         }
 
         private void Rebuild(ICollection<SongDTO> songs)
@@ -133,7 +135,7 @@ namespace MusicPlayer.Playlist
                         return;
                     }
 
-                    playlistMan.PlayIndex(_playlistTree.PlaylistViewModels.IndexOf(song));
+                    PlaylistMan.PlayIndex(_playlistTree.PlaylistViewModels.IndexOf(song));
                 }
                 else if (treeItem.Header is PlaylistRecordingViewModel recording)
                 {
@@ -146,7 +148,7 @@ namespace MusicPlayer.Playlist
                     int songIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
                     int recordingIndex = _playlistTree.PlaylistViewModels[songIndex].Children.IndexOf(recording);
 
-                    playlistMan.PlayRecording(songIndex, recordingIndex);
+                    PlaylistMan.PlayRecording(songIndex, recordingIndex);
                 }
             }
         }
@@ -160,7 +162,7 @@ namespace MusicPlayer.Playlist
                 e.Handled = true;
                 int index = _playlistTree.PlaylistViewModels.IndexOf(song);
 
-                playlistMan.PlayIndex(index);
+                PlaylistMan.PlayIndex(index);
             }
             else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
             {
@@ -168,7 +170,7 @@ namespace MusicPlayer.Playlist
                 int songIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
                 int recordingIndex = _playlistTree.PlaylistViewModels[songIndex].Children.IndexOf(recording);
 
-                playlistMan.PlayRecording(songIndex, recordingIndex);
+                PlaylistMan.PlayRecording(songIndex, recordingIndex);
             }
             else
             {
@@ -185,7 +187,7 @@ namespace MusicPlayer.Playlist
                 e.Handled = true;
                 int indexToRemove = _playlistTree.PlaylistViewModels.IndexOf(song);
 
-                playlistMan.RemoveIndex(indexToRemove);
+                PlaylistMan.RemoveIndex(indexToRemove);
             }
             else if (menuItem.DataContext is PlaylistRecordingData recording)
             {
@@ -240,31 +242,31 @@ namespace MusicPlayer.Playlist
 
         private void UnmarkAll()
         {
-            playingSong = null;
-            playingRecording = null;
+            PlayingSong = null;
+            PlayingRecording = null;
         }
 
         private void MarkIndex(int index)
         {
             if (index >= 0 && index < ItemCount)
             {
-                playingSong = _playlistTree.PlaylistViewModels[index];
+                PlayingSong = _playlistTree.PlaylistViewModels[index];
             }
             else
             {
-                playingSong = null;
+                PlayingSong = null;
             }
         }
 
         private void MarkRecordingIndex(int index)
         {
-            if (index >= 0 && index < playingSong.Children.Count)
+            if (index >= 0 && index < PlayingSong.Children.Count)
             {
-                playingRecording = playingSong.Children[index] as PlaylistRecordingViewModel;
+                PlayingRecording = PlayingSong.Children[index] as PlaylistRecordingViewModel;
             }
             else
             {
-                playingRecording = null;
+                PlayingRecording = null;
             }
         }
 
@@ -277,14 +279,14 @@ namespace MusicPlayer.Playlist
         {
             e.Handled = true;
 
-            playlistMan.ClearPlaylist();
+            PlaylistMan.ClearPlaylist();
         }
 
         private void Toolbar_SavePlaylist(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
 
-            if (playlistMan.ItemCount == 0)
+            if (PlaylistMan.ItemCount == 0)
             {
                 MessageBox.Show("Cannot save empty playlist.", "Empty Playlist");
                 return;
@@ -351,68 +353,88 @@ namespace MusicPlayer.Playlist
                     return;
                 }
 
-                (PlaylistContext context, long id, double weight) = ExtractContextAndID(tree.SelectedItem);
-
-                if (id == -1)
+                (PlaylistContext context, List<(long id, double weight)> values) =
+                    ExtractContextIDAndWeights();
+                
+                for (int i = 0; i < values.Count; i++)
                 {
-                    throw new Exception("Unexpected id = -1!");
-                }
+                    (long id, double weight) = values[i];
 
-                switch (action)
-                {
-                    case KeyboardActions.WeightUp:
-                        weight = Math.Min(weight + 0.05, 1.0);
-                        break;
-                    case KeyboardActions.WeightDown:
-                        weight = Math.Max(weight - 0.05, 0.0);
-                        break;
-                    case KeyboardActions.Play:
-                        //Play thing
+                    if (id == -1)
+                    {
+                        throw new Exception("Unexpected id = -1!");
+                    }
 
-                        return;
-                    case KeyboardActions.None:
-                    case KeyboardActions.MAX:
-                    default:
-                        throw new Exception("Unexpected KeyboardAction: " + action);
+                    switch (action)
+                    {
+                        case KeyboardActions.WeightUp:
+                            weight = Math.Min(weight + 0.05, 1.0);
+                            break;
+                        case KeyboardActions.WeightDown:
+                            weight = Math.Max(weight - 0.05, 0.0);
+                            break;
+                        case KeyboardActions.Play:
+                            //Play thing
+
+                            return;
+                        case KeyboardActions.None:
+                        case KeyboardActions.MAX:
+                        default:
+                            throw new Exception("Unexpected KeyboardAction: " + action);
+                    }
+
+                    values[i] = (id, weight);
                 }
                 
-                UpdateWeight(tree.SelectedItem as PlaylistViewModel, weight);
+                UpdateWeights(values);
             }
         }
 
-
-        private (PlaylistContext, long, double) ExtractContextAndID(object selectedItem)
+        private (PlaylistContext context, List<(long id, double weight)> values) ExtractContextIDAndWeights()
         {
+            IEnumerable<PlaylistViewModel> selectedItems = PlaylistTree.SelectedItems.OfType<PlaylistViewModel>();
+            
             PlaylistContext context = PlaylistContext.MAX;
-            long id = -1;
-            double weight = float.NaN;
+            List<(long id, double weight)> weightList = new List<(long id, double weight)>();
 
-            if (selectedItem is PlaylistViewModel model)
+
+            if(selectedItems.Count() > 0)
             {
-                id = model.ID;
-                weight = model.Weight;
+                PlaylistViewModel firstSelectedItem = selectedItems.First();
+
+                if (firstSelectedItem is PlaylistSongViewModel song)
+                {
+                    context = PlaylistContext.Song;
+                }
+                else if (firstSelectedItem is PlaylistRecordingViewModel recording)
+                {
+                    context = PlaylistContext.Recording;
+                }
+
+                foreach (PlaylistViewModel model in selectedItems)
+                {
+                    weightList.Add((model.ID, model.Weight));
+                }
             }
 
-            if (selectedItem is PlaylistSongViewModel song)
-            {
-                context = PlaylistContext.Song;
-            }
-            else if (selectedItem is PlaylistRecordingViewModel recording)
-            {
-                context = PlaylistContext.Recording;
-            }
-
-            return (context, id, weight);
+            return (context, weightList);
         }
 
-        private void UpdateWeight(PlaylistViewModel selectedItem, double weight)
+        private void UpdateWeights(IList<(long id, double weight)> values)
         {
-            if (selectedItem == null)
+            int i = 0;
+            foreach (PlaylistViewModel model in PlaylistTree.SelectedItems)
             {
-                throw new Exception("Unexpected selectedItem is null");
-            }
+                //Lets find out if this is sufficient...
+                if (model.ID != values[i].id)
+                {
+                    throw new Exception("selectedItem doesn't match up!");
+                }
 
-            selectedItem.Weight = weight;
+                model.Weight = values[i].weight;
+
+                i++;
+            }
         }
     }
 }

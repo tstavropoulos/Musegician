@@ -143,6 +143,7 @@
     <Compile Include="Playlist\PlaylistManager.cs" />
     <Compile Include="Playlist\PlaylistRecordingViewModel.cs" />
     <Compile Include="Playlist\PlaylistModelView.cs" />
+    <Compile Include="Core\MultiSelectTreeView.cs" />
     <Compile Include="Playlist\PlaylistViewModel.cs" />
     <Compile Include="Playlist\PlaylistWindow.xaml.cs">
       <DependentUpon>PlaylistWindow.xaml</DependentUpon>
@@ -152,6 +153,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="TagEditor\ITagRequestHandler.cs" />
     <Compile Include="TagEditor\TagEditor.xaml.cs">
       <DependentUpon>TagEditor.xaml</DependentUpon>
     </Compile>
@@ -166,6 +168,10 @@
     <Compile Include="TinyPlayer\TinyPlayer.xaml.cs">
       <DependentUpon>TinyPlayer.xaml</DependentUpon>
     </Compile>
+    <Page Include="Core\MultiSelectTree.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Core\WeightBar.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -200,6 +206,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Playlist\PlaylistControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Themes\Generic.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

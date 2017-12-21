@@ -82,7 +82,7 @@ namespace MusicPlayer.Core.DBCommands
         /// </summary>
         /// <param name="songIDs"></param>
         /// <param name="newTitle"></param>
-        public void UpdateSongTitle(ICollection<long> recordingIDs, string newTitle)
+        public void UpdateSongTitle(IEnumerable<long> recordingIDs, string newTitle)
         {
             dbConnection.Open();
 
@@ -129,7 +129,7 @@ namespace MusicPlayer.Core.DBCommands
         /// </summary>
         /// <param name="songIDs"></param>
         /// <param name="newTitle"></param>
-        public void UpdateArtistName(ICollection<long> recordingIDs, string newArtistName)
+        public void UpdateArtistName(IEnumerable<long> recordingIDs, string newArtistName)
         {
             //Renaming (or Consolidating) a Song
             dbConnection.Open();
@@ -568,7 +568,7 @@ namespace MusicPlayer.Core.DBCommands
         public void _ReassignArtistIDs_ByTrackID(
             SQLiteTransaction transaction,
             long artistID,
-            ICollection<long> trackIDs)
+            IEnumerable<long> trackIDs)
         {
             SQLiteCommand updateArtistID = dbConnection.CreateCommand();
             updateArtistID.Transaction = transaction;
@@ -616,7 +616,7 @@ namespace MusicPlayer.Core.DBCommands
         public void _ReassignSongIDs(
             SQLiteTransaction transaction,
             long songID,
-            ICollection<long> recordingIDs)
+            IEnumerable<long> recordingIDs)
         {
             SQLiteCommand updateArtistID = dbConnection.CreateCommand();
             updateArtistID.Transaction = transaction;
@@ -679,7 +679,7 @@ namespace MusicPlayer.Core.DBCommands
         public void _ReassignArtistIDs(
             SQLiteTransaction transaction,
             long artistID,
-            ICollection<long> recordingIDs)
+            IEnumerable<long> recordingIDs)
         {
             SQLiteCommand remapArtistID = dbConnection.CreateCommand();
             remapArtistID.Transaction = transaction;

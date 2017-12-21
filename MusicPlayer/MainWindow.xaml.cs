@@ -108,7 +108,7 @@ namespace MusicPlayer
             Player.MusicManager.Instance.CleanUp();
         }
 
-        private void Library_Request_Edit(LibraryContext context, long id)
+        private void Library_Request_Edit(LibraryContext context, IList<long> ids)
         {
             switch (context)
             {
@@ -125,7 +125,7 @@ namespace MusicPlayer
                     return;
             }
 
-            TagEditor.TagEditor tagEditor = new TagEditor.TagEditor(context, id, fileMan);
+            TagEditor.TagEditor tagEditor = new TagEditor.TagEditor(context, ids);
             tagEditor.Show();
         }
 

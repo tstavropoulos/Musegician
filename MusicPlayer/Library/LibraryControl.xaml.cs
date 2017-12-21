@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 using MusicPlayer.DataStructures;
+using MusicPlayer.Core;
 using IPlaylistTransferRequestHandler = MusicPlayer.Playlist.IPlaylistTransferRequestHandler;
+using System.Windows;
 
 namespace MusicPlayer.Library
 {
@@ -54,7 +58,7 @@ namespace MusicPlayer.Library
 
         MusicTreeViewModel _musicTree;
 
-        ILibraryRequestHandler requestHandler
+        ILibraryRequestHandler RequestHandler
         {
             get
             {
@@ -62,7 +66,7 @@ namespace MusicPlayer.Library
             }
         }
 
-        IPlaylistTransferRequestHandler playlistTransferRequestHandler
+        IPlaylistTransferRequestHandler PlaylistTransferRequestHandler
         {
             get
             {
@@ -70,8 +74,47 @@ namespace MusicPlayer.Library
             }
         }
 
-        #endregion // Data
+        #endregion Data
+        #region Inner Classes
 
+        private enum KeyboardActions
+        {
+            None = 0,
+            WeightUp,
+            WeightDown,
+            Play,
+            MAX
+        }
+
+        #endregion Inner Classes
+        #region Context Menu Events
+
+        public delegate void ContextMenuIDRequest(LibraryContext context, long id);
+        public delegate void ContextMenuMultiIDRequest(LibraryContext context, IList<long> ids);
+        
+        public event ContextMenuMultiIDRequest ContextMenu_MultiEdit;
+        public event ContextMenuIDRequest ContextMenu_EditArt;
+
+        #endregion Context Menu Events
+        #region Properties
+
+        private MultiSelectTreeView CurrentTreeView
+        {
+            get
+            {
+                switch (_musicTree.CurrentViewMode)
+                {
+                    case ViewMode.Classic:
+                    case ViewMode.Simple:
+                    case ViewMode.Album:
+                        return GetTreeView(_musicTree.CurrentViewMode);
+                    default:
+                        throw new Exception("Unexpected ViewMode: " + _musicTree.CurrentViewMode);
+                }
+            }
+        }
+
+        #endregion Properties
         #region Construction
 
         public LibraryControl()
@@ -84,7 +127,7 @@ namespace MusicPlayer.Library
             }
             else
             {
-                _musicTree = new MusicTreeViewModel(requestHandler);
+                _musicTree = new MusicTreeViewModel(RequestHandler);
             }
 
             DataContext = _musicTree;
@@ -92,120 +135,124 @@ namespace MusicPlayer.Library
 
         public void Rebuild()
         {
-            _musicTree = new MusicTreeViewModel(requestHandler);
+            _musicTree = new MusicTreeViewModel(RequestHandler);
             DataContext = _musicTree;
         }
 
-        #endregion // Construction
+        #endregion Construction
 
-        #region Context Menu Events
-
-        public delegate void ContextMenuIDRequest(LibraryContext context, long id);
-        public delegate void ContextMenuMultiIDRequest(IList<ValueTuple<LibraryContext, long>> items, bool deep);
-
-        public event ContextMenuIDRequest ContextMenu_Edit;
-        public event ContextMenuIDRequest ContextMenu_EditArt;
-
-        #endregion // Context Menu Events
-
-
-
-        private void Play(LibraryContext context, long id, bool deep)
+        private void Play(LibraryContext context, IList<long> ids, bool deep)
         {
-            ICollection<SongDTO> songs;
+            List<SongDTO> songs = new List<SongDTO>();
 
-            switch (context)
+            foreach (long id in ids)
             {
-                case LibraryContext.Artist:
-                    {
-                        songs = playlistTransferRequestHandler.GetArtistData(
-                            artistID: id,
-                            deep: deep);
-                    }
-                    break;
-                case LibraryContext.Album:
-                    {
-                        songs = playlistTransferRequestHandler.GetAlbumData(
-                            albumID: id,
-                            deep: deep);
-                    }
-                    break;
-                case LibraryContext.Song:
-                    {
-                        songs = playlistTransferRequestHandler.GetSongData(id);
-                    }
-                    break;
-                case LibraryContext.Track:
-                    {
-                        throw new NotImplementedException();
-                    }
-                case LibraryContext.Recording:
-                    {
-                        songs = playlistTransferRequestHandler.GetSongDataFromRecordingID(id);
-                    }
-                    break;
-                case LibraryContext.MAX:
-                default:
-                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
-                    return;
+                switch (context)
+                {
+                    case LibraryContext.Artist:
+                        {
+                            songs.AddRange(
+                                PlaylistTransferRequestHandler.GetArtistData(
+                                    artistID: id,
+                                    deep: deep));
+                        }
+                        break;
+                    case LibraryContext.Album:
+                        {
+                            songs.AddRange(
+                                PlaylistTransferRequestHandler.GetAlbumData(
+                                albumID: id,
+                                deep: deep));
+                        }
+                        break;
+                    case LibraryContext.Song:
+                        {
+                            songs.AddRange(
+                                PlaylistTransferRequestHandler.GetSongData(id));
+                        }
+                        break;
+                    case LibraryContext.Track:
+                        {
+                            throw new NotImplementedException();
+                        }
+                    case LibraryContext.Recording:
+                        {
+                            songs.AddRange(
+                                PlaylistTransferRequestHandler.GetSongDataFromRecordingID(id));
+                        }
+                        break;
+                    case LibraryContext.MAX:
+                    default:
+                        Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
+                        return;
+                }
             }
 
-            Playlist.PlaylistManager.Instance.PlaylistName =
-                playlistTransferRequestHandler.GetDefaultPlaylistName(
-                    context: context,
-                    id: id);
+            if (ids.Count == 1)
+            {
+                Playlist.PlaylistManager.Instance.PlaylistName =
+                    PlaylistTransferRequestHandler.GetDefaultPlaylistName(
+                        context: context,
+                        id: ids[0]);
+            }
+            else
+            {
+                Playlist.PlaylistManager.Instance.PlaylistName = "Assorted";
+            }
 
             Playlist.PlaylistManager.Instance.Rebuild(songs);
             Player.MusicManager.Instance.Next();
         }
 
-        private void Add(LibraryContext context, long id, bool deep)
+        private void Add(LibraryContext context, IEnumerable<long> ids, bool deep)
         {
             ICollection<SongDTO> songs;
 
-            switch (context)
+            foreach (long id in ids)
             {
-                case LibraryContext.Artist:
-                    {
-                        songs = playlistTransferRequestHandler.GetArtistData(
-                            artistID: id,
-                            deep: deep);
-                    }
-                    break;
-                case LibraryContext.Album:
-                    {
-                        songs = playlistTransferRequestHandler.GetAlbumData(
-                            albumID: id,
-                            deep: deep);
-                    }
-                    break;
-                case LibraryContext.Song:
-                    {
-                        songs = playlistTransferRequestHandler.GetSongData(id);
-                    }
-                    break;
-                case LibraryContext.Track:
-                    {
-                        throw new NotImplementedException();
-                    }
-                case LibraryContext.Recording:
-                    {
-                        songs = playlistTransferRequestHandler.GetSongDataFromRecordingID(id);
-                    }
-                    break;
-                case LibraryContext.MAX:
-                default:
-                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
-                    return;
-            }
+                switch (context)
+                {
+                    case LibraryContext.Artist:
+                        {
+                            songs = PlaylistTransferRequestHandler.GetArtistData(
+                                artistID: id,
+                                deep: deep);
+                        }
+                        break;
+                    case LibraryContext.Album:
+                        {
+                            songs = PlaylistTransferRequestHandler.GetAlbumData(
+                                albumID: id,
+                                deep: deep);
+                        }
+                        break;
+                    case LibraryContext.Song:
+                        {
+                            songs = PlaylistTransferRequestHandler.GetSongData(id);
+                        }
+                        break;
+                    case LibraryContext.Track:
+                        {
+                            throw new NotImplementedException();
+                        }
+                    case LibraryContext.Recording:
+                        {
+                            songs = PlaylistTransferRequestHandler.GetSongDataFromRecordingID(id);
+                        }
+                        break;
+                    case LibraryContext.MAX:
+                    default:
+                        Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
+                        return;
+                }
 
-            Playlist.PlaylistManager.Instance.AddBack(songs);
+                Playlist.PlaylistManager.Instance.AddBack(songs);
+            }
 
         }
 
         #region Callbacks
-
-        #region Callbacks Search Example
+        #region Callbacks Search Execution
 
         void SearchTextBox_KeyDown(object sender, KeyEventArgs e)
         {
@@ -215,11 +262,11 @@ namespace MusicPlayer.Library
             }
         }
 
-        #endregion // Callbacks Search Example
+        #endregion Callbacks Search Execution
 
         private void OnItemMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (sender is TreeViewItem treeItem)
+            if (sender is MultiSelectTreeViewItem treeItem)
             {
                 if (treeItem.Header is SongViewModel songModel)
                 {
@@ -229,7 +276,7 @@ namespace MusicPlayer.Library
                     }
 
                     e.Handled = true;
-                    Play(LibraryContext.Song, songModel.ID, false);
+                    Play(LibraryContext.Song, new long[] { songModel.ID }, false);
                 }
                 else if (treeItem.Header is RecordingViewModel recordingModel)
                 {
@@ -239,135 +286,85 @@ namespace MusicPlayer.Library
                     }
 
                     e.Handled = true;
-                    Play(LibraryContext.Recording, recordingModel.ID, false);
+                    Play(LibraryContext.Recording, new long[] { recordingModel.ID }, false);
                 }
             }
         }
 
-        private void Play_Deep(object sender, System.Windows.RoutedEventArgs e)
+        private void Play_Deep(object sender, RoutedEventArgs e)
         {
-            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Play);
+            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Play);
 
-            if (id != -1)
+            if (ids.Count() > 0)
             {
                 e.Handled = true;
-                Play(context, id, true);
+                Play(context, ids, true);
             }
         }
 
-        private void Play_Shallow(object sender, System.Windows.RoutedEventArgs e)
+        private void Play_Shallow(object sender, RoutedEventArgs e)
         {
-            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Play);
+            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Play);
 
-            if (id != -1)
+            if (ids.Count() > 0)
             {
                 e.Handled = true;
-                Play(context, id, false);
+                Play(context, ids, false);
             }
         }
 
-        private void Add_Deep(object sender, System.Windows.RoutedEventArgs e)
+        private void Add_Deep(object sender, RoutedEventArgs e)
         {
-            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Add);
+            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Add);
 
-            if (id != -1)
+            if (ids.Count() > 0)
             {
                 e.Handled = true;
-                Add(context, id, true);
+                Add(context, ids, true);
             }
         }
 
-        private void Add_Shallow(object sender, System.Windows.RoutedEventArgs e)
+        private void Add_Shallow(object sender, RoutedEventArgs e)
         {
-            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Add);
+            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Add);
 
-            if (id != -1)
+            if (ids.Count() > 0)
             {
                 e.Handled = true;
-                Add(context, id, false);
+                Add(context, ids, false);
             }
         }
 
-        private void Edit(object sender, System.Windows.RoutedEventArgs e)
+        private void Edit(object sender, RoutedEventArgs e)
         {
-            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Edit);
+            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Edit);
 
-            if (id != -1)
-            {
-                e.Handled = true;
-
-                ContextMenu_Edit?.Invoke(context, id);
-            }
-        }
-
-        private void EditArt(object sender, System.Windows.RoutedEventArgs e)
-        {
-            (LibraryContext context, long id) = ExtractContextAndID(sender as MenuItem, MenuAction.Edit);
-
-            if (id != -1)
+            if (ids.Count() > 0)
             {
                 e.Handled = true;
 
-                ContextMenu_EditArt?.Invoke(context, id);
+                ContextMenu_MultiEdit?.Invoke(context, ids);
             }
         }
 
-        private (LibraryContext, long) ExtractContextAndID(MenuItem menuItem, MenuAction option)
+        private void EditArt(object sender, RoutedEventArgs e)
         {
-            LibraryContext context = LibraryContext.MAX;
-            long id = -1;
+            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Edit);
 
-            if (menuItem is null)
+            if (ids.Count() != 1)
             {
-                Console.WriteLine("Null menuItem.  Likely Error.");
+                MessageBox.Show("Must select exactly one album to edit Album Art", "Selection Error");
+                return;
             }
-            else if (menuItem.DataContext is ArtistViewModel artistModel)
-            {
-                context = LibraryContext.Artist;
-                id = artistModel.ID;
-            }
-            else if (menuItem.DataContext is AlbumViewModel albumModel)
-            {
-                context = LibraryContext.Album;
-                id = albumModel.ID;
-            }
-            else if (menuItem.DataContext is SongViewModel songModel)
-            {
-                switch (option)
-                {
-                    case MenuAction.Play:
-                    case MenuAction.Add:
-                        context = LibraryContext.Song;
-                        id = songModel.ID;
-                        break;
-                    case MenuAction.Edit:
-                        context = LibraryContext.Track;
-                        id = songModel.ContextualTrackID;
-                        break;
-                    default:
-                        Console.WriteLine("Unhandled MenuAction.  Likely Error: " + option);
-                        context = LibraryContext.Song;
-                        id = songModel.ID;
-                        break;
-                }
+            
+            e.Handled = true;
 
-            }
-            else if (menuItem.DataContext is RecordingViewModel recordingModel)
-            {
-                context = LibraryContext.Recording;
-                id = recordingModel.ID;
-            }
-            else
-            {
-                Console.WriteLine("Unhandled ViewModel.  Likely Error.");
-            }
-
-            return (context, id);
+            ContextMenu_EditArt?.Invoke(context, ids[0]);
         }
 
-        private void TreeViewItem_Expanded(object sender, System.Windows.RoutedEventArgs e)
+        private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
         {
-            if (e.OriginalSource is TreeViewItem treeItem)
+            if (e.OriginalSource is MultiSelectTreeViewItem treeItem)
             {
                 if (treeItem.Header is LibraryViewModel libraryModel)
                 {
@@ -412,7 +409,7 @@ namespace MusicPlayer.Library
 
         private void Tree_KeyDown(object sender, KeyEventArgs e)
         {
-            if (sender is TreeView tree)
+            if (sender is MultiSelectTreeView)
             {
                 e.Handled = true;
 
@@ -424,86 +421,207 @@ namespace MusicPlayer.Library
                     return;
                 }
 
-                (LibraryContext context, long id, double weight) = ExtractContextAndID(tree.SelectedItem);
+                (LibraryContext context, List<(long id, double weight)> values) =
+                    ExtractContextIDAndWeights();
 
-                if (id ==-1)
+                for (int i = 0; i < values.Count; i++)
                 {
-                    throw new Exception("Unexpected id = -1!");
+                    (long id, double weight) = values[i];
+
+                    if (id == -1)
+                    {
+                        throw new Exception("Unexpected id = -1!");
+                    }
+
+                    switch (action)
+                    {
+                        case KeyboardActions.WeightUp:
+                            weight = Math.Min(weight + 0.05, 1.0);
+                            break;
+                        case KeyboardActions.WeightDown:
+                            weight = Math.Max(weight - 0.05, 0.0);
+                            break;
+                        case KeyboardActions.Play:
+                            //Play thing
+
+                            return;
+                        case KeyboardActions.None:
+                        case KeyboardActions.MAX:
+                        default:
+                            throw new Exception("Unexpected KeyboardAction: " + action);
+                    }
+
+                    values[i] = (id, weight);
                 }
 
-                switch (action)
-                {
-                    case KeyboardActions.WeightUp:
-                        weight = Math.Min(weight + 0.05, 1.0);
-                        break;
-                    case KeyboardActions.WeightDown:
-                        weight = Math.Max(weight - 0.05, 0.0);
-                        break;
-                    case KeyboardActions.Play:
-                        //Play thing
-
-                        return;
-                    case KeyboardActions.None:
-                    case KeyboardActions.MAX:
-                    default:
-                        throw new Exception("Unexpected KeyboardAction: " + action);
-                }
-
-                requestHandler.UpdateWeight(context, id, weight);
-                UpdateWeight(tree.SelectedItem as LibraryViewModel, weight);
+                RequestHandler.UpdateWeights(context, values);
+                UpdateWeights(values);
             }
         }
 
-        private (LibraryContext, long, double) ExtractContextAndID(object selectedItem)
+        #endregion Callbacks
+        #region Helper Fuctions
+
+        private (LibraryContext, List<long>) ExtractContextAndIDs(
+            MenuAction option,
+            ViewMode overrideMode = ViewMode.MAX)
         {
+            IEnumerable<LibraryViewModel> selectedItems =
+                GetSelectedItems(overrideMode).OfType<LibraryViewModel>();
+
             LibraryContext context = LibraryContext.MAX;
-            long id = -1;
-            double weight = float.NaN;
+            List<long> ids = new List<long>();
 
-            if(selectedItem is LibraryViewModel model)
+            if (selectedItems.Count() > 0)
             {
-                id = model.ID;
-                weight = model.Weight; 
+                LibraryViewModel firstSelectedItem = selectedItems.First();
+
+                if (firstSelectedItem is ArtistViewModel artist)
+                {
+                    context = LibraryContext.Artist;
+                }
+                else if (firstSelectedItem is AlbumViewModel album)
+                {
+                    context = LibraryContext.Album;
+                }
+                else if (firstSelectedItem is SongViewModel song)
+                {
+                    switch (option)
+                    {
+                        case MenuAction.Play:
+                        case MenuAction.Add:
+                            context = LibraryContext.Song;
+                            break;
+                        case MenuAction.Edit:
+                            context = LibraryContext.Track;
+                            break;
+                        default:
+                            throw new ArgumentException("Unexpected MenuAction: " + option);
+                    }
+                }
+                else if (firstSelectedItem is RecordingViewModel recording)
+                {
+                    context = LibraryContext.Recording;
+                }
+
+                foreach (LibraryViewModel model in selectedItems)
+                {
+                    //Only on Edit, we return the ContextualTrackID
+                    if (option == MenuAction.Edit && model is SongViewModel song)
+                    {
+                        ids.Add((song as SongViewModel).ContextualTrackID);
+                    }
+                    else
+                    {
+                        ids.Add(model.ID);
+                    }
+                }
             }
 
-            if (selectedItem is ArtistViewModel artist)
-            {
-                context = LibraryContext.Artist;
-            }
-            else if (selectedItem is AlbumViewModel album)
-            {
-                context = LibraryContext.Album;
-            }
-            else if (selectedItem is SongViewModel song)
-            {
-                context = LibraryContext.Song;
-            }
-            else if (selectedItem is RecordingViewModel recording)
-            {
-                context = LibraryContext.Track;
-                id = (recording.Parent as SongViewModel).ContextualTrackID;
-            }
-
-            return (context, id, weight);
+            return (context, ids);
         }
 
-        private void UpdateWeight(LibraryViewModel selectedItem, double weight)
+        private (LibraryContext, List<(long, double)>) ExtractContextIDAndWeights(
+            ViewMode overrideMode = ViewMode.MAX)
         {
-            if (selectedItem == null)
+            IList selectedItems = GetSelectedItems(overrideMode);
+
+            LibraryContext context = LibraryContext.MAX;
+
+            List<(long, double)> weightsList = new List<(long, double)>();
+
+            if (selectedItems.Count > 0)
             {
-                throw new Exception("Unexpected selectedItem is null");
+                object firstSelectedItem = selectedItems[0];
+
+                if (firstSelectedItem is ArtistViewModel artist)
+                {
+                    context = LibraryContext.Artist;
+                }
+                else if (firstSelectedItem is AlbumViewModel album)
+                {
+                    context = LibraryContext.Album;
+                }
+                else if (firstSelectedItem is SongViewModel song)
+                {
+                    context = LibraryContext.Song;
+                }
+                else if (firstSelectedItem is RecordingViewModel recording)
+                {
+                    context = LibraryContext.Track;
+                }
+
+                foreach (LibraryViewModel model in selectedItems)
+                {
+                    if (model is RecordingViewModel recording)
+                    {
+                        weightsList.Add(
+                            ((recording.Parent as SongViewModel).ContextualTrackID, model.Weight));
+                    }
+                    else
+                    {
+                        weightsList.Add((model.ID, model.Weight));
+                    }
+                }
             }
 
-            selectedItem.Weight = weight;
+            return (context, weightsList);
         }
 
-        private enum KeyboardActions
+        private void UpdateWeights(
+            IList<(long id, double weight)> values,
+            ViewMode overrideMode = ViewMode.MAX)
         {
-            None = 0,
-            WeightUp,
-            WeightDown,
-            Play,
-            MAX
+            IEnumerable<LibraryViewModel> selectedItems =
+                GetSelectedItems(overrideMode).OfType<LibraryViewModel>();
+
+            int i = 0;
+            foreach (LibraryViewModel model in selectedItems)
+            {
+                //Lets find out if this is sufficient...
+                if (model.ID != values[i].id)
+                {
+                    throw new Exception("selectedItem doesn't match up!");
+                }
+
+                model.Weight = values[i].weight;
+
+                i++;
+            }
+        }
+
+        /// <summary>
+        /// Returns an IList of the currently selected items
+        /// ViewMode.MAX means the CurrentTreeView.SelectedItems
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        private IList GetSelectedItems(ViewMode mode)
+        {
+            return GetTreeView(mode).SelectedItems;
+        }
+
+        /// <summary>
+        /// Returns the requested TreeView,
+        /// ViewMode.MAX means the CurrentTreeView
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <returns></returns>
+        private MultiSelectTreeView GetTreeView(ViewMode mode)
+        {
+            switch (mode)
+            {
+                case ViewMode.Classic:
+                    return ClassicTreeView;
+                case ViewMode.Simple:
+                    return SimpleTreeView;
+                case ViewMode.Album:
+                    return AlbumTreeView;
+                case ViewMode.MAX:
+                    return CurrentTreeView;
+                default:
+                    throw new Exception("Unexpected ViewMode: " + mode);
+            }
         }
 
         private KeyboardActions TranslateKey(Key key)
@@ -523,6 +641,6 @@ namespace MusicPlayer.Library
             }
         }
 
-        #endregion // Callbacks
+        #endregion Helper Fuctions
     }
 }
