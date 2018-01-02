@@ -22,16 +22,15 @@ namespace MusicPlayer.Playlist
             }
         }
 
-        #endregion // Constructor
-
-        #region PlaylistItem Properties
+        #endregion Constructor
+        #region Properties
 
         public SongDTO Song
         {
             get { return _data as SongDTO; }
         }
 
-        #endregion
+        #endregion Properties
     }
 
 }

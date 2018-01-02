@@ -17,8 +17,7 @@ namespace MusicPlayer.Library
 
         readonly ViewMode mode;
 
-        #endregion // Data
-
+        #endregion Data
         #region Constructors
 
         public ArtistViewModel(ArtistDTO artist, ViewMode mode, bool lazyLoadChildren = true) : 
@@ -30,8 +29,7 @@ namespace MusicPlayer.Library
             this.mode = mode;
         }
 
-        #endregion // Constructors
-
+        #endregion Constructors
         #region Properties
 
         public ArtistDTO _artist
@@ -39,9 +37,7 @@ namespace MusicPlayer.Library
             get { return Data as ArtistDTO; }
         }
 
-        #endregion // Properties
-
-
+        #endregion Properties
         #region LoadChildren
 
         public override void LoadChildren(ILibraryRequestHandler dataManager)
@@ -74,6 +70,6 @@ namespace MusicPlayer.Library
             }
         }
 
-        #endregion // LoadChildren
+        #endregion LoadChildren
     }
 }

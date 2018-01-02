@@ -74,9 +74,6 @@ namespace MusicPlayer.Core.DBCommands
             return artistID;
         }
 
-
-
-
         /// <summary>
         /// Splitting, Renaming, And/Or Consolidating Recordings by Song Title
         /// </summary>
@@ -121,8 +118,6 @@ namespace MusicPlayer.Core.DBCommands
 
             dbConnection.Close();
         }
-
-
 
         /// <summary>
         /// Assigning Tracks to a different artist
@@ -268,8 +263,7 @@ namespace MusicPlayer.Core.DBCommands
             return playData;
         }
 
-        #endregion // High Level Commands
-
+        #endregion High Level Commands
         #region Search Commands
 
         public RecordingData _GetData(long recordingID)
@@ -512,8 +506,7 @@ namespace MusicPlayer.Core.DBCommands
             return albumID;
         }
 
-        #endregion  //Search Commands
-
+        #endregion Search Commands
         #region Initialization Commands
 
         public void _InitializeValues()
@@ -535,8 +528,7 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion //Initialization Commands
-
+        #endregion Initialization Commands
         #region Lookup Commands
 
         public void _PopulateLookup(
@@ -561,8 +553,7 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion  //Lookup Commands
-
+        #endregion Lookup Commands
         #region Update Commands
 
         public void _ReassignArtistIDs_ByTrackID(
@@ -697,8 +688,7 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion // Update Commands
-
+        #endregion Update Commands
         #region Create Commands
 
         public void _CreateRecordingTables(SQLiteTransaction transaction)
@@ -730,8 +720,7 @@ namespace MusicPlayer.Core.DBCommands
             createArtistIDIndex.ExecuteNonQuery();
         }
 
-        #endregion //Create Commands
-
+        #endregion Create Commands
         #region Insert Commands
 
         public long _CreateRecording(
@@ -790,8 +779,7 @@ namespace MusicPlayer.Core.DBCommands
         }
 
 
-        #endregion //Insert Commands
-
+        #endregion Insert Commands
         #region Delete Commands
 
         public void _DeleteRecordingID(
@@ -812,6 +800,6 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion // Delete Commands
+        #endregion Delete Commands
     }
 }

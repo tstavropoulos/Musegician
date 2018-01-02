@@ -716,6 +716,6 @@ namespace MusicPlayer.Playlist
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        #endregion // INotifyPropertyChanged
+        #endregion INotifyPropertyChanged
     }
 }

@@ -11,13 +11,93 @@ using CSCore.SoundOut;
 using PlaylistManager = MusicPlayer.Playlist.PlaylistManager;
 using PlayData = MusicPlayer.DataStructures.PlayData;
 using System.ComponentModel;
+using System.Windows.Input;
+using System.Windows;
 
 namespace MusicPlayer.Player
 {
-    public class MusicManager : INotifyPropertyChanged
+    public class MusicManager : ContentElement, INotifyPropertyChanged, IDisposable
     {
         private ISoundOut _soundOut;
         private IWaveSource _waveSource;
+
+        private AudioClient _audioClient = null;
+        private AudioClient AudioClient
+        {
+            get
+            {
+                if (_audioClient == null)
+                {
+                    _audioClient = AudioClient.FromMMDevice(Device);
+
+                    _audioClient.Initialize(
+                        shareMode: AudioClientShareMode.Shared,
+                        streamFlags: AudioClientStreamFlags.None,
+                        hnsBufferDuration: 1000,
+                        hnsPeriodicity: 0,
+                        waveFormat: _audioClient.GetMixFormat(),
+                        audioSessionGuid: Guid.Empty);
+
+                    if (_simpleAudioVolume != null)
+                    {
+                        _simpleAudioVolume.Dispose();
+                        _simpleAudioVolume = null;
+                    }
+
+                    _simpleAudioVolume = SimpleAudioVolume.FromAudioClient(_audioClient);
+
+
+                    if (_audioSessionControl != null)
+                    {
+                        _audioSessionControl.SimpleVolumeChanged -= AudioSessionControl_SimpleVolumeChanged;
+                        _audioSessionControl.Dispose();
+                        _audioSessionControl = null;
+                    }
+
+                    _audioSessionControl = new AudioSessionControl(_audioClient);
+                    _audioSessionControl.SimpleVolumeChanged += AudioSessionControl_SimpleVolumeChanged;
+
+                    Volume = _simpleAudioVolume.MasterVolume;
+                    Muted = _simpleAudioVolume.IsMuted;
+                }
+
+                return _audioClient;
+            }
+        }
+
+        private AudioSessionControl _audioSessionControl = null;
+        private AudioSessionControl AudioSessionControl
+        {
+            get
+            {
+                if (AudioClient == null || _audioSessionControl == null)
+                {
+                    throw new Exception("Unable to initialize AudioSessionControl");
+                }
+
+                return _audioSessionControl;
+            }
+        }
+
+        private SimpleAudioVolume _simpleAudioVolume = null;
+        private SimpleAudioVolume SimpleAudioVolume
+        {
+            get
+            {
+                if (AudioClient == null || _simpleAudioVolume == null)
+                {
+                    throw new Exception("Unable to initialize SimpleAudioVolume");
+                }
+
+                return _simpleAudioVolume;
+            }
+        }
+
+        private MMDevice Device
+        {
+            get { return MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia); }
+        }
+
 
         PlayData lastPlay;
 
@@ -26,9 +106,21 @@ namespace MusicPlayer.Player
         bool prepareNext = false;
 
         private static object m_lock = new object();
-        private static volatile MusicManager _instance;
+        private static volatile MusicManager _instance = null;
         public static MusicManager Instance
         {
+            set
+            {
+                lock (m_lock)
+                {
+                    if (_instance != null)
+                    {
+                        throw new Exception("Tried to set non-null MusicManager instance");
+                    }
+
+                    _instance = value;
+                }
+            }
             get
             {
                 if (_instance == null)
@@ -75,7 +167,7 @@ namespace MusicPlayer.Player
             }
         }
 
-        public double ClickJump{ get { return DataRate * 10.0; } }
+        public double ClickJump { get { return DataRate * 10.0; } }
         public double KBJump { get { return DataRate * 0.5; } }
 
         private string _songLabel = "";
@@ -106,22 +198,69 @@ namespace MusicPlayer.Player
             }
         }
 
-        private double _volume = 1.0;
-        public double Volume
+        private bool suppressUpdate = false;
+
+        private bool _muted = false;
+        public bool Muted
         {
-            get { return _volume; }
+            get
+            {
+                return _muted || (_volume == 0.0);
+            }
             set
             {
+                if (_muted != value)
+                {
+                    _muted = value;
+
+                    OnPropertyChanged("Mute");
+
+                    suppressUpdate = true;
+                    SimpleAudioVolume.IsMuted = _muted;
+                }
+            }
+        }
+
+        private float _volume = 1.0f;
+        public float Volume
+        {
+            get
+            {
+                return _volume;
+            }
+            set
+            {
+                value = MathExt.Clamp(value, 0.0f, 1.0f);
                 if (_volume != value)
                 {
                     _volume = value;
+                    Muted = false;
+
                     OnPropertyChanged("Volume");
+
+                    //Update the volume
                     if (_soundOut != null)
                     {
-                        _soundOut.Volume = (float)_volume;
+                        _soundOut.Volume = (float)Volume;
                     }
+
+                    suppressUpdate = true;
+                    SimpleAudioVolume.MasterVolume = (float)Volume;
                 }
             }
+        }
+
+        private void AudioSessionControl_SimpleVolumeChanged(
+            object sender,
+            AudioSessionSimpleVolumeChangedEventArgs e)
+        {
+            if (!suppressUpdate)
+            {
+                Muted = e.IsMuted;
+                Volume = e.NewVolume;
+            }
+
+            suppressUpdate = false;
         }
 
         public enum PlayerState
@@ -194,19 +333,39 @@ namespace MusicPlayer.Player
             }
         }
 
-        private MusicManager()
+        public MusicManager()
         {
+            EventManager.RegisterClassHandler(
+                typeof(Window),
+                Keyboard.KeyDownEvent,
+                new KeyEventHandler(EventKeyDown),
+                false);
+
+            EventManager.RegisterClassHandler(
+                typeof(Window),
+                Keyboard.KeyUpEvent,
+                new KeyEventHandler(EventKeyUp),
+                false);
+
+            //Force instantiation
+            if (AudioClient == null)
+            {
+                throw new Exception("Unable to initialize AudioClient");
+            }
+
             playTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(0.25)
             };
             playTimer.Tick += new EventHandler(Tick_ProgressTimer);
             playTimer.Start();
+
         }
 
         public void SongFinished(object sender, PlaybackStoppedEventArgs e)
         {
-            if (_soundOut != null && _soundOut.PlaybackState == PlaybackState.Stopped &&
+            if (_soundOut != null &&
+                _soundOut.PlaybackState == PlaybackState.Stopped &&
                 State != PlayerState.Stopped)
             {
                 State = PlayerState.Stopped;
@@ -236,13 +395,14 @@ namespace MusicPlayer.Player
                 .ToSampleSource()
                 .ToStereo()
                 .ToWaveSource();
-
             MMDevice device = MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
 
             if (device == null)
             {
                 return;
             }
+
+            AudioClient temp = AudioClient.FromMMDevice(Device);
 
             _soundOut = new WasapiOut()
             {
@@ -278,8 +438,7 @@ namespace MusicPlayer.Player
                         tickUpdate?.Invoke(_waveSource.Position);
                         break;
                     default:
-                        Console.WriteLine("Unexpeted playbackState: " + _soundOut.PlaybackState);
-                        return;
+                        throw new Exception("Unexpeted playbackState: " + _soundOut.PlaybackState);
                 }
             }
 
@@ -342,12 +501,11 @@ namespace MusicPlayer.Player
                     break;
                 case PlayerState.MAX:
                 default:
-                    Console.WriteLine("Unexpected MusicManager State: " + State);
-                    break;
+                    throw new Exception("Unexpected MusicManager State: " + State);
             }
         }
 
-        public void Play()
+        public void PlayPause()
         {
             switch (State)
             {
@@ -370,8 +528,27 @@ namespace MusicPlayer.Player
                     break;
                 case PlayerState.MAX:
                 default:
-                    Console.WriteLine("Unexpected MusicManager State: " + State);
+                    throw new Exception("Unexpected MusicManager State: " + State);
+            }
+        }
+
+        public void Pause()
+        {
+            switch (State)
+            {
+                case PlayerState.NotLoaded:
+                case PlayerState.Paused:
+                case PlayerState.Stopped:
+                    //Do Nothing
                     break;
+                case PlayerState.Playing:
+                    //Pause
+                    State = PlayerState.Paused;
+                    _soundOut.Pause();
+                    break;
+                case PlayerState.MAX:
+                default:
+                    throw new Exception("Unexpected MusicManager State: " + State);
             }
         }
 
@@ -389,8 +566,181 @@ namespace MusicPlayer.Player
                     break;
                 case PlayerState.MAX:
                 default:
-                    Console.WriteLine("Unexpected MusicManager State: " + State);
+                    throw new Exception("Unexpected MusicManager State: " + State);
+            }
+        }
+
+        public void MutePlayer()
+        {
+            Muted = true;
+        }
+
+        public void UnMutePlayer()
+        {
+            Muted = false;
+        }
+
+        public void MuteUnMutePlayer()
+        {
+            Muted = !Muted;
+        }
+
+        public void VolumeUp()
+        {
+            Volume += 0.1f;
+        }
+
+        public void VolumeDown()
+        {
+            Volume -= 0.1f;
+        }
+
+        private enum KeyboardAction
+        {
+            None = 0,
+            PlayFlipFlop,
+            Pause,
+            Stop,
+            Next,
+            Back,
+            Mute,
+            VolumeUp,
+            VolumeDown,
+            MAX
+        }
+
+        private KeyboardAction GetKeyAction(Key key)
+        {
+            switch (key)
+            {
+                case Key.Pause:
+                    return KeyboardAction.Pause;
+                case Key.Escape:
+                case Key.MediaStop:
+                    return KeyboardAction.Stop;
+                case Key.Space:
+                case Key.MediaPlayPause:
+                case Key.Play:
+                    return KeyboardAction.PlayFlipFlop;
+                /*
+                 * Disabling these - relying on the OS instead
+                case Key.VolumeMute:
+                    return KeyboardAction.Mute;
+                case Key.VolumeDown:
+                    return KeyboardAction.VolumeDown;
+                case Key.VolumeUp:
+                    return KeyboardAction.VolumeUp;
+                */
+                case Key.MediaNextTrack:
+                    return KeyboardAction.Next;
+                case Key.MediaPreviousTrack:
+                    return KeyboardAction.Back;
+                default:
+                    return KeyboardAction.None;
+            }
+        }
+
+        private static readonly HashSet<Key> hookKeys = new HashSet<Key>()
+        {
+            Key.Pause,
+            Key.MediaStop,
+            Key.MediaPlayPause,
+            Key.Play,
+            Key.MediaNextTrack,
+            Key.MediaPreviousTrack
+        };
+
+        public static ICollection<Key> GetHookKeys()
+        {
+            return hookKeys;
+        }
+
+        public void RegisteredKeyPressed(object sender, Key key)
+        {
+            KeyboardAction action = GetKeyAction(key);
+
+            if (action == KeyboardAction.None)
+            {
+                //No resulting action
+                return;
+            }
+
+            ExecuteKeyboardAction(action);
+        }
+
+        public void EventKeyDown(object sender, KeyEventArgs e)
+        {
+            if (hookKeys.Contains(e.Key))
+            {
+                //Skip handling the hooked keys, they'll come from the OS
+                return;
+            }
+
+            KeyboardAction action = GetKeyAction(e.Key);
+
+            if (action == KeyboardAction.None)
+            {
+                //No resulting action
+                return;
+            }
+
+            e.Handled = true;
+            ExecuteKeyboardAction(action);
+        }
+
+        public void EventKeyUp(object sender, KeyEventArgs e)
+        {
+            if (hookKeys.Contains(e.Key))
+            {
+                //Skip handling the hooked keys, they'll come from the OS
+                return;
+            }
+
+            KeyboardAction action = GetKeyAction(e.Key);
+
+            if (action == KeyboardAction.None)
+            {
+                //No resulting action
+                return;
+            }
+
+            e.Handled = true;
+        }
+
+        private void ExecuteKeyboardAction(KeyboardAction action)
+        {
+            switch (action)
+            {
+                case KeyboardAction.None:
+                    //Do nothing
+                    return;
+                case KeyboardAction.PlayFlipFlop:
+                    PlayPause();
                     break;
+                case KeyboardAction.Pause:
+                    Pause();
+                    break;
+                case KeyboardAction.Stop:
+                    Stop();
+                    break;
+                case KeyboardAction.Next:
+                    Next();
+                    break;
+                case KeyboardAction.Back:
+                    Back();
+                    break;
+                case KeyboardAction.Mute:
+                    MuteUnMutePlayer();
+                    break;
+                case KeyboardAction.VolumeUp:
+                    VolumeUp();
+                    break;
+                case KeyboardAction.VolumeDown:
+                    VolumeDown();
+                    break;
+                case KeyboardAction.MAX:
+                default:
+                    throw new Exception("Unexpected KeyboardAction: " + action);
             }
         }
 
@@ -403,6 +753,65 @@ namespace MusicPlayer.Player
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        #endregion // INotifyPropertyChanged
+        #endregion INotifyPropertyChanged
+        #region IDisposable
+
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    if (_simpleAudioVolume != null)
+                    {
+                        _simpleAudioVolume.Dispose();
+                        _simpleAudioVolume = null;
+                    }
+
+                    if (_audioSessionControl != null)
+                    {
+                        _audioSessionControl.SimpleVolumeChanged -= AudioSessionControl_SimpleVolumeChanged;
+                        _audioSessionControl.Dispose();
+                        _audioSessionControl = null;
+                    }
+
+                    if (_audioClient == null)
+                    {
+                        _audioClient.Dispose();
+                        _audioClient = null;
+                    }
+
+                    if (_soundOut != null)
+                    {
+                        _soundOut.Dispose();
+                        _soundOut = null;
+                    }
+
+                    if (_waveSource != null)
+                    {
+                        _waveSource.Dispose();
+                        _waveSource = null;
+                    }
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+        
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+
+        #endregion IDisposable
     }
 }

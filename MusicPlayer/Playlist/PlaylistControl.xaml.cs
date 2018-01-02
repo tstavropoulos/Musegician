@@ -123,13 +123,13 @@ namespace MusicPlayer.Playlist
             Rebuild(new List<SongDTO>());
         }
 
-        private void OnItemMouseDoubleClick(object sender, MouseButtonEventArgs args)
+        private void OnItemMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (sender is TreeViewItem treeItem)
             {
                 if (treeItem.Header is PlaylistSongViewModel song)
                 {
-                    args.Handled = true;
+                    e.Handled = true;
                     if (!song.IsSelected)
                     {
                         return;
@@ -139,7 +139,7 @@ namespace MusicPlayer.Playlist
                 }
                 else if (treeItem.Header is PlaylistRecordingViewModel recording)
                 {
-                    args.Handled = true;
+                    e.Handled = true;
                     if (!recording.IsSelected)
                     {
                         return;
@@ -155,18 +155,30 @@ namespace MusicPlayer.Playlist
 
         private void Play(object sender, RoutedEventArgs e)
         {
-            MenuItem menuItem = sender as MenuItem;
-
-            if (menuItem.DataContext is PlaylistSongViewModel song)
+            if (sender is MenuItem menuItem)
             {
-                e.Handled = true;
+                if (menuItem.DataContext is PlaylistViewModel model)
+                {
+                    e.Handled = true;
+                    _Play(model);
+                }
+                else
+                {
+                    Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                }
+            }
+        }
+
+        private void _Play(PlaylistViewModel model)
+        {
+            if (model is PlaylistSongViewModel song)
+            {
                 int index = _playlistTree.PlaylistViewModels.IndexOf(song);
 
                 PlaylistMan.PlayIndex(index);
             }
-            else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
+            else if (model is PlaylistRecordingViewModel recording)
             {
-                e.Handled = true;
                 int songIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
                 int recordingIndex = _playlistTree.PlaylistViewModels[songIndex].Children.IndexOf(recording);
 
@@ -174,69 +186,72 @@ namespace MusicPlayer.Playlist
             }
             else
             {
-                Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                Console.WriteLine("Unhandled PlaylistViewModel.  Likely Error.");
             }
         }
 
         private void Remove(object sender, RoutedEventArgs e)
         {
-            MenuItem menuItem = sender as MenuItem;
+            if (sender is MenuItem menuItem)
+            {
+                if (menuItem.DataContext is PlaylistSongViewModel song)
+                {
+                    e.Handled = true;
+                    int indexToRemove = _playlistTree.PlaylistViewModels.IndexOf(song);
 
-            if (menuItem.DataContext is PlaylistSongViewModel song)
-            {
-                e.Handled = true;
-                int indexToRemove = _playlistTree.PlaylistViewModels.IndexOf(song);
-
-                PlaylistMan.RemoveIndex(indexToRemove);
-            }
-            else if (menuItem.DataContext is PlaylistRecordingData recording)
-            {
-                e.Handled = true;
-                MessageBox.Show("Not Yet Implemented.");
-            }
-            else
-            {
-                Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                    PlaylistMan.RemoveIndex(indexToRemove);
+                }
+                else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
+                {
+                    e.Handled = true;
+                    MessageBox.Show("Not Yet Implemented.");
+                }
+                else
+                {
+                    Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                }
             }
         }
 
         private void Edit(object sender, RoutedEventArgs e)
         {
-            MenuItem menuItem = sender as MenuItem;
-
-            if (menuItem.DataContext is PlaylistSongViewModel song)
+            if (sender is MenuItem menuItem)
             {
-                e.Handled = true;
-                MessageBox.Show("Not Yet Implemented.");
-            }
-            else if (menuItem.DataContext is PlaylistRecordingData recording)
-            {
-                e.Handled = true;
-                MessageBox.Show("Not Yet Implemented.");
-            }
-            else
-            {
-                Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                if (menuItem.DataContext is PlaylistSongViewModel song)
+                {
+                    e.Handled = true;
+                    MessageBox.Show("Not Yet Implemented.");
+                }
+                else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
+                {
+                    e.Handled = true;
+                    MessageBox.Show("Not Yet Implemented.");
+                }
+                else
+                {
+                    Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                }
             }
         }
 
         private void Find(object sender, RoutedEventArgs e)
         {
-            MenuItem menuItem = sender as MenuItem;
-
-            if (menuItem.DataContext is PlaylistSongViewModel song)
+            if (sender is MenuItem menuItem)
             {
-                e.Handled = true;
-                MessageBox.Show("Not Yet Implemented.");
-            }
-            else if (menuItem.DataContext is PlaylistRecordingData recording)
-            {
-                e.Handled = true;
-                MessageBox.Show("Not Yet Implemented.");
-            }
-            else
-            {
-                Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                if (menuItem.DataContext is PlaylistSongViewModel song)
+                {
+                    e.Handled = true;
+                    MessageBox.Show("Not Yet Implemented.");
+                }
+                else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
+                {
+                    e.Handled = true;
+                    MessageBox.Show("Not Yet Implemented.");
+                }
+                else
+                {
+                    Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                }
             }
         }
 
@@ -343,62 +358,67 @@ namespace MusicPlayer.Playlist
         {
             if (sender is TreeView tree)
             {
-                e.Handled = true;
 
                 KeyboardActions action = TranslateKey(e.Key);
 
-                if (action == KeyboardActions.None)
+                switch (action)
                 {
-                    //Do nothing
-                    return;
+                    case KeyboardActions.None:
+                        //Do nothing
+                        return;
+                    case KeyboardActions.WeightUp:
+                    case KeyboardActions.WeightDown:
+                        {
+                            e.Handled = true;
+                            UpdateWeights(action);
+                        }
+                        break;
+                    case KeyboardActions.Play:
+                        {
+                            e.Handled = true;
+                            if (PlaylistTree.SelectedItem is PlaylistViewModel model)
+                            {
+                                _Play(model);
+                            }
+                        }
+                        break;
+                    case KeyboardActions.MAX:
+                    default:
+                        throw new Exception("Unexpected KeyboardAction: " + action);
                 }
+            }
+        }
 
-                (PlaylistContext context, List<(long id, double weight)> values) =
-                    ExtractContextIDAndWeights();
-                
-                for (int i = 0; i < values.Count; i++)
+        private void UpdateWeights(KeyboardActions action)
+        {
+            IEnumerable<PlaylistViewModel> selectedItems =
+                PlaylistTree.SelectedItems.OfType<PlaylistViewModel>();
+
+            foreach (PlaylistViewModel model in selectedItems)
+            {
+                switch (action)
                 {
-                    (long id, double weight) = values[i];
-
-                    if (id == -1)
-                    {
-                        throw new Exception("Unexpected id = -1!");
-                    }
-
-                    switch (action)
-                    {
-                        case KeyboardActions.WeightUp:
-                            weight = Math.Min(weight + 0.05, 1.0);
-                            break;
-                        case KeyboardActions.WeightDown:
-                            weight = Math.Max(weight - 0.05, 0.0);
-                            break;
-                        case KeyboardActions.Play:
-                            //Play thing
-
-                            return;
-                        case KeyboardActions.None:
-                        case KeyboardActions.MAX:
-                        default:
-                            throw new Exception("Unexpected KeyboardAction: " + action);
-                    }
-
-                    values[i] = (id, weight);
+                    case KeyboardActions.WeightUp:
+                        model.Weight = MathExt.Clamp(model.Weight + 0.05, 0.0, 1.0);
+                        break;
+                    case KeyboardActions.WeightDown:
+                        model.Weight = MathExt.Clamp(model.Weight - 0.05, 0.0, 1.0);
+                        break;
+                    default:
+                        throw new Exception("Unexpected KeyboardAction: " + action);
                 }
-                
-                UpdateWeights(values);
             }
         }
 
         private (PlaylistContext context, List<(long id, double weight)> values) ExtractContextIDAndWeights()
         {
             IEnumerable<PlaylistViewModel> selectedItems = PlaylistTree.SelectedItems.OfType<PlaylistViewModel>();
-            
+
             PlaylistContext context = PlaylistContext.MAX;
             List<(long id, double weight)> weightList = new List<(long id, double weight)>();
 
 
-            if(selectedItems.Count() > 0)
+            if (selectedItems.Count() > 0)
             {
                 PlaylistViewModel firstSelectedItem = selectedItems.First();
 
@@ -418,23 +438,6 @@ namespace MusicPlayer.Playlist
             }
 
             return (context, weightList);
-        }
-
-        private void UpdateWeights(IList<(long id, double weight)> values)
-        {
-            int i = 0;
-            foreach (PlaylistViewModel model in PlaylistTree.SelectedItems)
-            {
-                //Lets find out if this is sufficient...
-                if (model.ID != values[i].id)
-                {
-                    throw new Exception("selectedItem doesn't match up!");
-                }
-
-                model.Weight = values[i].weight;
-
-                i++;
-            }
         }
     }
 }

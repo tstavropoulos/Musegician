@@ -11,7 +11,6 @@ namespace MusicPlayer.Library
 {
     public class RecordingViewModel : LibraryViewModel
     {
-
         #region Constructors
 
         public RecordingViewModel(RecordingDTO recording, SongViewModel song)
@@ -22,9 +21,8 @@ namespace MusicPlayer.Library
         {
         }
 
-        #endregion // Constructors
-
-        #region Recording Properties
+        #endregion Constructors
+        #region Properties
 
         public RecordingDTO _recording
         {
@@ -53,6 +51,6 @@ namespace MusicPlayer.Library
             get { return base.IsDim || !_recording.IsHome; }
         }
 
-        #endregion // Recording Properties
+        #endregion Properties
     }
 }

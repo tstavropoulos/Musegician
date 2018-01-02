@@ -23,7 +23,7 @@ namespace MusicPlayer.Player
         const string playString = "▶";
         const string pauseString = "||";
 
-        private MusicManager musicMan
+        private MusicManager MusicMan
         {
             get { return MusicManager.Instance; }
         }
@@ -32,33 +32,33 @@ namespace MusicPlayer.Player
         {
             InitializeComponent();
 
-            musicMan.PlayerStateChanged += PlayerStateChanged;
-            musicMan.tickUpdate += TickUpdate;
+            MusicMan.PlayerStateChanged += PlayerStateChanged;
+            MusicMan.tickUpdate += TickUpdate;
         }
 
         public void OnPlayClick(object sender, RoutedEventArgs e)
         {
-            musicMan.Play();
+            MusicMan.PlayPause();
         }
 
         public void OnStopClick(object sender, RoutedEventArgs e)
         {
-            musicMan.Stop();
+            MusicMan.Stop();
         }
 
         public void OnNextClick(object sender, RoutedEventArgs e)
         {
-            musicMan.Next();
+            MusicMan.Next();
         }
 
         public void OnBackClick(object sender, RoutedEventArgs e)
         {
-            musicMan.Back();
+            MusicMan.Back();
         }
 
         private void Slider_Drag(object s, DragDeltaEventArgs e)
         {
-            musicMan.DragRequest((long)progressSlider.Value);
+            MusicMan.DragRequest((long)progressSlider.Value);
         }
 
         private void TickUpdate(long position)

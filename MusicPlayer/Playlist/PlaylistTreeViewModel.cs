@@ -14,9 +14,8 @@ namespace MusicPlayer.Playlist
 
         readonly ObservableCollection<PlaylistSongViewModel> _playlistViewModels;
 
-        #endregion // Data
-
-        #region Constructor
+        #endregion Data
+        #region Constructors
 
         public PlaylistTreeViewModel()
         {
@@ -31,7 +30,8 @@ namespace MusicPlayer.Playlist
                      .ToList());
         }
 
-        #endregion // Constructor
+        #endregion Constructors
+        #region Data Methods
 
         public void Add(SongDTO song)
         {
@@ -46,10 +46,8 @@ namespace MusicPlayer.Playlist
             }
         }
 
-
+        #endregion Data Methods
         #region Properties
-
-        #region PlaylistViewModels
 
         /// <summary>
         /// Returns a read-only collection containing the first person 
@@ -60,9 +58,6 @@ namespace MusicPlayer.Playlist
             get { return _playlistViewModels; }
         }
 
-        #endregion // ArtistViewModels
-
-        #endregion // Properties
-
+        #endregion Properties
     }
 }

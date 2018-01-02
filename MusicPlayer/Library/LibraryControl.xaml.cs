@@ -12,6 +12,8 @@ using System.Windows;
 
 namespace MusicPlayer.Library
 {
+    #region Library Enums
+
     public enum LibraryContext
     {
         Artist = 0,
@@ -52,6 +54,8 @@ namespace MusicPlayer.Library
         MAX
     }
 
+    #endregion Library Enums
+
     public partial class LibraryControl : UserControl
     {
         #region Data
@@ -91,7 +95,7 @@ namespace MusicPlayer.Library
 
         public delegate void ContextMenuIDRequest(LibraryContext context, long id);
         public delegate void ContextMenuMultiIDRequest(LibraryContext context, IList<long> ids);
-        
+
         public event ContextMenuMultiIDRequest ContextMenu_MultiEdit;
         public event ContextMenuIDRequest ContextMenu_EditArt;
 
@@ -140,6 +144,7 @@ namespace MusicPlayer.Library
         }
 
         #endregion Construction
+        #region Class Methods
 
         private void Play(LibraryContext context, IList<long> ids, bool deep)
         {
@@ -248,9 +253,9 @@ namespace MusicPlayer.Library
 
                 Playlist.PlaylistManager.Instance.AddBack(songs);
             }
-
         }
 
+        #endregion Class Methods
         #region Callbacks
         #region Callbacks Search Execution
 
@@ -263,6 +268,7 @@ namespace MusicPlayer.Library
         }
 
         #endregion Callbacks Search Execution
+        #region Mouse Callbacks
 
         private void OnItemMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
@@ -290,6 +296,9 @@ namespace MusicPlayer.Library
                 }
             }
         }
+
+        #endregion Mouse Callbacks
+        #region Context Menu Callbacks
 
         private void Play_Deep(object sender, RoutedEventArgs e)
         {
@@ -356,11 +365,14 @@ namespace MusicPlayer.Library
                 MessageBox.Show("Must select exactly one album to edit Album Art", "Selection Error");
                 return;
             }
-            
+
             e.Handled = true;
 
             ContextMenu_EditArt?.Invoke(context, ids[0]);
         }
+
+        #endregion Context Menu Callbacks
+        #region View Callbacks
 
         private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
         {
@@ -407,12 +419,13 @@ namespace MusicPlayer.Library
             }
         }
 
+        #endregion View Callbacks
+        #region Keyboard Callbacks
+
         private void Tree_KeyDown(object sender, KeyEventArgs e)
         {
             if (sender is MultiSelectTreeView)
             {
-                e.Handled = true;
-
                 KeyboardActions action = TranslateKey(e.Key);
 
                 if (action == KeyboardActions.None)
@@ -420,6 +433,8 @@ namespace MusicPlayer.Library
                     //Do nothing
                     return;
                 }
+
+                e.Handled = true;
 
                 (LibraryContext context, List<(long id, double weight)> values) =
                     ExtractContextIDAndWeights();
@@ -459,6 +474,7 @@ namespace MusicPlayer.Library
             }
         }
 
+        #endregion Keyboard Callbacks
         #endregion Callbacks
         #region Helper Fuctions
 

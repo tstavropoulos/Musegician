@@ -14,55 +14,95 @@ namespace MusicPlayer.Library
     {
         #region Data
 
-        readonly ObservableCollection<LibraryViewModel> _classicArtistViewModels;
-        readonly ObservableCollection<LibraryViewModel> _simpleArtistViewModels;
-        readonly ObservableCollection<LibraryViewModel> _albumViewModels;
-        readonly ICommand _searchCommand;
+        readonly ObservableCollection<LibraryViewModel> _classicArtistViewModels =
+            new ObservableCollection<LibraryViewModel>();
+
+        readonly ObservableCollection<LibraryViewModel> _simpleArtistViewModels =
+            new ObservableCollection<LibraryViewModel>();
+
+        readonly ObservableCollection<LibraryViewModel> _albumViewModels =
+            new ObservableCollection<LibraryViewModel>();
+
+        readonly ICommand _searchCommand = new SearchMusicTreeCommand(null);
 
         IEnumerator<LibraryViewModel> _matchingRecordEnumerator;
         string _searchText = String.Empty;
 
+        bool classicLoaded = false;
+        bool simpleLoaded = false;
+        bool albumLoaded = false;
+
+        #endregion Data
+        #region Engine References
+
         ILibraryRequestHandler requestHandler;
 
-        #endregion // Data
-
+        #endregion Engine References
         #region Constructor
 
-        public MusicTreeViewModel()
-        {
-            _classicArtistViewModels = new ObservableCollection<LibraryViewModel>();
-            _simpleArtistViewModels = new ObservableCollection<LibraryViewModel>();
-            _albumViewModels = new ObservableCollection<LibraryViewModel>();
-
-            _searchCommand = new SearchMusicTreeCommand(null);
-        }
+        public MusicTreeViewModel() { }
 
         public MusicTreeViewModel(ILibraryRequestHandler requestHandler)
+            : this()
         {
             this.requestHandler = requestHandler;
-
-            _classicArtistViewModels = new ObservableCollection<LibraryViewModel>(
-                (from artist in requestHandler.GenerateArtistList()
-                 select new ArtistViewModel(artist, ViewMode.Classic))
-                     .ToList());
-
-            _simpleArtistViewModels = new ObservableCollection<LibraryViewModel>(
-                (from artist in requestHandler.GenerateArtistList()
-                 select new ArtistViewModel(artist, ViewMode.Simple))
-                     .ToList());
-
-            _albumViewModels = new ObservableCollection<LibraryViewModel>(
-                (from album in requestHandler.GenerateAlbumList()
-                 select new AlbumViewModel(album, null))
-                     .ToList());
 
             _searchCommand = new SearchMusicTreeCommand(this);
         }
 
-        #endregion // Constructor
+        #endregion Constructor
+        #region Helper Functions
 
+        void CheckIsLoaded(ViewMode mode)
+        {
+            switch (mode)
+            {
+                case ViewMode.Classic:
+                    if (!classicLoaded)
+                    {
+                        classicLoaded = true;
+                        _classicArtistViewModels.Clear();
+
+                        foreach (ArtistDTO artist in requestHandler.GenerateArtistList())
+                        {
+                            _classicArtistViewModels.Add(new ArtistViewModel(artist, ViewMode.Classic));
+                        }
+                    }
+                    break;
+                case ViewMode.Simple:
+                    if (!simpleLoaded)
+                    {
+                        simpleLoaded = true;
+                        _simpleArtistViewModels.Clear();
+
+                        foreach (ArtistDTO artist in requestHandler.GenerateArtistList())
+                        {
+                            _simpleArtistViewModels.Add(new ArtistViewModel(artist, ViewMode.Simple));
+                        }
+
+                    }
+                    break;
+                case ViewMode.Album:
+                    if (!albumLoaded)
+                    {
+                        albumLoaded = true;
+                        _albumViewModels.Clear();
+
+                        foreach (AlbumDTO album in requestHandler.GenerateAlbumList())
+                        {
+                            _albumViewModels.Add(new AlbumViewModel(album, null));
+                        }
+
+                    }
+                    break;
+                case ViewMode.MAX:
+                default:
+                    throw new Exception("Unexpected ViewMode: " + mode);
+            }
+        }
+
+        #endregion Helper Functions
         #region Properties
-
         #region ArtistViewModels
 
         /// <summary>
@@ -84,7 +124,7 @@ namespace MusicPlayer.Library
             get { return _simpleArtistViewModels; }
         }
 
-        #endregion // ArtistViewModels
+        #endregion ArtistViewModels
 
         #region SearchCommand
 
@@ -108,7 +148,7 @@ namespace MusicPlayer.Library
             }
         }
 
-        private ViewMode _currentViewMode = ViewMode.Classic;
+        private ViewMode _currentViewMode = ViewMode.MAX;
         public ViewMode CurrentViewMode
         {
             get { return _currentViewMode; }
@@ -120,21 +160,24 @@ namespace MusicPlayer.Library
 
                     //Clear the ongoing search
                     _matchingRecordEnumerator = null;
+                    
+                    CheckIsLoaded(_currentViewMode);
 
                     switch (_currentViewMode)
                     {
                         case ViewMode.Classic:
-                            //Do nothing
+                            {
+                            }
                             break;
                         case ViewMode.Simple:
-                            //Album search is invalid
+                            //Album search is invalid in Simple Mode
                             if (SearchChoice == SearchChoices.Album)
                             {
                                 SearchChoice = SearchChoices.All;
                             }
                             break;
                         case ViewMode.Album:
-                            //Artist search is invalid
+                            //Artist search is invalid in Album mode
                             if (SearchChoice == SearchChoices.Artist)
                             {
                                 SearchChoice = SearchChoices.All;
@@ -185,8 +228,7 @@ namespace MusicPlayer.Library
             }
         }
 
-        #endregion // SearchCommand
-
+        #endregion SearchCommand
         #region SearchText
 
         /// <summary>
@@ -207,10 +249,8 @@ namespace MusicPlayer.Library
             }
         }
 
-        #endregion // SearchText
-
-        #endregion // Properties
-
+        #endregion SearchText
+        #endregion Properties
         #region Search Logic
 
         void PerformSearch()
@@ -358,8 +398,7 @@ namespace MusicPlayer.Library
             return !SearchTypeMatch(model);
         }
 
-        #endregion // Search Logic
-
+        #endregion Search Logic
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -369,7 +408,7 @@ namespace MusicPlayer.Library
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        #endregion // INotifyPropertyChanged
+        #endregion INotifyPropertyChanged
 
     }
 }

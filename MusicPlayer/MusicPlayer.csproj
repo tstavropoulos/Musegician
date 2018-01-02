@@ -54,6 +54,9 @@
   <PropertyGroup>
     <ApplicationIcon>Resources\logo.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>MusicPlayer.EntryPoint</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="CSCore, Version=1.2.1.2, Culture=neutral, PublicKeyToken=5a08f2b6f4415dea, processorArchitecture=MSIL">
       <HintPath>..\packages\CSCore.1.2.1.2\lib\net35-client\CSCore.dll</HintPath>
@@ -111,6 +114,9 @@
     <Compile Include="Core\DBCommands\SongCommands.cs" />
     <Compile Include="Core\DoubleComparisonExtension.cs" />
     <Compile Include="Core\EnumBoolConverter.cs" />
+    <Compile Include="Core\KeyboardHook.cs" />
+    <Compile Include="Core\MathExtension.cs" />
+    <Compile Include="Core\OSInterop.cs" />
     <Compile Include="Core\RingBuffer.cs" />
     <Compile Include="Core\WeightBar.xaml.cs">
       <DependentUpon>WeightBar.xaml</DependentUpon>
@@ -121,6 +127,7 @@
     <Compile Include="DataStructures\AlbumDTO.cs" />
     <Compile Include="DataStructures\ArtistDTO.cs" />
     <Compile Include="DataStructures\PlaylistStructures.cs" />
+    <Compile Include="EntryPoint.cs" />
     <Compile Include="Library\ILibraryRequestHandler.cs" />
     <Compile Include="Library\LibraryViewModel.cs" />
     <Compile Include="Library\LibraryControl.xaml.cs">

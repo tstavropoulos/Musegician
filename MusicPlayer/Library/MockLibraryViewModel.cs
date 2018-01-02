@@ -12,11 +12,16 @@ namespace MusicPlayer.Library
 {
     public class MockLibraryViewModel
     {
+        #region Data
+
         readonly ObservableCollection<ArtistViewModel> _classicArtistViewModels;
         readonly ObservableCollection<ArtistViewModel> _simpleArtistViewModels;
         readonly ObservableCollection<AlbumViewModel> _albumViewModels;
 
         public SearchChoices SearchChoice { get; set; } = SearchChoices.All;
+
+        #endregion Data
+        #region Constructor
 
         public MockLibraryViewModel()
         {
@@ -51,6 +56,7 @@ namespace MusicPlayer.Library
             _classicArtistViewModels[1].Children[0].Children[1].IsExpanded = true;
         }
 
+        #endregion Constructor
         #region ArtistViewModels
 
         public ObservableCollection<ArtistViewModel> ClassicArtistViewModels
@@ -68,17 +74,22 @@ namespace MusicPlayer.Library
             get { return _simpleArtistViewModels; }
         }
 
-        #endregion // ArtistViewModels
-
-
+        #endregion ArtistViewModels
     }
+
+    #region MockDB
 
     public class MockDB : ILibraryRequestHandler
     {
+        #region Data
+
         (long id, string name)[] artists;
         (long id, long artistID, string name, string art)[] albums;
         (long id, long albumID, string name)[] songs;
         (long id, long songID, long homeAlbum, bool live, string title)[] recordings;
+
+        #endregion Data
+        #region Constructor
 
         public MockDB()
         {
@@ -152,6 +163,9 @@ namespace MusicPlayer.Library
                 (20, 19, 4, false, "West of Hollywood")
             };
         }
+
+        #endregion Constructor
+        #region ILibraryRequestHandler
 
         List<AlbumDTO> ILibraryRequestHandler.GenerateAlbumList()
         {
@@ -268,11 +282,14 @@ namespace MusicPlayer.Library
         }
 
         void ILibraryRequestHandler.UpdateWeights(
-            LibraryContext context, 
+            LibraryContext context,
             IList<(long id, double weight)> values)
         {
             throw new NotImplementedException();
         }
+
+        #endregion ILibraryRequestHandler
+        #region Helper Methods
 
         private string GetAlbumName(long albumID)
         {
@@ -349,5 +366,9 @@ namespace MusicPlayer.Library
             image.Freeze();
             return image;
         }
+
+        #endregion Helper Methods
     }
+
+    #endregion MockDB
 }

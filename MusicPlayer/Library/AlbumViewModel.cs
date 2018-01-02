@@ -22,9 +22,8 @@ namespace MusicPlayer.Library
         {
         }
 
-        #endregion // Constructors
-
-        #region Artist Properties
+        #endregion Constructors
+        #region Properties
 
         public AlbumDTO _album
         {
@@ -36,9 +35,7 @@ namespace MusicPlayer.Library
             get { return _album.AlbumArt; }
         }
 
-        #endregion // Artist Properties
-
-
+        #endregion Properties
         #region LoadChildren
 
         public override void LoadChildren(ILibraryRequestHandler dataManager)
@@ -53,6 +50,6 @@ namespace MusicPlayer.Library
             }
         }
 
-        #endregion // LoadChildren
+        #endregion LoadChildren
     }
 }

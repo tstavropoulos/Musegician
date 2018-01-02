@@ -159,8 +159,7 @@ namespace MusicPlayer.Core.DBCommands
             dbConnection.Close();
         }
 
-        #endregion // High Level Commands
-
+        #endregion High Level Commands
         #region Search Commands
 
         public long _FindSongID_ByTrackID(long trackID)
@@ -186,8 +185,7 @@ namespace MusicPlayer.Core.DBCommands
             return songID;
         }
 
-        #endregion  // Search Commands
-
+        #endregion Search Commands
         #region Initialization Commands
 
         public void _InitializeValues()
@@ -209,8 +207,7 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion //Initialization Commands
-
+        #endregion Initialization Commands
         #region Update Commands
 
         public void _ReassignAlbumID(
@@ -255,9 +252,7 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion // Update Commands
-
-
+        #endregion Update Commands
         #region Create Commands
 
         public void _CreateTrackTables(SQLiteTransaction transaction)
@@ -285,9 +280,7 @@ namespace MusicPlayer.Core.DBCommands
             createTrackWeightTable.ExecuteNonQuery();
         }
 
-        #endregion //Create Commands
-
-
+        #endregion Create Commands
         #region Insert Commands
 
         public void _BatchCreateTracks(
@@ -320,6 +313,6 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion // Insert Commands
+        #endregion Insert Commands
     }
 }

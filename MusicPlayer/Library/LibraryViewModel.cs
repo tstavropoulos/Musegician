@@ -24,8 +24,7 @@ namespace MusicPlayer.Library
         bool _isExpanded;
         bool _isSelected;
 
-        #endregion // Data
-
+        #endregion Data
         #region Constructors
 
         public LibraryViewModel(DTO data, LibraryViewModel parent, bool lazyLoadChildren)
@@ -46,9 +45,8 @@ namespace MusicPlayer.Library
         {
         }
 
-        #endregion // Constructors
-
-        #region Artist Properties
+        #endregion Constructors
+        #region Properties
 
         public ObservableCollection<LibraryViewModel> Children
         {
@@ -105,10 +103,8 @@ namespace MusicPlayer.Library
             get { return Weight == 0.0; }
         }
 
-        #endregion // Artist Properties
-
+        #endregion Properties
         #region Presentation Members
-
         #region IsExpanded
 
         /// <summary>
@@ -134,8 +130,7 @@ namespace MusicPlayer.Library
             }
         }
 
-        #endregion // IsExpanded
-
+        #endregion IsExpanded
         #region IsSelected
 
         /// <summary>
@@ -161,8 +156,7 @@ namespace MusicPlayer.Library
             }
         }
 
-        #endregion // IsSelected
-
+        #endregion IsSelected
         #region NameContainsText
 
         public virtual bool NameContainsText(string text)
@@ -173,8 +167,7 @@ namespace MusicPlayer.Library
             return Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
         }
 
-        #endregion // NameContainsText
-
+        #endregion NameContainsText
         #region LoadChildren
 
         /// <summary>
@@ -186,8 +179,7 @@ namespace MusicPlayer.Library
             Children.Clear();
         }
 
-        #endregion // LoadChildren
-
+        #endregion LoadChildren
         #region Parent
 
         public LibraryViewModel Parent
@@ -195,11 +187,9 @@ namespace MusicPlayer.Library
             get { return _parent; }
         }
 
-        #endregion // Parent
-
-        #endregion // Presentation Members
-
-        #region INotifyPropertyChanged Members
+        #endregion Parent
+        #endregion Presentation Members
+        #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -208,6 +198,6 @@ namespace MusicPlayer.Library
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        #endregion // INotifyPropertyChanged Members
+        #endregion INotifyPropertyChanged
     }
 }

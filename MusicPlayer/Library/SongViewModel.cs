@@ -12,7 +12,7 @@ namespace MusicPlayer.Library
 {
     public class SongViewModel : LibraryViewModel
     {
-        #region Constructors
+        #region Constructor
 
         public SongViewModel(SongDTO song, LibraryViewModel parent)
             : base (
@@ -22,9 +22,8 @@ namespace MusicPlayer.Library
         {
         }
 
-        #endregion // Constructors
-
-        #region Song Properties
+        #endregion Constructor
+        #region Properties
 
         public SongDTO _song
         {
@@ -46,8 +45,7 @@ namespace MusicPlayer.Library
             get { return _song.SearchableName; }
         }
 
-        #endregion // Song Properties
-
+        #endregion Properties
         #region LoadChildren
 
         public override void LoadChildren(ILibraryRequestHandler dataManager)
@@ -60,8 +58,7 @@ namespace MusicPlayer.Library
             }
         }
 
-        #endregion // LoadChildren
-
+        #endregion LoadChildren
         #region NameContainsText
 
         public override bool NameContainsText(string text)
@@ -72,6 +69,6 @@ namespace MusicPlayer.Library
             return SearchableName.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
         }
 
-        #endregion // NameContainsText
+        #endregion NameContainsText
     }
 }

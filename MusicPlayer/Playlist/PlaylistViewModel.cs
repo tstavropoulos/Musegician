@@ -20,8 +20,7 @@ namespace MusicPlayer.Playlist
         bool _isExpanded;
         bool _isSelected;
 
-        #endregion // Data
-
+        #endregion Data
         #region Constructor
 
         public PlaylistViewModel(DTO data, PlaylistViewModel parent)
@@ -32,9 +31,8 @@ namespace MusicPlayer.Playlist
             _children = new ObservableCollection<PlaylistViewModel>();
         }
 
-        #endregion // Constructor
-
-        #region PlaylistItem Properties
+        #endregion Constructor
+        #region Properties
 
         public ObservableCollection<PlaylistViewModel> Children
         {
@@ -100,10 +98,8 @@ namespace MusicPlayer.Playlist
             get { return Weight == 0.0; }
         }
 
-        #endregion
-
+        #endregion Properties
         #region Presentation Members
-
         #region IsExpanded
 
         /// <summary>
@@ -128,8 +124,7 @@ namespace MusicPlayer.Playlist
             }
         }
 
-        #endregion // IsExpanded
-
+        #endregion IsExpanded
         #region IsSelected
 
         /// <summary>
@@ -149,8 +144,7 @@ namespace MusicPlayer.Playlist
             }
         }
 
-        #endregion // IsSelected
-
+        #endregion IsSelected
         #region Parent
 
         public PlaylistViewModel Parent
@@ -158,11 +152,9 @@ namespace MusicPlayer.Playlist
             get { return _parent; }
         }
 
-        #endregion // Parent
-
-        #endregion // Presentation Members
-
-        #region INotifyPropertyChanged Members
+        #endregion Parent
+        #endregion Presentation Members
+        #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -171,6 +163,6 @@ namespace MusicPlayer.Playlist
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        #endregion // INotifyPropertyChanged Members
+        #endregion INotifyPropertyChanged
     }
 }

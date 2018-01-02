@@ -233,8 +233,7 @@ namespace MusicPlayer.Core.DBCommands
         }
 
 
-        #endregion // High Level Commands
-
+        #endregion High Level Commands
         #region Search Commands
 
         private long _FindPlaylist(string title)
@@ -309,8 +308,7 @@ namespace MusicPlayer.Core.DBCommands
             return recordings;
         }
 
-        #endregion  //Search Commands
-
+        #endregion Search Commands
         #region Initialization Commands
 
         public void _InitializeValues()
@@ -364,12 +362,9 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion  //Lookup Commands
-
+        #endregion Lookup Commands
         #region Update Commands
-
-        #endregion // Update Commands
-
+        #endregion Update Commands
         #region Create Commands
 
         public void _CreatePlaylistTables(SQLiteTransaction transaction)
@@ -424,8 +419,7 @@ namespace MusicPlayer.Core.DBCommands
             createPlaylistRecordingIDIndex.ExecuteNonQuery();
         }
 
-        #endregion //Create Commands
-
+        #endregion Create Commands
         #region Insert Commands
 
         public long _CreatePlaylist(
@@ -570,8 +564,7 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion //Insert Commands
-
+        #endregion Insert Commands
         #region Delete Commands
 
         public void _DeepDeletePlaylist(SQLiteTransaction transaction, long id)
@@ -607,6 +600,6 @@ namespace MusicPlayer.Core.DBCommands
             deletePlaylist.ExecuteNonQuery();
         }
 
-        #endregion // Delete Commands
+        #endregion Delete Commands
     }
 }

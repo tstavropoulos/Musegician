@@ -18,9 +18,8 @@ namespace MusicPlayer.Playlist
         {
         }
 
-        #endregion // Constructor
-
-        #region PlaylistItem Properties
+        #endregion Constructor
+        #region Properties
 
         public bool Live
         {
@@ -49,7 +48,7 @@ namespace MusicPlayer.Playlist
             get { return _parent as PlaylistSongViewModel; }
         }
 
-        #endregion
+        #endregion Properties
     }
 
 }

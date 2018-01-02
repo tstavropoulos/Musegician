@@ -293,8 +293,7 @@ namespace MusicPlayer.Core.DBCommands
         }
 
 
-        #endregion // High Level Commands
-
+        #endregion High Level Commands
         #region Search Commands
 
         public byte[] _GetArt(long albumID)
@@ -351,8 +350,7 @@ namespace MusicPlayer.Core.DBCommands
             return "INVALID";
         }
 
-        #endregion  //Search Commands
-
+        #endregion Search Commands
         #region Initialization Commands
 
         public void _InitializeValues()
@@ -374,8 +372,7 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion //Initialization Commands
-
+        #endregion Initialization Commands
         #region Lookup Commands
 
         public void _PopulateLookup(
@@ -433,8 +430,7 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion  //Lookup Commands
-
+        #endregion Lookup Commands
         #region Update Commands
 
         public void _UpdateAlbumTitle_ByAlbumID(
@@ -455,8 +451,7 @@ namespace MusicPlayer.Core.DBCommands
             updateAlbumTitle_ByAlbumID.ExecuteNonQuery();
         }
 
-        #endregion // Update Commands
-
+        #endregion Update Commands
         #region Create Commands
 
         public void _CreateAlbumTables(SQLiteTransaction transaction)
@@ -491,8 +486,7 @@ namespace MusicPlayer.Core.DBCommands
             createArtTable.ExecuteNonQuery();
         }
 
-        #endregion //Create Commands
-
+        #endregion Create Commands
         #region Insert Commands
 
         public long _CreateAlbum(
@@ -581,10 +575,8 @@ namespace MusicPlayer.Core.DBCommands
                 writeArt.ExecuteNonQuery();
             }
         }
-
-
-        #endregion //Insert Commands
-
+        
+        #endregion Insert Commands
         #region Delete Commands
 
         public void _DeleteAlbumID(
@@ -624,7 +616,7 @@ namespace MusicPlayer.Core.DBCommands
             deleteLeafs.ExecuteNonQuery();
         }
 
-        #endregion // Delete Commands
+        #endregion Delete Commands
 
         public void SetAlbumArt(long albumID, string path)
         {

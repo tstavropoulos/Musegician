@@ -12,7 +12,12 @@ namespace MusicPlayer.Playlist
 {
     public class MockPlaylistViewModel
     {
+        #region Data
+
         readonly ObservableCollection<PlaylistSongViewModel> _playlistViewModels;
+
+        #endregion Data
+        #region Constructor
 
         public MockPlaylistViewModel()
         {
@@ -32,6 +37,7 @@ namespace MusicPlayer.Playlist
             _playlistViewModels[10].IsExpanded = true;
         }
 
+        #endregion Constructor
         #region ViewModels
 
         public ObservableCollection<PlaylistSongViewModel> PlaylistViewModels
@@ -39,15 +45,22 @@ namespace MusicPlayer.Playlist
             get { return _playlistViewModels; }
         }
 
-        #endregion // ViewModels
+        #endregion ViewModels
     }
+
+    #region MockDB
 
     public class MockDB
     {
+        #region Data
+
         (long id, string name)[] artists;
         (long id, long artistID, string name, string art)[] albums;
         (long id, long albumID, string name)[] songs;
         (long id, long songID, long homeAlbum, bool live, string title)[] recordings;
+
+        #endregion Data
+        #region Constructor
 
         public MockDB()
         {
@@ -122,6 +135,9 @@ namespace MusicPlayer.Playlist
             };
         }
 
+        #endregion Constructor
+        #region Public Data Interface
+
         public List<SongDTO> GenerateSongList()
         {
             List<SongDTO> songList = new List<SongDTO>();
@@ -147,6 +163,9 @@ namespace MusicPlayer.Playlist
 
             return songList;
         }
+
+        #endregion Public Data Interface
+        #region Helper Methods
 
         List<RecordingDTO> GenerateSongRecordingList(long songID)
         {
@@ -228,5 +247,9 @@ namespace MusicPlayer.Playlist
 
             return "";
         }
+
+        #endregion Helper Methods
     }
+
+    #endregion MockDB
 }

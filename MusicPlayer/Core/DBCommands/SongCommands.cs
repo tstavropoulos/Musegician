@@ -212,8 +212,7 @@ namespace MusicPlayer.Core.DBCommands
             dbConnection.Close();
         }
 
-        #endregion // High Level Commands
-
+        #endregion High Level Commands
         #region Search Commands
 
         public long _FindSongID_ByTitle_MatchSongArtist(string songTitle, long oldSongID)
@@ -316,8 +315,7 @@ namespace MusicPlayer.Core.DBCommands
             return string.Format("{0} - {1}", artistName, songName);
         }
 
-        #endregion  //Search Commands
-
+        #endregion Search Commands
         #region Initialization Commands
 
         public void _InitializeValues()
@@ -339,8 +337,7 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion //Initialization Commands
-
+        #endregion Initialization Commands
         #region Lookup Commands
 
         public void _PopulateLookup(
@@ -374,8 +371,7 @@ namespace MusicPlayer.Core.DBCommands
             }
         }
 
-        #endregion  //Lookup Commands
-
+        #endregion Lookup Commands
         #region Update Commands
 
         public void _UpdateSongTitle_BySongID(
@@ -407,8 +403,7 @@ namespace MusicPlayer.Core.DBCommands
                 oldSongIDs: oldSongIDs);
         }
 
-        #endregion // Update Commands
-
+        #endregion Update Commands
         #region Create Commands
 
         public void _CreateSongTables(SQLiteTransaction transaction)
@@ -439,8 +434,7 @@ namespace MusicPlayer.Core.DBCommands
             createSongTitleIndex.ExecuteNonQuery();
         }
 
-        #endregion //Create Commands
-
+        #endregion Create Commands
         #region Insert Commands
 
         public long _CreateSong(
@@ -485,8 +479,7 @@ namespace MusicPlayer.Core.DBCommands
         }
 
 
-        #endregion //Insert Commands
-
+        #endregion Insert Commands
         #region Delete Commands
 
         public void _DeleteSongID(
@@ -523,6 +516,6 @@ namespace MusicPlayer.Core.DBCommands
             deleteLeafs.ExecuteNonQuery();
         }
 
-        #endregion // Delete Commands
+        #endregion Delete Commands
     }
 }
