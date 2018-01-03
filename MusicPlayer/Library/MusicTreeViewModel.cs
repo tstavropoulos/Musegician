@@ -55,6 +55,12 @@ namespace MusicPlayer.Library
 
         void CheckIsLoaded(ViewMode mode)
         {
+            //Shortciruit for designer
+            if (requestHandler == null)
+            {
+                return;
+            }
+
             switch (mode)
             {
                 case ViewMode.Classic:
@@ -160,7 +166,7 @@ namespace MusicPlayer.Library
 
                     //Clear the ongoing search
                     _matchingRecordEnumerator = null;
-                    
+
                     CheckIsLoaded(_currentViewMode);
 
                     switch (_currentViewMode)

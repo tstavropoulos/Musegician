@@ -1,0 +1,73 @@
+﻿<UserControl x:Class="MusicPlayer.Equalizer.EqualizerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:MusicPlayer.Equalizer"
+             mc:Ignorable="d" 
+             d:DesignHeight="300">
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition/>
+      <ColumnDefinition/>
+      <ColumnDefinition/>
+      <ColumnDefinition/>
+      <ColumnDefinition/>
+      <ColumnDefinition/>
+      <ColumnDefinition/>
+      <ColumnDefinition/>
+      <ColumnDefinition/>
+      <ColumnDefinition/>
+    </Grid.ColumnDefinitions>
+    <local:EqualizerSlider x:Name="EqSlider0" Grid.Column="0"
+                           Value="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh0, Mode=TwoWay}"
+                           Label="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh0Name}"/>
+    <local:EqualizerSlider x:Name="EqSlider1" Grid.Column="1"
+                           Value="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh1, Mode=TwoWay}"
+                           Label="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh1Name}"/>
+    <local:EqualizerSlider x:Name="EqSlider2" Grid.Column="2"
+                           Value="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh2, Mode=TwoWay}"
+                           Label="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh2Name}"/>
+    <local:EqualizerSlider x:Name="EqSlider3" Grid.Column="3"
+                           Value="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh3, Mode=TwoWay}"
+                           Label="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh3Name}"/>
+    <local:EqualizerSlider x:Name="EqSlider4" Grid.Column="4"
+                           Value="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh4, Mode=TwoWay}"
+                           Label="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh4Name}"/>
+    <local:EqualizerSlider x:Name="EqSlider5" Grid.Column="5"
+                           Value="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh5, Mode=TwoWay}"
+                           Label="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh5Name}"/>
+    <local:EqualizerSlider x:Name="EqSlider6" Grid.Column="6"
+                           Value="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh6, Mode=TwoWay}"
+                           Label="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh6Name}"/>
+    <local:EqualizerSlider x:Name="EqSlider7" Grid.Column="7"
+                           Value="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh7, Mode=TwoWay}"
+                           Label="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh7Name}"/>
+    <local:EqualizerSlider x:Name="EqSlider8" Grid.Column="8"
+                           Value="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh8, Mode=TwoWay}"
+                           Label="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh8Name}"/>
+    <local:EqualizerSlider x:Name="EqSlider9" Grid.Column="9"
+                           Value="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh9, Mode=TwoWay}"
+                           Label="{Binding Source={x:Static local:EqualizerManager.Instance},
+                              Path=EqCh9Name}"/>
+  </Grid>
+</UserControl>

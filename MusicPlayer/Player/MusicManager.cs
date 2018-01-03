@@ -8,6 +8,8 @@ using CSCore;
 using CSCore.Codecs;
 using CSCore.CoreAudioAPI;
 using CSCore.SoundOut;
+using CSCore.Streams;
+using CSCore.Streams.Effects;
 using PlaylistManager = MusicPlayer.Playlist.PlaylistManager;
 using PlayData = MusicPlayer.DataStructures.PlayData;
 using System.ComponentModel;
@@ -16,10 +18,11 @@ using System.Windows;
 
 namespace MusicPlayer.Player
 {
-    public class MusicManager : ContentElement, INotifyPropertyChanged, IDisposable
+    public class MusicManager : INotifyPropertyChanged, IDisposable
     {
         private ISoundOut _soundOut;
         private IWaveSource _waveSource;
+        private CSCore.Streams.Effects.Equalizer _equalizer;
 
         private AudioClient _audioClient = null;
         private AudioClient AudioClient
@@ -241,11 +244,11 @@ namespace MusicPlayer.Player
                     //Update the volume
                     if (_soundOut != null)
                     {
-                        _soundOut.Volume = (float)Volume;
+                        _soundOut.Volume = Volume;
                     }
 
                     suppressUpdate = true;
-                    SimpleAudioVolume.MasterVolume = (float)Volume;
+                    SimpleAudioVolume.MasterVolume = Volume;
                 }
             }
         }
@@ -312,7 +315,6 @@ namespace MusicPlayer.Player
         public delegate void TickUpdate(long position);
         public event TickUpdate tickUpdate;
 
-
         public delegate void IDNotifier(long id);
         private event IDNotifier _RecordingStarted;
         public event IDNotifier RecordingStarted
@@ -352,6 +354,8 @@ namespace MusicPlayer.Player
             {
                 throw new Exception("Unable to initialize AudioClient");
             }
+
+            Equalizer.EqualizerManager.Instance.PropertyChanged += EqualizerUpdated;
 
             playTimer = new DispatcherTimer
             {
@@ -394,7 +398,15 @@ namespace MusicPlayer.Player
             _waveSource = CodecFactory.Instance.GetCodec(playData.filename)
                 .ToSampleSource()
                 .ToStereo()
+                .AppendSource(CSCore.Streams.Effects.Equalizer.Create10BandEqualizer, out _equalizer)
                 .ToWaveSource();
+
+            //Set current eq values
+            for (int i = 0; i < _equalizer.SampleFilters.Count; i++)
+            {
+                _equalizer.SampleFilters[i].AverageGainDB = Equalizer.EqualizerManager.Instance.GetGain(i);
+            }
+
             MMDevice device = MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
 
             if (device == null)
@@ -461,6 +473,12 @@ namespace MusicPlayer.Player
             {
                 _waveSource.Dispose();
                 _waveSource = null;
+            }
+
+            if (_equalizer != null)
+            {
+                _equalizer.Dispose();
+                _equalizer = null;
             }
         }
 
@@ -744,6 +762,52 @@ namespace MusicPlayer.Player
             }
         }
 
+        private void EqualizerUpdated(object sender, PropertyChangedEventArgs e)
+        {
+            //We do not care about updates if we haven't instantiated an equalizer
+            if (_equalizer == null)
+            {
+                return;
+            }
+
+            switch (e.PropertyName)
+            {
+                case "EqCh0":
+                    _equalizer.SampleFilters[0].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh0;
+                    break;
+                case "EqCh1":
+                    _equalizer.SampleFilters[1].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh1;
+                    break;
+                case "EqCh2":
+                    _equalizer.SampleFilters[2].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh2;
+                    break;
+                case "EqCh3":
+                    _equalizer.SampleFilters[3].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh3;
+                    break;
+                case "EqCh4":
+                    _equalizer.SampleFilters[4].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh4;
+                    break;
+                case "EqCh5":
+                    _equalizer.SampleFilters[5].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh5;
+                    break;
+                case "EqCh6":
+                    _equalizer.SampleFilters[6].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh6;
+                    break;
+                case "EqCh7":
+                    _equalizer.SampleFilters[7].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh7;
+                    break;
+                case "EqCh8":
+                    _equalizer.SampleFilters[8].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh8;
+                    break;
+                case "EqCh9":
+                    _equalizer.SampleFilters[9].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh9;
+                    break;
+                default:
+                    //Do nothing
+                    return;
+            }
+        }
+
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -794,6 +858,12 @@ namespace MusicPlayer.Player
                         _waveSource.Dispose();
                         _waveSource = null;
                     }
+
+                    if (_equalizer != null)
+                    {
+                        _equalizer.Dispose();
+                        _equalizer = null;
+                    }
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
@@ -802,7 +872,7 @@ namespace MusicPlayer.Player
                 disposedValue = true;
             }
         }
-        
+
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {

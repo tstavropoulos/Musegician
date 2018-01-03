@@ -62,7 +62,10 @@
                     Header="_Clear Playlist"
                     Click="Menu_ClearPlaylist"/>
         </MenuItem>
-
+        <MenuItem Header="_Sound">
+          <MenuItem Header="Open _Equalizer"
+                    Click="Menu_OpenEqualizer"/>
+        </MenuItem>
       </Menu>
     </DockPanel>
     <player:PlaybackPanel x:Name="playbackPanel"
