@@ -136,7 +136,7 @@ namespace MusicPlayer.Equalizer
         #endregion INotifyPropertyChanged
     }
 
-    public class FloatPointConverter : IValueConverter
+    public class FloatVPointConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -148,6 +148,26 @@ namespace MusicPlayer.Equalizer
             }
 
             return new Point(1 / val, 0);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+    public class FloatHPointConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            float val = System.Convert.ToSingle(value);
+
+            if (val == 0.0)
+            {
+                return new Point(0, 0);
+            }
+
+            return new Point(0, 1 / val);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

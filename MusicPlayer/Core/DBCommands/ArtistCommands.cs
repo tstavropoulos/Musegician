@@ -390,6 +390,17 @@ namespace MusicPlayer.Core.DBCommands
         #endregion Insert Commands
         #region Delete Commands
 
+        public void _DropTable(
+            SQLiteTransaction transaction)
+        {
+            SQLiteCommand dropArtistTable = dbConnection.CreateCommand();
+            dropArtistTable.Transaction = transaction;
+            dropArtistTable.CommandType = System.Data.CommandType.Text;
+            dropArtistTable.CommandText =
+                "DROP TABLE IF EXISTS artist;";
+            dropArtistTable.ExecuteNonQuery();
+        }
+
         public void _DeleteArtistID(
             SQLiteTransaction transaction,
             ICollection<long> artistIDs)

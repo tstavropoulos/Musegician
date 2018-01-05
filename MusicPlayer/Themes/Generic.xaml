@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:MusicPlayer"
                     xmlns:core="clr-namespace:MusicPlayer.Core"
+                    xmlns:equalizer="clr-namespace:MusicPlayer.Equalizer"
                     xmlns:darkBlendTheme="clr-namespace:DarkBlendTheme">
 
 
@@ -18,6 +19,34 @@
 
   <Color x:Key="HighlightColor">#BDBDBD</Color>
   <Color x:Key="HotColor">#525252</Color>
+  
+  <Color x:Key="ControlLightColor">White</Color>
+  <Color x:Key="ControlMediumColor">#FF7381F9</Color>
+  <Color x:Key="ControlDarkColor">#FF211AA9</Color>
+
+  <Color x:Key="ControlMouseOverColor">#FF3843C4</Color>
+  <Color x:Key="ControlPressedColor">#FF211AA9</Color>
+  
+  <Color x:Key="DisabledControlLightColor">#FFE8EDF9</Color>
+  <Color x:Key="DisabledControlDarkColor">#FFC5CBF9</Color>
+  <Color x:Key="DisabledForegroundColor">#FF888888</Color>
+  
+  <Color x:Key="GlyphColor">#FF444444</Color>
+  <Color x:Key="GlyphMouseOver">sc#1, 0.004391443, 0.002428215, 0.242281124</Color>
+
+  <Color x:Key="BorderLightColor">#FFCCCCCC</Color>
+  <Color x:Key="BorderMediumColor">#FF888888</Color>
+  <Color x:Key="BorderDarkColor">#FF444444</Color>
+
+  <Color x:Key="PressedBorderLightColor">#FF888888</Color>
+  <Color x:Key="PressedBorderDarkColor">#FF444444</Color>
+
+  <Color x:Key="DisabledBorderLightColor">#FFAAAAAA</Color>
+  <Color x:Key="DisabledBorderDarkColor">#FF888888</Color>
+
+  <Color x:Key="DefaultBorderBrushDarkColor">Black</Color>
+
+  <Color x:Key="SliderTrackDarkColor">#FFC5CBF9</Color>
   <!--#endregion-->
 
 
@@ -34,11 +63,22 @@
   <SolidColorBrush x:Key="AltSelectedListItem" Color="DarkSlateBlue"/>
   <SolidColorBrush x:Key="SelectedListItemForeground" Color="{StaticResource DarkBackgroundColor}"/>
   <SolidColorBrush x:Key="MouseOverListItem" Color="#4A4A4A"/>
-  
+
   <SolidColorBrush x:Key="TreeViewBackground" Color="{StaticResource DarkBackgroundColor}"/>
   <SolidColorBrush x:Key="TreeViewDisabledForeground" Color="{StaticResource LightDisabledBackgroundColor}"/>
-  
+
+
+  <GradientStopCollection x:Key="MeterGradStops">
+    <GradientStop Color="Green" Offset="0.0"/>
+    <GradientStop Color="Green" Offset="0.7"/>
+    <GradientStop Color="Yellow" Offset="0.95"/>
+    <GradientStop Color="Red" Offset="1.0"/>
+  </GradientStopCollection>
+
   <!--#endregion-->
+
+  <equalizer:FloatVPointConverter x:Key="FloatVPointConverter"/>
+  <equalizer:FloatHPointConverter x:Key="FloatHPointConverter"/>
 
   <!--#region MultiSelectTreeView-->
   <Style TargetType="{x:Type core:MultiSelectTreeView}">
@@ -73,7 +113,7 @@
       </Setter.Value>
     </Setter>
   </Style>
-  
+
   <Style x:Key="TreeViewItemFocusVisual">
     <Setter Property="Control.Template">
       <Setter.Value>
@@ -193,6 +233,374 @@
         </ControlTemplate>
       </Setter.Value>
     </Setter>
+  </Style>
+
+  <!--TwoValueVisualizerSlider-->
+
+  <Style x:Key="TwoValueVisualizerSliderButtonStyle"
+       TargetType="{x:Type RepeatButton}">
+    <Setter Property="SnapsToDevicePixels"
+          Value="true" />
+    <Setter Property="OverridesDefaultStyle"
+          Value="true" />
+    <Setter Property="IsTabStop"
+          Value="false" />
+    <Setter Property="Focusable"
+          Value="false" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type RepeatButton}">
+          <Border Background="Transparent" />
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <Style x:Key="TwoValueVisualizerSliderThumbStyle"
+       TargetType="{x:Type Thumb}">
+    <Setter Property="SnapsToDevicePixels"
+          Value="true" />
+    <Setter Property="OverridesDefaultStyle"
+          Value="true" />
+    <Setter Property="Height"
+          Value="14" />
+    <Setter Property="Width"
+          Value="14" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type Thumb}">
+          <Ellipse x:Name="Ellipse"
+                 StrokeThickness="1">
+            <Ellipse.Stroke>
+              <LinearGradientBrush StartPoint="0,0"
+                                 EndPoint="0,1">
+                <LinearGradientBrush.GradientStops>
+                  <GradientStopCollection>
+                    <GradientStop Color="{DynamicResource BorderLightColor}"
+                                Offset="0.0" />
+                    <GradientStop Color="{DynamicResource BorderDarkColor}"
+                                Offset="1.0" />
+                  </GradientStopCollection>
+                </LinearGradientBrush.GradientStops>
+              </LinearGradientBrush>
+            </Ellipse.Stroke>
+            <Ellipse.Fill>
+              <LinearGradientBrush EndPoint="0.5,1"
+                                 StartPoint="0.5,0">
+                <GradientStop Color="{DynamicResource ControlMediumColor}"
+                            Offset="1" />
+                <GradientStop Color="{DynamicResource ControlLightColor}" />
+              </LinearGradientBrush>
+            </Ellipse.Fill>
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
+                <VisualState x:Name="MouseOver">
+                  <Storyboard>
+                    <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Fill).
+                    (GradientBrush.GradientStops)[0].(GradientStop.Color)"
+                                                Storyboard.TargetName="Ellipse">
+                      <EasingColorKeyFrame KeyTime="0"
+                                         Value="{StaticResource ControlMouseOverColor}" />
+                    </ColorAnimationUsingKeyFrames>
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Pressed">
+                  <Storyboard>
+                    <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Fill).
+                    (GradientBrush.GradientStops)[0].(GradientStop.Color)"
+                                                Storyboard.TargetName="Ellipse">
+                      <EasingColorKeyFrame KeyTime="0"
+                                         Value="{StaticResource ControlPressedColor}" />
+                    </ColorAnimationUsingKeyFrames>
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Disabled">
+                  <Storyboard>
+                    <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Fill).
+                    (GradientBrush.GradientStops)[0].(GradientStop.Color)"
+                                                Storyboard.TargetName="Ellipse">
+                      <EasingColorKeyFrame KeyTime="0"
+                                         Value="{StaticResource DisabledControlDarkColor}" />
+                    </ColorAnimationUsingKeyFrames>
+                  </Storyboard>
+                </VisualState>
+              </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+          </Ellipse>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!--Template when the orientation of the Slider is Horizontal.-->
+  <ControlTemplate x:Key="HorizontalTwoValueVisualizerSlider"
+                 TargetType="{x:Type core:TwoValueVisualizerSlider}">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto"
+                       MinHeight="{TemplateBinding MinHeight}"/>
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
+      <TickBar x:Name="TopTick"
+               SnapsToDevicePixels="True"
+               Placement="Top"
+               Height="4"
+               Grid.Row="0"
+               Visibility="Collapsed">
+        <TickBar.Fill>
+          <SolidColorBrush Color="{DynamicResource GlyphColor}" />
+        </TickBar.Fill>
+      </TickBar>
+      <Border x:Name="TrackBackground"
+              Margin="0"
+              CornerRadius="2"
+              Height="4"
+              Grid.Row="1"
+              BorderThickness="1">
+        <Border.BorderBrush>
+          <LinearGradientBrush StartPoint="0,0"
+                               EndPoint="0,1">
+            <LinearGradientBrush.GradientStops>
+              <GradientStopCollection>
+                <GradientStop Color="{DynamicResource BorderLightColor}"
+                              Offset="0.0" />
+                <GradientStop Color="{DynamicResource BorderDarkColor}"
+                              Offset="1.0" />
+              </GradientStopCollection>
+            </LinearGradientBrush.GradientStops>
+          </LinearGradientBrush>
+        </Border.BorderBrush>
+        <Border.Background>
+          <LinearGradientBrush StartPoint="0,0"
+                               EndPoint="0,1">
+            <LinearGradientBrush.GradientStops>
+              <GradientStopCollection>
+                <GradientStop Color="{DynamicResource ControlLightColor}"
+                              Offset="0.0" />
+                <GradientStop Color="{DynamicResource SliderTrackDarkColor}"
+                              Offset="1.0" />
+              </GradientStopCollection>
+            </LinearGradientBrush.GradientStops>
+          </LinearGradientBrush>
+        </Border.Background>
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="1"/>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <ProgressBar x:Name="LeftValueSlider" Orientation="Horizontal" Grid.Row="0" Background="Transparent"
+                       Value="{TemplateBinding LeftValue}" Maximum="1">
+            <ProgressBar.Foreground>
+              <LinearGradientBrush StartPoint="0,0"
+                                   EndPoint="{TemplateBinding LeftValue, Converter={StaticResource FloatHPointConverter}}"
+                                   GradientStops="{StaticResource MeterGradStops}"/>
+            </ProgressBar.Foreground>
+          </ProgressBar>
+          <ProgressBar x:Name="RightValueSlider" Orientation="Horizontal" Grid.Row="2" Background="Transparent"
+                       Value="{TemplateBinding RightValue}" Maximum="1">
+            <ProgressBar.Foreground>
+              <LinearGradientBrush StartPoint="0,0"
+                                   EndPoint="{TemplateBinding RightValue, Converter={StaticResource FloatHPointConverter}}"
+                                   GradientStops="{StaticResource MeterGradStops}"/>
+            </ProgressBar.Foreground>
+          </ProgressBar>
+        </Grid>
+      </Border>
+      <Track Grid.Row="1"
+             x:Name="PART_Track">
+        <Track.DecreaseRepeatButton>
+          <RepeatButton Style="{StaticResource TwoValueVisualizerSliderButtonStyle}"
+                        Command="Slider.DecreaseLarge" />
+        </Track.DecreaseRepeatButton>
+        <Track.Thumb>
+          <Thumb Style="{StaticResource TwoValueVisualizerSliderThumbStyle}" />
+        </Track.Thumb>
+        <Track.IncreaseRepeatButton>
+          <RepeatButton Style="{StaticResource TwoValueVisualizerSliderButtonStyle}"
+                        Command="Slider.IncreaseLarge" />
+        </Track.IncreaseRepeatButton>
+      </Track>
+      <TickBar x:Name="BottomTick"
+             SnapsToDevicePixels="True"
+             Grid.Row="2"
+             Fill="{TemplateBinding Foreground}"
+             Placement="Bottom"
+             Height="4"
+             Visibility="Collapsed" />
+    </Grid>
+    <ControlTemplate.Triggers>
+      <Trigger Property="TickPlacement"
+             Value="TopLeft">
+        <Setter TargetName="TopTick"
+              Property="Visibility"
+              Value="Visible" />
+      </Trigger>
+      <Trigger Property="TickPlacement"
+             Value="BottomRight">
+        <Setter TargetName="BottomTick"
+              Property="Visibility"
+              Value="Visible" />
+      </Trigger>
+      <Trigger Property="TickPlacement"
+             Value="Both">
+        <Setter TargetName="TopTick"
+              Property="Visibility"
+              Value="Visible" />
+        <Setter TargetName="BottomTick"
+              Property="Visibility"
+              Value="Visible" />
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+
+  <!--Template when the orientation of the Slider is Vertical.-->
+  <ControlTemplate x:Key="VerticalTwoValueVisualizerSlider"
+                 TargetType="{x:Type core:TwoValueVisualizerSlider}">
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto"
+                        MinWidth="{TemplateBinding MinWidth}" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <TickBar x:Name="TopTick"
+             SnapsToDevicePixels="True"
+             Placement="Left"
+             Width="4"
+             Visibility="Collapsed">
+        <TickBar.Fill>
+          <SolidColorBrush Color="{DynamicResource GlyphColor}" />
+        </TickBar.Fill>
+      </TickBar>
+
+      <Border x:Name="TrackBackground"
+            Margin="0"
+            CornerRadius="2"
+            Width="4"
+            Grid.Column="1"
+            BorderThickness="1">
+        <Border.BorderBrush>
+          <LinearGradientBrush StartPoint="0,0"
+                             EndPoint="1,0">
+            <LinearGradientBrush.GradientStops>
+              <GradientStopCollection>
+                <GradientStop Color="{DynamicResource BorderLightColor}"
+                            Offset="0.0" />
+                <GradientStop Color="{DynamicResource BorderDarkColor}"
+                            Offset="1.0" />
+              </GradientStopCollection>
+            </LinearGradientBrush.GradientStops>
+          </LinearGradientBrush>
+
+        </Border.BorderBrush>
+        <Border.Background>
+          <LinearGradientBrush EndPoint="1,0"
+                             StartPoint="0.25,0">
+            <GradientStop Color="{DynamicResource ControlLightColor}"
+                        Offset="0" />
+            <GradientStop Color="{DynamicResource SliderTrackDarkColor}"
+                        Offset="1" />
+          </LinearGradientBrush>
+        </Border.Background>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="1"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <ProgressBar x:Name="LeftValueSlider" Orientation="Vertical" Grid.Column="0" Background="Transparent"
+                       Value="{TemplateBinding LeftValue}" Maximum="1">
+            <ProgressBar.Foreground>
+              <LinearGradientBrush StartPoint="0,0"
+                                   EndPoint="{TemplateBinding LeftValue, Converter={StaticResource FloatVPointConverter}}"
+                                   GradientStops="{StaticResource MeterGradStops}"/>
+            </ProgressBar.Foreground>
+          </ProgressBar>
+          <ProgressBar x:Name="RightValueSlider" Orientation="Vertical" Grid.Column="2" Background="Transparent"
+                       Value="{TemplateBinding RightValue}" Maximum="1">
+            <ProgressBar.Foreground>
+              <LinearGradientBrush StartPoint="0,0"
+                                   EndPoint="{TemplateBinding RightValue, Converter={StaticResource FloatVPointConverter}}"
+                                   GradientStops="{StaticResource MeterGradStops}"/>
+            </ProgressBar.Foreground>
+          </ProgressBar>
+        </Grid>
+      </Border>
+      <Track Grid.Column="1"
+           x:Name="PART_Track">
+        <Track.DecreaseRepeatButton>
+          <RepeatButton Style="{StaticResource SliderButtonStyle}"
+                      Command="Slider.DecreaseLarge" />
+        </Track.DecreaseRepeatButton>
+        <Track.Thumb>
+          <Thumb Style="{StaticResource TwoValueVisualizerSliderThumbStyle}" />
+        </Track.Thumb>
+        <Track.IncreaseRepeatButton>
+          <RepeatButton Style="{StaticResource TwoValueVisualizerSliderButtonStyle}"
+                      Command="Slider.IncreaseLarge" />
+        </Track.IncreaseRepeatButton>
+      </Track>
+      <TickBar x:Name="BottomTick"
+             SnapsToDevicePixels="True"
+             Grid.Column="2"
+             Fill="{TemplateBinding Foreground}"
+             Placement="Right"
+             Width="4"
+             Visibility="Collapsed" />
+    </Grid>
+    <ControlTemplate.Triggers>
+      <Trigger Property="TickPlacement"
+             Value="TopLeft">
+        <Setter TargetName="TopTick"
+              Property="Visibility"
+              Value="Visible" />
+      </Trigger>
+      <Trigger Property="TickPlacement"
+             Value="BottomRight">
+        <Setter TargetName="BottomTick"
+              Property="Visibility"
+              Value="Visible" />
+      </Trigger>
+      <Trigger Property="TickPlacement"
+             Value="Both">
+        <Setter TargetName="TopTick"
+              Property="Visibility"
+              Value="Visible" />
+        <Setter TargetName="BottomTick"
+              Property="Visibility"
+              Value="Visible" />
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
+
+  <Style TargetType="{x:Type core:TwoValueVisualizerSlider}">
+    <Setter Property="SnapsToDevicePixels"
+          Value="true" />
+    <Setter Property="OverridesDefaultStyle"
+          Value="true" />
+    <Style.Triggers>
+      <Trigger Property="Orientation"
+             Value="Horizontal">
+        <Setter Property="MinWidth"
+              Value="104" />
+        <Setter Property="MinHeight"
+              Value="21" />
+        <Setter Property="Template"
+              Value="{StaticResource HorizontalTwoValueVisualizerSlider}" />
+      </Trigger>
+      <Trigger Property="Orientation"
+             Value="Vertical">
+        <Setter Property="MinWidth"
+              Value="21" />
+        <Setter Property="MinHeight"
+              Value="104" />
+        <Setter Property="Template"
+              Value="{StaticResource VerticalTwoValueVisualizerSlider}" />
+      </Trigger>
+    </Style.Triggers>
   </Style>
 
   <!--#endregion-->

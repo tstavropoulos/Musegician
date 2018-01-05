@@ -575,9 +575,34 @@ namespace MusicPlayer.Core.DBCommands
                 writeArt.ExecuteNonQuery();
             }
         }
-        
+
         #endregion Insert Commands
         #region Delete Commands
+
+        public void _DropTable(
+            SQLiteTransaction transaction)
+        {
+            SQLiteCommand dropAlbumTable = dbConnection.CreateCommand();
+            dropAlbumTable.Transaction = transaction;
+            dropAlbumTable.CommandType = System.Data.CommandType.Text;
+            dropAlbumTable.CommandText =
+                "DROP TABLE IF EXISTS album;";
+            dropAlbumTable.ExecuteNonQuery();
+
+            SQLiteCommand dropAlbumWeightTable = dbConnection.CreateCommand();
+            dropAlbumWeightTable.Transaction = transaction;
+            dropAlbumWeightTable.CommandType = System.Data.CommandType.Text;
+            dropAlbumWeightTable.CommandText =
+                "DROP TABLE IF EXISTS album_weight;";
+            dropAlbumWeightTable.ExecuteNonQuery();
+
+            SQLiteCommand dropAlbumArtTable = dbConnection.CreateCommand();
+            dropAlbumArtTable.Transaction = transaction;
+            dropAlbumArtTable.CommandType = System.Data.CommandType.Text;
+            dropAlbumArtTable.CommandText =
+                "DROP TABLE IF EXISTS art;";
+            dropAlbumArtTable.ExecuteNonQuery();
+        }
 
         public void _DeleteAlbumID(
             SQLiteTransaction updateTransaction,

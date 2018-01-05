@@ -20,6 +20,15 @@ using CSCoreEq = CSCore.Streams.Effects.Equalizer;
 
 namespace MusicPlayer.Player
 {
+    public enum PlayerState
+    {
+        NotLoaded = 0,
+        Playing,
+        Paused,
+        Stopped,
+        MAX
+    }
+
     public class MusicManager : INotifyPropertyChanged, IDisposable
     {
         private ISoundOut _soundOut;
@@ -267,15 +276,6 @@ namespace MusicPlayer.Player
             }
 
             suppressUpdate = false;
-        }
-
-        public enum PlayerState
-        {
-            NotLoaded = 0,
-            Playing,
-            Paused,
-            Stopped,
-            MAX
         }
 
         private PlayerState _state = PlayerState.NotLoaded;

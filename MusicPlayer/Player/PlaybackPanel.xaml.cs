@@ -12,13 +12,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using System.Threading;
+using System.ComponentModel;
 
 namespace MusicPlayer.Player
 {
     /// <summary>
     /// Interaction logic for PlaybackPanel.xaml
     /// </summary>
-    public partial class PlaybackPanel : UserControl
+    public partial class PlaybackPanel : UserControl, INotifyPropertyChanged
     {
         const string playString = "▶";
         const string pauseString = "⏸";
@@ -26,6 +27,20 @@ namespace MusicPlayer.Player
         private MusicManager MusicMan
         {
             get { return MusicManager.Instance; }
+        }
+
+        private PlayerState _state;
+        public PlayerState State
+        {
+            get { return _state; }
+            set
+            {
+                if (_state != value)
+                {
+                    _state = value;
+                    OnPropertyChanged("State");
+                }
+            }
         }
 
         public PlaybackPanel()
@@ -66,35 +81,48 @@ namespace MusicPlayer.Player
             progressSlider.Value = position;
         }
 
-        private void PlayerStateChanged(MusicManager.PlayerState newState)
+        private void PlayerStateChanged(PlayerState newState)
         {
-            switch (newState)
-            {
-                case MusicManager.PlayerState.NotLoaded:
-                    playButton.Content = playString;
-                    playButton.Foreground = new SolidColorBrush(Colors.Black);
-                    stopButton.Foreground = new SolidColorBrush(Colors.Black);
-                    break;
-                case MusicManager.PlayerState.Stopped:
-                    playButton.Content = playString;
-                    playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
-                    stopButton.Foreground = new SolidColorBrush(Colors.Black);
-                    break;
-                case MusicManager.PlayerState.Playing:
-                    stopButton.Foreground = new SolidColorBrush(Colors.Red);
-                    playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
-                    playButton.Content = pauseString;
-                    break;
-                case MusicManager.PlayerState.Paused:
-                    stopButton.Foreground = new SolidColorBrush(Colors.Red);
-                    playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
-                    playButton.Content = playString;
-                    break;
-                case MusicManager.PlayerState.MAX:
-                default:
-                    Console.WriteLine("Unexpeted PlayerState: " + newState);
-                    return;
-            }
+            State = newState;
+
+            //switch (newState)
+            //{
+            //    case PlayerState.NotLoaded:
+            //        playButton.Content = playString;
+            //        playButton.Foreground = new SolidColorBrush(Colors.Black);
+            //        stopButton.Foreground = new SolidColorBrush(Colors.Black);
+            //        break;
+            //    case PlayerState.Stopped:
+            //        playButton.Content = playString;
+            //        playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
+            //        stopButton.Foreground = new SolidColorBrush(Colors.Black);
+            //        break;
+            //    case PlayerState.Playing:
+            //        stopButton.Foreground = new SolidColorBrush(Colors.Red);
+            //        playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
+            //        playButton.Content = pauseString;
+            //        break;
+            //    case PlayerState.Paused:
+            //        stopButton.Foreground = new SolidColorBrush(Colors.Red);
+            //        playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
+            //        playButton.Content = playString;
+            //        break;
+            //    case PlayerState.MAX:
+            //    default:
+            //        Console.WriteLine("Unexpeted PlayerState: " + newState);
+            //        return;
+            //}
         }
+
+        #region INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion INotifyPropertyChanged
     }
 }

@@ -7,7 +7,8 @@
              xmlns:local="clr-namespace:MusicPlayer.Player"
              mc:Ignorable="d"
              d:DesignWidth="300"
-             Height="75">
+             Height="75"
+             x:Name="PlaybackControl">
   <UserControl.Resources>
     <DataTemplate x:Key="UIFontButton" DataType="{x:Type sys:String}">
       <TextBlock Text="{Binding}">
@@ -20,6 +21,44 @@
         </TextBlock.Style>
       </TextBlock>
     </DataTemplate>
+
+    <Style x:Key="PlayerButtons" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="ContentTemplate" Value="{StaticResource UIFontButton}"/>
+    </Style>
+    <Style x:Key="Play_PlayerButton" TargetType="Button" BasedOn="{StaticResource PlayerButtons}">
+      <Setter Property="Content" Value="▶"/>
+      <Setter Property="Foreground" Value="LightGreen"/>
+      <Setter Property="IsEnabled" Value="False"/>
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding Path=State, ElementName=PlaybackControl}" Value="{x:Static local:PlayerState.Stopped}">
+          <Setter Property="IsEnabled" Value="True"/>
+          <Setter Property="Foreground" Value="LightGreen"/>
+        </DataTrigger>
+        <DataTrigger Binding="{Binding Path=State, ElementName=PlaybackControl}" Value="{x:Static local:PlayerState.Playing}">
+          <Setter Property="Content" Value="⏸"/>
+          <Setter Property="IsEnabled" Value="True"/>
+          <Setter Property="Foreground" Value="LightGreen"/>
+        </DataTrigger>
+        <DataTrigger Binding="{Binding Path=State, ElementName=PlaybackControl}" Value="{x:Static local:PlayerState.Paused}">
+          <Setter Property="IsEnabled" Value="True"/>
+          <Setter Property="Foreground" Value="LightGreen"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+    <Style x:Key="Stop_PlayerButton" TargetType="Button" BasedOn="{StaticResource PlayerButtons}">
+      <Setter Property="IsEnabled" Value="False"/>
+      <Setter Property="Foreground" Value="Red"/>
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding Path=State, ElementName=PlaybackControl}" Value="{x:Static local:PlayerState.Playing}">
+          <Setter Property="IsEnabled" Value="True"/>
+          <!--<Setter Property="Foreground" Value="Red"/>-->
+        </DataTrigger>
+        <DataTrigger Binding="{Binding Path=State, ElementName=PlaybackControl}" Value="{x:Static local:PlayerState.Paused}">
+          <Setter Property="IsEnabled" Value="True"/>
+          <!--<Setter Property="Foreground" Value="Red"/>-->
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
   </UserControl.Resources>
   
   <Grid>
@@ -43,16 +82,16 @@
             Maximum="{Binding Source={x:Static local:MusicManager.Instance}, Path=Length}"
             LargeChange="{Binding Source={x:Static local:MusicManager.Instance}, Path=ClickJump}"
             SmallChange="{Binding Source={x:Static local:MusicManager.Instance}, Path=KBJump}"/>
-    <Button Grid.Column="0" Grid.Row="2"
+    <Button ToolTip="Previous" Grid.Column="0" Grid.Row="2"
             Click="OnBackClick"
             Content="⏮" ContentTemplate="{StaticResource UIFontButton}"/>
-    <Button Name="stopButton" Grid.Column="1" Grid.Row="2"
+    <Button Name="stopButton" ToolTip="Stop" Grid.Column="1" Grid.Row="2"
             Click="OnStopClick"
-            Content="■" ContentTemplate="{StaticResource UIFontButton}"/>
-    <Button Name="playButton" Grid.Column="2" Grid.Row="2"
+            Content="■" Style="{StaticResource Stop_PlayerButton}"/>
+    <Button Name="playButton" ToolTip="Play" Grid.Column="2" Grid.Row="2"
             Click="OnPlayClick"
-            Content="▶" ContentTemplate="{StaticResource UIFontButton}"/>
-    <Button Grid.Column="3" Grid.Row="2"
+            Content="▶" Style="{StaticResource Play_PlayerButton}"/>
+    <Button ToolTip="Next" Grid.Column="3" Grid.Row="2"
             Click="OnNextClick"
             Content="⏭" ContentTemplate="{StaticResource UIFontButton}"/>
   </Grid>

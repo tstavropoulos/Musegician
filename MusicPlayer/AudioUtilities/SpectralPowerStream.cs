@@ -14,13 +14,18 @@ namespace MusicPlayer.AudioUtilities
     {
         #region Data
 
-        private List<float> freqs;
-        private List<int> freqIndices;
+        private float[] freqs;
+        private int[] freqIndices;
+
+        private int[] freqBandLB;
+        private int[] freqBandUB;
 
         private Complex[] bufferL;
         private Complex[] bufferR;
         private Complex[] fftBufferL;
         private Complex[] fftBufferR;
+
+        private double powerCoeff;
 
         private static readonly float[] defaultFrequencies = new float[]
         {
@@ -71,7 +76,7 @@ namespace MusicPlayer.AudioUtilities
                 throw new ArgumentException("Source must have 2 channels");
             }
 
-            freqs = new List<float>(frequencies);
+            freqs = frequencies.ToArray();
 
             int sampleRate = source.WaveFormat.SampleRate;
 
@@ -85,15 +90,29 @@ namespace MusicPlayer.AudioUtilities
             fftBufferL = new Complex[samplesToProcess];
             fftBufferR = new Complex[samplesToProcess];
 
-            freqIndices = new List<int>(freqs.Count);
+            freqIndices = new int[freqs.Length];
 
-            foreach (float freq in freqs)
+            for (int i = 0; i < freqs.Length; i++)
             {
-                freqIndices.Add(GetFrequencySample(
-                    frequency: freq,
+                freqIndices[i] = GetFrequencySample(
+                    frequency: freqs[i],
                     fftSize: samplesToProcess,
-                    sampleRate: sampleRate));
+                    sampleRate: sampleRate);
             }
+
+            freqBandLB = new int[freqs.Length];
+            freqBandUB = new int[freqs.Length];
+
+            freqBandLB[0] = 1;
+            freqBandUB[freqs.Length - 1] = samplesToProcess / 2;
+
+            for (int i = 0; i < freqs.Length - 1; i++)
+            {
+                freqBandUB[i] = (freqIndices[i + 1] + freqIndices[i] + 1) / 2;
+                freqBandLB[i + 1] = freqBandUB[i];
+            }
+
+            powerCoeff = 2.0 * sampleRate / (4.0 * samplesToProcess);
 
             Interval = 50;
         }
@@ -124,7 +143,7 @@ namespace MusicPlayer.AudioUtilities
                     bufferL[_blocksProcessed].Real = buffer[i];
                     bufferR[_blocksProcessed].Real = buffer[i + 1];
                 }
-                
+
                 _blocksProcessed++;
 
                 if (_blocksProcessed == samplesToProcess)
@@ -162,13 +181,13 @@ namespace MusicPlayer.AudioUtilities
             FastFourierTransformation.Fft(fftBufferL, _fftSize);
             FastFourierTransformation.Fft(fftBufferR, _fftSize);
 
-            for (int i = 0; i < freqIndices.Count; i++)
+            for (int i = 0; i < freqIndices.Length; i++)
             {
                 PowerUpdate?.Invoke(
                     this,
                     new Equalizer.MeterUpdateArgs()
                     {
-                        Power = GetPowers(fftBufferL, fftBufferR, freqIndices[i]),
+                        Power = GetPowers(i),
                         Index = i
                     });
             }
@@ -197,6 +216,28 @@ namespace MusicPlayer.AudioUtilities
             }
         }
 
+        private (float, float) GetPowers(int index)
+        {
+            double left = 0.0;
+            double right = 0.0;
+
+            for (int i = freqBandLB[index]; i < freqBandUB[index]; i++)
+            {
+                left += fftBufferL[i].Value;
+                right += fftBufferR[i].Value;
+            }
+
+            left *= powerCoeff;
+            right *= powerCoeff;
+
+            //if (index == 3)
+            //{
+            //    Console.WriteLine(string.Format("Left 250Hz Power: {0}", left));
+            //}
+
+            return (UnitaryClamp((float)left), UnitaryClamp((float)right));
+        }
+
         #endregion Helper Methods
         #region Utility Methods
 
@@ -215,51 +256,14 @@ namespace MusicPlayer.AudioUtilities
             return (int)((frequency / (sampleRate / 2.0f)) * (fftSize / 2));
         }
 
+        public static double GetFrequency(int index, int fftSize, int sampleRate)
+        {
+            return index * ((double)sampleRate) / fftSize;
+        }
+
         public static float UnitaryClamp(float value)
         {
             return Math.Max(0, Math.Min(1, value));
-        }
-
-        public static (float, float) GetPowers(Complex[] bufferL, Complex[] bufferR, int index)
-        {
-            const int radius = 4;
-
-            int min = index - radius;
-            int max = min + 2 * radius + 2;
-
-            int count = bufferL.Length;
-
-            double avgFactor = Math.Sqrt(count) / (2 * radius + 1);
-
-            if (min < 0)
-            {
-                max -= min;
-                min = 0;
-            }
-
-            if (max > count)
-            {
-                min -= max - count;
-                max = count;
-            }
-
-            double left = 0.0;
-            double right = 0.0;
-
-            for (int i = min; i < max; i++)
-            {
-                left += bufferL[i].Value;
-                right += bufferR[i].Value;
-            }
-
-
-            left *= avgFactor;
-            right *= avgFactor;
-
-            //left = Math.Log(left / avgFactor, 10.0) + 60.0;
-            //right = Math.Log(right / avgFactor, 10.0) + 60.0;
-
-            return (UnitaryClamp((float)left), UnitaryClamp((float)right));
         }
 
         #endregion Utility Methods

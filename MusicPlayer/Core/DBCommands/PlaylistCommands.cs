@@ -567,6 +567,31 @@ namespace MusicPlayer.Core.DBCommands
         #endregion Insert Commands
         #region Delete Commands
 
+        public void _DropTable(
+            SQLiteTransaction transaction)
+        {
+            SQLiteCommand dropPlaylistsTable = dbConnection.CreateCommand();
+            dropPlaylistsTable.Transaction = transaction;
+            dropPlaylistsTable.CommandType = System.Data.CommandType.Text;
+            dropPlaylistsTable.CommandText =
+                "DROP TABLE IF EXISTS playlists;";
+            dropPlaylistsTable.ExecuteNonQuery();
+
+            SQLiteCommand dropPlaylistSongsTable = dbConnection.CreateCommand();
+            dropPlaylistSongsTable.Transaction = transaction;
+            dropPlaylistSongsTable.CommandType = System.Data.CommandType.Text;
+            dropPlaylistSongsTable.CommandText =
+                "DROP TABLE IF EXISTS playlist_songs;";
+            dropPlaylistSongsTable.ExecuteNonQuery();
+
+            SQLiteCommand dropPlaylistRecordingsTable = dbConnection.CreateCommand();
+            dropPlaylistRecordingsTable.Transaction = transaction;
+            dropPlaylistRecordingsTable.CommandType = System.Data.CommandType.Text;
+            dropPlaylistRecordingsTable.CommandText =
+                "DROP TABLE IF EXISTS playlist_recordings;";
+            dropPlaylistRecordingsTable.ExecuteNonQuery();
+        }
+
         public void _DeepDeletePlaylist(SQLiteTransaction transaction, long id)
         {
             SQLiteCommand deletePlaylistRecordings = dbConnection.CreateCommand();

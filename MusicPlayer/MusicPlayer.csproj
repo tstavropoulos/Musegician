@@ -119,6 +119,7 @@
     <Compile Include="Core\MathExtension.cs" />
     <Compile Include="Core\OSInterop.cs" />
     <Compile Include="Core\RingBuffer.cs" />
+    <Compile Include="Core\TwoValueVisualizerSlider.cs" />
     <Compile Include="Core\WeightBar.xaml.cs">
       <DependentUpon>WeightBar.xaml</DependentUpon>
     </Compile>

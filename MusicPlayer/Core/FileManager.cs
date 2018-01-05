@@ -115,6 +115,7 @@ namespace MusicPlayer
                         if (_instance == null)
                         {
                             _instance = new FileManager();
+                            _instance.OpenDB();
                             _instance.Initialize();
                         }
                     }
@@ -128,52 +129,70 @@ namespace MusicPlayer
         {
             if (dbConnection != null)
             {
-                dbConnection.Close();
-                dbConnection = null;
-            }
+                dbConnection.Open();
 
-            try
-            {
-                string dbPath = Path.Combine(FileUtility.GetDataPath(), songDBFilename);
-
-                if (File.Exists(dbPath))
+                using (SQLiteTransaction dropTablesTransaction = dbConnection.BeginTransaction())
                 {
-                    File.Delete(dbPath);
+                    //Set Up Tables
+                    artistCommands._DropTable(dropTablesTransaction);
+                    albumCommands._DropTable(dropTablesTransaction);
+                    songCommands._DropTable(dropTablesTransaction);
+                    recordingCommands._DropTable(dropTablesTransaction);
+                    trackCommands._DropTable(dropTablesTransaction);
+
+                    playlistCommands._DropTable(dropTablesTransaction);
+
+                    dropTablesTransaction.Commit();
                 }
 
-                Initialize();
-
+                dbConnection.Close();
             }
-            catch (Exception e)
+            else
             {
-                MessageBox.Show(
-                    messageBoxText: string.Format(
-                        "There was an error of type ({0}) attempting to delete the database file.\n\n{1}",
-                        e.GetType().ToString(),
-                        e.Message),
-                    caption: "Cannot Delete Database",
-                    button: MessageBoxButton.OK,
-                    icon: MessageBoxImage.Error);
+                try
+                {
+                    string dbPath = Path.Combine(FileUtility.GetDataPath(), songDBFilename);
+
+                    if (File.Exists(dbPath))
+                    {
+                        File.Delete(dbPath);
+                    }
+
+                    OpenDB();
+
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(
+                        messageBoxText: string.Format(
+                            "There was an error of type ({0}) attempting to delete the database file.\n\n{1}",
+                            e.GetType().ToString(),
+                            e.Message),
+                        caption: "Cannot Delete Database",
+                        button: MessageBoxButton.OK,
+                        icon: MessageBoxImage.Error);
+                }
             }
+
+            Initialize();
         }
 
-        public void Initialize()
+        public void OpenDB()
         {
-
             string dbPath = Path.Combine(FileUtility.GetDataPath(), songDBFilename);
-
-            bool newDB = false;
 
             if (!File.Exists(dbPath))
             {
-                newDB = true;
                 SQLiteConnection.CreateFile(dbPath);
             }
 
             dbConnection = new SQLiteConnection(String.Format(
                 "Data Source=\"{0}\";Version=3;",
                 dbPath));
+        }
 
+        public void Initialize()
+        {
             recordingCommands.Initialize(
                 dbConnection: dbConnection,
                 artistCommands: artistCommands,
@@ -205,28 +224,24 @@ namespace MusicPlayer
 
             playlistCommands.Initialize(
                 dbConnection: dbConnection);
+            
+            dbConnection.Open();
 
-            if (newDB)
+            using (SQLiteTransaction createTablesTransaction = dbConnection.BeginTransaction())
             {
-                dbConnection.Open();
+                //Set Up Tables
+                artistCommands._CreateArtistTables(createTablesTransaction);
+                albumCommands._CreateAlbumTables(createTablesTransaction);
+                songCommands._CreateSongTables(createTablesTransaction);
+                recordingCommands._CreateRecordingTables(createTablesTransaction);
+                trackCommands._CreateTrackTables(createTablesTransaction);
 
-                using (SQLiteTransaction createTablesTransaction = dbConnection.BeginTransaction())
-                {
-                    //Set Up Tables
-                    artistCommands._CreateArtistTables(createTablesTransaction);
-                    albumCommands._CreateAlbumTables(createTablesTransaction);
-                    songCommands._CreateSongTables(createTablesTransaction);
-                    recordingCommands._CreateRecordingTables(createTablesTransaction);
-                    trackCommands._CreateTrackTables(createTablesTransaction);
+                playlistCommands._CreatePlaylistTables(createTablesTransaction);
 
-                    playlistCommands._CreatePlaylistTables(createTablesTransaction);
-
-                    createTablesTransaction.Commit();
-
-                }
-
-                dbConnection.Close();
+                createTablesTransaction.Commit();
             }
+
+            dbConnection.Close();
 
             InitializeCommands();
         }

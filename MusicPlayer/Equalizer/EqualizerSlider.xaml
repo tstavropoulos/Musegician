@@ -8,7 +8,7 @@
              x:Name="Slider"
              d:DesignHeight="120">
   <UserControl.Resources>
-    <local:FloatPointConverter x:Key="FloatPointConverter"/>
+    <local:FloatVPointConverter x:Key="FloatPointConverter"/>
     <GradientStopCollection x:Key="MeterGradStops">
       <GradientStop Color="Green" Offset="0.0"/>
       <GradientStop Color="Green" Offset="0.7"/>
