@@ -4,21 +4,39 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:MusicPlayer.TinyPlayer"
         xmlns:player="clr-namespace:MusicPlayer.Player"
         xmlns:playlist="clr-namespace:MusicPlayer.Playlist"
+        xmlns:equalizer="clr-namespace:MusicPlayer.Equalizer"
         mc:Ignorable="d"
         Title="{Binding Source={x:Static player:MusicManager.Instance}, Path=WindowTitle}"
         Height="500" Width="360"
         Deactivated="Window_Deactivated"
         Style="{StaticResource {x:Type Window}}">
+  <Window.Resources>
+    <Style x:Key="UIFontStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
+      <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
+      <Setter Property="TextAlignment" Value="Center"/>
+      <Setter Property="FontSize" Value="22"/>
+    </Style>
+    
+    <Style x:Key="UISmallerFontStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource UIFontStyle}">
+      <Setter Property="FontSize" Value="16"/>
+    </Style>
+    <DataTemplate x:Key="UIFontButton" DataType="{x:Type sys:String}">
+      <TextBlock Text="{Binding}" Style="{StaticResource UIFontStyle}"/>
+    </DataTemplate>
+    <DataTemplate x:Key="UISmallerFontButton" DataType="{x:Type sys:String}">
+      <TextBlock Text="{Binding}" Style="{StaticResource UISmallerFontStyle}"/>
+    </DataTemplate>
+  </Window.Resources>
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" Background="{StaticResource DarkInsetPanel}">
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="1,2,0,2">
-        <ToggleButton Name="shuffleToggleButton"
+        <ToggleButton ToolTip="Shuffle Toggle" Margin="1,2,4,2" Height="34" Width="34"
                     IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Shuffle, Mode=TwoWay}"
-                    TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
-                    Margin="1,2,4,2" Height="34" Width="34">
+                    ContentTemplate="{StaticResource UIFontButton}">
           <ToggleButton.Style>
             <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource {x:Type ToggleButton}}">
               <Setter Property="Content" Value="⇉"/>
@@ -30,26 +48,33 @@
             </Style>
           </ToggleButton.Style>
         </ToggleButton>
-        <ToggleButton Name="repeatToggleButton"
-                    IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Repeat, Mode=TwoWay}"
-                    Content="🔁" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
-                    Margin="0,0,0,0" Height="34" Width="34"/>
+        <ToggleButton ToolTip="Repeat Toggle" Margin="0,0,0,0" Height="34" Width="34"
+                      IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Repeat, Mode=TwoWay}"
+                      Content="🔁" ContentTemplate="{StaticResource UIFontButton}"/>
         <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>
-        <Button Name="loadPlaylist" Click="Toolbar_LoadPlaylist"
-              Content="📂" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
-              Margin="0,0,4,0" Height="33" Width="33"/>
+        <Button ToolTip="Load Playlist" Margin="0,0,4,0" Height="33" Width="33"
+                Click="Toolbar_LoadPlaylist"
+                Content="📂" ContentTemplate="{StaticResource UIFontButton}"/>
         <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>
-        <Button Name="restoreWindow" Click="Toolbar_RestoreWindow"
-              Content="🗔" TextBlock.FontSize="22" TextBlock.TextAlignment="Center"
-              Margin="0,0,4,0" Height="33" Width="33"/>
+        <Button ToolTip="Restore Window" Margin="0,0,4,0" Height="33" Width="33"
+                Click="Toolbar_RestoreWindow"
+                Content="🗔" ContentTemplate="{StaticResource UIFontButton}"/>
+        <ToggleButton Name="showEqualizer" ToolTip="Show Equalizer" Margin="0,0,4,0" Height="33" Width="33"
+                      Content="⫯⫯⫰⫯" ContentTemplate="{StaticResource UISmallerFontButton}"/>
+        <Popup Name="EqPopUp" IsOpen="{Binding ElementName=showEqualizer, Path=IsChecked}" StaysOpen="False"
+               Placement="Bottom" PlacementTarget="{Binding ElementName=showEqualizer}">
+          <Border BorderThickness="2" BorderBrush="Black" Background="{StaticResource DarkInsetPanel}" Height="200">
+            <equalizer:EqualizerControl/>
+          </Border>
+        </Popup>
       </StackPanel>
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,2,5,2" 
                   HorizontalAlignment="Right">
-        <TextBlock VerticalAlignment="Center">🔊</TextBlock>
+        <TextBlock Text="🔊" VerticalAlignment="Center" Style="{StaticResource UIFontStyle}"/>
         <Slider Orientation="Horizontal" VerticalAlignment="Center" Width="100"
                 Minimum="0.0" Maximum="1.0"
                 LargeChange="0.1" SmallChange="0.02"

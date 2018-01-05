@@ -3,10 +3,25 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:MusicPlayer.Player"
              mc:Ignorable="d"
              d:DesignWidth="300"
              Height="75">
+  <UserControl.Resources>
+    <DataTemplate x:Key="UIFontButton" DataType="{x:Type sys:String}">
+      <TextBlock Text="{Binding}">
+        <TextBlock.Style>
+          <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="16"/>
+          </Style>
+        </TextBlock.Style>
+      </TextBlock>
+    </DataTemplate>
+  </UserControl.Resources>
+  
   <Grid>
     <Grid.ColumnDefinitions>
       <ColumnDefinition />
@@ -22,21 +37,23 @@
     <Label Name="songLabel"  Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="0"
            Background="Black" Foreground="Wheat" HorizontalContentAlignment="Center"
            Content="{Binding Source={x:Static local:MusicManager.Instance}, Path=SongLabel}"/>
-    <Button Grid.Column="0" Grid.Row="2" Content="➔" Click="OnBackClick">
-      <Button.LayoutTransform>
-        <TransformGroup>
-          <ScaleTransform ScaleX="-1"/>
-        </TransformGroup>
-      </Button.LayoutTransform>
-    </Button>
     <Slider Name="progressSlider" Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" Margin="10,2,10,2"
             VerticalAlignment="Center" Thumb.DragDelta="Slider_Drag"
             Minimum="0.0"
             Maximum="{Binding Source={x:Static local:MusicManager.Instance}, Path=Length}"
             LargeChange="{Binding Source={x:Static local:MusicManager.Instance}, Path=ClickJump}"
             SmallChange="{Binding Source={x:Static local:MusicManager.Instance}, Path=KBJump}"/>
-    <Button Name="stopButton" Grid.Column="1" Grid.Row="2" Content="■" Click="OnStopClick"/>
-    <Button Name="playButton" Grid.Column="2" Grid.Row="2" Content="▶" Click="OnPlayClick"/>
-    <Button Grid.Column="3" Grid.Row="2" Content="➔" Click="OnNextClick"/>
+    <Button Grid.Column="0" Grid.Row="2"
+            Click="OnBackClick"
+            Content="⏮" ContentTemplate="{StaticResource UIFontButton}"/>
+    <Button Name="stopButton" Grid.Column="1" Grid.Row="2"
+            Click="OnStopClick"
+            Content="■" ContentTemplate="{StaticResource UIFontButton}"/>
+    <Button Name="playButton" Grid.Column="2" Grid.Row="2"
+            Click="OnPlayClick"
+            Content="▶" ContentTemplate="{StaticResource UIFontButton}"/>
+    <Button Grid.Column="3" Grid.Row="2"
+            Click="OnNextClick"
+            Content="⏭" ContentTemplate="{StaticResource UIFontButton}"/>
   </Grid>
 </UserControl>

@@ -106,6 +106,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AudioUtilities\SpectralPowerStream.cs" />
     <Compile Include="Core\DBCommands\PlaylistCommands.cs" />
     <Compile Include="Core\DBCommands\RecordingCommands.cs" />
     <Compile Include="Core\DBCommands\ArtistCommands.cs" />
@@ -132,12 +133,12 @@
       <DependentUpon>EqualizerControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Equalizer\EqualizerManager.cs" />
+    <Compile Include="Equalizer\EqualizerSettingData.cs" />
+    <Compile Include="Equalizer\EqualizerSettingViewModel.cs" />
     <Compile Include="Equalizer\EqualizerSlider.xaml.cs">
       <DependentUpon>EqualizerSlider.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Equalizer\EqualizerWindow.xaml.cs">
-      <DependentUpon>EqualizerWindow.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Equalizer\EqualizerFilterData.cs" />
     <Compile Include="Library\ILibraryRequestHandler.cs" />
     <Compile Include="Library\LibraryViewModel.cs" />
     <Compile Include="Library\LibraryControl.xaml.cs">
@@ -198,10 +199,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Equalizer\EqualizerSlider.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Equalizer\EqualizerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -90,13 +90,6 @@ namespace MusicPlayer.DataStructures
         public TagEditor.ID3TagType tagType = TagEditor.ID3TagType.NotEditable;
         public int tagTypeIndex = -1;
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
         public bool Pushable
         {
             get { return tagType != TagEditor.ID3TagType.NotEditable; }
@@ -135,6 +128,16 @@ namespace MusicPlayer.DataStructures
 
         public abstract void Reset();
 
+        #region INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion INotifyPropertyChanged
     }
 
     public class TagDataBool : TagData

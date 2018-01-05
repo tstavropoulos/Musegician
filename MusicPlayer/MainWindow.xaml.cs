@@ -180,11 +180,5 @@ namespace MusicPlayer
             tinyPlayer.Show();
             Close();
         }
-
-        private void Menu_OpenEqualizer(object sender, RoutedEventArgs e)
-        {
-            Window equalizer = new Equalizer.EqualizerWindow();
-            equalizer.Show();
-        }
     }
 }

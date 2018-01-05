@@ -21,7 +21,7 @@ namespace MusicPlayer.Player
     public partial class PlaybackPanel : UserControl
     {
         const string playString = "▶";
-        const string pauseString = "||";
+        const string pauseString = "⏸";
 
         private MusicManager MusicMan
         {

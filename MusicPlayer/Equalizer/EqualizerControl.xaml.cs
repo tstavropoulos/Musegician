@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,11 +20,79 @@ namespace MusicPlayer.Equalizer
     /// <summary>
     /// Interaction logic for EqualizerControl.xaml
     /// </summary>
-    public partial class EqualizerControl : UserControl
+    public partial class EqualizerControl : UserControl, INotifyPropertyChanged
     {
+        #region Data
+
+        private readonly ReadOnlyCollection<EqualizerSettingViewModel> presets;
+
+        #endregion Data
+        #region Constructor
+
         public EqualizerControl()
         {
             InitializeComponent();
+
+            presets = new ReadOnlyCollection<EqualizerSettingViewModel>(
+                (from data in EqualizerManager.Instance.Presets
+                 select new EqualizerSettingViewModel(data))
+                .ToArray());
+
+            DataContext = this;
         }
+
+        #endregion Constructor
+        #region Properties
+
+        public ReadOnlyCollection<EqualizerSettingViewModel> Presets { get { return presets; } }
+
+        #endregion Properties
+        #region Callbacks
+
+        private void Button_Reset(object sender, RoutedEventArgs e)
+        {
+            EqualizerManager.Instance.Reset();
+        }
+
+        private void EqPresets_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!(e.AddedItems is null))
+            {
+                if (e.AddedItems.Count == 0)
+                {
+                    //Callback from updating just name
+
+                    //Do nothing
+                }
+                else if (e.AddedItems.Count == 1 && e.AddedItems[0] is EqualizerSettingViewModel viewModel)
+                {
+                    //Callback from new selection
+                    if (viewModel.Name != "Custom")
+                    {
+                        EqualizerManager.Instance.SetGain(viewModel.Gain);
+                    }
+                }
+                else
+                {
+                    throw new ArgumentException("Unexpected callback argument: " + e.AddedItems);
+                }
+            }
+            else
+            {
+                throw new ArgumentException("Unexpected callback argument: " + e.AddedItems);
+            }
+        }
+
+        #endregion Callbacks
+        #region INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion INotifyPropertyChanged
     }
 }

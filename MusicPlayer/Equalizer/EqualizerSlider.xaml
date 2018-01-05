@@ -4,11 +4,60 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:MusicPlayer.Equalizer"
-             mc:Ignorable="d" Width="28"
+             mc:Ignorable="d" Width="32"
+             x:Name="Slider"
              d:DesignHeight="120">
-  <DockPanel Margin="4,2,4,2">
-    <TextBlock DockPanel.Dock="Bottom" Text="{Binding Path=Label, FallbackValue=16k}" 
-               HorizontalAlignment="Center"/>
-    <Slider Orientation="Vertical" Value="{Binding Path=Value}" Minimum="-15.0" Maximum="15.0" />
+  <UserControl.Resources>
+    <local:FloatPointConverter x:Key="FloatPointConverter"/>
+    <GradientStopCollection x:Key="MeterGradStops">
+      <GradientStop Color="Green" Offset="0.0"/>
+      <GradientStop Color="Green" Offset="0.7"/>
+      <GradientStop Color="Yellow" Offset="0.95"/>
+      <GradientStop Color="Red" Offset="1.0"/>
+    </GradientStopCollection>
+
+  </UserControl.Resources>
+  <DockPanel Margin="2,2,2,2">
+    <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center"
+               Text="{Binding Path=Label, ElementName=Slider, FallbackValue=16k}"/>
+    <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center"
+               Text="{Binding Path=ValueString, ElementName=Slider, FallbackValue=+2.00}" FontSize="10"/>
+    <Grid>
+      <Grid Margin="7,5,0,5">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition/>
+          <ColumnDefinition  Width="5"/>
+          <ColumnDefinition/>
+          <ColumnDefinition Width="5"/>
+          <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <ProgressBar x:Name="LeftPower" Orientation="Vertical" HorizontalAlignment="Stretch" Grid.Column="1"
+                     Background="White"
+                     Value="{Binding Path=PowerL, ElementName=Slider, FallbackValue=1.0}" Maximum="1">
+          <ProgressBar.Foreground>
+            <LinearGradientBrush StartPoint="0,0"
+                                 EndPoint="{Binding Path=PowerL, ElementName=Slider, FallbackValue='1,0',
+                                              Converter={StaticResource FloatPointConverter}}"
+                                 GradientStops="{StaticResource MeterGradStops}"/>
+          </ProgressBar.Foreground>
+        </ProgressBar>
+        <ProgressBar x:Name="RightPower" Orientation="Vertical"  HorizontalAlignment="Stretch" Grid.Column="3"
+                     Background="White"
+                     Value="{Binding Path=PowerR, ElementName=Slider, FallbackValue=0.3}" Maximum="1">
+          <ProgressBar.Foreground>
+            <LinearGradientBrush StartPoint="0,0"
+                                 EndPoint="{Binding Path=PowerR, ElementName=Slider, FallbackValue='1.7,0',
+                                              Converter={StaticResource FloatPointConverter}}"
+                                 GradientStops="{StaticResource MeterGradStops}"/>
+          </ProgressBar.Foreground>
+        </ProgressBar>
+      </Grid>
+      <Slider x:Name="LevelSlider"
+              Orientation="Vertical" IsMoveToPointEnabled="True"
+              Minimum="-12.0" Maximum="12.0" SmallChange="0.25" LargeChange="2"
+              TickFrequency="2" TickPlacement="TopLeft"
+              Value="{Binding Path=Value, ElementName=Slider, FallbackValue=2.0}"
+              ValueChanged="Slider_ValueChanged"/>
+    </Grid>
   </DockPanel>
 </UserControl>

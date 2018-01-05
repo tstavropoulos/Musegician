@@ -10,11 +10,13 @@ using CSCore.CoreAudioAPI;
 using CSCore.SoundOut;
 using CSCore.Streams;
 using CSCore.Streams.Effects;
-using PlaylistManager = MusicPlayer.Playlist.PlaylistManager;
-using PlayData = MusicPlayer.DataStructures.PlayData;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows;
+
+using PlaylistManager = MusicPlayer.Playlist.PlaylistManager;
+using PlayData = MusicPlayer.DataStructures.PlayData;
+using CSCoreEq = CSCore.Streams.Effects.Equalizer;
 
 namespace MusicPlayer.Player
 {
@@ -22,7 +24,7 @@ namespace MusicPlayer.Player
     {
         private ISoundOut _soundOut;
         private IWaveSource _waveSource;
-        private CSCore.Streams.Effects.Equalizer _equalizer;
+        private CSCoreEq _equalizer;
 
         private AudioClient _audioClient = null;
         private AudioClient AudioClient
@@ -101,6 +103,7 @@ namespace MusicPlayer.Player
             get { return MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia); }
         }
 
+        public EventHandler<Equalizer.MeterUpdateArgs> MeterUpdate;
 
         PlayData lastPlay;
 
@@ -355,7 +358,6 @@ namespace MusicPlayer.Player
                 throw new Exception("Unable to initialize AudioClient");
             }
 
-            Equalizer.EqualizerManager.Instance.PropertyChanged += EqualizerUpdated;
 
             playTimer = new DispatcherTimer
             {
@@ -395,11 +397,16 @@ namespace MusicPlayer.Player
                 return;
             }
 
+            AudioUtilities.SpectralPowerStream spectralPowerStream;
+
             _waveSource = CodecFactory.Instance.GetCodec(playData.filename)
                 .ToSampleSource()
                 .ToStereo()
-                .AppendSource(CSCore.Streams.Effects.Equalizer.Create10BandEqualizer, out _equalizer)
+                .AppendSource(AudioUtilities.SpectralPowerStream.CreatePowerStream, out spectralPowerStream)
+                .AppendSource(CSCoreEq.Create10BandEqualizer, out _equalizer)
                 .ToWaveSource();
+
+            spectralPowerStream.PowerUpdate += (s,e) => MeterUpdate?.Invoke(s, e);
 
             //Set current eq values
             for (int i = 0; i < _equalizer.SampleFilters.Count; i++)
@@ -762,7 +769,7 @@ namespace MusicPlayer.Player
             }
         }
 
-        private void EqualizerUpdated(object sender, PropertyChangedEventArgs e)
+        public void EqualizerUpdated(object sender, Equalizer.EqualizerChangedArgs e)
         {
             //We do not care about updates if we haven't instantiated an equalizer
             if (_equalizer == null)
@@ -770,41 +777,23 @@ namespace MusicPlayer.Player
                 return;
             }
 
-            switch (e.PropertyName)
+            if (e.Index == -1)
             {
-                case "EqCh0":
-                    _equalizer.SampleFilters[0].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh0;
-                    break;
-                case "EqCh1":
-                    _equalizer.SampleFilters[1].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh1;
-                    break;
-                case "EqCh2":
-                    _equalizer.SampleFilters[2].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh2;
-                    break;
-                case "EqCh3":
-                    _equalizer.SampleFilters[3].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh3;
-                    break;
-                case "EqCh4":
-                    _equalizer.SampleFilters[4].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh4;
-                    break;
-                case "EqCh5":
-                    _equalizer.SampleFilters[5].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh5;
-                    break;
-                case "EqCh6":
-                    _equalizer.SampleFilters[6].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh6;
-                    break;
-                case "EqCh7":
-                    _equalizer.SampleFilters[7].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh7;
-                    break;
-                case "EqCh8":
-                    _equalizer.SampleFilters[8].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh8;
-                    break;
-                case "EqCh9":
-                    _equalizer.SampleFilters[9].AverageGainDB = Equalizer.EqualizerManager.Instance.EqCh9;
-                    break;
-                default:
-                    //Do nothing
-                    return;
+                for (int i = 0; i < _equalizer.SampleFilters.Count; i++)
+                {
+                    _equalizer.SampleFilters[i].AverageGainDB = Equalizer.EqualizerManager.Instance.GetGain(i);
+                }
+            }
+            else if (e.Index >= 0 && e.Index < _equalizer.SampleFilters.Count)
+            {
+                _equalizer.SampleFilters[e.Index].AverageGainDB = Equalizer.EqualizerManager.Instance.GetGain(e.Index);
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(
+                    "Bad Filter Index: {0}.  MaxValue: {1}",
+                    e.Index,
+                    _equalizer.SampleFilters.Count));
             }
         }
 
@@ -853,16 +842,16 @@ namespace MusicPlayer.Player
                         _soundOut = null;
                     }
 
-                    if (_waveSource != null)
-                    {
-                        _waveSource.Dispose();
-                        _waveSource = null;
-                    }
-
                     if (_equalizer != null)
                     {
                         _equalizer.Dispose();
                         _equalizer = null;
+                    }
+
+                    if (_waveSource != null)
+                    {
+                        _waveSource.Dispose();
+                        _waveSource = null;
                     }
                 }
 

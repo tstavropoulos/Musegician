@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -7,11 +8,34 @@ using System.Threading.Tasks;
 
 namespace MusicPlayer.Equalizer
 {
+    #region EventArgs
+
+    public class EqualizerChangedArgs : EventArgs
+    {
+        public int Index { get; set; }
+
+        public EqualizerChangedArgs(int index)
+        {
+            Index = index;
+        }
+    }
+
+    public class MeterUpdateArgs : EventArgs
+    {
+        public (float L, float R) Power { get; set; }
+        public int Index { get; set; }
+    }
+
+    #endregion EventArgs
+
     public class EqualizerManager : INotifyPropertyChanged
     {
         #region Data
 
-        private float[] eqGain;
+        private string presetName;
+        private ReadOnlyCollection<EqualizerSettingDTO> presets;
+        private ReadOnlyCollection<EqualizerFilterData> eqFilterData;
+        private bool blockUpdate = false;
 
         #endregion Data
         #region Singleton
@@ -49,173 +73,150 @@ namespace MusicPlayer.Equalizer
         }
 
         #endregion Singleton
+        #region Events
+
+        public event EventHandler<EqualizerChangedArgs> EqualizerChanged;
+
+        #endregion Events
         #region Constructor
 
         private EqualizerManager()
         {
-            eqGain = new float[10];
+            presetName = "Flat";
+
+            presets = new ReadOnlyCollection<EqualizerSettingDTO>(
+                new EqualizerSettingDTO[]
+                {
+                    new EqualizerSettingDTO()
+                    {
+                        name = "Flat",
+                        gain = new float[10]
+                    },
+                    new EqualizerSettingDTO()
+                    {
+                        name = "Scooped",
+                        gain = new float[10]
+                        {
+                            4.0f, 3.8f, 3.5f, 2.0f, 0.0f, 0.0f, 2.0f, 3.5f, 3.8f, 4.0f
+                        }
+                    },
+                    new EqualizerSettingDTO()
+                    {
+                        name = "Scooped (Bass Boost)",
+                        gain = new float[10]
+                        {
+                            4.0f, 3.8f, 3.5f, 2.0f, 0.0f, 0.0f, 1.0f, 1.6f, 1.9f, 2.0f
+                        }
+                    },
+                    new EqualizerSettingDTO()
+                    {
+                        name = "Custom",
+                        gain = new float[10]
+                    }
+                });
+
+            List<string> channelNames = new List<string>()
+            {
+                "32",
+                "64",
+                "125",
+                "250",
+                "500",
+                "1k",
+                "2k",
+                "4k",
+                "8k",
+                "16k"
+            };
+
+            eqFilterData = new ReadOnlyCollection<EqualizerFilterData>(
+                (from name in channelNames
+                 select new EqualizerFilterData(name)).ToArray());
+
+            for (int i = 0; i < eqFilterData.Count; i++)
+            {
+                int index = i;
+                eqFilterData[i].PropertyChanged += (s, e) =>
+                {
+                    if (!blockUpdate && e.PropertyName == "Gain")
+                    {
+                        BroadcastEqUpdate(index);
+                    }
+                };
+            }
+
+            Player.MusicManager.Instance.MeterUpdate += (s, e) =>
+            {
+                eqFilterData[e.Index].Power = e.Power;
+            };
+
+            EqualizerChanged += Player.MusicManager.Instance.EqualizerUpdated;
+
         }
 
         #endregion Constructor
         #region Properties
-        #region Properties Gain
+        #region Properties FilterData
 
-        public float EqCh0
+        public ReadOnlyCollection<EqualizerFilterData> EqualizerFilterData { get { return eqFilterData; } }
+
+        #endregion Properties FilterData
+        #region Properties Presets
+
+        public string PresetName
         {
-            get { return eqGain[0]; }
-            set
+            get { return presetName; }
+            private set
             {
-                if (eqGain[0] != value)
+                if (presetName != value)
                 {
-                    eqGain[0] = value;
-                    OnPropertyChanged("EqCh0");
+                    presetName = value;
+                    OnPropertyChanged("PresetName");
                 }
             }
         }
 
-        public float EqCh1
-        {
-            get { return eqGain[1]; }
-            set
-            {
-                if (eqGain[1] != value)
-                {
-                    eqGain[1] = value;
-                    OnPropertyChanged("EqCh1");
-                }
-            }
-        }
+        public ReadOnlyCollection<EqualizerSettingDTO> Presets { get { return presets; } }
 
-        public float EqCh2
-        {
-            get { return eqGain[2]; }
-            set
-            {
-                if (eqGain[2] != value)
-                {
-                    eqGain[2] = value;
-                    OnPropertyChanged("EqCh2");
-                }
-            }
-        }
-
-        public float EqCh3
-        {
-            get { return eqGain[3]; }
-            set
-            {
-                if (eqGain[3] != value)
-                {
-                    eqGain[3] = value;
-                    OnPropertyChanged("EqCh3");
-                }
-            }
-        }
-
-        public float EqCh4
-        {
-            get { return eqGain[4]; }
-            set
-            {
-                if (eqGain[4] != value)
-                {
-                    eqGain[4] = value;
-                    OnPropertyChanged("EqCh4");
-                }
-            }
-        }
-
-        public float EqCh5
-        {
-            get { return eqGain[5]; }
-            set
-            {
-                if (eqGain[5] != value)
-                {
-                    eqGain[5] = value;
-                    OnPropertyChanged("EqCh5");
-                }
-            }
-        }
-
-        public float EqCh6
-        {
-            get { return eqGain[6]; }
-            set
-            {
-                if (eqGain[6] != value)
-                {
-                    eqGain[6] = value;
-                    OnPropertyChanged("EqCh6");
-                }
-            }
-        }
-
-        public float EqCh7
-        {
-            get { return eqGain[7]; }
-            set
-            {
-                if (eqGain[7] != value)
-                {
-                    eqGain[7] = value;
-                    OnPropertyChanged("EqCh7");
-                }
-            }
-        }
-
-        public float EqCh8
-        {
-            get { return eqGain[8]; }
-            set
-            {
-                if (eqGain[8] != value)
-                {
-                    eqGain[8] = value;
-                    OnPropertyChanged("EqCh8");
-                }
-            }
-        }
-
-        public float EqCh9
-        {
-            get { return eqGain[9]; }
-            set
-            {
-                if (eqGain[9] != value)
-                {
-                    eqGain[9] = value;
-                    OnPropertyChanged("EqCh9");
-                }
-            }
-        }
-
-        #endregion Properties Gain
-        #region Properties Labels
-
-        public string EqCh0Name { get { return "32"; } }
-        public string EqCh1Name { get { return "64"; } }
-        public string EqCh2Name { get { return "125"; } }
-        public string EqCh3Name { get { return "250"; } }
-        public string EqCh4Name { get { return "500"; } }
-        public string EqCh5Name { get { return "1k"; } }
-        public string EqCh6Name { get { return "2k"; } }
-        public string EqCh7Name { get { return "4k"; } }
-        public string EqCh8Name { get { return "8k"; } }
-        public string EqCh9Name { get { return "16k"; } }
-
-        #endregion Properties Labels
+        #endregion Properties Presets
         #endregion Properties
         #region Data Access
 
-        public float GetGain(int channel)
+        public float GetGain(int index)
         {
-            if (channel < 0 || channel > eqGain.Length)
+            if (index < 0 || index > eqFilterData.Count)
             {
-                throw new ArgumentException("Invalid requested Channel: " + channel);
+                throw new ArgumentException("Invalid requested Channel: " + index);
             }
 
-            return eqGain[channel];
+            return eqFilterData[index].Gain;
+        }
+
+        public void SetGain(float[] gain)
+        {
+            if (gain == null)
+            {
+                throw new ArgumentException("Invalid submitted gain array: Null");
+            }
+
+            if (gain.Length != eqFilterData.Count)
+            {
+                throw new ArgumentException("Invalid submitted gain array length: " + gain.Length);
+            }
+
+            blockUpdate = true;
+
+            for (int i = 0; i < gain.Length; i++)
+            {
+                if (eqFilterData[i].Gain != gain[i])
+                {
+                    eqFilterData[i].Gain = gain[i];
+                }
+            }
+
+            blockUpdate = false;
+
+            BroadcastEqUpdate();
         }
 
         #endregion Data Access
@@ -223,20 +224,79 @@ namespace MusicPlayer.Equalizer
 
         public void Reset()
         {
-            eqGain = new float[10];
-            OnPropertyChanged("EqCh0");
-            OnPropertyChanged("EqCh1");
-            OnPropertyChanged("EqCh2");
-            OnPropertyChanged("EqCh3");
-            OnPropertyChanged("EqCh4");
-            OnPropertyChanged("EqCh5");
-            OnPropertyChanged("EqCh6");
-            OnPropertyChanged("EqCh7");
-            OnPropertyChanged("EqCh8");
-            OnPropertyChanged("EqCh9");
+            blockUpdate = true;
+
+            for (int i = 0; i < eqFilterData.Count; i++)
+            {
+                eqFilterData[i].Gain = 0f;
+            }
+
+            blockUpdate = false;
+
+            BroadcastEqUpdate();
         }
 
         #endregion Convenience Data Methods
+        #region Helper Methods
+
+        private void UpdatePresetName()
+        {
+            foreach (EqualizerSettingDTO data in Presets)
+            {
+                if (CompareToPreset(data))
+                {
+                    PresetName = data.name;
+                    return;
+                }
+            }
+
+            PresetName = "Custom";
+        }
+
+        private bool CompareToPreset(EqualizerSettingDTO data)
+        {
+            for (int i = 0; i < eqFilterData.Count; i++)
+            {
+                if (data.gain[i] != eqFilterData[i].Gain)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void UpdateGain(int index, float value)
+        {
+            if (index < 0 || index >= eqFilterData.Count)
+            {
+                throw new ArgumentException("Unexpected Gain Index: " + index);
+            }
+
+            if (eqFilterData[index].Gain != value)
+            {
+                eqFilterData[index].Gain = value;
+            }
+        }
+
+        private void BroadcastEqUpdate(int index)
+        {
+            if (index < 0 || index >= eqFilterData.Count)
+            {
+                throw new ArgumentException("Unexpected Gain Index: " + index);
+            }
+
+            EqualizerChanged?.Invoke(this, new EqualizerChangedArgs(index));
+            UpdatePresetName();
+        }
+
+        private void BroadcastEqUpdate()
+        {
+            EqualizerChanged?.Invoke(this, new EqualizerChangedArgs(-1));
+            UpdatePresetName();
+        }
+
+        #endregion Helper Methods
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;
