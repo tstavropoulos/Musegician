@@ -96,6 +96,14 @@ namespace MusicPlayer.Playlist
         {
             InitializeComponent();
 
+            Loaded += PlaylistControl_Loaded;
+            Unloaded += PlaylistControl_Unloaded;
+
+            _playlistTree = new PlaylistTreeViewModel();
+        }
+
+        private void PlaylistControl_Loaded(object sender, RoutedEventArgs e)
+        {
             PlaylistMan.addBack += AddBack;
             PlaylistMan.rebuild += Rebuild;
             PlaylistMan.RemoveAt += RemoveAt;
@@ -104,7 +112,22 @@ namespace MusicPlayer.Playlist
             PlaylistMan.MarkRecordingIndex += MarkRecordingIndex;
             PlaylistMan.UnmarkAll += UnmarkAll;
 
-            _playlistTree = new PlaylistTreeViewModel();
+            LoadPlaylistPopup.Opened += PlaylistManControl.Popup_Opened;
+            LoadPlaylistPopup.Closed += PlaylistManControl.Popup_Closed;
+        }
+
+        private void PlaylistControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            PlaylistMan.addBack -= AddBack;
+            PlaylistMan.rebuild -= Rebuild;
+            PlaylistMan.RemoveAt -= RemoveAt;
+
+            PlaylistMan.MarkIndex -= MarkIndex;
+            PlaylistMan.MarkRecordingIndex -= MarkRecordingIndex;
+            PlaylistMan.UnmarkAll -= UnmarkAll;
+
+            LoadPlaylistPopup.Opened -= PlaylistManControl.Popup_Opened;
+            LoadPlaylistPopup.Closed -= PlaylistManControl.Popup_Closed;
         }
 
         private void Rebuild(ICollection<SongDTO> songs)
@@ -297,28 +320,33 @@ namespace MusicPlayer.Playlist
             PlaylistMan.ClearPlaylist();
         }
 
-        private void Toolbar_SavePlaylist(object sender, RoutedEventArgs e)
+        public void Toolbar_SavePlaylist(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
 
             if (PlaylistMan.ItemCount == 0)
             {
                 MessageBox.Show("Cannot save empty playlist.", "Empty Playlist");
+                SavePlaylist.IsChecked = false;
                 return;
             }
 
-            PlaylistWindow window = new PlaylistWindow(true);
-
-            window.Show();
+            PlaylistManControl.SaveMode = true;
+            LoadPlaylistPopup.IsOpen = true;
         }
 
-        private void Toolbar_LoadPlaylist(object sender, RoutedEventArgs e)
+        public void Toolbar_LoadPlaylist(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
 
-            PlaylistWindow window = new PlaylistWindow(false);
+            PlaylistManControl.SaveMode = false;
+            LoadPlaylistPopup.IsOpen = true;
+        }
 
-            window.Show();
+        private void Popup_PlaylistClosed(object sender, EventArgs e)
+        {
+            SavePlaylist.IsChecked = false;
+            LoadPlaylist.IsChecked = false;
         }
 
         private enum KeyboardActions
@@ -439,5 +467,6 @@ namespace MusicPlayer.Playlist
 
             return (context, weightList);
         }
+
     }
 }

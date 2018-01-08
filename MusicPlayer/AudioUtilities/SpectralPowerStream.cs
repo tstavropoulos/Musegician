@@ -227,13 +227,8 @@ namespace MusicPlayer.AudioUtilities
                 right += fftBufferR[i].Value;
             }
 
-            left *= powerCoeff;
+            left *=  powerCoeff;
             right *= powerCoeff;
-
-            //if (index == 3)
-            //{
-            //    Console.WriteLine(string.Format("Left 250Hz Power: {0}", left));
-            //}
 
             return (UnitaryClamp((float)left), UnitaryClamp((float)right));
         }

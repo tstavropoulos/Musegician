@@ -58,7 +58,7 @@ namespace MusicPlayer.Equalizer
             get { return _power; }
             set
             {
-                if (PowerL != value.L &&
+                if (PowerL != value.L ||
                     PowerR != value.R)
                 {
                     _power = value;

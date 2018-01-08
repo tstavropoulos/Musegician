@@ -21,9 +21,6 @@ namespace MusicPlayer.Player
     /// </summary>
     public partial class PlaybackPanel : UserControl, INotifyPropertyChanged
     {
-        const string playString = "▶";
-        const string pauseString = "⏸";
-
         private MusicManager MusicMan
         {
             get { return MusicManager.Instance; }
@@ -47,8 +44,20 @@ namespace MusicPlayer.Player
         {
             InitializeComponent();
 
+            Loaded += PlaybackPanel_Loaded;
+            Unloaded += PlaybackPanel_Unloaded;
+        }
+
+        private void PlaybackPanel_Loaded(object sender, RoutedEventArgs e)
+        {
             MusicMan.PlayerStateChanged += PlayerStateChanged;
             MusicMan.tickUpdate += TickUpdate;
+        }
+
+        private void PlaybackPanel_Unloaded(object sender, RoutedEventArgs e)
+        {
+            MusicMan.PlayerStateChanged -= PlayerStateChanged;
+            MusicMan.tickUpdate -= TickUpdate;
         }
 
         public void OnPlayClick(object sender, RoutedEventArgs e)
@@ -84,34 +93,6 @@ namespace MusicPlayer.Player
         private void PlayerStateChanged(PlayerState newState)
         {
             State = newState;
-
-            //switch (newState)
-            //{
-            //    case PlayerState.NotLoaded:
-            //        playButton.Content = playString;
-            //        playButton.Foreground = new SolidColorBrush(Colors.Black);
-            //        stopButton.Foreground = new SolidColorBrush(Colors.Black);
-            //        break;
-            //    case PlayerState.Stopped:
-            //        playButton.Content = playString;
-            //        playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
-            //        stopButton.Foreground = new SolidColorBrush(Colors.Black);
-            //        break;
-            //    case PlayerState.Playing:
-            //        stopButton.Foreground = new SolidColorBrush(Colors.Red);
-            //        playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
-            //        playButton.Content = pauseString;
-            //        break;
-            //    case PlayerState.Paused:
-            //        stopButton.Foreground = new SolidColorBrush(Colors.Red);
-            //        playButton.Foreground = new SolidColorBrush(Colors.LightGreen);
-            //        playButton.Content = playString;
-            //        break;
-            //    case PlayerState.MAX:
-            //    default:
-            //        Console.WriteLine("Unexpeted PlayerState: " + newState);
-            //        return;
-            //}
         }
 
         #region INotifyPropertyChanged

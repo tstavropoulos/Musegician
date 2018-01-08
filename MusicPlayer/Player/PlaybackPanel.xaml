@@ -25,6 +25,7 @@
     <Style x:Key="PlayerButtons" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
       <Setter Property="ContentTemplate" Value="{StaticResource UIFontButton}"/>
     </Style>
+    
     <Style x:Key="Play_PlayerButton" TargetType="Button" BasedOn="{StaticResource PlayerButtons}">
       <Setter Property="Content" Value="▶"/>
       <Setter Property="Foreground" Value="LightGreen"/>
@@ -32,30 +33,26 @@
       <Style.Triggers>
         <DataTrigger Binding="{Binding Path=State, ElementName=PlaybackControl}" Value="{x:Static local:PlayerState.Stopped}">
           <Setter Property="IsEnabled" Value="True"/>
-          <Setter Property="Foreground" Value="LightGreen"/>
         </DataTrigger>
         <DataTrigger Binding="{Binding Path=State, ElementName=PlaybackControl}" Value="{x:Static local:PlayerState.Playing}">
           <Setter Property="Content" Value="⏸"/>
           <Setter Property="IsEnabled" Value="True"/>
-          <Setter Property="Foreground" Value="LightGreen"/>
         </DataTrigger>
         <DataTrigger Binding="{Binding Path=State, ElementName=PlaybackControl}" Value="{x:Static local:PlayerState.Paused}">
           <Setter Property="IsEnabled" Value="True"/>
-          <Setter Property="Foreground" Value="LightGreen"/>
         </DataTrigger>
       </Style.Triggers>
     </Style>
+    
     <Style x:Key="Stop_PlayerButton" TargetType="Button" BasedOn="{StaticResource PlayerButtons}">
       <Setter Property="IsEnabled" Value="False"/>
       <Setter Property="Foreground" Value="Red"/>
       <Style.Triggers>
         <DataTrigger Binding="{Binding Path=State, ElementName=PlaybackControl}" Value="{x:Static local:PlayerState.Playing}">
           <Setter Property="IsEnabled" Value="True"/>
-          <!--<Setter Property="Foreground" Value="Red"/>-->
         </DataTrigger>
         <DataTrigger Binding="{Binding Path=State, ElementName=PlaybackControl}" Value="{x:Static local:PlayerState.Paused}">
           <Setter Property="IsEnabled" Value="True"/>
-          <!--<Setter Property="Foreground" Value="Red"/>-->
         </DataTrigger>
       </Style.Triggers>
     </Style>
@@ -85,12 +82,12 @@
     <Button ToolTip="Previous" Grid.Column="0" Grid.Row="2"
             Click="OnBackClick"
             Content="⏮" ContentTemplate="{StaticResource UIFontButton}"/>
-    <Button Name="stopButton" ToolTip="Stop" Grid.Column="1" Grid.Row="2"
+    <Button ToolTip="Stop" Grid.Column="1" Grid.Row="2"
             Click="OnStopClick"
             Content="■" Style="{StaticResource Stop_PlayerButton}"/>
-    <Button Name="playButton" ToolTip="Play" Grid.Column="2" Grid.Row="2"
+    <Button ToolTip="Play" Grid.Column="2" Grid.Row="2"
             Click="OnPlayClick"
-            Content="▶" Style="{StaticResource Play_PlayerButton}"/>
+            Style="{StaticResource Play_PlayerButton}"/>
     <Button ToolTip="Next" Grid.Column="3" Grid.Row="2"
             Click="OnNextClick"
             Content="⏭" ContentTemplate="{StaticResource UIFontButton}"/>

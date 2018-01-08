@@ -81,26 +81,12 @@ namespace MusicPlayer
 
         private void Menu_LoadPlaylist(object sender, RoutedEventArgs e)
         {
-            e.Handled = true;
-
-            Playlist.PlaylistWindow window = new Playlist.PlaylistWindow(false);
-
-            window.Show();
+            playlistControl.Toolbar_LoadPlaylist(sender, e);
         }
 
         private void Menu_SavePlaylist(object sender, RoutedEventArgs e)
         {
-            e.Handled = true;
-
-            if (Playlist.PlaylistManager.Instance.ItemCount == 0)
-            {
-                MessageBox.Show("Cannot save empty playlist.", "Empty Playlist");
-                return;
-            }
-
-            Playlist.PlaylistWindow window = new Playlist.PlaylistWindow(true);
-
-            window.Show();
+            playlistControl.Toolbar_SavePlaylist(sender, e);
         }
 
         private void Quitting()
@@ -178,7 +164,7 @@ namespace MusicPlayer
             Window tinyPlayer = new TinyPlayer.TinyPlayer();
 
             tinyPlayer.Show();
-            Close();
+            Hide();
         }
     }
 }

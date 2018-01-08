@@ -24,33 +24,40 @@ namespace MusicPlayer.TinyPlayer
         {
             InitializeComponent();
 
-            Player.MusicManager.Instance.RecordingStarted += Instance_RecordingStarted;
+            Loaded += TinyPlayer_Loaded;
+            Unloaded += TinyPlayer_Unloaded;
         }
 
-        private void Instance_RecordingStarted(long id)
+        private void TinyPlayer_Loaded(object sender, RoutedEventArgs e)
+        {
+            Player.MusicManager.Instance.RecordingStarted += RecordingStarted;
+
+            LoadPlaylistPopup.Opened += PlaylistManControl.Popup_Opened;
+            LoadPlaylistPopup.Closed += PlaylistManControl.Popup_Closed;
+        }
+
+        private void TinyPlayer_Unloaded(object sender, RoutedEventArgs e)
+        {
+            Player.MusicManager.Instance.RecordingStarted -= RecordingStarted;
+
+            LoadPlaylistPopup.Opened -= PlaylistManControl.Popup_Opened;
+            LoadPlaylistPopup.Closed -= PlaylistManControl.Popup_Closed;
+        }
+
+        private void RecordingStarted(long id)
         {
             albumArt.Source = FileManager.Instance.GetAlbumArtForRecording(id);
         }
 
         private void Toolbar_RestoreWindow(object sender, RoutedEventArgs e)
         {
-            MainWindow window = new MainWindow();
-            window.Show();
+            Application.Current.MainWindow.Show();
             Close();
         }
 
         private void Window_Deactivated(object sender, EventArgs e)
         {
             Topmost = true;
-        }
-
-        private void Toolbar_LoadPlaylist(object sender, RoutedEventArgs e)
-        {
-            e.Handled = true;
-
-            Playlist.PlaylistWindow window = new Playlist.PlaylistWindow(false);
-
-            window.Show();
         }
     }
 }

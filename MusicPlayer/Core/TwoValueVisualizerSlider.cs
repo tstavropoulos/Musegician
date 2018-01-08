@@ -13,22 +13,22 @@ namespace MusicPlayer.Core
         #region Dependency Properties
 
         public static readonly DependencyProperty LeftValueProperty =
-            DependencyProperty.RegisterAttached("LeftValue", typeof(double),
-                typeof(TwoValueVisualizerSlider), new PropertyMetadata(0.0));
+            DependencyProperty.RegisterAttached("LeftValue", typeof(float),
+                typeof(TwoValueVisualizerSlider), new PropertyMetadata(0f));
 
-        public double LeftValue
+        public float LeftValue
         {
-            get { return (double)GetValue(LeftValueProperty); }
+            get { return (float)GetValue(LeftValueProperty); }
             set { SetValue(LeftValueProperty, value); }
         }
 
         public static readonly DependencyProperty RightValueProperty =
-            DependencyProperty.RegisterAttached("RightValue", typeof(double),
-                typeof(TwoValueVisualizerSlider), new PropertyMetadata(0.0));
+            DependencyProperty.RegisterAttached("RightValue", typeof(float),
+                typeof(TwoValueVisualizerSlider), new PropertyMetadata(0f));
 
-        public double RightValue
+        public float RightValue
         {
-            get { return (double)GetValue(RightValueProperty); }
+            get { return (float)GetValue(RightValueProperty); }
             set { SetValue(RightValueProperty, value); }
         }
 

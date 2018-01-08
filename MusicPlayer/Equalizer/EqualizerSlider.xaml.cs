@@ -100,7 +100,7 @@ namespace MusicPlayer.Equalizer
 
         private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (sender is Slider slider)
+            if (sender is Slider && e.OriginalSource is Slider)
             {
                 float oldValue = RoundOff(e.OldValue);
                 float newValue = RoundOff(e.NewValue);
@@ -142,7 +142,7 @@ namespace MusicPlayer.Equalizer
         {
             float val = System.Convert.ToSingle(value);
 
-            if (val == 0.0)
+            if (val == 0f)
             {
                 return new Point(0, 0);
             }
@@ -162,7 +162,7 @@ namespace MusicPlayer.Equalizer
         {
             float val = System.Convert.ToSingle(value);
 
-            if (val == 0.0)
+            if (val == 0f)
             {
                 return new Point(0, 0);
             }

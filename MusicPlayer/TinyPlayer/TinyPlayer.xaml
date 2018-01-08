@@ -54,9 +54,15 @@
         <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>
-        <Button ToolTip="Load Playlist" Margin="0,0,4,0" Height="33" Width="33"
-                Click="Toolbar_LoadPlaylist"
+        <ToggleButton x:Name="LoadPlaylistButton" ToolTip="Load Playlist" Margin="0,0,4,0" Height="33" Width="33"
                 Content="📂" ContentTemplate="{StaticResource UIFontButton}"/>
+        <Popup Name="LoadPlaylistPopup" StaysOpen="False"
+               IsOpen="{Binding Path=IsChecked, ElementName=LoadPlaylistButton}"
+               Placement="Bottom" PlacementTarget="{Binding ElementName=LoadPlaylistButton}">
+          <Border BorderThickness="2" BorderBrush="Black" Background="{StaticResource DarkInsetPanel}" Height="200">
+            <playlist:PlaylistManagementControl x:Name="PlaylistManControl" SaveMode="False"/>
+          </Border>
+        </Popup>
         <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>

@@ -90,7 +90,6 @@ namespace MusicPlayer
             public HashSet<long> loadedAlbumArt;
         }
 
-
         private FileManager()
         {
             recordingCommands = new RecordingCommands();
@@ -123,8 +122,7 @@ namespace MusicPlayer
                 return _instance;
             }
         }
-
-
+        
         public void DropDB()
         {
             if (dbConnection != null)

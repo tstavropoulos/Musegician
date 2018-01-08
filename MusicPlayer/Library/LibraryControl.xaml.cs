@@ -79,7 +79,7 @@ namespace MusicPlayer.Library
         }
 
         #endregion Data
-        #region Inner Classes
+        #region Inner Enumerations
 
         private enum KeyboardActions
         {
@@ -90,7 +90,7 @@ namespace MusicPlayer.Library
             MAX
         }
 
-        #endregion Inner Classes
+        #endregion Inner Enumerations
         #region Context Menu Events
 
         public delegate void ContextMenuIDRequest(LibraryContext context, long id);
@@ -139,8 +139,16 @@ namespace MusicPlayer.Library
 
         public void Rebuild()
         {
+            ViewMode tempViewMode = _musicTree.CurrentViewMode;
+
             _musicTree = new MusicTreeViewModel(RequestHandler);
             DataContext = _musicTree;
+
+            if (tempViewMode != ViewMode.MAX)
+            {
+                //Trigger the loading of the current view mode
+                _musicTree.CurrentViewMode = tempViewMode;
+            }
         }
 
         #endregion Construction

@@ -83,6 +83,7 @@
     </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="system.windows.controls.ribbon" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -159,14 +160,14 @@
     <Compile Include="Playlist\IPlaylistRequestHandler.cs" />
     <Compile Include="Playlist\IPlaylistTransferRequestHandler.cs" />
     <Compile Include="Playlist\MockPlaylistViewModel.cs" />
+    <Compile Include="Playlist\PlaylistManagementControl.xaml.cs">
+      <DependentUpon>PlaylistManagementControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Playlist\PlaylistManager.cs" />
     <Compile Include="Playlist\PlaylistRecordingViewModel.cs" />
     <Compile Include="Playlist\PlaylistModelView.cs" />
     <Compile Include="Core\MultiSelectTreeView.cs" />
     <Compile Include="Playlist\PlaylistViewModel.cs" />
-    <Compile Include="Playlist\PlaylistWindow.xaml.cs">
-      <DependentUpon>PlaylistWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -207,7 +208,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Playlist\PlaylistWindow.xaml">
+    <Page Include="Playlist\PlaylistManagementControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

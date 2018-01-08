@@ -1,26 +1,28 @@
-﻿using System;
+﻿using MusicPlayer.DataStructures;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
-using PlaylistData = MusicPlayer.DataStructures.PlaylistData;
 
 namespace MusicPlayer.Playlist
 {
-
     /// <summary>
-    /// Interaction logic for PlaylistWindow.xaml
+    /// Interaction logic for PlaylistManagementControl.xaml
     /// </summary>
-    public partial class PlaylistWindow : Window
+    public partial class PlaylistManagementControl : UserControl
     {
         IPlaylistRequestHandler playlistRequestHandler
         {
@@ -31,43 +33,62 @@ namespace MusicPlayer.Playlist
 
         private bool saveMode = false;
 
-        public PlaylistWindow()
+        private Popup myPopup;
+
+        public bool SaveMode
         {
-            //Fake View
-            playlists.Add(new PlaylistModelView()
+            get { return saveMode; }
+            set
             {
-                Name = "My First Playlist",
-                SongCount = 10
-            });
+                saveMode = value;
 
-            playlists.Add(new PlaylistModelView()
-            {
-                Name = "Another Playlist",
-                SongCount = 12
-            });
-
-            playlists.Add(new PlaylistModelView()
-            {
-                Name = "Silly Playlist",
-                SongCount = 1
-            });
-
-            playlistList.ItemsSource = playlists;
+                savePanel.Visibility = saveMode ? Visibility.Visible : Visibility.Collapsed;
+                savePanel.IsEnabled = saveMode;
+            }
         }
 
-        public PlaylistWindow(bool save)
+        public PlaylistManagementControl()
         {
             InitializeComponent();
 
-            saveMode = save;
+            if (DesignerProperties.GetIsInDesignMode(this))
+            {
+                //Fake View
+                playlists.Add(new PlaylistModelView()
+                {
+                    Name = "My First Playlist",
+                    SongCount = 10
+                });
+
+                playlists.Add(new PlaylistModelView()
+                {
+                    Name = "Another Playlist",
+                    SongCount = 12
+                });
+
+                playlists.Add(new PlaylistModelView()
+                {
+                    Name = "Silly Playlist",
+                    SongCount = 1
+                });
+
+                playlistList.ItemsSource = playlists;
+            }
+            else
+            {
+                playlistList.ItemsSource = playlists;
+            }
+        }
+
+        public void Popup_Opened(object sender, EventArgs e)
+        {
+            myPopup = sender as Popup;
+
             playlistName.Text = PlaylistManager.Instance.PlaylistName;
 
-            savePanel.Visibility = save ? Visibility.Visible : Visibility.Collapsed;
-            savePanel.IsEnabled = save;
+            playlists.Clear();
 
-            ICollection<PlaylistData> playlistData = playlistRequestHandler.GetPlaylistInfo();
-
-            foreach (PlaylistData data in playlistData)
+            foreach (PlaylistData data in playlistRequestHandler.GetPlaylistInfo())
             {
                 playlists.Add(new PlaylistModelView()
                 {
@@ -76,8 +97,11 @@ namespace MusicPlayer.Playlist
                     ID = data.id
                 });
             }
+        }
 
-            playlistList.ItemsSource = playlists;
+        public void Popup_Closed(object sender, EventArgs e)
+        {
+            myPopup = null;
         }
 
         private void PlaylistList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -103,6 +127,11 @@ namespace MusicPlayer.Playlist
                 }
             }
 
+        }
+
+        private void Close()
+        {
+            myPopup.IsOpen = false;
         }
 
         private void SaveAndClose(string saveName)
@@ -159,5 +188,6 @@ namespace MusicPlayer.Playlist
                 }
             }
         }
+
     }
 }

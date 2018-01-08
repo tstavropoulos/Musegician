@@ -2055,7 +2055,7 @@
                                    Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
                                    ViewportSize="{TemplateBinding ViewportHeight}"
                                    Style="{DynamicResource VerticalScrollBarStyle}"/>
-            <DockPanel Background="{Binding ScrollViewerBackground}"
+            <DockPanel Background="{TemplateBinding Background}"
                                    Grid.Column="1" LastChildFill="False" Grid.Row="1">
               <Rectangle DockPanel.Dock="Left" Fill="{StaticResource ScrollViewerBackground}" Width="1"
                                        Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" />

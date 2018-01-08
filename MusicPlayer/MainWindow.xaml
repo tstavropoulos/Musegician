@@ -85,17 +85,15 @@
         <ColumnDefinition Width="5"/>
         <ColumnDefinition />
       </Grid.ColumnDefinitions>
-      <playlist:PlaylistControl x:Name="playlistControl"
-                                Grid.Column="0" Grid.Row="0"
+      <playlist:PlaylistControl x:Name="playlistControl" Grid.Column="0" Grid.Row="0"
                                 TinyViewerPressed="Menu_CondensedView"
                                 d:DataContext="{d:DesignInstance Type=playlist:MockPlaylistViewModel, IsDesignTimeCreatable=True}"/>
       <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
-      <library:LibraryControl x:Name="libraryControl"
-                              Grid.Column="2" Grid.Row="0"
+      <library:LibraryControl x:Name="libraryControl" Grid.Column="2"
                               ContextMenu_MultiEdit="Library_Request_Edit"
                               ContextMenu_EditArt="Library_Request_Edit_Art"
                               d:DataContext="{d:DesignInstance Type=library:MockLibraryViewModel,
                                 IsDesignTimeCreatable=True}"/>
-    </Grid>
+      </Grid>
   </DockPanel>
 </Window>
