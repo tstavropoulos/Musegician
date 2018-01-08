@@ -51,13 +51,18 @@ namespace MusicPlayer.TinyPlayer
 
         private void Toolbar_RestoreWindow(object sender, RoutedEventArgs e)
         {
-            Application.Current.MainWindow.Show();
+            //Application.Current.MainWindow.Show();
             Close();
         }
 
         private void Window_Deactivated(object sender, EventArgs e)
         {
             Topmost = true;
+        }
+
+        private void tinyPlayer_Closing(object sender, CancelEventArgs e)
+        {
+            Application.Current.MainWindow.Show();
         }
     }
 }

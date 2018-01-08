@@ -173,6 +173,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Resources\WindowStyle.xaml.cs">
+      <DependentUpon>WindowStyle.xaml</DependentUpon>
+      <Generator>MSBuild:Compile</Generator>
+    </Compile>
     <Compile Include="TagEditor\ITagRequestHandler.cs" />
     <Compile Include="TagEditor\TagEditor.xaml.cs">
       <DependentUpon>TagEditor.xaml</DependentUpon>
@@ -209,6 +213,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Playlist\PlaylistManagementControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\WindowStyle.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

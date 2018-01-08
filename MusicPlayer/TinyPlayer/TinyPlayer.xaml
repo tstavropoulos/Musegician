@@ -11,9 +11,11 @@
         xmlns:equalizer="clr-namespace:MusicPlayer.Equalizer"
         mc:Ignorable="d"
         Title="{Binding Source={x:Static player:MusicManager.Instance}, Path=WindowTitle}"
-        Height="500" Width="360"
+        Height="500" Width="358"
         Deactivated="Window_Deactivated"
-        Style="{StaticResource {x:Type Window}}">
+        Style="{StaticResource CustomTinyWindowStyle}"
+        Icon="/MusicPlayer;component/Resources/logo.ico"
+        Closing="tinyPlayer_Closing">
   <Window.Resources>
     <Style x:Key="UIFontStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
       <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
@@ -80,7 +82,8 @@
       </StackPanel>
       <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="0,2,5,2" 
                   HorizontalAlignment="Right">
-        <TextBlock Text="🔊" VerticalAlignment="Center" Style="{StaticResource UIFontStyle}"/>
+        <TextBlock Text="🔊" VerticalAlignment="Center" Foreground="White"
+                   Style="{StaticResource UIFontStyle}"/>
         <Slider Orientation="Horizontal" VerticalAlignment="Center" Width="100"
                 Minimum="0.0" Maximum="1.0"
                 LargeChange="0.1" SmallChange="0.02"

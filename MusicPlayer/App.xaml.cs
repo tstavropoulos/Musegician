@@ -19,7 +19,7 @@ namespace MusicPlayer
         public App()
         {
             Exit += App_Exit;
-            
+
             //System.Windows.Input.Keyboard.AddKeyDownHandler()
         }
 

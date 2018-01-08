@@ -91,6 +91,17 @@
         <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>
+        <ToggleButton Name="showEqualizer" ToolTip="Show Equalizer" Margin="0,0,4,0" Height="33" Width="33"
+                      Content="⫯⫯⫰⫯" ContentTemplate="{StaticResource UISmallerFontButton}"/>
+        <Popup Name="EqPopUp" IsOpen="{Binding ElementName=showEqualizer, Path=IsChecked}" StaysOpen="False"
+               Placement="Bottom" PlacementTarget="{Binding ElementName=showEqualizer}">
+          <Border BorderThickness="2" BorderBrush="Black" Background="{StaticResource DarkInsetPanel}" Height="200">
+            <equalizer:EqualizerControl/>
+          </Border>
+        </Popup>
+        <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
+          <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+        </StackPanel>
         <Button ToolTip="New Playlist" Margin="0,0,4,0" Height="33" Width="33"
                 Content="🗋" ContentTemplate="{StaticResource UIFontButton}"
                 Click="Toolbar_NewPlaylist"/>
@@ -105,17 +116,6 @@
                Closed="Popup_PlaylistClosed">
           <Border BorderThickness="2" BorderBrush="Black" Background="{StaticResource DarkInsetPanel}" Height="200">
             <playlist:PlaylistManagementControl x:Name="PlaylistManControl"/>
-          </Border>
-        </Popup>
-        <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
-          <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
-        </StackPanel>
-        <ToggleButton Name="showEqualizer" ToolTip="Show Equalizer" Margin="0,0,4,0" Height="33" Width="33"
-                      Content="⫯⫯⫰⫯" ContentTemplate="{StaticResource UISmallerFontButton}"/>
-        <Popup Name="EqPopUp" IsOpen="{Binding ElementName=showEqualizer, Path=IsChecked}" StaysOpen="False"
-               Placement="Bottom" PlacementTarget="{Binding ElementName=showEqualizer}">
-          <Border BorderThickness="2" BorderBrush="Black" Background="{StaticResource DarkInsetPanel}" Height="200">
-            <equalizer:EqualizerControl/>
           </Border>
         </Popup>
       </StackPanel>

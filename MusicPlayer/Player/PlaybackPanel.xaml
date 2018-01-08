@@ -11,7 +11,7 @@
              x:Name="PlaybackControl">
   <UserControl.Resources>
     <DataTemplate x:Key="UIFontButton" DataType="{x:Type sys:String}">
-      <TextBlock Text="{Binding}">
+      <TextBlock Text="{Binding}" VerticalAlignment="Center">
         <TextBlock.Style>
           <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
             <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
@@ -22,10 +22,36 @@
       </TextBlock>
     </DataTemplate>
 
+    <ControlTemplate x:Key="PlaybackButtonControl" TargetType="Button">
+      <Border Background="{TemplateBinding Background}" 
+						  BorderBrush="{TemplateBinding BorderBrush}">
+        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+							            Margin="{TemplateBinding Padding}" 
+							            RecognizesAccessKey="True" 
+							            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+							            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+      </Border>
+      <ControlTemplate.Triggers>
+        <Trigger Property="IsMouseOver" Value="true">
+          <Setter Property="Background" Value="{StaticResource MouseOverButtonBackground}"/>
+          <Setter Property="Foreground" Value="{StaticResource MouseOverButtonForeground}"/>
+        </Trigger>
+        <Trigger Property="IsPressed" Value="true">
+          <Setter Property="Background" Value="{StaticResource PressedButtonBackground}"/>
+          <Setter Property="Foreground" Value="{StaticResource ButtonForeground}"/>
+        </Trigger>
+        <Trigger Property="IsEnabled" Value="false">
+          <Setter Property="Foreground" Value="{StaticResource DisabledButtonForeground}"/>
+        </Trigger>
+      </ControlTemplate.Triggers>
+    </ControlTemplate>
+
     <Style x:Key="PlayerButtons" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Background" Value="{StaticResource ButtonBackground}"/>
       <Setter Property="ContentTemplate" Value="{StaticResource UIFontButton}"/>
+      <Setter Property="Template" Value="{StaticResource PlaybackButtonControl}"/>
     </Style>
-    
+
     <Style x:Key="Play_PlayerButton" TargetType="Button" BasedOn="{StaticResource PlayerButtons}">
       <Setter Property="Content" Value="▶"/>
       <Setter Property="Foreground" Value="LightGreen"/>
@@ -43,7 +69,7 @@
         </DataTrigger>
       </Style.Triggers>
     </Style>
-    
+
     <Style x:Key="Stop_PlayerButton" TargetType="Button" BasedOn="{StaticResource PlayerButtons}">
       <Setter Property="IsEnabled" Value="False"/>
       <Setter Property="Foreground" Value="Red"/>
@@ -57,8 +83,8 @@
       </Style.Triggers>
     </Style>
   </UserControl.Resources>
-  
-  <Grid>
+
+  <Grid Background="{StaticResource ButtonBackground}">
     <Grid.ColumnDefinitions>
       <ColumnDefinition />
       <ColumnDefinition />
@@ -74,22 +100,23 @@
            Background="Black" Foreground="Wheat" HorizontalContentAlignment="Center"
            Content="{Binding Source={x:Static local:MusicManager.Instance}, Path=SongLabel}"/>
     <Slider Name="progressSlider" Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" Margin="10,2,10,2"
+            Background="{StaticResource ButtonBackground}"
             VerticalAlignment="Center" Thumb.DragDelta="Slider_Drag"
             Minimum="0.0"
             Maximum="{Binding Source={x:Static local:MusicManager.Instance}, Path=Length}"
             LargeChange="{Binding Source={x:Static local:MusicManager.Instance}, Path=ClickJump}"
             SmallChange="{Binding Source={x:Static local:MusicManager.Instance}, Path=KBJump}"/>
-    <Button ToolTip="Previous" Grid.Column="0" Grid.Row="2"
+    <Button ToolTip="Previous" Grid.Column="0" Grid.Row="2" Margin="0"
             Click="OnBackClick"
-            Content="⏮" ContentTemplate="{StaticResource UIFontButton}"/>
-    <Button ToolTip="Stop" Grid.Column="1" Grid.Row="2"
+            Content="⏮" Style="{StaticResource PlayerButtons}"/>
+    <Button ToolTip="Stop" Grid.Column="1" Grid.Row="2" Margin="0"
             Click="OnStopClick"
             Content="■" Style="{StaticResource Stop_PlayerButton}"/>
-    <Button ToolTip="Play" Grid.Column="2" Grid.Row="2"
+    <Button ToolTip="Play" Grid.Column="2" Grid.Row="2" Margin="0"
             Click="OnPlayClick"
             Style="{StaticResource Play_PlayerButton}"/>
-    <Button ToolTip="Next" Grid.Column="3" Grid.Row="2"
+    <Button ToolTip="Next" Grid.Column="3" Grid.Row="2" Margin="0"
             Click="OnNextClick"
-            Content="⏭" ContentTemplate="{StaticResource UIFontButton}"/>
+            Content="⏭" Style="{StaticResource PlayerButtons}"/>
   </Grid>
 </UserControl>

@@ -12,7 +12,7 @@
         mc:Ignorable="d"
         Title="{Binding Source={x:Static player:MusicManager.Instance}, Path=WindowTitle}"
         Height="800" Width="1200"
-        Style="{StaticResource {x:Type Window}}"
+        Style="{StaticResource CustomWindowStyle}"
         Icon="Resources/logo.ico">
   <Window.Resources>
     <Style x:Key="UIFontStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
@@ -22,9 +22,10 @@
     </Style>
   </Window.Resources>
   <DockPanel>
-    <DockPanel DockPanel.Dock="Top">
+    <DockPanel DockPanel.Dock="Top" Background="{StaticResource MenuBackground}">
       <DockPanel DockPanel.Dock="Right" Margin="10,2,10,2">
-        <TextBlock Text="🔊" DockPanel.Dock="Left" VerticalAlignment="Center" Style="{StaticResource UIFontStyle}"/>
+        <TextBlock Text="🔊" DockPanel.Dock="Left" VerticalAlignment="Center" Foreground="White"
+                   Style="{StaticResource UIFontStyle}"/>
         <Slider Orientation="Horizontal" VerticalAlignment="Center" Width="100"
                 Minimum="0.0" Maximum="1.0" 
                 LargeChange="0.1" SmallChange="0.02"
