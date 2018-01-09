@@ -23,7 +23,7 @@
   </Window.Resources>
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" Background="{StaticResource MenuBackground}">
-      <DockPanel DockPanel.Dock="Right" Margin="10,2,10,2">
+      <DockPanel DockPanel.Dock="Right" Margin="10,0,10,0">
         <TextBlock Text="🔊" DockPanel.Dock="Left" VerticalAlignment="Center" Foreground="White"
                    Style="{StaticResource UIFontStyle}"/>
         <Slider Orientation="Horizontal" VerticalAlignment="Center" Width="100"

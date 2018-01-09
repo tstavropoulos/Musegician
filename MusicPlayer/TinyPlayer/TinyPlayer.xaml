@@ -33,7 +33,7 @@
       <TextBlock Text="{Binding}" Style="{StaticResource UISmallerFontStyle}"/>
     </DataTemplate>
   </Window.Resources>
-  <DockPanel>
+  <DockPanel >
     <DockPanel DockPanel.Dock="Top" Background="{StaticResource DarkInsetPanel}">
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="1,2,0,2">
         <ToggleButton ToolTip="Shuffle Toggle" Margin="1,2,4,2" Height="34" Width="34"

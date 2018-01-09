@@ -63,9 +63,9 @@
     </DataTemplate>
   </UserControl.Resources>
   <DockPanel>
-    <DockPanel DockPanel.Dock="Top" Margin="0,2,0,2" Background="{StaticResource DarkInsetPanel}">
+    <DockPanel DockPanel.Dock="Top" Margin="0" Background="{StaticResource DarkInsetPanel}">
       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-        <ToggleButton ToolTip="Shuffle" Margin="1,2,4,2" Height="34" Width="34"
+        <ToggleButton ToolTip="Shuffle" Margin="2,2,4,2" Height="34" Width="34"
                       IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Shuffle, Mode=TwoWay}"
                       ContentTemplate="{StaticResource UIFontButton}">
           <ToggleButton.Style>
@@ -82,16 +82,16 @@
         <ToggleButton ToolTip="Repeat" Margin="0,0,0,0" Height="34" Width="34"
                       IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Repeat, Mode=TwoWay}"
                       Content="🔁" ContentTemplate="{StaticResource UIFontButton}"/>
-        <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
+        <StackPanel Orientation="Horizontal" Margin="4">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>
-        <Button Name="tinyViewerButton" ToolTip="Open Tiny Viewer" Margin="0,0,4,0" Height="33" Width="33"
+        <Button Name="tinyViewerButton" ToolTip="Open Tiny Viewer" Margin="0,0,0,0" Height="33" Width="33"
                 Content="🗗" ContentTemplate="{StaticResource UISmallerFontButton}"/>
         <!--Content="⟎"-->
-        <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
+        <StackPanel Orientation="Horizontal" Margin="4">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>
-        <ToggleButton Name="showEqualizer" ToolTip="Show Equalizer" Margin="0,0,4,0" Height="33" Width="33"
+        <ToggleButton Name="showEqualizer" ToolTip="Show Equalizer" Margin="0,0,0,0" Height="33" Width="33"
                       Content="⫯⫯⫰⫯" ContentTemplate="{StaticResource UISmallerFontButton}"/>
         <Popup Name="EqPopUp" IsOpen="{Binding ElementName=showEqualizer, Path=IsChecked}" StaysOpen="False"
                Placement="Bottom" PlacementTarget="{Binding ElementName=showEqualizer}">
@@ -99,7 +99,7 @@
             <equalizer:EqualizerControl/>
           </Border>
         </Popup>
-        <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
+        <StackPanel Orientation="Horizontal" Margin="4">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>
         <Button ToolTip="New Playlist" Margin="0,0,4,0" Height="33" Width="33"

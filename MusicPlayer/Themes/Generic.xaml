@@ -463,58 +463,45 @@
     <Grid>
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="Auto" />
-        <ColumnDefinition Width="*"
-                        MinWidth="{TemplateBinding MinWidth}" />
+        <ColumnDefinition Width="*" MinWidth="{TemplateBinding MinWidth}" />
         <ColumnDefinition Width="Auto" />
       </Grid.ColumnDefinitions>
-      <TickBar x:Name="TopTick"
-             SnapsToDevicePixels="True"
-             Placement="Left"
-             Width="4"
-             Visibility="Collapsed" Margin="0,0,2,0">
+      <TickBar x:Name="TopTick" SnapsToDevicePixels="True" Placement="Left" Width="4"
+               Visibility="Collapsed" Margin="0,0,2,0">
         <TickBar.Fill>
           <SolidColorBrush Color="{StaticResource GlyphColor}" />
         </TickBar.Fill>
       </TickBar>
 
-      <Border x:Name="TrackBackground"
-            Margin="0"
-            CornerRadius="2"
-            Width="4"
-            Grid.Column="1"
-            BorderThickness="1">
+      <!--<Border x:Name="TrackBackground"
+              Margin="0" CornerRadius="0" Width="4" Grid.Column="1" BorderThickness="1">
         <Border.BorderBrush>
-          <LinearGradientBrush StartPoint="0,0"
-                             EndPoint="1,0">
+          <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
             <LinearGradientBrush.GradientStops>
               <GradientStopCollection>
-                <GradientStop Color="{StaticResource BorderLightColor}"
-                            Offset="0.0" />
-                <GradientStop Color="{StaticResource BorderDarkColor}"
-                            Offset="1.0" />
+                <GradientStop Color="{StaticResource BorderLightColor}" Offset="0.0" />
+                <GradientStop Color="{StaticResource BorderDarkColor}" Offset="1.0" />
               </GradientStopCollection>
             </LinearGradientBrush.GradientStops>
           </LinearGradientBrush>
-
         </Border.BorderBrush>
         <Border.Background>
-          <LinearGradientBrush EndPoint="1,0"
-                             StartPoint="0.25,0">
-            <GradientStop Color="{StaticResource ControlLightColor}"
-                        Offset="0" />
-            <GradientStop Color="{StaticResource SliderTrackDarkColor}"
-                        Offset="1" />
+          <LinearGradientBrush EndPoint="1,0" StartPoint="0.25,0">
+            <GradientStop Color="{StaticResource ControlLightColor}" Offset="0" />
+            <GradientStop Color="{StaticResource SliderTrackDarkColor}" Offset="1" />
           </LinearGradientBrush>
         </Border.Background>
-      </Border>
+      </Border>-->
 
       <Grid Grid.Column="1">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="2"/>
+          <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <ProgressBar x:Name="LeftValueBar" Orientation="Vertical" Grid.Column="0" 
+        <ProgressBar x:Name="LeftValueBar" Orientation="Vertical" Grid.Column="0" Grid.ColumnSpan="2"
                      Value="{Binding LeftValue, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
                      Minimum="0" Maximum="1">
           <ProgressBar.Foreground>
@@ -523,7 +510,7 @@
                                    GradientStops="{StaticResource MeterGradStops}"/>
           </ProgressBar.Foreground>
         </ProgressBar>
-        <ProgressBar x:Name="RightValueBar" Orientation="Vertical" Grid.Column="2"
+        <ProgressBar x:Name="RightValueBar" Orientation="Vertical" Grid.Column="3" Grid.ColumnSpan="2"
                      Value="{Binding RightValue, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}"
                      Minimum="0" Maximum="1">
           <ProgressBar.Foreground>
@@ -534,11 +521,10 @@
         </ProgressBar>
       </Grid>
 
-      <Track Grid.Column="1"
-           x:Name="PART_Track">
+      <Track Grid.Column="1" x:Name="PART_Track">
         <Track.DecreaseRepeatButton>
           <RepeatButton Style="{StaticResource TwoValueVisualizerSliderButtonStyle}"
-                      Command="Slider.DecreaseLarge" />
+                        Command="Slider.DecreaseLarge" />
         </Track.DecreaseRepeatButton>
         <Track.Thumb>
           <!--<Thumb Style="{StaticResource TwoValueVisualizerSliderThumbStyle}" />-->
@@ -546,7 +532,7 @@
         </Track.Thumb>
         <Track.IncreaseRepeatButton>
           <RepeatButton Style="{StaticResource TwoValueVisualizerSliderButtonStyle}"
-                      Command="Slider.IncreaseLarge" />
+                        Command="Slider.IncreaseLarge" />
         </Track.IncreaseRepeatButton>
       </Track>
       <TickBar x:Name="BottomTick"
