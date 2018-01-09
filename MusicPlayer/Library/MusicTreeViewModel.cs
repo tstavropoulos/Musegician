@@ -5,10 +5,10 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Threading.Tasks;
-using MusicPlayer.DataStructures;
+using Musegician.DataStructures;
 using System.ComponentModel;
 
-namespace MusicPlayer.Library
+namespace Musegician.Library
 {
     public class MusicTreeViewModel : INotifyPropertyChanged
     {

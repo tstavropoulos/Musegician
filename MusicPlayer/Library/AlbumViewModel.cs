@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MusicPlayer.DataStructures;
+using Musegician.DataStructures;
 using System.Windows.Media.Imaging;
 
-namespace MusicPlayer.Library
+namespace Musegician.Library
 {
     public class AlbumViewModel : LibraryViewModel
     {

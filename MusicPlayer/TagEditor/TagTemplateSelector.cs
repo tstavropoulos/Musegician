@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace MusicPlayer.TagEditor
+namespace Musegician.TagEditor
 {
     public class TagTemplateSelector : DataTemplateSelector
     {

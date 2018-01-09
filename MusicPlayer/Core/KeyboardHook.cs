@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 
-namespace MusicPlayer.Core
+namespace Musegician.Core
 {
     /// <summary>
     /// Partially pilfered from 

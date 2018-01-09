@@ -1,9 +1,9 @@
-﻿<UserControl x:Class="MusicPlayer.Core.WeightBar"
+﻿<UserControl x:Class="Musegician.Core.WeightBar"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:MusicPlayer"
+             xmlns:local="clr-namespace:Musegician"
              mc:Ignorable="d" 
              d:DesignHeight="30" d:DesignWidth="7">
   <Border Height="30" Width="7" Padding="1" Background="Black" >

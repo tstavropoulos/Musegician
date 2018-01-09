@@ -5,12 +5,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
-using MusicPlayer.DataStructures;
-using MusicPlayer.Core;
-using IPlaylistTransferRequestHandler = MusicPlayer.Playlist.IPlaylistTransferRequestHandler;
+using Musegician.DataStructures;
+using Musegician.Core;
+using IPlaylistTransferRequestHandler = Musegician.Playlist.IPlaylistTransferRequestHandler;
 using System.Windows;
 
-namespace MusicPlayer.Library
+namespace Musegician.Library
 {
     #region Library Enums
 

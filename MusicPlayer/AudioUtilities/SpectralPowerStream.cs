@@ -8,7 +8,7 @@ using CSCore.DSP;
 using CSCore.Streams.Effects;
 using CSCore.Utils;
 
-namespace MusicPlayer.AudioUtilities
+namespace Musegician.AudioUtilities
 {
     public class SpectralPowerStream : SampleAggregatorBase
     {

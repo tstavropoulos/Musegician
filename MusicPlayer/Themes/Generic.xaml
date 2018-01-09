@@ -1,8 +1,8 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:local="clr-namespace:MusicPlayer"
-                    xmlns:core="clr-namespace:MusicPlayer.Core"
-                    xmlns:equalizer="clr-namespace:MusicPlayer.Equalizer"
+                    xmlns:local="clr-namespace:Musegician"
+                    xmlns:core="clr-namespace:Musegician.Core"
+                    xmlns:equalizer="clr-namespace:Musegician.Equalizer"
                     xmlns:darkBlendTheme="clr-namespace:DarkBlendTheme">
 
 

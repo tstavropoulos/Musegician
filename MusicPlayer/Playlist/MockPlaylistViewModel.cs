@@ -1,4 +1,4 @@
-﻿using MusicPlayer.DataStructures;
+﻿using Musegician.DataStructures;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
-namespace MusicPlayer.Playlist
+namespace Musegician.Playlist
 {
     public class MockPlaylistViewModel
     {

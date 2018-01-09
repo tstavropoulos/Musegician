@@ -1,10 +1,10 @@
-﻿<UserControl x:Class="MusicPlayer.Equalizer.EqualizerSlider"
+﻿<UserControl x:Class="Musegician.Equalizer.EqualizerSlider"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:MusicPlayer.Equalizer"
-             xmlns:core="clr-namespace:MusicPlayer.Core"
+             xmlns:local="clr-namespace:Musegician.Equalizer"
+             xmlns:core="clr-namespace:Musegician.Core"
              mc:Ignorable="d" Width="32"
              x:Name="SliderControl"
              d:DesignHeight="120">

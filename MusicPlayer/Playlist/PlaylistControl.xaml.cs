@@ -12,9 +12,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using MusicPlayer.DataStructures;
+using Musegician.DataStructures;
 
-namespace MusicPlayer.Playlist
+namespace Musegician.Playlist
 {
     /// <summary>
     /// Interaction logic for PlaylistControl.xaml

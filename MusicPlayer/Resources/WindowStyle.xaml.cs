@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace MusicPlayer
+namespace Musegician
 {
     public partial class WindowStyle : ResourceDictionary
     {

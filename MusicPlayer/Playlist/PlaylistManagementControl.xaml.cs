@@ -1,4 +1,4 @@
-﻿using MusicPlayer.DataStructures;
+﻿using Musegician.DataStructures;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,7 +17,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace MusicPlayer.Playlist
+namespace Musegician.Playlist
 {
     /// <summary>
     /// Interaction logic for PlaylistManagementControl.xaml

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicPlayer", "MusicPlayer\MusicPlayer.csproj", "{ECA191D8-A68D-438C-A94A-5958D7D83834}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musegician", "MusicPlayer\Musegician.csproj", "{ECA191D8-A68D-438C-A94A-5958D7D83834}"
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "MusegicianInstaller", "MusegicianInstaller\MusegicianInstaller.vdproj", "{ED97AAB4-B59B-42B8-8A85-D3620E894026}"
 EndProject

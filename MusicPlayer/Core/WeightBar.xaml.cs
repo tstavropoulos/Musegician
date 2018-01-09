@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace MusicPlayer.Core
+namespace Musegician.Core
 {
     /// <summary>
     /// Interaction logic for WeightBar.xaml

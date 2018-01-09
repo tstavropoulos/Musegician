@@ -13,7 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace MusicPlayer.TinyPlayer
+namespace Musegician.TinyPlayer
 {
     /// <summary>
     /// Interaction logic for TinyPlayer.xaml

@@ -5,9 +5,9 @@ using System.Collections.Generic;
 using System.Windows.Input;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using MusicPlayer.DataStructures;
+using Musegician.DataStructures;
 
-namespace MusicPlayer.Library
+namespace Musegician.Library
 {
     public class RecordingViewModel : LibraryViewModel
     {

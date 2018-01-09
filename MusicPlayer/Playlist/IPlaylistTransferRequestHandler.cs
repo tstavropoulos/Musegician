@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MusicPlayer.DataStructures;
-using LibraryContext = MusicPlayer.Library.LibraryContext;
+using Musegician.DataStructures;
+using LibraryContext = Musegician.Library.LibraryContext;
 
-namespace MusicPlayer.Playlist
+namespace Musegician.Playlist
 {
     public interface IPlaylistTransferRequestHandler
     {

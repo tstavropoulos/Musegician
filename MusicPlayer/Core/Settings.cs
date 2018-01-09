@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MusicPlayer
+namespace Musegician
 {
     public class Settings : INotifyPropertyChanged
     {

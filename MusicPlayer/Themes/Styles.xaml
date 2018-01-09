@@ -3,7 +3,7 @@
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:darkBlendTheme="clr-namespace:DarkBlendTheme"
-                    xmlns:core="clr-namespace:MusicPlayer.Core"
+                    xmlns:core="clr-namespace:Musegician.Core"
                     mc:Ignorable="d">
 
   <!--#region Converters-->

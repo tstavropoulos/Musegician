@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace MusicPlayer.Commands
+namespace Musegician.Commands
 {
     public static class TreeViewItemBehavior
     {

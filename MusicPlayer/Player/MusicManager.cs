@@ -14,11 +14,11 @@ using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows;
 
-using PlaylistManager = MusicPlayer.Playlist.PlaylistManager;
-using PlayData = MusicPlayer.DataStructures.PlayData;
+using PlaylistManager = Musegician.Playlist.PlaylistManager;
+using PlayData = Musegician.DataStructures.PlayData;
 using CSCoreEq = CSCore.Streams.Effects.Equalizer;
 
-namespace MusicPlayer.Player
+namespace Musegician.Player
 {
     public enum PlayerState
     {

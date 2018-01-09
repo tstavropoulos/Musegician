@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TagData = MusicPlayer.DataStructures.TagData;
-using LibraryContext = MusicPlayer.Library.LibraryContext;
+using TagData = Musegician.DataStructures.TagData;
+using LibraryContext = Musegician.Library.LibraryContext;
 
-namespace MusicPlayer.TagEditor
+namespace Musegician.TagEditor
 {
     public interface ITagRequestHandler
     {

@@ -6,22 +6,22 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.IO;
 using System.Data.SQLite;
-using MusicPlayer.DataStructures;
 using System.Windows;
-using MusicPlayer.TagEditor;
-using MusicPlayer.Core.DBCommands;
+using Musegician.DataStructures;
+using Musegician.TagEditor;
+using Musegician.Core.DBCommands;
 using System.Windows.Media.Imaging;
 
 //Interfaces
-using ILibraryRequestHandler = MusicPlayer.Library.ILibraryRequestHandler;
-using IPlaylistTransferRequestHandler = MusicPlayer.Playlist.IPlaylistTransferRequestHandler;
-using IPlaylistRequestHandler = MusicPlayer.Playlist.IPlaylistRequestHandler;
-using ITagRequestHandler = MusicPlayer.TagEditor.ITagRequestHandler;
+using ILibraryRequestHandler = Musegician.Library.ILibraryRequestHandler;
+using IPlaylistTransferRequestHandler = Musegician.Playlist.IPlaylistTransferRequestHandler;
+using IPlaylistRequestHandler = Musegician.Playlist.IPlaylistRequestHandler;
+using ITagRequestHandler = Musegician.TagEditor.ITagRequestHandler;
 
 //Enums
-using LibraryContext = MusicPlayer.Library.LibraryContext;
+using LibraryContext = Musegician.Library.LibraryContext;
 
-namespace MusicPlayer
+namespace Musegician
 {
     public class LibraryContextException : Exception
     {

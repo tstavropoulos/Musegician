@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows;
-using MusicPlayer.DataStructures;
+using Musegician.DataStructures;
 
-namespace MusicPlayer.Library
+namespace Musegician.Library
 {
     public class LibraryViewModel : INotifyPropertyChanged
     {

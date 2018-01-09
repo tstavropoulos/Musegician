@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace MusicPlayer.Core
+namespace Musegician.Core
 {
     /// <summary>
     /// Statically-sized ring buffer container.

@@ -15,7 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace MusicPlayer.Equalizer
+namespace Musegician.Equalizer
 {
     /// <summary>
     /// Interaction logic for EqualizerControl.xaml

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MusicPlayer.DataStructures;
+using Musegician.DataStructures;
 
-namespace MusicPlayer.Playlist
+namespace Musegician.Playlist
 {
     public interface IPlaylistRequestHandler
     {

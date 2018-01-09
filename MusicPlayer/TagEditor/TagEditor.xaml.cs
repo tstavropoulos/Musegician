@@ -12,10 +12,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
-using LibraryContext = MusicPlayer.Library.LibraryContext;
-using MusicPlayer.DataStructures;
+using LibraryContext = Musegician.Library.LibraryContext;
+using Musegician.DataStructures;
 
-namespace MusicPlayer.TagEditor
+namespace Musegician.TagEditor
 {
     public enum MusicRecord
     {

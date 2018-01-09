@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MusicPlayer.DataStructures
+namespace Musegician.DataStructures
 {
     public class RecordingDTO : DTO
     {

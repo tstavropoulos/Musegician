@@ -14,10 +14,10 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using LibraryContext = MusicPlayer.Library.LibraryContext;
+using LibraryContext = Musegician.Library.LibraryContext;
 using Microsoft.Win32;
 
-namespace MusicPlayer
+namespace Musegician
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

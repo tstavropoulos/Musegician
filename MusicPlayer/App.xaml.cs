@@ -9,7 +9,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
 
-namespace MusicPlayer
+namespace Musegician
 {
     /// <summary>
     /// Interaction logic for App.xaml

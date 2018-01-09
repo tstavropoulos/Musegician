@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using DbType = System.Data.DbType;
-using MusicPlayer.DataStructures;
+using Musegician.DataStructures;
 
-namespace MusicPlayer.Core.DBCommands
+namespace Musegician.Core.DBCommands
 {
     public class TrackCommands
     {

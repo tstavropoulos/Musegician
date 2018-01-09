@@ -7,10 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using MusicPlayer.DataStructures;
-using MusicPlayer.Core;
+using Musegician.DataStructures;
+using Musegician.Core;
 
-namespace MusicPlayer.Playlist
+namespace Musegician.Playlist
 {
     public struct PlayHistory
     {

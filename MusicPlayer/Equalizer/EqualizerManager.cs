@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MusicPlayer.Equalizer
+namespace Musegician.Equalizer
 {
     #region EventArgs
 

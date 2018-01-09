@@ -14,7 +14,7 @@ using System.Windows.Threading;
 using System.Threading;
 using System.ComponentModel;
 
-namespace MusicPlayer.Player
+namespace Musegician.Player
 {
     /// <summary>
     /// Interaction logic for PlaybackPanel.xaml

@@ -11,7 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace MusicPlayer.Core
+namespace Musegician.Core
 {
     /// <summary>
     /// Partially pilfered from:

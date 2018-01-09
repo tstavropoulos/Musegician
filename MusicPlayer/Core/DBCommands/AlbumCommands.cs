@@ -5,13 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using DbType = System.Data.DbType;
-using MusicPlayer.DataStructures;
 using System.Drawing;
 using System.Windows.Media.Imaging;
 using System.IO;
+
+using Musegician.DataStructures;
+
 using TagLib;
 
-namespace MusicPlayer.Core.DBCommands
+
+namespace Musegician.Core.DBCommands
 {
     public class AlbumCommands
     {

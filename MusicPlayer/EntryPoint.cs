@@ -1,4 +1,4 @@
-﻿using MusicPlayer.Core;
+﻿using Musegician.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace MusicPlayer
+namespace Musegician
 {
     public class EntryPoint
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MusicPlayer.Playlist
+namespace Musegician.Playlist
 {
     public class PlaylistModelView
     {
