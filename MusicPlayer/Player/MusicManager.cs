@@ -399,19 +399,40 @@ namespace Musegician.Player
 
             AudioUtilities.SpectralPowerStream spectralPowerStream;
 
-            _waveSource = CodecFactory.Instance.GetCodec(playData.filename)
-                .ToSampleSource()
-                .ToStereo()
-                .AppendSource(AudioUtilities.SpectralPowerStream.CreatePowerStream, out spectralPowerStream)
-                .AppendSource(CSCoreEq.Create10BandEqualizer, out _equalizer)
-                .ToWaveSource();
+
+            _waveSource = CodecFactory.Instance.GetCodec(playData.filename);
+            if (_waveSource.WaveFormat.SampleRate < 32_000)
+            {
+                Console.WriteLine("Bypassing equalizer - song samplerate is too low: " + 
+                    _waveSource.WaveFormat.SampleRate);
+
+                _equalizer = null;
+
+                _waveSource = _waveSource
+                    .ToSampleSource()
+                    .ToStereo()
+                    .AppendSource(AudioUtilities.SpectralPowerStream.CreatePowerStream, out spectralPowerStream)
+                    .ToWaveSource();
+            }
+            else
+            {
+                _waveSource = _waveSource
+                    .ToSampleSource()
+                    .ToStereo()
+                    .AppendSource(AudioUtilities.SpectralPowerStream.CreatePowerStream, out spectralPowerStream)
+                    .AppendSource(CSCoreEq.Create10BandEqualizer, out _equalizer)
+                    .ToWaveSource();
+            }
 
             spectralPowerStream.PowerUpdate += (s,e) => MeterUpdate?.Invoke(s, e);
 
-            //Set current eq values
-            for (int i = 0; i < _equalizer.SampleFilters.Count; i++)
+            if (_equalizer != null)
             {
-                _equalizer.SampleFilters[i].AverageGainDB = Equalizer.EqualizerManager.Instance.GetGain(i);
+                //Set current eq values
+                for (int i = 0; i < _equalizer.SampleFilters.Count; i++)
+                {
+                    _equalizer.SampleFilters[i].AverageGainDB = Equalizer.EqualizerManager.Instance.GetGain(i);
+                }
             }
 
             MMDevice device = MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);

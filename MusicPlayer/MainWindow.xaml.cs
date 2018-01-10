@@ -196,5 +196,11 @@ namespace Musegician
         {
             MessageBox.Show("Hello!");
         }
+
+        private void Menu_Deredundafier(object sender, RoutedEventArgs e)
+        {
+            Window deredundafier = new Deredundafier.DeredundafierWindow();
+            deredundafier.Show();
+        }
     }
 }

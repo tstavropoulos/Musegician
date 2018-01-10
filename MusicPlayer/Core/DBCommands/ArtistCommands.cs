@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using DbType = System.Data.DbType;
 using Musegician.DataStructures;
+using Musegician.Deredundafier;
 
 namespace Musegician.Core.DBCommands
 {
@@ -161,24 +162,57 @@ namespace Musegician.Core.DBCommands
         {
             dbConnection.Open();
 
-            SQLiteCommand updateWeight = dbConnection.CreateCommand();
-            updateWeight.CommandType = System.Data.CommandType.Text;
-            updateWeight.CommandText =
-                "INSERT OR REPLACE INTO artist_weight " +
-                "(artist_id, weight) VALUES " +
-                "(@artistID, @weight);";
-
-            updateWeight.Parameters.Add("@artistID", DbType.Int64);
-            updateWeight.Parameters.Add("@weight", DbType.Double);
-
-            foreach (var value in values)
+            using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
             {
-                updateWeight.Parameters["@artistID"].Value = value.artistID;
-                updateWeight.Parameters["@weight"].Value = value.weight;
-                updateWeight.ExecuteNonQuery();
+                SQLiteCommand updateWeight = dbConnection.CreateCommand();
+                updateWeight.CommandType = System.Data.CommandType.Text;
+                updateWeight.CommandText =
+                    "INSERT OR REPLACE INTO artist_weight " +
+                    "(artist_id, weight) VALUES " +
+                    "(@artistID, @weight);";
+
+                updateWeight.Parameters.Add("@artistID", DbType.Int64);
+                updateWeight.Parameters.Add("@weight", DbType.Double);
+
+                foreach (var value in values)
+                {
+                    updateWeight.Parameters["@artistID"].Value = value.artistID;
+                    updateWeight.Parameters["@weight"].Value = value.weight;
+                    updateWeight.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+            }
+
+
+            dbConnection.Close();
+        }
+
+        public IList<DeredundafierDTO> GetDeredundancyTargets()
+        {
+            List<DeredundafierDTO> targets = new List<DeredundafierDTO>();
+
+            dbConnection.Open();
+
+            SQLiteCommand findTargets = dbConnection.CreateCommand();
+            findTargets.CommandType = System.Data.CommandType.Text;
+            findTargets.CommandText =
+                "SELECT name " +
+                "FROM artist " +
+                "GROUP BY name COLLATE NOCASE " +
+                "HAVING count(*) > 1;";
+
+            using (SQLiteDataReader reader = findTargets.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    targets.Add(_GetDeredunancyTarget((string)reader["name"]));
+                }
             }
 
             dbConnection.Close();
+
+            return targets;
         }
 
         #endregion High Level Commands
@@ -234,6 +268,82 @@ namespace Musegician.Core.DBCommands
             }
 
             return "INVALID";
+        }
+
+        private DeredundafierDTO _GetDeredunancyTarget(string name)
+        {
+            DeredundafierDTO target = new DeredundafierDTO()
+            {
+                Name = name
+            };
+
+            SQLiteCommand findOptions = dbConnection.CreateCommand();
+            findOptions.CommandType = System.Data.CommandType.Text;
+            findOptions.CommandText =
+                "SELECT id, name " +
+                "FROM artist " +
+                "WHERE name=@artistName COLLATE NOCASE;";
+            findOptions.Parameters.Add(new SQLiteParameter("@artistName", name));
+
+            //Match them all up
+            using (SQLiteDataReader innerReader = findOptions.ExecuteReader())
+            {
+                while (innerReader.Read())
+                {
+                    DeredundafierDTO selector = new SelectorDTO()
+                    {
+                        Name = (string)innerReader["name"],
+                        ID = (long)innerReader["id"],
+                        IsChecked = false
+                    };
+
+                    target.Children.Add(selector);
+
+                    foreach (DeredundafierDTO data in _GetDeredundancySongExamples(selector.ID))
+                    {
+                        selector.Children.Add(data);
+                    }
+                }
+            }
+
+            return target;
+        }
+
+        private IList<DeredundafierDTO> _GetDeredundancySongExamples(long artistID)
+        {
+            List<DeredundafierDTO> examples = new List<DeredundafierDTO>();
+
+            SQLiteCommand readRecordings = dbConnection.CreateCommand();
+            readRecordings.CommandType = System.Data.CommandType.Text;
+            readRecordings.CommandText =
+                "SELECT " +
+                    "song.title AS song_title, " +
+                    "song.id AS song_id, " +
+                    "artist.name AS artist_name " +
+                "FROM song " +
+                "LEFT JOIN artist ON artist.id=@artistID " +
+                "WHERE song.id IN ( " +
+                    "SELECT song_id " +
+                    "FROM recording " +
+                    "WHERE artist_id=@artistID );";
+            readRecordings.Parameters.Add(new SQLiteParameter("@artistID", artistID));
+
+            using (SQLiteDataReader reader = readRecordings.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    examples.Add(new DeredundafierDTO()
+                    {
+                        Name = string.Format(
+                            "{0} - {1}",
+                            (string)reader["artist_name"],
+                            (string)reader["song_title"]),
+                        ID = (long)reader["song_id"]
+                    });
+                }
+            }
+
+            return examples;
         }
 
         #endregion Search Commands

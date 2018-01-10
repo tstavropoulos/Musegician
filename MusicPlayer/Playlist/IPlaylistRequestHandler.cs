@@ -18,5 +18,7 @@ namespace Musegician.Playlist
         List<SongDTO> LoadPlaylist(long playlistID);
 
         List<PlaylistData> GetPlaylistInfo();
+
+        PlayData GetRecordingPlayData(long recordingID);
     }
 }

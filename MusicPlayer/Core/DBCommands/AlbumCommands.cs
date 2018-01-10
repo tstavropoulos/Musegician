@@ -12,7 +12,7 @@ using System.IO;
 using Musegician.DataStructures;
 
 using TagLib;
-
+using Musegician.Deredundafier;
 
 namespace Musegician.Core.DBCommands
 {
@@ -271,6 +271,33 @@ namespace Musegician.Core.DBCommands
             return albumData;
         }
 
+        public IList<DeredundafierDTO> GetDeredundancyTargets()
+        {
+            List<DeredundafierDTO> targets = new List<DeredundafierDTO>();
+
+            dbConnection.Open();
+
+            SQLiteCommand findTargets = dbConnection.CreateCommand();
+            findTargets.CommandType = System.Data.CommandType.Text;
+            findTargets.CommandText =
+                "SELECT title " +
+                "FROM album " +
+                "GROUP BY title COLLATE NOCASE " +
+                "HAVING count(*) > 1;";
+
+            using (SQLiteDataReader reader = findTargets.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    targets.Add(_GetDeredunancyTarget((string)reader["title"]));
+                }
+            }
+
+            dbConnection.Close();
+
+            return targets;
+        }
+
         public void UpdateWeights(IList<(long albumID, double weight)> values)
         {
             dbConnection.Open();
@@ -351,6 +378,72 @@ namespace Musegician.Core.DBCommands
             }
 
             return "INVALID";
+        }
+
+        private DeredundafierDTO _GetDeredunancyTarget(string albumTitle)
+        {
+            DeredundafierDTO target = new DeredundafierDTO()
+            {
+                Name = albumTitle
+            };
+
+            SQLiteCommand findOptions = dbConnection.CreateCommand();
+            findOptions.CommandType = System.Data.CommandType.Text;
+            findOptions.CommandText =
+                "SELECT id, title " +
+                "FROM album " +
+                "WHERE title=@albumTitle COLLATE NOCASE;";
+            findOptions.Parameters.Add(new SQLiteParameter("@albumTitle", albumTitle));
+
+            //Match them all up
+            using (SQLiteDataReader innerReader = findOptions.ExecuteReader())
+            {
+                while (innerReader.Read())
+                {
+                    DeredundafierDTO selector = new SelectorDTO()
+                    {
+                        Name = (string)innerReader["title"],
+                        ID = (long)innerReader["id"],
+                        IsChecked = false
+                    };
+
+                    target.Children.Add(selector);
+
+                    foreach (DeredundafierDTO data in _GetDeredundancyTrackExamples(selector.ID))
+                    {
+                        selector.Children.Add(data);
+                    }
+                }
+            }
+
+            return target;
+        }
+
+        private IList<DeredundafierDTO> _GetDeredundancyTrackExamples(long albumID)
+        {
+            List<DeredundafierDTO> examples = new List<DeredundafierDTO>();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.CommandText =
+                "SELECT id, title " +
+                "FROM track " +
+                "WHERE album_id=@albumID;";
+            readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    examples.Add(new DeredundafierDTO()
+                    {
+                        Name = (string)reader["title"],
+                        ID = (long)reader["id"]
+                    });
+                }
+            }
+
+            return examples;
         }
 
         #endregion Search Commands

@@ -15,10 +15,10 @@ namespace Musegician.Library
         #region Constructor
 
         public SongViewModel(SongDTO song, LibraryViewModel parent)
-            : base (
-                  data: song,
-                  parent: parent,
-                  lazyLoadChildren: true)
+            : base(
+                data: song,
+                parent: parent,
+                lazyLoadChildren: true)
         {
         }
 

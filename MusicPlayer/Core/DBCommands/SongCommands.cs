@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using DbType = System.Data.DbType;
 using Musegician.DataStructures;
+using Musegician.Deredundafier;
 
 namespace Musegician.Core.DBCommands
 {

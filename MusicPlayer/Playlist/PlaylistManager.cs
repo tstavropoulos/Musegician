@@ -32,7 +32,7 @@ namespace Musegician.Playlist
 
         private int bufferIndex = 0;
 
-        private IPlaylistRequestHandler requestHandler
+        private IPlaylistRequestHandler RequestHandler
         {
             get { return FileManager.Instance; }
         }
@@ -309,7 +309,7 @@ namespace Musegician.Playlist
                     CurrentIndex = index;
                     LastRecordingIndex = recordingIndex;
 
-                    return FileManager.Instance.GetRecordingPlayData(ringBuffer[bufferIndex].recording.ID);
+                    return RequestHandler.GetRecordingPlayData(ringBuffer[bufferIndex].recording.ID);
                 }
 
                 //Move on to a new song
@@ -360,7 +360,7 @@ namespace Musegician.Playlist
                         recording = playlist[CurrentIndex].Children[LastRecordingIndex] as RecordingDTO
                     });
 
-                    return FileManager.Instance.GetRecordingPlayData(recordingID);
+                    return RequestHandler.GetRecordingPlayData(recordingID);
                 }
             }
             else
@@ -407,7 +407,7 @@ namespace Musegician.Playlist
                     //Song passed weight test
                     CurrentIndex = nextPlaylistIndex;
 
-                    return FileManager.Instance.GetRecordingPlayData(
+                    return RequestHandler.GetRecordingPlayData(
                         SelectRecording(playlist[CurrentIndex]));
                 }
             }
@@ -456,7 +456,7 @@ namespace Musegician.Playlist
                     CurrentIndex = index;
                     LastRecordingIndex = recordingIndex;
 
-                    return FileManager.Instance.GetRecordingPlayData(ringBuffer[bufferIndex].recording.ID);
+                    return RequestHandler.GetRecordingPlayData(ringBuffer[bufferIndex].recording.ID);
                 }
             }
             else
@@ -502,7 +502,7 @@ namespace Musegician.Playlist
                     //Song passed weight test
                     CurrentIndex = nextPlaylistIndex;
 
-                    return FileManager.Instance.GetRecordingPlayData(
+                    return RequestHandler.GetRecordingPlayData(
                         SelectRecording(playlist[CurrentIndex]));
                 }
 
@@ -633,7 +633,7 @@ namespace Musegician.Playlist
         private void PlayRecording(long recordingID)
         {
             Player.MusicManager.Instance.PlaySong(
-                playData: FileManager.Instance.GetRecordingPlayData(recordingID));
+                playData: RequestHandler.GetRecordingPlayData(recordingID));
         }
 
         public void ClearPlaylist()
@@ -645,12 +645,12 @@ namespace Musegician.Playlist
 
         public void LoadPlaylist(long playlistID)
         {
-            Rebuild(requestHandler.LoadPlaylist(playlistID));
+            Rebuild(RequestHandler.LoadPlaylist(playlistID));
         }
 
         public void TryLoadPlaylist(string playlistTitle)
         {
-            long playlistID = requestHandler.FindPlaylist(playlistTitle);
+            long playlistID = RequestHandler.FindPlaylist(playlistTitle);
 
             if (playlistID == -1)
             {
@@ -670,19 +670,19 @@ namespace Musegician.Playlist
         {
             if (playlist.Count != 0)
             {
-                requestHandler.SavePlaylist(title, playlist);
+                RequestHandler.SavePlaylist(title, playlist);
             }
         }
 
         public void DeletePlaylist(long playlistID)
         {
-            requestHandler.DeletePlaylist(
+            RequestHandler.DeletePlaylist(
                 playlistID: playlistID);
         }
 
         public void AppendPlaylist(long playlistID)
         {
-            AddBack(requestHandler.LoadPlaylist(playlistID));
+            AddBack(RequestHandler.LoadPlaylist(playlistID));
         }
 
         /// <summary>
