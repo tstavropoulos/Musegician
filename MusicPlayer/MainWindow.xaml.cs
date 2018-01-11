@@ -24,7 +24,7 @@ namespace Musegician
     /// </summary>
     public partial class MainWindow : Window
     {
-        FileManager fileMan
+        FileManager FileMan
         {
             get
             {
@@ -59,7 +59,7 @@ namespace Musegician
 
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                fileMan.AddDirectoryToLibrary(dialog.FileName);
+                FileMan.AddDirectoryToLibrary(dialog.FileName);
                 libraryControl.Rebuild();
             }
 
@@ -129,7 +129,7 @@ namespace Musegician
 
             if (val.HasValue && val.Value)
             {
-                fileMan.SetAlbumArt(id, dialog.FileName);
+                FileMan.SetAlbumArt(id, dialog.FileName);
                 libraryControl.Rebuild();
             }
         }
@@ -147,7 +147,7 @@ namespace Musegician
             switch (response)
             {
                 case MessageBoxResult.Yes:
-                    fileMan.DropDB();
+                    FileMan.DropDB();
                     libraryControl.Rebuild();
                     break;
                 case MessageBoxResult.No:

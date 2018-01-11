@@ -193,6 +193,7 @@ namespace Musegician
                 dbConnection: dbConnection,
                 artistCommands: artistCommands,
                 songCommands: songCommands,
+                trackCommands: trackCommands,
                 recordingCommands: recordingCommands);
 
             artistCommands.Initialize(

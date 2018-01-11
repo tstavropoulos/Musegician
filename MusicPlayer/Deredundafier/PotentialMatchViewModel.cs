@@ -11,6 +11,8 @@ namespace Musegician.Deredundafier
         #region Data
 
         bool? _checked = false;
+        bool _reentryBlock = false;
+        bool _isThreeState = false;
 
         #endregion Data
         #region Constructor
@@ -32,12 +34,27 @@ namespace Musegician.Deredundafier
             get { return _checked; }
             set
             {
-                if (_checked != value && value.HasValue)
+                if (_checked != value && !_reentryBlock)
                 {
-                    foreach (SelectorViewModel selector in Children)
-                    {
-                        selector.IsChecked = value.Value;
-                    }
+                    _reentryBlock = true;
+                    _checked = value;
+                    IsThreeState = !value.HasValue;
+                    UpdateChildrenCheckState();
+                    _reentryBlock = false;
+                    OnPropertyChanged("ChildrenSelected");
+                }
+            }
+        }
+
+        public bool IsThreeState
+        {
+            get { return _isThreeState; }
+            private set
+            {
+                if (_isThreeState != value)
+                {
+                    _isThreeState = value;
+                    OnPropertyChanged("IsThreeState");
                 }
             }
         }
@@ -48,9 +65,20 @@ namespace Musegician.Deredundafier
         }
 
         #endregion Presentation Members
-        #region Child Methods
+        #region Data Methods
 
-        public void ReevaluateColor()
+        private void UpdateChildrenCheckState()
+        {
+            if (_checked.HasValue)
+            {
+                foreach (SelectorViewModel selector in Children)
+                {
+                    selector.IsChecked = _checked.Value;
+                }
+            }
+        }
+
+        private bool? DetermineCheckState()
         {
             int engagedCount = 0;
             int disengagedCount = 0;
@@ -69,19 +97,27 @@ namespace Musegician.Deredundafier
 
             if (disengagedCount == 0)
             {
-                _checked = true;
-                OnPropertyChanged("ChildrenSelected");
+                return true;
             }
             else if (engagedCount == 0)
             {
-                _checked = false;
-                OnPropertyChanged("ChildrenSelected");
+                return false;
             }
-            else
+
+            return null;
+        }
+
+        #endregion Data Methods
+        #region Child Methods
+
+        public void ReevaluateColor()
+        {
+            if (_reentryBlock)
             {
-                _checked = null;
-                OnPropertyChanged("ChildrenSelected");
+                return;
             }
+
+            ChildrenSelected = DetermineCheckState();
         }
 
         #endregion Child Methods

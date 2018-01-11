@@ -20,6 +20,7 @@ namespace Musegician.Core.DBCommands
     {
         ArtistCommands artistCommands = null;
         SongCommands songCommands = null;
+        TrackCommands trackCommands = null;
         RecordingCommands recordingCommands = null;
 
         SQLiteConnection dbConnection;
@@ -38,12 +39,14 @@ namespace Musegician.Core.DBCommands
             SQLiteConnection dbConnection,
             ArtistCommands artistCommands,
             SongCommands songCommands,
+            TrackCommands trackCommands,
             RecordingCommands recordingCommands)
         {
             this.dbConnection = dbConnection;
 
             this.artistCommands = artistCommands;
             this.songCommands = songCommands;
+            this.trackCommands = trackCommands;
             this.recordingCommands = recordingCommands;
 
             _lastIDAssigned = 0;
@@ -322,6 +325,32 @@ namespace Musegician.Core.DBCommands
             dbConnection.Close();
         }
 
+        public void Merge(IEnumerable<long> ids)
+        {
+            List<long> albumIDsCopy = new List<long>(ids);
+
+            long albumID = albumIDsCopy[0];
+            albumIDsCopy.RemoveAt(0);
+
+            dbConnection.Open();
+
+            using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
+            {
+                _UpdateForeignKeys(
+                    transaction: transaction,
+                    newAlbumID: albumID,
+                    oldAlbumIDs: albumIDsCopy);
+
+                _DeleteAlbumID(
+                    updateTransaction: transaction,
+                    albumIDs: albumIDsCopy);
+
+                transaction.Commit();
+            }
+
+            dbConnection.Close();
+        }
+
 
         #endregion High Level Commands
         #region Search Commands
@@ -390,9 +419,19 @@ namespace Musegician.Core.DBCommands
             SQLiteCommand findOptions = dbConnection.CreateCommand();
             findOptions.CommandType = System.Data.CommandType.Text;
             findOptions.CommandText =
-                "SELECT id, title " +
+                "SELECT " +
+                    "album.id AS id, " +
+                    "album.title AS album_title," +
+                    "CASE WHEN COUNT(artist.id) > 1 THEN 'Various Artists' " +
+                        "ELSE MAX(artist.name) END artist_name " +
                 "FROM album " +
-                "WHERE title=@albumTitle COLLATE NOCASE;";
+                "LEFT JOIN artist ON artist.id IN ( " +
+                    "SELECT recording.artist_id " +
+                    "FROM track " +
+                    "LEFT JOIN recording ON track.recording_id=recording.id " +
+                    "WHERE track.album_id=album.id ) " +
+                "WHERE album.title=@albumTitle COLLATE NOCASE " +
+                "GROUP BY album.id;";
             findOptions.Parameters.Add(new SQLiteParameter("@albumTitle", albumTitle));
 
             //Match them all up
@@ -402,7 +441,10 @@ namespace Musegician.Core.DBCommands
                 {
                     DeredundafierDTO selector = new SelectorDTO()
                     {
-                        Name = (string)innerReader["title"],
+                        Name = string.Format(
+                            "{0} - {1}",
+                            (string)innerReader["artist_name"],
+                            (string)innerReader["album_title"]),
                         ID = (long)innerReader["id"],
                         IsChecked = false
                     };
@@ -426,9 +468,13 @@ namespace Musegician.Core.DBCommands
             SQLiteCommand readTracks = dbConnection.CreateCommand();
             readTracks.CommandType = System.Data.CommandType.Text;
             readTracks.CommandText =
-                "SELECT id, title " +
+                "SELECT " +
+                    "recording.id AS recording_id, " +
+                    "artist.name || ' - ' || track.title AS title " +
                 "FROM track " +
-                "WHERE album_id=@albumID;";
+                "LEFT JOIN recording ON track.recording_id=recording.id " +
+                "LEFT JOIN artist ON recording.artist_id=artist.id " +
+                "WHERE track.album_id=@albumID;";
             readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
 
             using (SQLiteDataReader reader = readTracks.ExecuteReader())
@@ -438,7 +484,7 @@ namespace Musegician.Core.DBCommands
                     examples.Add(new DeredundafierDTO()
                     {
                         Name = (string)reader["title"],
-                        ID = (long)reader["id"]
+                        ID = (long)reader["recording_id"]
                     });
                 }
             }
@@ -547,6 +593,17 @@ namespace Musegician.Core.DBCommands
             updateAlbumTitle_ByAlbumID.ExecuteNonQuery();
         }
 
+        public void _UpdateForeignKeys(
+            SQLiteTransaction transaction,
+            long newAlbumID,
+            ICollection<long> oldAlbumIDs)
+        {
+            trackCommands._RemapAlbumID(
+                transaction: transaction,
+                newAlbumID: newAlbumID,
+                oldAlbumIDs: oldAlbumIDs);
+        }
+
         #endregion Update Commands
         #region Create Commands
 
@@ -570,7 +627,6 @@ namespace Musegician.Core.DBCommands
                     "album_id INTEGER PRIMARY KEY, " +
                     "weight REAL);";
             createWeightTable.ExecuteNonQuery();
-
 
             SQLiteCommand createArtTable = dbConnection.CreateCommand();
             createArtTable.Transaction = transaction;
@@ -711,11 +767,35 @@ namespace Musegician.Core.DBCommands
             deleteAlbum_ByAlbumID.CommandText =
                 "DELETE FROM album " +
                 "WHERE album.id=@albumID;";
+
+            SQLiteCommand deleteAlbumWeight_ByAlbumID = dbConnection.CreateCommand();
+            deleteAlbumWeight_ByAlbumID.Transaction = updateTransaction;
+            deleteAlbumWeight_ByAlbumID.CommandType = System.Data.CommandType.Text;
+            deleteAlbumWeight_ByAlbumID.Parameters.Add("@albumID", DbType.Int64);
+            deleteAlbumWeight_ByAlbumID.CommandText =
+                "DELETE FROM album_weight " +
+                "WHERE album_id=@albumID;";
+
+            SQLiteCommand deleteAlbumArt_ByAlbumID = dbConnection.CreateCommand();
+            deleteAlbumArt_ByAlbumID.Transaction = updateTransaction;
+            deleteAlbumArt_ByAlbumID.CommandType = System.Data.CommandType.Text;
+            deleteAlbumArt_ByAlbumID.Parameters.Add("@albumID", DbType.Int64);
+            deleteAlbumArt_ByAlbumID.CommandText =
+                "DELETE FROM art " +
+                "WHERE album_id=@albumID;";
+
             foreach (long id in albumIDs)
             {
+                deleteAlbumWeight_ByAlbumID.Parameters["@albumID"].Value = id;
+                deleteAlbumWeight_ByAlbumID.ExecuteNonQuery();
+
                 deleteAlbum_ByAlbumID.Parameters["@albumID"].Value = id;
                 deleteAlbum_ByAlbumID.ExecuteNonQuery();
+
+                deleteAlbumArt_ByAlbumID.Parameters["@albumID"].Value = id;
+                deleteAlbumArt_ByAlbumID.ExecuteNonQuery();
             }
+            
         }
 
         /// <summary>
@@ -750,8 +830,6 @@ namespace Musegician.Core.DBCommands
 
             dbConnection.Open();
 
-
-
             using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
             {
                 _CreateArt(
@@ -772,7 +850,6 @@ namespace Musegician.Core.DBCommands
         //Update the first song on the album (whose id3 tag points to the album) with the art
         public void _PushAlbumArtToTag(long albumID, byte[] imageData)
         {
-
             SQLiteCommand readFiles = dbConnection.CreateCommand();
             readFiles.CommandType = System.Data.CommandType.Text;
             readFiles.CommandText =

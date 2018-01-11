@@ -24,7 +24,7 @@ namespace Musegician.Playlist
     /// </summary>
     public partial class PlaylistManagementControl : UserControl
     {
-        IPlaylistRequestHandler playlistRequestHandler
+        IPlaylistRequestHandler RequestHandler
         {
             get { return FileManager.Instance; }
         }
@@ -88,7 +88,7 @@ namespace Musegician.Playlist
 
             playlists.Clear();
 
-            foreach (PlaylistData data in playlistRequestHandler.GetPlaylistInfo())
+            foreach (PlaylistData data in RequestHandler.GetPlaylistInfo())
             {
                 playlists.Add(new PlaylistModelView()
                 {

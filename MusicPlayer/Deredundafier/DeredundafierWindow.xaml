@@ -8,6 +8,7 @@
         Title="DeredundafierWindow" Height="600" Width="400"
         Style="{StaticResource {x:Type Window}}">
   <Grid Background="{StaticResource DarkInsetPanel}">
-    <local:Deredundafier/>
+    <local:Deredundafier
+        d:DataContext="{d:DesignInstance Type=local:DeredundafierMockTree, IsDesignTimeCreatable=True}"/>
   </Grid>
 </Window>

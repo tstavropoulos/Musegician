@@ -24,15 +24,22 @@ namespace Musegician.Deredundafier
     {
         #region Data
 
-        ObservableCollection<DeredundafierViewModel> _viewModels =
-            new ObservableCollection<DeredundafierViewModel>();
-
         DeredundancyMode mode = DeredundancyMode.Song;
 
         IDeredundancyRequestHandler RequestHandler
         {
             get { return FileManager.Instance; }
         }
+
+        Playlist.IPlaylistTransferRequestHandler PlaylistTransferRequestHandler
+        {
+            get
+            {
+                return FileManager.Instance;
+            }
+        }
+
+        DeredundafierViewTree _viewTree;
 
         #endregion Data
         #region Enum
@@ -52,48 +59,15 @@ namespace Musegician.Deredundafier
         {
             InitializeComponent();
 
-            DataContext = this;
-
-            if (DesignerProperties.GetIsInDesignMode(this))
+            if (!DesignerProperties.GetIsInDesignMode(this))
             {
-                var parent = new DeredundafierDTO() { Name = "Test 1 - None Checked" };
-                parent.Children.Add(new SelectorDTO() { IsChecked = false });
-                parent.Children.Add(new SelectorDTO() { IsChecked = false });
-
-                ViewModels.Add(new PotentialMatchViewModel(parent));
-                (ViewModels.Last() as PotentialMatchViewModel).ReevaluateColor();
-
-                parent = new DeredundafierDTO() { Name = "Test 2 - Mixed Checks" };
-                var child = new SelectorDTO() { Name = "SubTest 1", IsChecked = true };
-                child.Children.Add(new DeredundafierDTO());
-                parent.Children.Add(child);
-
-                child = new SelectorDTO() { Name = "SubTest 2", IsChecked = false };
-                child.Children.Add(new DeredundafierDTO());
-                parent.Children.Add(child);
-
-                ViewModels.Add(new PotentialMatchViewModel(parent) { IsExpanded = true });
-                (ViewModels.Last() as PotentialMatchViewModel).ReevaluateColor();
-
-                parent = new DeredundafierDTO() { Name = "Test 3 - All Checked" };
-                parent.Children.Add(new SelectorDTO() { IsChecked = true });
-                parent.Children.Add(new SelectorDTO() { IsChecked = true });
-
-                ViewModels.Add(new PotentialMatchViewModel(parent));
-                (ViewModels.Last() as PotentialMatchViewModel).ReevaluateColor();
+                _viewTree = new DeredundafierViewTree();
+                DataContext = _viewTree;
             }
 
         }
 
         #endregion Constructor
-        #region View Properties
-
-        public ObservableCollection<DeredundafierViewModel> ViewModels
-        {
-            get { return _viewModels; }
-        }
-
-        #endregion View Properties
         #region Callbacks
 
         private void Deredundafier_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -122,15 +96,16 @@ namespace Musegician.Deredundafier
                 if (mode != newMode)
                 {
                     mode = newMode;
-                    _viewModels.Clear();
+                    if (_viewTree != null)
+                    {
+                        _viewTree.Clear();
+                    }
                 }
             }
         }
 
         private void Deredundafier_Calculate(object sender, RoutedEventArgs e)
         {
-            _viewModels.Clear();
-
             IList<DeredundafierDTO> newModels = null;
 
             switch (mode)
@@ -155,19 +130,88 @@ namespace Musegician.Deredundafier
                     throw new Exception("Unexpected DeredundancyMode: " + mode);
             }
 
-            _viewModels.Clear();
+            _viewTree.Clear();
             foreach (DeredundafierDTO data in newModels)
             {
-                _viewModels.Add(new PotentialMatchViewModel(data));
+                _viewTree.Add(new PotentialMatchViewModel(data));
             }
 
         }
 
         private void Deredundafier_Apply(object sender, RoutedEventArgs e)
         {
+            bool changes = false;
 
+            foreach (PotentialMatchViewModel model in _viewTree.ViewModels)
+            {
+                if (!model.ChildrenSelected.HasValue || model.ChildrenSelected.Value)
+                {
+                    List<long> ids = new List<long>();
+
+                    foreach (SelectorViewModel selector in model.Children)
+                    {
+                        if (selector.IsChecked)
+                        {
+                            ids.Add(selector.ID);
+                        }
+                    }
+
+                    if (ids.Count < 2)
+                    {
+                        Console.WriteLine("Not enough records to merge");
+                        continue;
+                    }
+
+                    changes = true;
+
+                    switch (mode)
+                    {
+                        case DeredundancyMode.Artist:
+                            RequestHandler.MergeArtists(ids);
+                            break;
+                        case DeredundancyMode.Album:
+                            RequestHandler.MergeAlbums(ids);
+                            break;
+                        case DeredundancyMode.Song:
+                            RequestHandler.MergeSongs(ids);
+                            break;
+                        case DeredundancyMode.MAX:
+                        default:
+                            throw new Exception("Unexpected DeredundancyMode: " + mode);
+                    }
+
+                }
+            }
+
+            if (changes)
+            {
+                _viewTree.Clear();
+                RequestHandler.PushChanges();
+            }
+        }
+
+        private void OnItemMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TreeViewItem treeItem)
+            {
+                if (treeItem.Header is PassiveViewModel recordingModel)
+                {
+                    if (!recordingModel.IsSelected)
+                    {
+                        return;
+                    }
+
+                    e.Handled = true;
+
+                    Playlist.PlaylistManager.Instance.PlaylistName = "";
+                    Playlist.PlaylistManager.Instance.Rebuild(
+                        PlaylistTransferRequestHandler.GetSongDataFromRecordingID(recordingModel.ID));
+                    Player.MusicManager.Instance.Next();
+                }
+            }
         }
 
         #endregion Callbacks
+
     }
 }

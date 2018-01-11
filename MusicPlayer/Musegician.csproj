@@ -156,7 +156,9 @@
     <Compile Include="DataStructures\ArtistDTO.cs" />
     <Compile Include="DataStructures\PlaylistStructures.cs" />
     <Compile Include="Deredundafier\DeredundafierDTO.cs" />
+    <Compile Include="Deredundafier\DeredundafierMockTree.cs" />
     <Compile Include="Deredundafier\DeredundafierViewModel.cs" />
+    <Compile Include="Deredundafier\DeredundafierViewTree.cs" />
     <Compile Include="Deredundafier\DeredundafierWindow.xaml.cs">
       <DependentUpon>DeredundafierWindow.xaml</DependentUpon>
     </Compile>
@@ -177,6 +179,9 @@
     <Compile Include="Equalizer\EqualizerFilterData.cs" />
     <Compile Include="Deredundafier\Deredundafier.xaml.cs">
       <DependentUpon>Deredundafier.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Equalizer\SimplePowerView.xaml.cs">
+      <DependentUpon>SimplePowerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Library\ILibraryRequestHandler.cs" />
     <Compile Include="Library\LibraryViewModel.cs" />
@@ -251,6 +256,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Deredundafier\Deredundafier.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Equalizer\SimplePowerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

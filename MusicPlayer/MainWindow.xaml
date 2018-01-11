@@ -45,6 +45,7 @@
           <MenuItem x:Name="MenuOpenDirectory"
                     Header="_Add Music Directory"
                     Click="MenuOpenClick"/>
+          <MenuItem Header="_Deredundafier" Click="Menu_Deredundafier"/>
           <Separator />
           <MenuItem x:Name="MenuClearLibrary"
                     Header="_Clear Library"
@@ -66,8 +67,6 @@
                     Header="_Repeat Playlist"
                     IsCheckable="True"
                     IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Repeat, Mode=TwoWay}"/>
-          <Separator/>
-          <MenuItem Header="_Deredundafier" Click="Menu_Deredundafier"/>
           <Separator/>
           <MenuItem x:Name="MenuPlaylistClear"
                     Header="_Clear Playlist"

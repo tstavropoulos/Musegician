@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using Musegician.DataStructures;
 
 namespace Musegician.Library
@@ -19,5 +20,7 @@ namespace Musegician.Library
         List<SongDTO> GenerateArtistSongList(long artistID, string artistName);
 
         void UpdateWeights(LibraryContext context, IList<(long id, double weight)> values);
+
+        event EventHandler RebuildNotifier; 
     }
 }

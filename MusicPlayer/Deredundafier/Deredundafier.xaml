@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Musegician.Deredundafier"
              mc:Ignorable="d"
-             d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance Type=local:Deredundafier, IsDesignTimeCreatable=True}">
+             d:DesignHeight="300" d:DesignWidth="300"
+             d:DataContext="{d:DesignInstance Type=local:DeredundafierMockTree, IsDesignTimeCreatable=True}">
   <UserControl.Resources>
     <Style x:Key="DeredundafierItemContainerStyle" 
            TargetType="{x:Type TreeViewItem}" 
@@ -15,6 +16,7 @@
       <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
       <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
       <Setter Property="FontWeight" Value="Normal" />
+      <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick" />
       <Style.Triggers>
         <Trigger Property="IsSelected" Value="True">
           <Setter Property="FontWeight" Value="Bold" />
@@ -27,14 +29,16 @@
     
     <HierarchicalDataTemplate DataType="{x:Type local:SelectorViewModel}" ItemsSource="{Binding Children}">
       <StackPanel Orientation="Horizontal" Background="Transparent">
-        <CheckBox IsChecked="{Binding IsChecked}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+        <CheckBox VerticalAlignment="Center" Margin="0,0,5,0"
+                  IsChecked="{Binding IsChecked}"/>
         <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
       </StackPanel>
     </HierarchicalDataTemplate>
     
     <HierarchicalDataTemplate DataType="{x:Type local:PotentialMatchViewModel}" ItemsSource="{Binding Children}">
       <StackPanel Orientation="Horizontal" Background="Transparent">
-        <CheckBox IsChecked="{Binding ChildrenSelected}" VerticalAlignment="Center" Margin="0,0,5,0" IsThreeState="True"/>
+        <CheckBox VerticalAlignment="Center" Margin="0,0,5,0"
+                  IsChecked="{Binding ChildrenSelected}" IsThreeState="{Binding IsThreeState}"/>
         <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
       </StackPanel>
     </HierarchicalDataTemplate>
@@ -47,15 +51,18 @@
   </UserControl.Resources>
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" Margin="5">
-      <Button DockPanel.Dock="Left" Content="Calculate" Click="Deredundafier_Calculate"/>
-      <Button DockPanel.Dock="Right" Content="Apply" Click="Deredundafier_Apply"/>
+      <Button DockPanel.Dock="Left" Padding="4,2,4,2"
+              Content="Find Possible Matches" Click="Deredundafier_Calculate"/>
+      <Button DockPanel.Dock="Right" Padding="4,2,4,2"
+              Content="Merge Selected" Click="Deredundafier_Apply"/>
       <StackPanel/>
     </DockPanel>
     <TabControl SelectionChanged="Deredundafier_SelectionChanged">
       <TabItem Header="Artist" FontSize="14">
         <TreeView x:Name="ArtistRedundancyList"
                   ItemsSource="{Binding ViewModels}"
-                  ItemContainerStyle="{StaticResource DeredundafierItemContainerStyle}"/>
+                  ItemContainerStyle="{StaticResource DeredundafierItemContainerStyle}"
+                  />
       </TabItem>
       <TabItem Header="Album" FontSize="14">
         <TreeView x:Name="AlbumRedundancyList"

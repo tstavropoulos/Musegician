@@ -51,13 +51,13 @@ namespace Musegician.Player
         private void PlaybackPanel_Loaded(object sender, RoutedEventArgs e)
         {
             MusicMan.PlayerStateChanged += PlayerStateChanged;
-            MusicMan.tickUpdate += TickUpdate;
+            MusicMan.ProgressTickUpdate += TickUpdate;
         }
 
         private void PlaybackPanel_Unloaded(object sender, RoutedEventArgs e)
         {
             MusicMan.PlayerStateChanged -= PlayerStateChanged;
-            MusicMan.tickUpdate -= TickUpdate;
+            MusicMan.ProgressTickUpdate -= TickUpdate;
         }
 
         public void OnPlayClick(object sender, RoutedEventArgs e)

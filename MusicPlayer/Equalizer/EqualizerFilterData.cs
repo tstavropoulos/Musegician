@@ -52,6 +52,10 @@ namespace Musegician.Equalizer
         {
             get { return _power.R; }
         }
+        public float PowerAvg
+        {
+            get { return (_power.L + _power.R) / 2f; }
+        }
 
         public (float L, float R) Power
         {
@@ -65,6 +69,7 @@ namespace Musegician.Equalizer
                     OnPropertyChanged("PowerL");
                     OnPropertyChanged("PowerR");
                     OnPropertyChanged("Power");
+                    OnPropertyChanged("PowerAvg");
                 }
             }
         }

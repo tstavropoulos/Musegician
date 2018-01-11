@@ -1687,63 +1687,28 @@
   </Style>
 
   <Style x:Key="{x:Type CheckBox}" TargetType="{x:Type CheckBox}">
+    <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
+    <Setter Property="Background" Value="{StaticResource CheckBoxFillNormal}"/>
+    <Setter Property="BorderBrush" Value="{StaticResource CheckBoxStroke}"/>
+    <Setter Property="FocusVisualStyle" Value="{StaticResource EmptyCheckBoxFocusVisual}" />
     <Setter Property="SnapsToDevicePixels" Value="true" />
     <Setter Property="OverridesDefaultStyle" Value="true" />
-    <Setter Property="FocusVisualStyle" Value="{DynamicResource CheckBoxFocusVisual}" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type CheckBox}">
-          <BulletDecorator Background="Transparent">
+          <BulletDecorator Background="Transparent" SnapsToDevicePixels="true">
             <BulletDecorator.Bullet>
-              <Border x:Name="Border"
-                    Width="13"
-                    Height="13"
-                    CornerRadius="0"
-                    BorderThickness="1">
-                <Border.BorderBrush>
-                  <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <LinearGradientBrush.GradientStops>
-                      <GradientStopCollection>
-                        <GradientStop Color="{DynamicResource BorderLightColor}" Offset="0.0" />
-                        <GradientStop Color="{DynamicResource BorderDarkColor}" Offset="1.0" />
-                      </GradientStopCollection>
-                    </LinearGradientBrush.GradientStops>
-                  </LinearGradientBrush>
-                </Border.BorderBrush>
-                <Border.Background>
-                  <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <LinearGradientBrush.GradientStops>
-                      <GradientStopCollection>
-                        <GradientStop Color="{DynamicResource ControlLightColor}" />
-                        <GradientStop Color="{DynamicResource ControlMediumColor}" Offset="1.0" />
-                      </GradientStopCollection>
-                    </LinearGradientBrush.GradientStops>
-                  </LinearGradientBrush>
-
-                </Border.Background>
+              <Border x:Name="Border" Width="12" Height="12" BorderThickness="1"
+										  BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
                 <Grid>
-                  <Path Visibility="Collapsed"
-                      Width="7"
-                      Height="7"
-                      x:Name="CheckMark"
-                      SnapsToDevicePixels="False"
-                      StrokeThickness="2"
-                      Data="M 0 0 L 7 7 M 0 7 L 7 0">
-                    <Path.Stroke>
-                      <SolidColorBrush Color="{DynamicResource GlyphColor}" />
-                    </Path.Stroke>
-                  </Path>
-                  <Path Visibility="Collapsed"
-                      Width="7"
-                      Height="7"
-                      x:Name="InderminateMark"
-                      SnapsToDevicePixels="False"
-                      StrokeThickness="2"
-                      Data="M 0 7 L 7 0">
-                    <Path.Stroke>
-                      <SolidColorBrush Color="{DynamicResource GlyphColor}" />
-                    </Path.Stroke>
-                  </Path>
+                  <Path x:Name="CheckMark" Visibility="Collapsed" Width="Auto" Height="Auto"
+                        Stretch="Fill" SnapsToDevicePixels="False"
+                        StrokeThickness="2" Fill="{StaticResource ButtonForeground}"
+                        Data="{StaticResource CheckBoxCheckmark}" Margin="1"/>
+                  <Path x:Name="InderminateMark" Visibility="Collapsed" Width="Auto" Height="Auto"
+                        Stretch="Fill" SnapsToDevicePixels="False"
+                        StrokeThickness="2" Fill="{StaticResource ButtonForeground}"
+                        Data="M 0 0 L 7 0 L 7 7 L 0 7" Margin="2"/>
                 </Grid>
               </Border>
             </BulletDecorator.Bullet>
@@ -1753,63 +1718,43 @@
                 <VisualState x:Name="MouseOver">
                   <Storyboard>
                     <ColorAnimationUsingKeyFrames Storyboard.TargetName="Border"
-                                                Storyboard.TargetProperty="(Panel.Background).
-                      (GradientBrush.GradientStops)[1].(GradientStop.Color)">
-                      <EasingColorKeyFrame KeyTime="0"
-                                         Value="{StaticResource ForegroundColor}" />
+                                                  Storyboard.TargetProperty="BorderBrush.(SolidColorBrush.Color)">
+                      <EasingColorKeyFrame KeyTime="0" Value="{StaticResource ForegroundColor}" />
                     </ColorAnimationUsingKeyFrames>
                   </Storyboard>
                 </VisualState>
                 <VisualState x:Name="Pressed">
                   <Storyboard>
                     <ColorAnimationUsingKeyFrames Storyboard.TargetName="Border"
-                                                Storyboard.TargetProperty="(Panel.Background).
-                      (GradientBrush.GradientStops)[1].(GradientStop.Color)">
-                      <EasingColorKeyFrame KeyTime="0"
-                                         Value="{StaticResource DisabledBackgroundColor}" />
-                    </ColorAnimationUsingKeyFrames>
-                    <ColorAnimationUsingKeyFrames Storyboard.TargetName="Border"
-                                                Storyboard.TargetProperty="(Border.BorderBrush).
-                      (GradientBrush.GradientStops)[0].(GradientStop.Color)">
-                      <EasingColorKeyFrame KeyTime="0"
-                                         Value="#404040" />
-                    </ColorAnimationUsingKeyFrames>
-                    <ColorAnimationUsingKeyFrames Storyboard.TargetName="Border"
-                                                Storyboard.TargetProperty="(Border.BorderBrush).
-                      (GradientBrush.GradientStops)[1].(GradientStop.Color)">
-                      <EasingColorKeyFrame KeyTime="0"
-                                         Value="#4C4C4C" />
+                                                  Storyboard.TargetProperty="Background.(SolidColorBrush.Color)">
+                      <EasingColorKeyFrame KeyTime="0" Value="{StaticResource DisabledBackgroundColor}" />
                     </ColorAnimationUsingKeyFrames>
                   </Storyboard>
                 </VisualState>
-                <VisualState x:Name="Disabled" />
+                <VisualState x:Name="Disabled"/>
               </VisualStateGroup>
               <VisualStateGroup x:Name="CheckStates">
                 <VisualState x:Name="Checked">
                   <Storyboard>
-                    <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)"
-                                                 Storyboard.TargetName="CheckMark">
-                      <DiscreteObjectKeyFrame KeyTime="0"
-                                            Value="{x:Static Visibility.Visible}" />
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CheckMark"
+                                                   Storyboard.TargetProperty="(UIElement.Visibility)">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Visible}" />
                     </ObjectAnimationUsingKeyFrames>
                   </Storyboard>
                 </VisualState>
                 <VisualState x:Name="Unchecked" />
                 <VisualState x:Name="Indeterminate">
                   <Storyboard>
-                    <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Visibility)"
-                                                 Storyboard.TargetName="InderminateMark">
-                      <DiscreteObjectKeyFrame KeyTime="0"
-                                            Value="{x:Static Visibility.Visible}" />
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="InderminateMark"
+                                                   Storyboard.TargetProperty="(UIElement.Visibility)">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{x:Static Visibility.Visible}" />
                     </ObjectAnimationUsingKeyFrames>
                   </Storyboard>
                 </VisualState>
               </VisualStateGroup>
             </VisualStateManager.VisualStateGroups>
-            <ContentPresenter Margin="4,0,0,0"
-                            VerticalAlignment="Center"
-                            HorizontalAlignment="Left"
-                            RecognizesAccessKey="True" />
+            <ContentPresenter Margin="4,0,0,0" RecognizesAccessKey="True" 
+                              VerticalAlignment="Center" HorizontalAlignment="Left"/>
           </BulletDecorator>
         </ControlTemplate>
       </Setter.Value>
@@ -1828,13 +1773,13 @@
           <BulletDecorator Background="Transparent" SnapsToDevicePixels="true">
             <BulletDecorator.Bullet>
               <Border x:Name="CheckBoxBorder"
-                                        Height="12"
+                    Height="12"
 										Width="12"
 										BorderBrush="{TemplateBinding BorderBrush}" 
 										BorderThickness="1"
 										Background="{TemplateBinding Background}">
                 <Path x:Name="CheckMark"  
-                                            Data="{StaticResource CheckBoxCheckmark}" 
+                      Data="{StaticResource CheckBoxCheckmark}" 
 											Height="Auto" 
 											Width="Auto" 
 											Stretch="Fill" 
@@ -3118,7 +3063,7 @@
                                 Background="{TemplateBinding Background}"
                                 Padding="1"
                                 SnapsToDevicePixels="true">
-            <ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}">
+            <ScrollViewer Focusable="false" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
               <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
             </ScrollViewer>
           </Border>

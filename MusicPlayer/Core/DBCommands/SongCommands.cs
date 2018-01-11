@@ -213,6 +213,33 @@ namespace Musegician.Core.DBCommands
             dbConnection.Close();
         }
 
+        public IList<DeredundafierDTO> GetDeredundancyTargets()
+        {
+            List<DeredundafierDTO> targets = new List<DeredundafierDTO>();
+
+            dbConnection.Open();
+
+            SQLiteCommand findTargets = dbConnection.CreateCommand();
+            findTargets.CommandType = System.Data.CommandType.Text;
+            findTargets.CommandText =
+                "SELECT title " +
+                "FROM song " +
+                "GROUP BY title COLLATE NOCASE " +
+                "HAVING count(*) > 1;";
+
+            using (SQLiteDataReader reader = findTargets.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    targets.Add(_GetDeredunancyTarget((string)reader["title"]));
+                }
+            }
+
+            dbConnection.Close();
+
+            return targets;
+        }
+
         #endregion High Level Commands
         #region Search Commands
 
@@ -314,6 +341,89 @@ namespace Musegician.Core.DBCommands
             }
 
             return string.Format("{0} - {1}", artistName, songName);
+        }
+
+        private DeredundafierDTO _GetDeredunancyTarget(string songTitle)
+        {
+            DeredundafierDTO target = new DeredundafierDTO()
+            {
+                Name = songTitle
+            };
+
+            SQLiteCommand findOptions = dbConnection.CreateCommand();
+            findOptions.CommandType = System.Data.CommandType.Text;
+            findOptions.CommandText =
+                "SELECT " +
+                    "song.id AS id, " +
+                    "song.title AS song_title, " +
+                    "CASE WHEN COUNT(artist.id) > 1 THEN 'Various Artists' " +
+                        "ELSE MAX(artist.name) END artist_name " +
+                "FROM song " +
+                "LEFT JOIN artist ON artist.id IN ( " +
+                    "SELECT artist_id " +
+                    "FROM recording " +
+                    "WHERE song_id=song.id ) " +
+                "WHERE song.title=@songTitle COLLATE NOCASE " +
+                "GROUP BY song.id;";
+            findOptions.Parameters.Add(new SQLiteParameter("@songTitle", songTitle));
+
+            //Match them all up
+            using (SQLiteDataReader innerReader = findOptions.ExecuteReader())
+            {
+                while (innerReader.Read())
+                {
+                    DeredundafierDTO selector = new SelectorDTO()
+                    {
+                        Name = string.Format(
+                            "{0} - {1}",
+                            (string)innerReader["artist_name"],
+                            (string)innerReader["song_title"]),
+                        ID = (long)innerReader["id"],
+                        IsChecked = false
+                    };
+
+                    target.Children.Add(selector);
+
+                    foreach (DeredundafierDTO data in _GetDeredundancyTrackExamples(selector.ID))
+                    {
+                        selector.Children.Add(data);
+                    }
+                }
+            }
+
+            return target;
+        }
+
+        private IList<DeredundafierDTO> _GetDeredundancyTrackExamples(long songID)
+        {
+            List<DeredundafierDTO> examples = new List<DeredundafierDTO>();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.CommandText =
+                "SELECT " +
+                    "recording.id AS recording_id, " +
+                    "artist.name || ' - ' || album.title || ' - ' || track.title AS title " +
+                "FROM recording " +
+                "LEFT JOIN artist ON recording.artist_id=artist.id " +
+                "LEFT JOIN track ON recording.id=track.recording_id " +
+                "LEFT JOIN album ON track.album_id=album.id " +
+                "WHERE recording.song_id=@songID;";
+            readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    examples.Add(new DeredundafierDTO()
+                    {
+                        Name = (string)reader["title"],
+                        ID = (long)reader["recording_id"]
+                    });
+                }
+            }
+
+            return examples;
         }
 
         #endregion Search Commands

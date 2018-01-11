@@ -288,6 +288,12 @@ namespace Musegician.Library
             throw new NotImplementedException();
         }
 
+        event EventHandler ILibraryRequestHandler.RebuildNotifier
+        {
+            add { throw new NotImplementedException(); }
+            remove { throw new NotImplementedException(); }
+        }
+
         #endregion ILibraryRequestHandler
         #region Helper Methods
 

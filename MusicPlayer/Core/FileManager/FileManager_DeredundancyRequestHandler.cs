@@ -23,7 +23,27 @@ namespace Musegician
 
         IList<DeredundafierDTO> IDeredundancyRequestHandler.GetSongTargets()
         {
+            return songCommands.GetDeredundancyTargets();
+        }
+
+        void IDeredundancyRequestHandler.MergeArtists(IEnumerable<long> ids)
+        {
             throw new NotImplementedException();
+        }
+
+        void IDeredundancyRequestHandler.MergeAlbums(IEnumerable<long> ids)
+        {
+            albumCommands.Merge(ids);
+        }
+
+        void IDeredundancyRequestHandler.MergeSongs(IEnumerable<long> ids)
+        {
+            throw new NotImplementedException();
+        }
+
+        void IDeredundancyRequestHandler.PushChanges()
+        {
+            _rebuildNotifier?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion IDeredundancyRequestHandler

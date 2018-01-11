@@ -299,7 +299,7 @@ namespace Musegician.Core.DBCommands
 
                     target.Children.Add(selector);
 
-                    foreach (DeredundafierDTO data in _GetDeredundancySongExamples(selector.ID))
+                    foreach (DeredundafierDTO data in _GetDeredundancyTrackExamples(selector.ID))
                     {
                         selector.Children.Add(data);
                     }
@@ -309,7 +309,7 @@ namespace Musegician.Core.DBCommands
             return target;
         }
 
-        private IList<DeredundafierDTO> _GetDeredundancySongExamples(long artistID)
+        private IList<DeredundafierDTO> _GetDeredundancyTrackExamples(long artistID)
         {
             List<DeredundafierDTO> examples = new List<DeredundafierDTO>();
 
@@ -317,15 +317,13 @@ namespace Musegician.Core.DBCommands
             readRecordings.CommandType = System.Data.CommandType.Text;
             readRecordings.CommandText =
                 "SELECT " +
-                    "song.title AS song_title, " +
-                    "song.id AS song_id, " +
-                    "artist.name AS artist_name " +
-                "FROM song " +
-                "LEFT JOIN artist ON artist.id=@artistID " +
-                "WHERE song.id IN ( " +
-                    "SELECT song_id " +
-                    "FROM recording " +
-                    "WHERE artist_id=@artistID );";
+                    "recording.id AS recording_id, " +
+                    "artist.name || ' - ' || album.title || ' - ' || track.title AS title " +
+                "FROM artist " +
+                "LEFT JOIN recording ON recording.artist_id=artist.id " +
+                "LEFT JOIN track ON recording.id=track.recording_id " +
+                "LEFT JOIN album ON track.album_id=album.id " +
+                "WHERE artist.id=@artistID;";
             readRecordings.Parameters.Add(new SQLiteParameter("@artistID", artistID));
 
             using (SQLiteDataReader reader = readRecordings.ExecuteReader())
@@ -334,11 +332,8 @@ namespace Musegician.Core.DBCommands
                 {
                     examples.Add(new DeredundafierDTO()
                     {
-                        Name = string.Format(
-                            "{0} - {1}",
-                            (string)reader["artist_name"],
-                            (string)reader["song_title"]),
-                        ID = (long)reader["song_id"]
+                        Name = (string)reader["title"],
+                        ID = (long)reader["recording_id"]
                     });
                 }
             }

@@ -62,7 +62,7 @@ namespace Musegician.Library
 
         MusicTreeViewModel _musicTree;
 
-        ILibraryRequestHandler RequestHandler
+        ILibraryRequestHandler LibraryRequestHandler
         {
             get
             {
@@ -125,13 +125,17 @@ namespace Musegician.Library
         {
             InitializeComponent();
 
+            Loaded += LibraryControl_Loaded;
+            Unloaded += LibraryControl_Unloaded;
+
+
             if (DesignerProperties.GetIsInDesignMode(this))
             {
                 _musicTree = new MusicTreeViewModel();
             }
             else
             {
-                _musicTree = new MusicTreeViewModel(RequestHandler);
+                _musicTree = new MusicTreeViewModel(LibraryRequestHandler);
             }
 
             DataContext = _musicTree;
@@ -141,7 +145,7 @@ namespace Musegician.Library
         {
             ViewMode tempViewMode = _musicTree.CurrentViewMode;
 
-            _musicTree = new MusicTreeViewModel(RequestHandler);
+            _musicTree = new MusicTreeViewModel(LibraryRequestHandler);
             DataContext = _musicTree;
 
             if (tempViewMode != ViewMode.MAX)
@@ -427,6 +431,21 @@ namespace Musegician.Library
             }
         }
 
+        private void LibraryRequestHandler_Rebuild(object sender, EventArgs e)
+        {
+            Rebuild();
+        }
+
+        private void LibraryControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            LibraryRequestHandler.RebuildNotifier += LibraryRequestHandler_Rebuild;
+        }
+
+        private void LibraryControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            LibraryRequestHandler.RebuildNotifier -= LibraryRequestHandler_Rebuild;
+        }
+
         #endregion View Callbacks
         #region Keyboard Callbacks
 
@@ -477,7 +496,7 @@ namespace Musegician.Library
                     values[i] = (id, weight);
                 }
 
-                RequestHandler.UpdateWeights(context, values);
+                LibraryRequestHandler.UpdateWeights(context, values);
                 UpdateWeights(values);
             }
         }

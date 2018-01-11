@@ -243,8 +243,8 @@ namespace Musegician.Core.DBCommands
             remapAlbumID.Parameters.Add("@oldAlbumID", DbType.Int64);
             remapAlbumID.CommandText =
                 "UPDATE track " +
-                    "SET track.album_id=@newAlbumID " +
-                    "WHERE track.album_id=@oldAlbumID;";
+                    "SET album_id=@newAlbumID " +
+                    "WHERE album_id=@oldAlbumID;";
             foreach (long id in oldAlbumIDs)
             {
                 remapAlbumID.Parameters["@oldAlbumID"].Value = id;

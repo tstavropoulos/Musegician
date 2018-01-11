@@ -1,0 +1,52 @@
+﻿<UserControl x:Class="Musegician.Equalizer.SimplePowerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Musegician.Equalizer"
+             mc:Ignorable="d" 
+             d:DesignHeight="20" d:DesignWidth="100">
+  <UserControl.Resources>
+    <GradientStopCollection x:Key="MeterGradStops">
+      <GradientStop Color="Green" Offset="0.0"/>
+      <GradientStop Color="Green" Offset="0.7"/>
+      <GradientStop Color="Yellow" Offset="0.95"/>
+      <GradientStop Color="Red" Offset="1.0"/>
+    </GradientStopCollection>
+    <local:FloatVPointConverter x:Key="FloatVPointConverter"/>
+  </UserControl.Resources>
+  <Grid>
+    <ListBox Background="Transparent" BorderBrush="Transparent" VerticalContentAlignment="Stretch"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+             ItemsSource="{Binding Source={x:Static local:EqualizerManager.Instance}, Path=EqualizerFilterData}">
+      <ListBox.ItemContainerStyle>
+        <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+          <Setter Property="Padding" Value="0"/>
+          <Setter Property="Focusable" Value="False"/>
+          <Setter Property="IsHitTestVisible" Value="False"/>
+        </Style>
+      </ListBox.ItemContainerStyle>
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Orientation="Horizontal" Background="Transparent"/>
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.ItemTemplate>
+        <DataTemplate DataType="{x:Type local:EqualizerFilterData}">
+          <ProgressBar x:Name="ValueBar" Orientation="Vertical" Grid.Column="0" Width="3" Margin="0"
+                       Value="{Binding PowerAvg, Mode=OneWay}" Background="Transparent" BorderBrush="Transparent"
+                       Minimum="0" Maximum="1" IsTabStop="False"
+                       Focusable="False" IsHitTestVisible="False" FocusManager.IsFocusScope="False">
+            <ProgressBar.Foreground>
+              <LinearGradientBrush StartPoint="0,0"
+                                   EndPoint="{Binding Path=PowerAvg, Converter={StaticResource FloatVPointConverter}}"
+                                   GradientStops="{StaticResource MeterGradStops}"/>
+            </ProgressBar.Foreground>
+          </ProgressBar>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+
+    </ListBox>
+
+  </Grid>
+</UserControl>

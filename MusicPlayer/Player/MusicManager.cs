@@ -316,7 +316,7 @@ namespace Musegician.Player
         }
 
         public delegate void TickUpdate(long position);
-        public event TickUpdate tickUpdate;
+        public event TickUpdate ProgressTickUpdate;
 
         public delegate void IDNotifier(long id);
         private event IDNotifier _RecordingStarted;
@@ -475,7 +475,7 @@ namespace Musegician.Player
                         break;
                     case PlaybackState.Playing:
                     case PlaybackState.Paused:
-                        tickUpdate?.Invoke(_waveSource.Position);
+                        ProgressTickUpdate?.Invoke(_waveSource.Position);
                         break;
                     default:
                         throw new Exception("Unexpeted playbackState: " + _soundOut.PlaybackState);
