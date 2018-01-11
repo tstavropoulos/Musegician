@@ -215,6 +215,32 @@ namespace Musegician.Core.DBCommands
             return targets;
         }
 
+        public void Merge(IEnumerable<long> ids)
+        {
+            List<long> artistIDsCopy = new List<long>(ids);
+
+            long artistID = artistIDsCopy[0];
+            artistIDsCopy.RemoveAt(0);
+
+            dbConnection.Open();
+
+            using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
+            {
+                _RemapForeignKeys(
+                    transaction: transaction,
+                    newArtistID: artistID,
+                    oldArtistIDs: artistIDsCopy);
+
+                _DeleteArtistID(
+                    transaction: transaction,
+                    artistIDs: artistIDsCopy);
+
+                transaction.Commit();
+            }
+
+            dbConnection.Close();
+        }
+
         #endregion High Level Commands
         #region Search Commands
 
@@ -516,11 +542,23 @@ namespace Musegician.Core.DBCommands
             deleteArtist_ByArtistID.Parameters.Add("@artistID", DbType.Int64);
             deleteArtist_ByArtistID.CommandText =
                 "DELETE FROM artist " +
-                "WHERE artist.id=@artistID;";
+                "WHERE id=@artistID;";
+
+            SQLiteCommand deleteArtistWeight_ByArtistID = dbConnection.CreateCommand();
+            deleteArtistWeight_ByArtistID.Transaction = transaction;
+            deleteArtistWeight_ByArtistID.CommandType = System.Data.CommandType.Text;
+            deleteArtistWeight_ByArtistID.Parameters.Add("@artistID", DbType.Int64);
+            deleteArtistWeight_ByArtistID.CommandText =
+                "DELETE FROM artist_weight " +
+                "WHERE artist_id=@artistID;";
+
             foreach (long id in artistIDs)
             {
                 deleteArtist_ByArtistID.Parameters["@artistID"].Value = id;
                 deleteArtist_ByArtistID.ExecuteNonQuery();
+
+                deleteArtistWeight_ByArtistID.Parameters["@artistID"].Value = id;
+                deleteArtistWeight_ByArtistID.ExecuteNonQuery();
             }
         }
 

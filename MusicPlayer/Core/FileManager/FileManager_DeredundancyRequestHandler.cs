@@ -28,7 +28,7 @@ namespace Musegician
 
         void IDeredundancyRequestHandler.MergeArtists(IEnumerable<long> ids)
         {
-            throw new NotImplementedException();
+            artistCommands.Merge(ids);
         }
 
         void IDeredundancyRequestHandler.MergeAlbums(IEnumerable<long> ids)
