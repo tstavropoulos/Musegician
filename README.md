@@ -50,6 +50,9 @@ and Save Playlists.
 Built into the player is an Equalizer.  
 ![Equalizer](README_Screenshots/Equalizer.png)
 
+Both windows also have a live spectral power display.  
+![Power Display](README_Screenshots/Equalizer.gif)
+
 ### Installer
 
 And now it's packaged with an installer that will handle the installation of the requirements for you.  Just grab it from [The Releases Page](https://github.com/tstavropoulos/Musegician/releases).
