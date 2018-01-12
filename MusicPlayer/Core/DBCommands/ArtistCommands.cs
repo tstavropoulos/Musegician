@@ -106,7 +106,7 @@ namespace Musegician.Core.DBCommands
                     "artist_weight.weight AS weight " +
                 "FROM artist " +
                 "LEFT JOIN artist_weight ON artist.id=artist_weight.artist_id " +
-                "ORDER BY name ASC;";
+                "ORDER BY (CASE WHEN name LIKE 'The %' THEN SUBSTR(name, 5) ELSE name END);";
             using (SQLiteDataReader reader = readArtists.ExecuteReader())
             {
                 while (reader.Read())
