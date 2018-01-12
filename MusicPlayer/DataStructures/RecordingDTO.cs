@@ -26,5 +26,7 @@ namespace Musegician.DataStructures
                 return Settings.Instance.StudioWeight;
             }
         }
+
+        public long TrackID { get; set; } = -1;
     }
 }

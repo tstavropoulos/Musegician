@@ -6,8 +6,9 @@
         xmlns:local="clr-namespace:Musegician.TagEditor"
         xmlns:data="clr-namespace:Musegician.DataStructures"
         mc:Ignorable="d"
-        Title="Artist Editor" Height="400" Width="800"
-        Style="{StaticResource {x:Type Window}}">
+        Title="Tag Editor" Height="400" Width="800"
+        Icon="/Musegician;component/Resources/logoHat.png"
+        Style="{StaticResource CustomOtherWindowStyle}">
   <Window.Resources>
     <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
   </Window.Resources>

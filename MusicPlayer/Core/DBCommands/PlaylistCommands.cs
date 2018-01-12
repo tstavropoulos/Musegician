@@ -273,7 +273,8 @@ namespace Musegician.Core.DBCommands
                     "playlist_recordings.weight AS weight, " +
                     "artist.name AS artist_name, " +
                     "album.title AS album_title, " +
-                    "track.title AS track_title " +
+                    "track.title AS track_title, " +
+                    "track.id AS track_id " +
                 "FROM playlist_recordings " +
                 "LEFT JOIN recording ON playlist_recordings.recording_id=recording.id " +
                 "LEFT JOIN artist ON recording.artist_id=artist.id " +
@@ -300,11 +301,11 @@ namespace Musegician.Core.DBCommands
                                 (string)reader["artist_name"],
                                 (string)reader["album_title"],
                                 (string)reader["track_title"]),
-                        Weight = (double)reader["weight"]
+                        Weight = (double)reader["weight"],
+                        TrackID = (long)reader["track_id"]
                     });
                 }
             }
-
 
             return recordings;
         }

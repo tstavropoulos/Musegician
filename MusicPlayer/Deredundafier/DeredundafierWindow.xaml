@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Musegician.Deredundafier"
         mc:Ignorable="d"
-        Title="DeredundafierWindow" Height="600" Width="400"
-        Style="{StaticResource {x:Type Window}}">
+        Title="Deredundafier" Height="600" Width="400"
+        Icon="/Musegician;component/Resources/logoHat.png"
+        Style="{StaticResource CustomOtherWindowStyle}">
   <Grid Background="{StaticResource DarkInsetPanel}">
     <local:Deredundafier
         d:DataContext="{d:DesignInstance Type=local:DeredundafierMockTree, IsDesignTimeCreatable=True}"/>

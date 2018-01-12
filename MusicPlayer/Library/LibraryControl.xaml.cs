@@ -124,17 +124,16 @@ namespace Musegician.Library
         public LibraryControl()
         {
             InitializeComponent();
-
-            Loaded += LibraryControl_Loaded;
-            Unloaded += LibraryControl_Unloaded;
-
-
+            
             if (DesignerProperties.GetIsInDesignMode(this))
             {
                 _musicTree = new MusicTreeViewModel();
             }
             else
             {
+                Loaded += LibraryControl_Loaded;
+                Unloaded += LibraryControl_Unloaded;
+
                 _musicTree = new MusicTreeViewModel(LibraryRequestHandler);
             }
 
@@ -552,7 +551,7 @@ namespace Musegician.Library
                     //Only on Edit, we return the ContextualTrackID
                     if (option == MenuAction.Edit && model is SongViewModel song)
                     {
-                        ids.Add((song as SongViewModel).ContextualTrackID);
+                        ids.Add(song.ContextualTrackID);
                     }
                     else
                     {
@@ -598,8 +597,7 @@ namespace Musegician.Library
                 {
                     if (model is RecordingViewModel recording)
                     {
-                        weightsList.Add(
-                            ((recording.Parent as SongViewModel).ContextualTrackID, model.Weight));
+                        weightsList.Add((recording.TrackID, model.Weight));
                     }
                     else
                     {
@@ -621,11 +619,12 @@ namespace Musegician.Library
             int i = 0;
             foreach (LibraryViewModel model in selectedItems)
             {
-                //Lets find out if this is sufficient...
-                if (model.ID != values[i].id)
-                {
-                    throw new Exception("selectedItem doesn't match up!");
-                }
+                //Nevermind... This is problematic because of things like Recording vs Track
+                ////Lets find out if this is sufficient...
+                //if (model.ID != values[i].id)
+                //{
+                //    throw new Exception("selectedItem doesn't match up!");
+                //}
 
                 model.Weight = values[i].weight;
 

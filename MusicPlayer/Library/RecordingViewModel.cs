@@ -14,12 +14,10 @@ namespace Musegician.Library
         #region Constructors
 
         public RecordingViewModel(RecordingDTO recording, SongViewModel song)
-            : base(
-                  data: recording,
-                  parent: song,
-                  lazyLoadChildren: false)
-        {
-        }
+            : base(data: recording,
+                    parent: song,
+                    lazyLoadChildren: false)
+        { }
 
         #endregion Constructors
         #region Properties
@@ -49,6 +47,11 @@ namespace Musegician.Library
         public override bool IsDim
         {
             get { return base.IsDim || !_recording.IsHome; }
+        }
+
+        public long TrackID
+        {
+            get { return _recording.TrackID; }
         }
 
         #endregion Properties

@@ -187,7 +187,6 @@ namespace Musegician.Core.DBCommands
                 "WHERE recording.song_id=@songID ORDER BY recording.live ASC;";
             readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
 
-            long trackID = -1;
             using (SQLiteDataReader reader = readTracks.ExecuteReader())
             {
                 while (reader.Read())
@@ -203,7 +202,6 @@ namespace Musegician.Core.DBCommands
                     if (albumID == (long)reader["album_id"])
                     {
                         albumMatch = true;
-                        trackID = (long)reader["track_id"];
                     }
 
                     recordingList.Add(new RecordingDTO
@@ -216,7 +214,8 @@ namespace Musegician.Core.DBCommands
                             (string)reader["track_title"]),
                         IsHome = albumMatch,
                         Live = (bool)reader["live"],
-                        Weight = weight
+                        Weight = weight,
+                        TrackID = (long)reader["track_id"]
                     });
                 }
             }
@@ -307,7 +306,8 @@ namespace Musegician.Core.DBCommands
                     "album.title AS album_title, " +
                     "artist.name AS artist_name, " +
                     "track.title AS track_title, " +
-                    "recording.live AS live " +
+                    "recording.live AS live, " +
+                    "track.id AS track_id " +
                 "FROM recording " +
                 "LEFT JOIN artist ON recording.artist_id=artist.id " +
                 "LEFT JOIN song ON recording.song_id=song.id " +
@@ -332,7 +332,8 @@ namespace Musegician.Core.DBCommands
                             (string)reader["track_title"]),
                         ID = recordingID,
                         Weight = Double.NaN,
-                        Live = (bool)reader["live"]
+                        Live = (bool)reader["live"],
+                        TrackID = (long)reader["track_id"]
                     };
                 }
             }
@@ -421,7 +422,8 @@ namespace Musegician.Core.DBCommands
                     "recording.artist_id AS artist_id, " +
                     "recording.live AS live, " +
                     "album.title AS album_title, " +
-                    "artist.name AS artist_name " +
+                    "artist.name AS artist_name, " +
+                    "track.id AS track_id " +
                 "FROM recording " +
                 "LEFT JOIN track ON recording.id=track.recording_id " +
                 "LEFT JOIN album ON track.album_id=album.id " +
@@ -475,7 +477,8 @@ namespace Musegician.Core.DBCommands
                             (string)reader["track_title"]),
                         ID = recordingID,
                         Weight = weight,
-                        Live = (bool)reader["Live"]
+                        Live = (bool)reader["Live"],
+                        TrackID = (long)reader["track_id"]
                     });
                 }
             }
