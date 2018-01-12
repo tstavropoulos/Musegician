@@ -25,7 +25,10 @@ namespace Musegician.TinyPlayer
             InitializeComponent();
 
             Loaded += TinyPlayer_Loaded;
+            Loaded += TightPlaylist.PlaylistControl_Loaded;
+
             Unloaded += TinyPlayer_Unloaded;
+            Unloaded += TightPlaylist.PlaylistControl_Unloaded;
         }
 
         private void TinyPlayer_Loaded(object sender, RoutedEventArgs e)
@@ -60,9 +63,25 @@ namespace Musegician.TinyPlayer
             Topmost = true;
         }
 
-        private void tinyPlayer_Closing(object sender, CancelEventArgs e)
+        private void TinyPlayer_Closing(object sender, CancelEventArgs e)
         {
             Application.Current.MainWindow.Show();
         }
+
+        //protected override void OnMouseDown(MouseButtonEventArgs e)
+        //{
+        //    base.OnMouseDown(e);
+
+        //    if (PlaylistOptionsPopup.IsOpen)
+        //    {
+        //        PlaylistOptionsPopup.IsOpen = false;
+        //    }
+        //}
+
+        //private void PlaylistOptionsPopup_MouseDown(object sender, MouseButtonEventArgs e)
+        //{
+        //    //Block the window from closing the popup if we clicked inside.
+        //    e.Handled = true;
+        //}
     }
 }

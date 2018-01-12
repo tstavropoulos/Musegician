@@ -20,7 +20,7 @@ namespace Musegician.Playlist
     /// <summary>
     /// Interaction logic for PlaylistControl.xaml
     /// </summary>
-    public partial class PlaylistControl : UserControl
+    public partial class TightPlaylistControl : UserControl
     {
         PlaylistTreeViewModel _playlistTree;
 
@@ -81,17 +81,14 @@ namespace Musegician.Playlist
             get { return _playlistTree.PlaylistViewModels.Count; }
         }
 
-        public PlaylistControl()
+        public TightPlaylistControl()
         {
             InitializeComponent();
-
-            Loaded += PlaylistControl_Loaded;
-            Unloaded += PlaylistControl_Unloaded;
 
             _playlistTree = new PlaylistTreeViewModel();
         }
 
-        private void PlaylistControl_Loaded(object sender, RoutedEventArgs e)
+        public void PlaylistControl_Loaded(object sender, RoutedEventArgs e)
         {
             PlaylistMan.addBack += AddBack;
             PlaylistMan.rebuild += Rebuild;
@@ -102,7 +99,7 @@ namespace Musegician.Playlist
             PlaylistMan.UnmarkAll += UnmarkAll;
         }
 
-        private void PlaylistControl_Unloaded(object sender, RoutedEventArgs e)
+        public void PlaylistControl_Unloaded(object sender, RoutedEventArgs e)
         {
             PlaylistMan.addBack -= AddBack;
             PlaylistMan.rebuild -= Rebuild;

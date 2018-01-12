@@ -33,7 +33,7 @@
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
     <ApplicationRevision>1</ApplicationRevision>
-    <ApplicationVersion>0.4.1.1</ApplicationVersion>
+    <ApplicationVersion>0.4.3.1</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -203,6 +203,9 @@
     <Compile Include="Playlist\IPlaylistRequestHandler.cs" />
     <Compile Include="Playlist\IPlaylistTransferRequestHandler.cs" />
     <Compile Include="Playlist\MockPlaylistViewModel.cs" />
+    <Compile Include="Playlist\TightPlaylistControl.xaml.cs">
+      <DependentUpon>TightPlaylistControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Playlist\PlaylistManagementControl.xaml.cs">
       <DependentUpon>PlaylistManagementControl.xaml</DependentUpon>
     </Compile>
@@ -210,6 +213,9 @@
     <Compile Include="Playlist\PlaylistRecordingViewModel.cs" />
     <Compile Include="Playlist\PlaylistModelView.cs" />
     <Compile Include="Core\MultiSelectTreeView.cs" />
+    <Compile Include="Playlist\PlaylistToolBar.xaml.cs">
+      <DependentUpon>PlaylistToolBar.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Playlist\PlaylistViewModel.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -268,7 +274,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Playlist\TightPlaylistControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Playlist\PlaylistManagementControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Playlist\PlaylistToolBar.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

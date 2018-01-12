@@ -1,0 +1,93 @@
+﻿<UserControl x:Class="Musegician.Playlist.PlaylistToolBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="clr-namespace:Musegician.Playlist"
+             xmlns:equalizer="clr-namespace:Musegician.Equalizer"
+             mc:Ignorable="d" 
+             d:DesignHeight="40" d:DesignWidth="500">
+  <UserControl.Resources>
+    <Style x:Key="UIFontButtonStyle" TargetType="{x:Type TextBlock}"
+           BasedOn="{StaticResource {x:Type TextBlock}}">
+      <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
+      <Setter Property="TextAlignment" Value="Center"/>
+      <Setter Property="FontSize" Value="22"/>
+    </Style>
+    <Style x:Key="UISmallerFontButtonStyle" TargetType="{x:Type TextBlock}"
+           BasedOn="{StaticResource UIFontButtonStyle}">
+      <Setter Property="FontSize" Value="16"/>
+    </Style>
+
+    <DataTemplate x:Key="UIFontButton" DataType="{x:Type sys:String}">
+      <TextBlock Text="{Binding}" Style="{StaticResource UIFontButtonStyle}"/>
+    </DataTemplate>
+    <DataTemplate x:Key="UISmallerFontButton" DataType="{x:Type sys:String}">
+      <TextBlock Text="{Binding}" Style="{StaticResource UISmallerFontButtonStyle}"/>
+    </DataTemplate>
+  </UserControl.Resources>
+  <DockPanel Background="{StaticResource DarkInsetPanel}">
+    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+      <ToggleButton ToolTip="Shuffle" Margin="2,2,4,2" Height="34" Width="34"
+                      IsChecked="{Binding Source={x:Static local:PlaylistManager.Instance},
+                        Path=Shuffle, Mode=TwoWay}"
+                      ContentTemplate="{StaticResource UIFontButton}">
+        <ToggleButton.Style>
+          <Style TargetType="{x:Type ToggleButton}" BasedOn="{StaticResource {x:Type ToggleButton}}">
+            <Setter Property="Content" Value="⇉"/>
+            <Style.Triggers>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Content" Value="🔀"/>
+              </Trigger>
+            </Style.Triggers>
+          </Style>
+        </ToggleButton.Style>
+      </ToggleButton>
+      <ToggleButton ToolTip="Repeat" Margin="0,0,0,0" Height="34" Width="34"
+                      IsChecked="{Binding Source={x:Static local:PlaylistManager.Instance},
+                        Path=Repeat, Mode=TwoWay}"
+                      Content="🔁" ContentTemplate="{StaticResource UIFontButton}"/>
+      <StackPanel Orientation="Horizontal" Margin="4">
+        <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+      </StackPanel>
+      <Button Name="tinyViewerButton" ToolTip="Open Tiny Viewer" Margin="0,0,0,0" Height="33" Width="33"
+                Content="🗗" ContentTemplate="{StaticResource UISmallerFontButton}"/>
+      <!--Content="⟎"-->
+      <StackPanel Orientation="Horizontal" Margin="4">
+        <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+      </StackPanel>
+      <ToggleButton Name="showEqualizer" ToolTip="Show Equalizer" Margin="0,0,0,0" Height="33" Width="33"
+                      Content="⫯⫯⫰⫯" ContentTemplate="{StaticResource UISmallerFontButton}"/>
+      <Popup Name="EqPopUp" IsOpen="{Binding ElementName=showEqualizer, Path=IsChecked}" StaysOpen="False"
+               Placement="Bottom" PlacementTarget="{Binding ElementName=showEqualizer}">
+        <Border BorderThickness="2" BorderBrush="Black" Height="200"
+                Background="{StaticResource DarkInsetPanel}">
+          <equalizer:EqualizerControl/>
+        </Border>
+      </Popup>
+      <StackPanel Orientation="Horizontal" Margin="4">
+        <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+      </StackPanel>
+      <Button ToolTip="New Playlist" Margin="0,0,4,0" Height="33" Width="33"
+                Content="🗋" ContentTemplate="{StaticResource UIFontButton}"
+                Click="Toolbar_NewPlaylist"/>
+      <ToggleButton Name="SavePlaylist" ToolTip="Save Playlist" Margin="0,0,4,0" Height="33" Width="33"
+                      Click="Toolbar_SavePlaylist"
+                      Content="💾" ContentTemplate="{StaticResource UIFontButton}"/>
+      <ToggleButton Name="LoadPlaylist" ToolTip="Load Playlist" Margin="0,0,4,0" Height="33" Width="33"
+                      Click="Toolbar_LoadPlaylist"
+                      Content="📂" ContentTemplate="{StaticResource UIFontButton}"/>
+      <Popup Name="LoadPlaylistPopup" StaysOpen="False"
+               Placement="Bottom" PlacementTarget="{Binding ElementName=LoadPlaylist}"
+               Closed="Popup_PlaylistClosed">
+        <Border BorderThickness="2" BorderBrush="Black" Background="{StaticResource DarkInsetPanel}" Height="200">
+          <local:PlaylistManagementControl x:Name="PlaylistManControl"/>
+        </Border>
+      </Popup>
+    </StackPanel>
+    <TextBlock Name="playlistName"
+                 Text="{Binding Source={x:Static local:PlaylistManager.Instance}, Path=PlaylistName}"
+                 FontSize="24" Margin="6" HorizontalAlignment="Center"/>
+  </DockPanel>
+</UserControl>

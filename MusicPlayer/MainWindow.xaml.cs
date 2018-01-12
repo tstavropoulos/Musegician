@@ -81,12 +81,12 @@ namespace Musegician
 
         private void Menu_LoadPlaylist(object sender, RoutedEventArgs e)
         {
-            playlistControl.Toolbar_LoadPlaylist(sender, e);
+            playlistToolbar.Toolbar_LoadPlaylist(sender, e);
         }
 
         private void Menu_SavePlaylist(object sender, RoutedEventArgs e)
         {
-            playlistControl.Toolbar_SavePlaylist(sender, e);
+            playlistToolbar.Toolbar_SavePlaylist(sender, e);
         }
 
         private void Quitting()

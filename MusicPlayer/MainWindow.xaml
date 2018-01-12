@@ -74,8 +74,7 @@
         </MenuItem>
       </Menu>
     </DockPanel>
-    <player:PlaybackPanel x:Name="playbackPanel"
-                          DockPanel.Dock="Bottom"/>
+    <player:PlaybackPanel x:Name="playbackPanel" DockPanel.Dock="Bottom"/>
     <Grid>
       <Grid.Resources >
         <Style TargetType="Border" >
@@ -87,9 +86,11 @@
         <ColumnDefinition Width="5"/>
         <ColumnDefinition />
       </Grid.ColumnDefinitions>
-      <playlist:PlaylistControl x:Name="playlistControl" Grid.Column="0" Grid.Row="0"
-                                TinyViewerPressed="Menu_CondensedView"
-                                d:DataContext="{d:DesignInstance Type=playlist:MockPlaylistViewModel, IsDesignTimeCreatable=True}"/>
+      <DockPanel Grid.Column="0" Grid.Row="0">
+        <playlist:PlaylistToolBar x:Name="playlistToolbar" DockPanel.Dock="Top" TinyViewerPressed="Menu_CondensedView"/>
+        <playlist:PlaylistControl d:DataContext="{d:DesignInstance Type=playlist:MockPlaylistViewModel,
+                                    IsDesignTimeCreatable=True}"/>
+      </DockPanel>
       <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
       <library:LibraryControl x:Name="libraryControl" Grid.Column="2"
                               ContextMenu_MultiEdit="Library_Request_Edit"
