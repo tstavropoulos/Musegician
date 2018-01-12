@@ -4,6 +4,8 @@ Pronouced like a portmanteau of Magician and Musician - Musegician was designed 
 
 The goal of this project is to provide a relatively lightweight and zippy musicplayer with more intelligent playlists.  Where appropriate and discernable, live recordings will end up nested under their associated studio recording, and the "song" itself is added to playlists.  There will be a modifiable, global probability when playing a given song that a live recording will be substituted in its place, and this weighting value will be individually modifiable.  Additionally, songs themselves will have modifiable global- and playlist-specific weights allowing you to tune the distributions without needing to actually cull songs from your music collection.
 
+If you're interested in giving it a try, just grab it from [The Releases Page](https://github.com/tstavropoulos/Musegician/releases).  Unfortunately, because of the framework it was developed in, only Windows is supported at this time.
+
 This scheme implicitly depends on good quality metadata tags, and as such I am working on a good scheme for updating them.
 
 ## Features
