@@ -162,7 +162,9 @@ namespace Musegician.Library
         public virtual bool NameContainsText(string text)
         {
             if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(Name))
+            {
                 return false;
+            }
 
             return Name.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
         }

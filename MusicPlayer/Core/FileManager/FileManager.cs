@@ -187,7 +187,8 @@ namespace Musegician
                 dbConnection: dbConnection,
                 artistCommands: artistCommands,
                 trackCommands: trackCommands,
-                recordingCommands: recordingCommands);
+                recordingCommands: recordingCommands,
+                playlistCommands: playlistCommands);
 
             albumCommands.Initialize(
                 dbConnection: dbConnection,
@@ -557,6 +558,7 @@ namespace Musegician
 
                 newRecords.art.Add(new ArtData()
                 {
+                    albumArtID = albumCommands.NextAlbumArtID,
                     albumID = albumID,
                     image = file.Tag.Pictures[0].Data.Data
                 });

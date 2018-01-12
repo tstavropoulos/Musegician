@@ -64,7 +64,9 @@ namespace Musegician.Library
         public override bool NameContainsText(string text)
         {
             if (String.IsNullOrEmpty(text) || String.IsNullOrEmpty(SearchableName))
+            {
                 return false;
+            }
 
             return SearchableName.IndexOf(text, StringComparison.InvariantCultureIgnoreCase) > -1;
         }

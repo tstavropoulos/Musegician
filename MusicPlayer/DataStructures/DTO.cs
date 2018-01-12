@@ -14,8 +14,25 @@ namespace Musegician.DataStructures
             get { return _children; }
         }
 
-        public string Name { get; set; }
-        public long ID { get; set; }
+        private string _name;
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                _name = value;
+            }
+        }
+
+        private long _id;
+        public long ID
+        {
+            get { return _id; }
+            set
+            {
+                _id = value;
+            }
+        }
 
         private double _weight = double.NaN;
         public double Weight

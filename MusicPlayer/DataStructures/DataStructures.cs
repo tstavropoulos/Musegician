@@ -22,6 +22,7 @@ namespace Musegician.DataStructures
 
     public struct ArtData
     {
+        public long albumArtID;
         public long albumID;
         public byte[] image;
     }

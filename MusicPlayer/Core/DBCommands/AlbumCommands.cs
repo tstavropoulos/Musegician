@@ -31,6 +31,12 @@ namespace Musegician.Core.DBCommands
             get { return ++_lastIDAssigned; }
         }
 
+        private long _lastAlbumArtIDAssigned = 0;
+        public long NextAlbumArtID
+        {
+            get { return ++_lastAlbumArtIDAssigned; }
+        }
+
         public AlbumCommands()
         {
         }
@@ -63,7 +69,7 @@ namespace Musegician.Core.DBCommands
             SQLiteCommand readAlbums = dbConnection.CreateCommand();
             readAlbums.CommandType = System.Data.CommandType.Text;
             readAlbums.CommandText =
-                "SELECT id, title, year " +
+                "SELECT id, title, year, weight " +
                 "FROM album " +
                 "WHERE id IN ( " +
                     "SELECT track.album_id " +
@@ -79,13 +85,20 @@ namespace Musegician.Core.DBCommands
                 {
                     long albumID = (long)reader["id"];
 
+                    double weight = double.NaN;
+                    if (reader["weight"].GetType() != typeof(DBNull))
+                    {
+                        weight = (double)reader["weight"];
+                    }
+
                     albumList.Add(new AlbumDTO(
                         albumID: albumID,
                         albumTitle: String.Format(
                             "{0} ({1})",
                             (string)reader["title"],
                             ((long)reader["year"]).ToString()),
-                        albumArt: LoadImage(_GetArt(albumID))));
+                        albumArt: LoadImage(_GetArt(albumID)))
+                    { Weight= weight });
                 }
             }
 
@@ -308,9 +321,9 @@ namespace Musegician.Core.DBCommands
             SQLiteCommand updateWeight = dbConnection.CreateCommand();
             updateWeight.CommandType = System.Data.CommandType.Text;
             updateWeight.CommandText =
-                "INSERT OR REPLACE INTO album_weight " +
-                "(album_id, weight) VALUES " +
-                "(@albumID, @weight);";
+                "UPDATE album " +
+                    "SET weight=@weight " +
+                    "WHERE album.id=@albumID;";
 
             updateWeight.Parameters.Add("@albumID", DbType.Int64);
             updateWeight.Parameters.Add("@weight", DbType.Double);
@@ -318,7 +331,8 @@ namespace Musegician.Core.DBCommands
             foreach(var value in values)
             {
                 updateWeight.Parameters["@albumID"].Value = value.albumID;
-                updateWeight.Parameters["@weight"].Value = value.weight;
+                updateWeight.Parameters["@weight"].Value = 
+                    double.IsNaN(value.weight) ? null : (object)value.weight;
                 updateWeight.ExecuteNonQuery();
             }
 
@@ -342,7 +356,7 @@ namespace Musegician.Core.DBCommands
                     oldAlbumIDs: albumIDsCopy);
 
                 _DeleteAlbumID(
-                    updateTransaction: transaction,
+                    transaction: transaction,
                     albumIDs: albumIDsCopy);
 
                 transaction.Commit();
@@ -364,7 +378,7 @@ namespace Musegician.Core.DBCommands
             getAlbumArt.Parameters.Add(new SQLiteParameter("@albumID", albumID));
             getAlbumArt.CommandText =
                 "SELECT image " +
-                "FROM art " +
+                "FROM album_art " +
                 "WHERE album_id=@albumID;";
 
             using (SQLiteDataReader reader = getAlbumArt.ExecuteReader())
@@ -512,6 +526,22 @@ namespace Musegician.Core.DBCommands
                     _lastIDAssigned = (long)reader["id"];
                 }
             }
+
+            SQLiteCommand loadAlbumArt = dbConnection.CreateCommand();
+            loadAlbumArt.CommandType = System.Data.CommandType.Text;
+            loadAlbumArt.CommandText =
+                "SELECT id " +
+                "FROM album_art " +
+                "ORDER BY id DESC " +
+                "LIMIT 1;";
+
+            using (SQLiteDataReader reader = loadAlbumArt.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    _lastAlbumArtIDAssigned = (long)reader["id"];
+                }
+            }
         }
 
         #endregion Initialization Commands
@@ -556,7 +586,7 @@ namespace Musegician.Core.DBCommands
             loadAlbumArt.CommandType = System.Data.CommandType.Text;
             loadAlbumArt.CommandText =
                 "SELECT album_id " +
-                "FROM art; ";
+                "FROM album_art; ";
 
             using (SQLiteDataReader reader = loadAlbumArt.ExecuteReader())
             {
@@ -576,12 +606,12 @@ namespace Musegician.Core.DBCommands
         #region Update Commands
 
         public void _UpdateAlbumTitle_ByAlbumID(
-            SQLiteTransaction updateTransaction,
+            SQLiteTransaction transaction,
             long albumID,
             string albumTitle)
         {
             SQLiteCommand updateAlbumTitle_ByAlbumID = dbConnection.CreateCommand();
-            updateAlbumTitle_ByAlbumID.Transaction = updateTransaction;
+            updateAlbumTitle_ByAlbumID.Transaction = transaction;
             updateAlbumTitle_ByAlbumID.CommandType = System.Data.CommandType.Text;
             updateAlbumTitle_ByAlbumID.Parameters.Add(new SQLiteParameter("@albumTitle", albumTitle));
             updateAlbumTitle_ByAlbumID.Parameters.Add(new SQLiteParameter("@albumID", albumID));
@@ -616,24 +646,17 @@ namespace Musegician.Core.DBCommands
                 "CREATE TABLE IF NOT EXISTS album (" +
                     "id INTEGER PRIMARY KEY, " +
                     "title TEXT, " +
-                    "year INTEGER);";
-            createAlbumTable.ExecuteNonQuery();
-
-            SQLiteCommand createWeightTable = dbConnection.CreateCommand();
-            createWeightTable.Transaction = transaction;
-            createWeightTable.CommandType = System.Data.CommandType.Text;
-            createWeightTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS album_weight (" +
-                    "album_id INTEGER PRIMARY KEY, " +
+                    "year INTEGER, " +
                     "weight REAL);";
-            createWeightTable.ExecuteNonQuery();
+            createAlbumTable.ExecuteNonQuery();
 
             SQLiteCommand createArtTable = dbConnection.CreateCommand();
             createArtTable.Transaction = transaction;
             createArtTable.CommandType = System.Data.CommandType.Text;
             createArtTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS art (" +
-                    "album_id INTEGER PRIMARY KEY, " +
+                "CREATE TABLE IF NOT EXISTS album_art (" +
+                    "id INTEGER PRIMARY KEY, " +
+                    "album_id INTEGER REFERENCES album, " +
                     "image BLOB);";
             createArtTable.ExecuteNonQuery();
         }
@@ -644,7 +667,8 @@ namespace Musegician.Core.DBCommands
         public long _CreateAlbum(
             SQLiteTransaction transaction,
             string albumTitle,
-            long albumYear = 0)
+            long albumYear = 0,
+            double albumWeight = double.NaN)
         {
             long albumID = NextID;
 
@@ -653,11 +677,13 @@ namespace Musegician.Core.DBCommands
             writeAlbum.CommandType = System.Data.CommandType.Text;
             writeAlbum.CommandText =
                 "INSERT INTO album " +
-                    "(id, title, year) VALUES " +
-                    "(@albumID, @albumTitle, @albumYear);";
+                    "(id, title, year, weight) VALUES " +
+                    "(@albumID, @albumTitle, @albumYear, @albumWeight);";
             writeAlbum.Parameters.Add(new SQLiteParameter("@albumID", albumID));
             writeAlbum.Parameters.Add(new SQLiteParameter("@albumTitle", albumTitle));
             writeAlbum.Parameters.Add(new SQLiteParameter("@albumYear", albumYear));
+            writeAlbum.Parameters.Add("@albumWeight", DbType.Double);
+            writeAlbum.Parameters["@albumWeight"].Value = double.IsNaN(albumWeight) ? null : (object)albumWeight;
             writeAlbum.ExecuteNonQuery();
 
             return albumID;
@@ -668,13 +694,16 @@ namespace Musegician.Core.DBCommands
             long albumID,
             byte[] imageData)
         {
+            long albumArtID = NextAlbumArtID;
+
             SQLiteCommand writeArt = dbConnection.CreateCommand();
             writeArt.Transaction = transaction;
             writeArt.CommandType = System.Data.CommandType.Text;
             writeArt.CommandText =
-                "INSERT OR REPLACE INTO art " +
-                    "(album_id, image) VALUES " +
-                    "(@albumID, @image);";
+                "INSERT OR REPLACE INTO album_art " +
+                    "(id, album_id, image) VALUES " +
+                    "(@albumArtID, @albumID, @image);";
+            writeArt.Parameters.Add(new SQLiteParameter("@albumArtID", albumArtID));
             writeArt.Parameters.Add(new SQLiteParameter("@albumID", albumID));
             writeArt.Parameters.Add(new SQLiteParameter("@image", imageData));
             
@@ -690,18 +719,19 @@ namespace Musegician.Core.DBCommands
             writeAlbum.CommandType = System.Data.CommandType.Text;
             writeAlbum.CommandText =
                 "INSERT INTO album " +
-                    "(id, title, year) VALUES " +
-                    "(@albumID, @albumTitle, @albumYear);";
+                    "(id, title, year, weight) VALUES " +
+                    "(@albumID, @albumTitle, @albumYear, @albumWeight);";
             writeAlbum.Parameters.Add("@albumID", DbType.Int64);
             writeAlbum.Parameters.Add("@albumTitle", DbType.String);
             writeAlbum.Parameters.Add("@albumYear", DbType.Int64);
-            writeAlbum.Parameters.Add("@albumArtFilename", DbType.String);
+            writeAlbum.Parameters.Add("@albumWeight", DbType.Double);
 
             foreach (AlbumData album in newAlbumRecords)
             {
                 writeAlbum.Parameters["@albumID"].Value = album.albumID;
                 writeAlbum.Parameters["@albumTitle"].Value = album.albumTitle;
                 writeAlbum.Parameters["@albumYear"].Value = album.albumYear;
+                writeAlbum.Parameters["@albumWeight"].Value = null;
                 writeAlbum.ExecuteNonQuery();
             }
         }
@@ -714,14 +744,16 @@ namespace Musegician.Core.DBCommands
             writeArt.Transaction = transaction;
             writeArt.CommandType = System.Data.CommandType.Text;
             writeArt.CommandText =
-                "INSERT INTO art " +
-                    "(album_id, image) VALUES " +
-                    "(@albumID, @image);";
+                "INSERT INTO album_art " +
+                    "(id, album_id, image) VALUES " +
+                    "(@albumArtID, @albumID, @image);";
+            writeArt.Parameters.Add("@albumArtID", DbType.Int64);
             writeArt.Parameters.Add("@albumID", DbType.Int64);
             writeArt.Parameters.Add("@image", DbType.Binary);
 
             foreach (ArtData art in newArtRecords)
             {
+                writeArt.Parameters["@albumArtID"].Value = art.albumArtID;
                 writeArt.Parameters["@albumID"].Value = art.albumID;
                 writeArt.Parameters["@image"].Value = art.image;
                 writeArt.ExecuteNonQuery();
@@ -741,54 +773,36 @@ namespace Musegician.Core.DBCommands
                 "DROP TABLE IF EXISTS album;";
             dropAlbumTable.ExecuteNonQuery();
 
-            SQLiteCommand dropAlbumWeightTable = dbConnection.CreateCommand();
-            dropAlbumWeightTable.Transaction = transaction;
-            dropAlbumWeightTable.CommandType = System.Data.CommandType.Text;
-            dropAlbumWeightTable.CommandText =
-                "DROP TABLE IF EXISTS album_weight;";
-            dropAlbumWeightTable.ExecuteNonQuery();
-
             SQLiteCommand dropAlbumArtTable = dbConnection.CreateCommand();
             dropAlbumArtTable.Transaction = transaction;
             dropAlbumArtTable.CommandType = System.Data.CommandType.Text;
             dropAlbumArtTable.CommandText =
-                "DROP TABLE IF EXISTS art;";
+                "DROP TABLE IF EXISTS album_art;";
             dropAlbumArtTable.ExecuteNonQuery();
         }
 
         public void _DeleteAlbumID(
-            SQLiteTransaction updateTransaction,
+            SQLiteTransaction transaction,
             ICollection<long> albumIDs)
         {
             SQLiteCommand deleteAlbum_ByAlbumID = dbConnection.CreateCommand();
-            deleteAlbum_ByAlbumID.Transaction = updateTransaction;
+            deleteAlbum_ByAlbumID.Transaction = transaction;
             deleteAlbum_ByAlbumID.CommandType = System.Data.CommandType.Text;
             deleteAlbum_ByAlbumID.Parameters.Add("@albumID", DbType.Int64);
             deleteAlbum_ByAlbumID.CommandText =
                 "DELETE FROM album " +
                 "WHERE album.id=@albumID;";
 
-            SQLiteCommand deleteAlbumWeight_ByAlbumID = dbConnection.CreateCommand();
-            deleteAlbumWeight_ByAlbumID.Transaction = updateTransaction;
-            deleteAlbumWeight_ByAlbumID.CommandType = System.Data.CommandType.Text;
-            deleteAlbumWeight_ByAlbumID.Parameters.Add("@albumID", DbType.Int64);
-            deleteAlbumWeight_ByAlbumID.CommandText =
-                "DELETE FROM album_weight " +
-                "WHERE album_id=@albumID;";
-
             SQLiteCommand deleteAlbumArt_ByAlbumID = dbConnection.CreateCommand();
-            deleteAlbumArt_ByAlbumID.Transaction = updateTransaction;
+            deleteAlbumArt_ByAlbumID.Transaction = transaction;
             deleteAlbumArt_ByAlbumID.CommandType = System.Data.CommandType.Text;
             deleteAlbumArt_ByAlbumID.Parameters.Add("@albumID", DbType.Int64);
             deleteAlbumArt_ByAlbumID.CommandText =
-                "DELETE FROM art " +
+                "DELETE FROM album_art " +
                 "WHERE album_id=@albumID;";
 
             foreach (long id in albumIDs)
             {
-                deleteAlbumWeight_ByAlbumID.Parameters["@albumID"].Value = id;
-                deleteAlbumWeight_ByAlbumID.ExecuteNonQuery();
-
                 deleteAlbum_ByAlbumID.Parameters["@albumID"].Value = id;
                 deleteAlbum_ByAlbumID.ExecuteNonQuery();
 

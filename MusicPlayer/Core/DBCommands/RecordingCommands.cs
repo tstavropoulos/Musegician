@@ -699,8 +699,8 @@ namespace Musegician.Core.DBCommands
             createRecordingTable.CommandText =
                 "CREATE TABLE IF NOT EXISTS recording (" +
                     "id INTEGER PRIMARY KEY, " +
-                    "artist_id INTEGER references artist, " +
-                    "song_id INTEGER references song, " +
+                    "artist_id INTEGER REFERENCES artist, " +
+                    "song_id INTEGER REFERENCES song, " +
                     "filename TEXT, " +
                     "live BOOLEAN);";
             createRecordingTable.ExecuteNonQuery();
@@ -794,11 +794,11 @@ namespace Musegician.Core.DBCommands
         }
 
         public void _DeleteRecordingID(
-            SQLiteTransaction updateTransaction,
+            SQLiteTransaction transaction,
             ICollection<long> recordingIDs)
         {
             SQLiteCommand deleteRecording_ByRecordingID = dbConnection.CreateCommand();
-            deleteRecording_ByRecordingID.Transaction = updateTransaction;
+            deleteRecording_ByRecordingID.Transaction = transaction;
             deleteRecording_ByRecordingID.CommandType = System.Data.CommandType.Text;
             deleteRecording_ByRecordingID.Parameters.Add("@recordingID", DbType.Int64);
             deleteRecording_ByRecordingID.CommandText =

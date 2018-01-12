@@ -15,6 +15,7 @@ namespace Musegician.Core.DBCommands
         ArtistCommands artistCommands = null;
         TrackCommands trackCommands = null;
         RecordingCommands recordingCommands = null;
+        PlaylistCommands playlistCommands = null;
 
         SQLiteConnection dbConnection;
 
@@ -32,13 +33,15 @@ namespace Musegician.Core.DBCommands
             SQLiteConnection dbConnection,
             ArtistCommands artistCommands,
             TrackCommands trackCommands,
-            RecordingCommands recordingCommands)
+            RecordingCommands recordingCommands,
+            PlaylistCommands playlistCommands)
         {
             this.dbConnection = dbConnection;
 
             this.artistCommands = artistCommands;
             this.trackCommands = trackCommands;
             this.recordingCommands = recordingCommands;
+            this.playlistCommands = playlistCommands;
 
             _lastIDAssigned = 0;
         }
@@ -84,7 +87,7 @@ namespace Musegician.Core.DBCommands
                     //New song did exist, or we passed in more than one song
 
                     //Update track table to point at new song
-                    _UpdateSongID_ForeignKeys(
+                    _UpdateForeignKeys(
                         transaction: updateSongTitles,
                         newSongID: songID,
                         oldSongIDs: songIDsCopy);
@@ -238,6 +241,32 @@ namespace Musegician.Core.DBCommands
             dbConnection.Close();
 
             return targets;
+        }
+
+        public void Merge(IEnumerable<long> ids)
+        {
+            List<long> songIDsCopy = new List<long>(ids);
+
+            long songID = songIDsCopy[0];
+            songIDsCopy.RemoveAt(0);
+
+            dbConnection.Open();
+
+            using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
+            {
+                _UpdateForeignKeys(
+                    transaction: transaction,
+                    newSongID: songID,
+                    oldSongIDs: songIDsCopy);
+
+                _DeleteSongID(
+                    transaction: transaction,
+                    songIDs: songIDsCopy);
+
+                transaction.Commit();
+            }
+
+            dbConnection.Close();
         }
 
         #endregion High Level Commands
@@ -503,12 +532,18 @@ namespace Musegician.Core.DBCommands
             updateSongTitle_BySongID.ExecuteNonQuery();
         }
 
-        public void _UpdateSongID_ForeignKeys(
+        public void _UpdateForeignKeys(
             SQLiteTransaction transaction,
             long newSongID,
             ICollection<long> oldSongIDs)
         {
             recordingCommands._RemapSongID(
+                transaction: transaction,
+                newSongID: newSongID,
+                oldSongIDs: oldSongIDs);
+
+            //Update Playlist keys
+            playlistCommands._RemapSongID(
                 transaction: transaction,
                 newSongID: newSongID,
                 oldSongIDs: oldSongIDs);
@@ -615,6 +650,7 @@ namespace Musegician.Core.DBCommands
             SQLiteTransaction transaction,
             ICollection<long> songIDs)
         {
+
             SQLiteCommand deleteSong_BySongID = dbConnection.CreateCommand();
             deleteSong_BySongID.Transaction = transaction;
             deleteSong_BySongID.CommandType = System.Data.CommandType.Text;
@@ -622,10 +658,22 @@ namespace Musegician.Core.DBCommands
             deleteSong_BySongID.CommandText =
                 "DELETE FROM song " +
                 "WHERE id=@songID;";
+
+            SQLiteCommand deleteSongWeight_BySongID = dbConnection.CreateCommand();
+            deleteSongWeight_BySongID.Transaction = transaction;
+            deleteSongWeight_BySongID.CommandType = System.Data.CommandType.Text;
+            deleteSongWeight_BySongID.Parameters.Add("@songID", DbType.Int64);
+            deleteSongWeight_BySongID.CommandText =
+                "DELETE FROM song_weight " +
+                "WHERE song_id=@songID;";
+
             foreach (long id in songIDs)
             {
                 deleteSong_BySongID.Parameters["@songID"].Value = id;
                 deleteSong_BySongID.ExecuteNonQuery();
+
+                deleteSongWeight_BySongID.Parameters["@songID"].Value = id;
+                deleteSongWeight_BySongID.ExecuteNonQuery();
             }
         }
 

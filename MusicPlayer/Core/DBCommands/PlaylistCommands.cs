@@ -106,9 +106,10 @@ namespace Musegician.Core.DBCommands
 
                     SongDTO newPlaylistSong = new SongDTO(
                         songID: (long)reader["song_id"],
-                        title: (string)reader["title"]);
-
-                    newPlaylistSong.Weight = (double)reader["weight"];
+                        title: (string)reader["title"])
+                    {
+                        Weight = (double)reader["weight"]
+                    };
 
                     foreach (RecordingDTO recording in _LoadPlaylistRecordings(playlistSongID))
                     {
@@ -364,6 +365,28 @@ namespace Musegician.Core.DBCommands
 
         #endregion Lookup Commands
         #region Update Commands
+
+        public void _RemapSongID(
+            SQLiteTransaction transaction,
+            long newSongID,
+            ICollection<long> oldSongIDs)
+        {
+            SQLiteCommand remapSongID = dbConnection.CreateCommand();
+            remapSongID.Transaction = transaction;
+            remapSongID.CommandType = System.Data.CommandType.Text;
+            remapSongID.Parameters.Add(new SQLiteParameter("@newSongID", newSongID));
+            remapSongID.Parameters.Add("@oldSongID", DbType.Int64);
+            remapSongID.CommandText =
+                "UPDATE playlist_songs " +
+                    "SET song_id=@newSongID " +
+                    "WHERE song_id=@oldSongID;";
+            foreach (long id in oldSongIDs)
+            {
+                remapSongID.Parameters["@oldSongID"].Value = id;
+                remapSongID.ExecuteNonQuery();
+            }
+        }
+
         #endregion Update Commands
         #region Create Commands
 

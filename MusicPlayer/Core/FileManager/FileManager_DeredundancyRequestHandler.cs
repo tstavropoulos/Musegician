@@ -38,7 +38,7 @@ namespace Musegician
 
         void IDeredundancyRequestHandler.MergeSongs(IEnumerable<long> ids)
         {
-            throw new NotImplementedException();
+            songCommands.Merge(ids);
         }
 
         void IDeredundancyRequestHandler.PushChanges()

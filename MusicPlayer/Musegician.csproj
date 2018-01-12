@@ -144,6 +144,7 @@
     <Compile Include="Core\KeyboardHook.cs" />
     <Compile Include="Core\MathExtension.cs" />
     <Compile Include="Core\OSInterop.cs" />
+    <Compile Include="Core\PropertyObserver.cs" />
     <Compile Include="Core\RingBuffer.cs" />
     <Compile Include="Core\TwoValueVisualizerSlider.cs" />
     <Compile Include="Core\WeightBar.xaml.cs">
