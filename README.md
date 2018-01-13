@@ -13,10 +13,10 @@ This scheme implicitly depends on good quality metadata tags, and as such I am w
 Musegician is currently a full-featured MP3 player with several possible views.
 
 The Classic Library and Playlist browser...  
-![Classic Simple Screenshot](README_Screenshots/Classic_Simple.PNG)
+![Classic Simple Screenshot](README_Screenshots/ClassicSimple.gif)
 
 And an always-on-top Tiny Player.  
-![Tiny Player](README_Screenshots/tinyplayer.PNG)
+![Tiny Player](README_Screenshots/TinyPlayer.gif)
 
 You should be able to use the media buttons on your keyboard to manipulate the playing track.  The classic player also allows you to look at your library without showing the albums, or even a view that just lists all of your albums.
 
@@ -45,13 +45,14 @@ You can Load Playlists...
 and Save Playlists.  
 ![Save Playlists](README_Screenshots/SavePlaylist.png)
 
+The TinyPlayer now even features access to the playlist!  
+![TinyPlayer Playlists](README_Screenshots/TinyPlaylist.gif)
+
+
 ### Playback
 
 Built into the player is an Equalizer.  
-![Equalizer](README_Screenshots/Equalizer.png)
-
-Both windows also have a live spectral power display.  
-![Power Display](README_Screenshots/Equalizer.gif)
+![Equalizer](README_Screenshots/Equalizer.gif)
 
 ### Installer
 
