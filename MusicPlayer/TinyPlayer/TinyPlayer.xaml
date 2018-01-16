@@ -66,7 +66,7 @@
     <DockPanel Margin="0" ClipToBounds="True">
       <DockPanel x:Name="UpperControls" DockPanel.Dock="Top" Background="{StaticResource DarkInsetPanel}">
         <DockPanel.RenderTransform>
-          <TranslateTransform Y="-50"/>
+          <TranslateTransform/>
         </DockPanel.RenderTransform>
         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="1,2,0,2">
           <ToggleButton x:Name="OptionToggleButton" ToolTip="Playlist Options" Margin="1,2,0,2"

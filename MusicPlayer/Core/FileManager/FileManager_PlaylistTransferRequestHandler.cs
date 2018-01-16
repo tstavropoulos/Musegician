@@ -131,13 +131,13 @@ namespace Musegician
 
                     if (deep)
                     {
-                        playlistName = artistCommands._GetPlaylistSongName(
-                            artistID: artistID,
+                        playlistName = songCommands._GetPlaylistSongName(
                             songID: songID);
                     }
                     else
                     {
-                        playlistName = songCommands._GetPlaylistSongName(
+                        playlistName = artistCommands._GetPlaylistSongName(
+                            artistID: artistID,
                             songID: songID);
                     }
 
@@ -156,7 +156,7 @@ namespace Musegician
 
                     foreach (RecordingDTO recording in GetRecordingList(
                             songID: songID,
-                            exclusiveArtistID: deep ? artistID : -1))
+                            exclusiveArtistID: deep ? -1 : artistID))
                     {
                         newSong.Children.Add(recording);
                     }
