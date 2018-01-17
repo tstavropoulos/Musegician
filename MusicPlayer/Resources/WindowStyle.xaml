@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary x:Class="Musegician.WindowStyle"
                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:core="clr-namespace:Musegician.Core"
                     xmlns:player="clr-namespace:Musegician.Player">
   <Style x:Key="ChromeButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
     <Setter Property="Background" Value="Transparent"/>
@@ -97,9 +98,10 @@
               <StackPanel Orientation="Horizontal" >
                 <Image Margin="5,2,6,4" Source="{TemplateBinding Icon}"/>
               </StackPanel>
-              <TextBlock Grid.Column="1" Margin="5,0,0,0"
-                         VerticalAlignment="Center" HorizontalAlignment="Center"
-                         FontSize="16" Foreground="White" Text="{Binding Source={x:Static player:MusicManager.Instance}, Path=SongLabel}"/>
+              <core:MarqueeControl Grid.Column="1" Margin="5,0,0,0" ClipToBounds="True"
+                                   VerticalAlignment="Center" HorizontalAlignment="Center"
+                                   FontSize="16" Foreground="White"
+                                   Content="{Binding Source={x:Static player:MusicManager.Instance}, Path=SongLabel}"/>
               <StackPanel Orientation="Horizontal" Grid.Column="2">
                 <Button x:Name="btnMinimize" WindowChrome.IsHitTestVisibleInChrome="True"
                         VerticalContentAlignment="Bottom" Style="{StaticResource ChromeButtonStyle}"

@@ -591,4 +591,35 @@
 
   <!--#endregion-->
 
+
+  <Style TargetType="{x:Type core:MarqueeControl}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type core:MarqueeControl}">
+          <Canvas x:Name="PART_ContentControl" 
+                            HorizontalAlignment="Stretch" 
+                            VerticalAlignment="Stretch" 
+                            Width="{TemplateBinding Width}" 
+                            Height="{TemplateBinding Height}"
+                            Background="{TemplateBinding Background}">
+            <Canvas.Triggers>
+              <EventTrigger RoutedEvent="Canvas.Loaded">
+                <BeginStoryboard>
+                  <Storyboard x:Name="ContentTickerStoryboard" Storyboard.TargetProperty="(Canvas.Left)">
+                    <DoubleAnimation Storyboard.TargetName="PART_Content" RepeatBehavior="Forever" />
+                  </Storyboard>
+                </BeginStoryboard>
+              </EventTrigger>
+            </Canvas.Triggers>
+            <ContentPresenter x:Name="PART_Content" 
+                              HorizontalAlignment="{TemplateBinding ContentControl.HorizontalAlignment}"
+                              VerticalAlignment="{TemplateBinding ContentControl.VerticalAlignment}"
+                              Content="{TemplateBinding ContentControl.Content}"
+                              ContentTemplate="{TemplateBinding ContentControl.ContentTemplate}" />
+          </Canvas>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
 </ResourceDictionary>

@@ -142,6 +142,9 @@
     <Compile Include="Core\FileManager\FileManager_PlaylistTransferRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_TagRequestHandler.cs" />
     <Compile Include="Core\KeyboardHook.cs" />
+    <Compile Include="Core\MarqueeControl.xaml.cs">
+      <DependentUpon>MarqueeControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Core\MathExtension.cs" />
     <Compile Include="Core\OSInterop.cs" />
     <Compile Include="Core\PropertyObserver.cs" />
@@ -242,6 +245,10 @@
     <Compile Include="TinyPlayer\TinyPlayer.xaml.cs">
       <DependentUpon>TinyPlayer.xaml</DependentUpon>
     </Compile>
+    <Page Include="Core\MarqueeControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Core\MultiSelectTree.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
