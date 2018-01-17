@@ -100,7 +100,7 @@
               </StackPanel>
               <core:MarqueeControl Grid.Column="1" Margin="5,0,0,0" ClipToBounds="True"
                                    VerticalAlignment="Center" HorizontalAlignment="Center"
-                                   FontSize="16" Foreground="White"
+                                   FontSize="16" Foreground="White" Rate="10"
                                    Content="{Binding Source={x:Static player:MusicManager.Instance}, Path=SongLabel}"/>
               <StackPanel Orientation="Horizontal" Grid.Column="2">
                 <Button x:Name="btnMinimize" WindowChrome.IsHitTestVisibleInChrome="True"

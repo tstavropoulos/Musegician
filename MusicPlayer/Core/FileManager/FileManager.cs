@@ -20,7 +20,7 @@ namespace Musegician
 
     public partial class FileManager
     {
-        private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3" };
+        private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3", "*.flac", "*.ogg" };
         private readonly string[] songNameDelimiter = new string[] { " - " };
 
         private const string livePatternA = @"(\s*?[\(\[][Ll]ive.*?[\)\]])";
@@ -395,21 +395,13 @@ namespace Musegician
                 return;
             }
 
-            var musicFile = file as TagLib.Mpeg.AudioFile;
-            if (musicFile == null)
-            {
-                Console.WriteLine("NOT AN MPEG FILE: " + path);
-                Console.WriteLine(String.Empty);
-                Console.WriteLine("---------------------------------------");
-                Console.WriteLine(String.Empty);
-                return;
-            }
+            TagLib.Tag tag = file.Tag;
 
             //Handle Artist
             string artistName = "UNDEFINED";
-            if (!string.IsNullOrEmpty(musicFile.Tag.JoinedPerformers))
+            if (!string.IsNullOrEmpty(tag.JoinedPerformers))
             {
-                artistName = musicFile.Tag.JoinedPerformers;
+                artistName = tag.JoinedPerformers;
             }
 
             long artistID = -1;
@@ -430,9 +422,9 @@ namespace Musegician
             }
 
             string songTitle = "UNDEFINED";
-            if (!string.IsNullOrEmpty(musicFile.Tag.Title))
+            if (!string.IsNullOrEmpty(tag.Title))
             {
-                songTitle = musicFile.Tag.Title;
+                songTitle = tag.Title;
             }
             else
             {
@@ -459,15 +451,15 @@ namespace Musegician
             }
 
             string albumTitle = "UNDEFINED";
-            if (!string.IsNullOrEmpty(musicFile.Tag.Album))
+            if (!string.IsNullOrEmpty(tag.Album))
             {
-                albumTitle = musicFile.Tag.Album;
+                albumTitle = tag.Album;
             }
 
             long discNumber = 1;
-            if (musicFile.Tag.Disc != 0)
+            if (tag.Disc != 0)
             {
-                discNumber = musicFile.Tag.Disc;
+                discNumber = tag.Disc;
             }
 
             //Copy the track title before we gut it
@@ -548,11 +540,11 @@ namespace Musegician
                 {
                     albumID = albumID,
                     albumTitle = albumTitle,
-                    albumYear = musicFile.Tag.Year
+                    albumYear = tag.Year
                 });
             }
 
-            if (musicFile.Tag.Pictures.Length > 0 && !lookups.loadedAlbumArt.Contains(albumID))
+            if (tag.Pictures.Length > 0 && !lookups.loadedAlbumArt.Contains(albumID))
             {
                 lookups.loadedAlbumArt.Add(albumID);
 
@@ -582,7 +574,7 @@ namespace Musegician
                 albumID = albumID,
                 recordingID = recordingID,
                 trackTitle = trackTitle,
-                trackNumber = musicFile.Tag.Track,
+                trackNumber = tag.Track,
                 discNumber = discNumber
             });
         }

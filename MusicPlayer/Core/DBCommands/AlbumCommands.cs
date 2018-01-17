@@ -882,13 +882,8 @@ namespace Musegician.Core.DBCommands
                     string albumTitle = ((string)reader["title"]).ToLowerInvariant();
                     string filename = (string)reader["filename"];
 
-                    TagLib.Mpeg.AudioFile audioFile = TagLib.File.Create(filename) as TagLib.Mpeg.AudioFile;
 
-                    if (audioFile == null)
-                    {
-                        Console.WriteLine("Unable to open file: " + filename);
-                        continue;
-                    }
+                    TagLib.File audioFile = TagLib.File.Create(filename);
 
                     string tagName = audioFile.Tag.Album.ToLowerInvariant();
 
@@ -900,6 +895,7 @@ namespace Musegician.Core.DBCommands
 
                     audioFile.Tag.Pictures = new IPicture[1] { new Picture(imageData) };
                     audioFile.Save();
+
                     break;
                 }
             }
