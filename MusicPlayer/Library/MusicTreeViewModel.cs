@@ -23,6 +23,9 @@ namespace Musegician.Library
         readonly ObservableCollection<LibraryViewModel> _albumViewModels =
             new ObservableCollection<LibraryViewModel>();
 
+        readonly ObservableCollection<LibraryViewModel> _directoryViewModels =
+            new ObservableCollection<LibraryViewModel>();
+
         readonly ICommand _searchCommand = new SearchMusicTreeCommand(null);
 
         IEnumerator<LibraryViewModel> _matchingRecordEnumerator;
@@ -31,6 +34,9 @@ namespace Musegician.Library
         bool classicLoaded = false;
         bool simpleLoaded = false;
         bool albumLoaded = false;
+        bool directoryLoaded = false;
+
+        Playlist.LookupEventArgs lastLookupArgs = null;
 
         #endregion Data
         #region Engine References
@@ -101,6 +107,18 @@ namespace Musegician.Library
 
                     }
                     break;
+                case ViewMode.Directory:
+                    if (!directoryLoaded)
+                    {
+                        directoryLoaded = true;
+                        _directoryViewModels.Clear();
+
+                        foreach (DirectoryDTO directory in requestHandler.GetDirectories(""))
+                        {
+                            _directoryViewModels.Add(new DirectoryViewModel(directory, null));
+                        }
+                    }
+                    break;
                 case ViewMode.MAX:
                 default:
                     throw new Exception("Unexpected ViewMode: " + mode);
@@ -130,8 +148,12 @@ namespace Musegician.Library
             get { return _simpleArtistViewModels; }
         }
 
-        #endregion ArtistViewModels
+        public ObservableCollection<LibraryViewModel> DirectoryViewModels
+        {
+            get { return _directoryViewModels; }
+        }
 
+        #endregion ArtistViewModels
         #region SearchCommand
 
         private SearchChoices _searchChoice = SearchChoices.All;
@@ -148,6 +170,7 @@ namespace Musegician.Library
                     _searchChoice = value;
                     //Clear the ongoing search
                     _matchingRecordEnumerator = null;
+                    lastLookupArgs = null;
 
                     OnPropertyChanged("SearchChoice");
                 }
@@ -188,6 +211,9 @@ namespace Musegician.Library
                             {
                                 SearchChoice = SearchChoices.All;
                             }
+                            break;
+                        case ViewMode.Directory:
+                            SearchChoice = SearchChoices.All;
                             break;
                         case ViewMode.MAX:
                         default:
@@ -251,6 +277,7 @@ namespace Musegician.Library
 
                     //Clear ongoing search
                     _matchingRecordEnumerator = null;
+                    lastLookupArgs = null;
                 }
             }
         }
@@ -278,7 +305,16 @@ namespace Musegician.Library
 
         void VerifyMatches()
         {
-            var matches = FindMatches(_searchText);
+            IEnumerable<LibraryViewModel> matches = null;
+            if (lastLookupArgs != null)
+            {
+                matches = FindIDMatches(lastLookupArgs);
+            }
+            else
+            {
+                matches = FindTextMatches(_searchText);
+            }
+
             _matchingRecordEnumerator = matches.GetEnumerator();
 
             if (!_matchingRecordEnumerator.MoveNext())
@@ -304,6 +340,8 @@ namespace Musegician.Library
                         return SimpleViewModels;
                     case ViewMode.Album:
                         return AlbumViewModels;
+                    case ViewMode.Directory:
+                        return DirectoryViewModels;
                     case ViewMode.MAX:
                     default:
                         throw new Exception("Unexpected ViewMode: " + CurrentViewMode);
@@ -311,15 +349,15 @@ namespace Musegician.Library
             }
         }
 
-        IEnumerable<LibraryViewModel> FindMatches(string searchText)
+        IEnumerable<LibraryViewModel> FindTextMatches(string searchText)
         {
-            foreach (LibraryViewModel match in FindMatches(searchText, ActiveModelCollection))
+            foreach (LibraryViewModel match in FindTextMatches(searchText, ActiveModelCollection))
             {
                 yield return match;
             }
         }
 
-        IEnumerable<LibraryViewModel> FindMatches(string searchText, ICollection<LibraryViewModel> models)
+        IEnumerable<LibraryViewModel> FindTextMatches(string searchText, ICollection<LibraryViewModel> models)
         {
             bool initialized = false;
 
@@ -348,7 +386,7 @@ namespace Musegician.Library
                         model.LoadChildren(requestHandler);
                     }
 
-                    foreach (LibraryViewModel match in FindMatches(searchText, model.Children))
+                    foreach (LibraryViewModel match in FindTextMatches(searchText, model.Children))
                     {
                         yield return match;
                     }
@@ -378,6 +416,11 @@ namespace Musegician.Library
                 return SearchChoice == SearchChoices.Song;
             }
 
+            if (model is DirectoryViewModel)
+            {
+                throw new Exception("Unexpected: DirectoryViewModel.");
+            }
+
             if (model is RecordingViewModel)
             {
                 throw new Exception("Unexpected: RecordingViewModel.");
@@ -405,6 +448,67 @@ namespace Musegician.Library
         }
 
         #endregion Search Logic
+        #region Search ID Logic
+
+
+        public void PerformLookup(Playlist.LookupEventArgs e)
+        {
+            SearchText = "{Playlist Item Search}";
+            _matchingRecordEnumerator = null;
+            lastLookupArgs = e;
+            PerformSearch();
+        }
+
+        IEnumerable<LibraryViewModel> FindIDMatches(Playlist.LookupEventArgs e)
+        {
+            foreach (LibraryViewModel match in FindIDMatches(e, ActiveModelCollection))
+            {
+                yield return match;
+            }
+        }
+
+        IEnumerable<LibraryViewModel> FindIDMatches(
+            Playlist.LookupEventArgs e,
+            ICollection<LibraryViewModel> models)
+        {
+            foreach (LibraryViewModel model in models)
+            {
+                switch (e.context)
+                {
+                    case LibraryContext.Song:
+                        if (model is SongViewModel song && song.ID == e.id)
+                        {
+                            yield return song;
+                        }
+                        break;
+                    case LibraryContext.Recording:
+                        if (model is RecordingViewModel recording && recording.ID == e.id)
+                        {
+                            yield return recording;
+                        }
+                        break;
+                    case LibraryContext.Artist:
+                    case LibraryContext.Album:
+                    case LibraryContext.Track:
+                    case LibraryContext.MAX:
+                    default:
+                        throw new ArgumentException("Unexpected LibraryContext: " + e.context);
+                }
+                
+                //Can't lazy-load children if we need to search through them
+                if (model.HasDummyChild)
+                {
+                    model.LoadChildren(requestHandler);
+                }
+
+                foreach (LibraryViewModel match in FindIDMatches(e, model.Children))
+                {
+                    yield return match;
+                }
+            }
+        }
+
+        #endregion
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;

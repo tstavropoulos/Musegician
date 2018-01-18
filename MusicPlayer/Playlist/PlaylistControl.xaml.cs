@@ -17,6 +17,19 @@ using Musegician.DataStructures;
 
 namespace Musegician.Playlist
 {
+    #region Enumerations
+
+    #endregion Enumerations
+    #region EventArgs
+
+    public class LookupEventArgs : EventArgs
+    {
+        public long id;
+        public Library.LibraryContext context;
+    }
+
+    #endregion EventArgs
+
     /// <summary>
     /// Interaction logic for PlaylistControl.xaml
     /// </summary>
@@ -80,6 +93,8 @@ namespace Musegician.Playlist
         {
             get { return _playlistTree.PlaylistViewModels.Count; }
         }
+
+        public EventHandler<LookupEventArgs> LookupRequest { get; set; }
 
         public PlaylistControl()
         {
@@ -250,12 +265,22 @@ namespace Musegician.Playlist
                 if (menuItem.DataContext is PlaylistSongViewModel song)
                 {
                     e.Handled = true;
-                    MessageBox.Show("Not Yet Implemented.");
+
+                    LookupRequest?.Invoke(this, new LookupEventArgs()
+                    {
+                        id = song.ID,
+                        context = Library.LibraryContext.Song
+                    });
                 }
                 else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
                 {
                     e.Handled = true;
-                    MessageBox.Show("Not Yet Implemented.");
+
+                    LookupRequest?.Invoke(this, new LookupEventArgs()
+                    {
+                        id = recording.ID,
+                        context = Library.LibraryContext.Recording
+                    });
                 }
                 else
                 {
@@ -325,13 +350,6 @@ namespace Musegician.Playlist
             }
         }
 
-        public enum PlaylistContext
-        {
-            Song = 0,
-            Recording,
-            MAX
-        }
-
         private void Tree_KeyDown(object sender, KeyEventArgs e)
         {
             if (sender is TreeView tree)
@@ -386,6 +404,13 @@ namespace Musegician.Playlist
                         throw new Exception("Unexpected KeyboardAction: " + action);
                 }
             }
+        }
+
+        public enum PlaylistContext
+        {
+            Song = 0,
+            Recording,
+            MAX
         }
 
         private (PlaylistContext context, List<(long id, double weight)> values) ExtractContextIDAndWeights()

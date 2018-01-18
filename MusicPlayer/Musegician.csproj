@@ -153,6 +153,7 @@
     <Compile Include="Core\WeightBar.xaml.cs">
       <DependentUpon>WeightBar.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DataStructures\DirectoryDTO.cs" />
     <Compile Include="DataStructures\DTO.cs" />
     <Compile Include="Core\Settings.cs" />
     <Compile Include="Core\TreeViewItemBehavior.cs" />
@@ -187,6 +188,7 @@
     <Compile Include="Equalizer\SimplePowerView.xaml.cs">
       <DependentUpon>SimplePowerView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Library\DirectoryViewModel.cs" />
     <Compile Include="Library\ILibraryRequestHandler.cs" />
     <Compile Include="Library\LibraryViewModel.cs" />
     <Compile Include="Library\LibraryControl.xaml.cs">

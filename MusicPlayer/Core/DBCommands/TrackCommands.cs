@@ -269,7 +269,14 @@ namespace Musegician.Core.DBCommands
                     "track_number INTEGER, " +
                     "disc_number INTEGER);";
             createTrackTable.ExecuteNonQuery();
-            
+
+            SQLiteCommand createRecordingIDIndex = dbConnection.CreateCommand();
+            createRecordingIDIndex.Transaction = transaction;
+            createRecordingIDIndex.CommandType = System.Data.CommandType.Text;
+            createRecordingIDIndex.CommandText =
+                    "CREATE INDEX IF NOT EXISTS idx_track_recordingid ON track (recording_id);";
+            createRecordingIDIndex.ExecuteNonQuery();
+
             SQLiteCommand createTrackWeightTable = dbConnection.CreateCommand();
             createTrackWeightTable.Transaction = transaction;
             createTrackWeightTable.CommandType = System.Data.CommandType.Text;

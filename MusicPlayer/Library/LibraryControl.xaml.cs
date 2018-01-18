@@ -51,6 +51,7 @@ namespace Musegician.Library
         Classic = 0,
         Simple,
         Album,
+        Directory,
         MAX
     }
 
@@ -111,6 +112,7 @@ namespace Musegician.Library
                     case ViewMode.Classic:
                     case ViewMode.Simple:
                     case ViewMode.Album:
+                    case ViewMode.Directory:
                         return GetTreeView(_musicTree.CurrentViewMode);
                     default:
                         throw new Exception("Unexpected ViewMode: " + _musicTree.CurrentViewMode);
@@ -124,7 +126,7 @@ namespace Musegician.Library
         public LibraryControl()
         {
             InitializeComponent();
-            
+
             if (DesignerProperties.GetIsInDesignMode(this))
             {
                 _musicTree = new MusicTreeViewModel();
@@ -382,6 +384,34 @@ namespace Musegician.Library
             ContextMenu_EditArt?.Invoke(context, ids[0]);
         }
 
+        private void Explore(object sender, RoutedEventArgs e)
+        {
+            IEnumerable<LibraryViewModel> selectedItems =
+                GetSelectedItems(ViewMode.MAX).OfType<LibraryViewModel>();
+
+            foreach (LibraryViewModel model in selectedItems)
+            {
+                if (model is RecordingViewModel recording)
+                {
+                    System.Diagnostics.Process.Start(
+                        fileName: "explorer",
+                        arguments: string.Format(
+                            "/select, \"{0}\"",
+                            LibraryRequestHandler.GetRecordingFilepath(model.ID)));
+                }
+                else if (model is DirectoryViewModel directory)
+                {
+                    System.Diagnostics.Process.Start(
+                        fileName: "explorer",
+                        arguments: directory.Path);
+                }
+                else
+                {
+                    throw new Exception("Unexpected LibraryViewModel: " + model.GetType());
+                }
+            }
+        }
+
         #endregion Context Menu Callbacks
         #region View Callbacks
 
@@ -418,15 +448,25 @@ namespace Musegician.Library
                     case "Album":
                         _musicTree.CurrentViewMode = ViewMode.Album;
                         break;
+                    case "Directories":
+                        _musicTree.CurrentViewMode = ViewMode.Directory;
+                        break;
                     default:
                         throw new Exception("Unexpected tabItem.Header: " + tabItem.Header);
                 }
 
                 //Disable ArtistSearch for Album view
-                radioSearchArtist.IsEnabled = (_musicTree.CurrentViewMode != ViewMode.Album);
+                radioSearchArtist.IsEnabled =
+                    (_musicTree.CurrentViewMode != ViewMode.Album &&
+                    _musicTree.CurrentViewMode != ViewMode.Directory);
 
                 //Disable albumsearch for Simple view
-                radioSearchAlbum.IsEnabled = (_musicTree.CurrentViewMode != ViewMode.Simple);
+                radioSearchAlbum.IsEnabled =
+                    (_musicTree.CurrentViewMode != ViewMode.Simple &&
+                    _musicTree.CurrentViewMode != ViewMode.Directory);
+
+                //Disable song search for Directory
+                radioSearchSong.IsEnabled = _musicTree.CurrentViewMode != ViewMode.Directory;
             }
         }
 
@@ -501,6 +541,14 @@ namespace Musegician.Library
         }
 
         #endregion Keyboard Callbacks
+        #region External Callbacks
+
+        public void LookupRequest(object sender, Playlist.LookupEventArgs e)
+        {
+            _musicTree.PerformLookup(e);
+        }
+
+        #endregion External Callbacks
         #endregion Callbacks
         #region Helper Fuctions
 
@@ -659,6 +707,8 @@ namespace Musegician.Library
                     return SimpleTreeView;
                 case ViewMode.Album:
                     return AlbumTreeView;
+                case ViewMode.Directory:
+                    return DirectoryTreeView;
                 case ViewMode.MAX:
                     return CurrentTreeView;
                 default:

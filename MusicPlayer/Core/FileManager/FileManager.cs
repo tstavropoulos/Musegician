@@ -397,6 +397,16 @@ namespace Musegician
 
             TagLib.Tag tag = file.Tag;
 
+            // How to write custom frames
+            //
+            //TagLib.Id3v2.Tag thing = file.GetTag(TagLib.TagTypes.Id3v2, true) as TagLib.Id3v2.Tag;
+            //if (thing != null)
+            //{
+            //    TagLib.Id3v2.PrivateFrame frame = TagLib.Id3v2.PrivateFrame.Get(thing, "Musegician/TAGID", true);
+            //    frame.PrivateData = System.Text.Encoding.Unicode.GetBytes("testValue");
+            //}
+
+
             //Handle Artist
             string artistName = "UNDEFINED";
             if (!string.IsNullOrEmpty(tag.JoinedPerformers))

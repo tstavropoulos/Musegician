@@ -262,6 +262,158 @@ namespace Musegician.Core.DBCommands
             return playData;
         }
 
+        public List<DirectoryDTO> GetDirectories(string path)
+        {
+            List<DirectoryDTO> directoryList = new List<DirectoryDTO>();
+            HashSet<string> directorySet = new HashSet<string>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.CommandText =
+                "SELECT filename " +
+                "FROM recording " +
+                "WHERE filename LIKE @Path || '%' " +
+                "ORDER BY filename COLLATE NOCASE ASC;";
+            readTracks.Parameters.Add(new SQLiteParameter("@Path", path));
+
+            string currentChunk = "";
+            int directoryChunkDepth = -1;
+
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    string relativepath;
+
+                    if (path == "")
+                    {
+                        relativepath = ((string)reader["filename"]);
+                    }
+                    else
+                    {
+                        relativepath = ((string)reader["filename"]).Substring(path.Length);
+                    }
+
+                    //Contains Subdirectory
+                    if (relativepath.Contains(System.IO.Path.DirectorySeparatorChar))
+                    {
+                        if (directoryChunkDepth < 0)
+                        {
+                            //Initialization
+                            directoryChunkDepth = _CountDirectories(relativepath);
+                            currentChunk = _GrabPathChunk(relativepath, directoryChunkDepth);
+                        }
+
+                        string relativeDirChunk = _GrabPathChunk(relativepath, directoryChunkDepth);
+
+                        while (directoryChunkDepth > 1)
+                        {
+                            //Possible Directory Collapse Condition
+                            if (currentChunk == relativeDirChunk)
+                            {
+                                //Matches the deep comparison, keep going
+                                break;
+                            }
+
+                            //Otherwise I need to decrement directoryChunkDepth
+                            --directoryChunkDepth;
+                            //Update my chunks
+                            currentChunk = _GrabPathChunk(currentChunk, directoryChunkDepth);
+                            relativeDirChunk = _GrabPathChunk(relativepath, directoryChunkDepth);
+                            //And add this old chunk if we've hit one (otherwise it's been skipped)
+                            if (directoryChunkDepth == 1)
+                            {
+                                if (directorySet.Add(currentChunk))
+                                {
+                                    directoryList.Add(new DirectoryDTO(currentChunk));
+                                }
+                            }
+                        }
+
+                        if (directoryChunkDepth == 1)
+                        {
+                            //Branching - we will just add every subdir
+                            if (directorySet.Add(relativeDirChunk))
+                            {
+                                directoryList.Add(new DirectoryDTO(relativeDirChunk));
+                            }
+                        }
+                    }
+
+                }
+            }
+
+            if (directoryChunkDepth > 1)
+            {
+                //Stash my one, multi-directory chunk
+                directoryList.Add(new DirectoryDTO(currentChunk));
+            }
+
+            dbConnection.Close();
+
+
+            return directoryList;
+        }
+
+        public List<RecordingDTO> GetDirectoryRecordings(string path)
+        {
+            List<RecordingDTO> recordingData = new List<RecordingDTO>();
+
+            dbConnection.Open();
+
+            SQLiteCommand readTracks = dbConnection.CreateCommand();
+            readTracks.CommandType = System.Data.CommandType.Text;
+            readTracks.CommandText =
+                "SELECT " +
+                    "recording.id AS recording_id, " +
+                    "recording.live AS live, " +
+                    "track_weight.weight AS weight, " +
+                    "artist.name || ' - ' || album.title || ' - ' || track.title AS title, " +
+                    "track.id AS track_id, " +
+                    "recording.filename AS filename " +
+                "FROM recording " +
+                "LEFT JOIN track ON recording.id=track.recording_id " +
+                "LEFT JOIN album ON track.album_id=album.id " +
+                "LEFT JOIN artist ON recording.artist_id=artist.id " +
+                "LEFT JOIN track_weight ON track.id=track_weight.track_id " +
+                "WHERE recording.filename LIKE @Path || '%'";
+
+            readTracks.Parameters.Add(new SQLiteParameter("@Path", path));
+
+            using (SQLiteDataReader reader = readTracks.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    if (_GetFileIsInDirectory(path, (string)reader["filename"]))
+                    {
+                        double weight = double.NaN;
+
+                        if (reader["weight"].GetType() != typeof(DBNull))
+                        {
+                            weight = (double)reader["weight"];
+                        }
+
+                        recordingData.Add(new RecordingDTO()
+                        {
+                            ID = (long)reader["recording_id"],
+                            Name = (string)reader["title"],
+                            Weight = weight,
+                            IsHome = true,
+                            Live = (bool)reader["Live"],
+                            TrackID = (long)reader["track_id"]
+                        });
+                    }
+                }
+            }
+
+            dbConnection.Close();
+
+            return recordingData;
+        }
+
         #endregion High Level Commands
         #region Search Commands
 
@@ -457,7 +609,10 @@ namespace Musegician.Core.DBCommands
                             continue;
                         }
 
-                        weight = 1.0;
+                        if (reader["weight"].GetType() != typeof(DBNull))
+                        {
+                            weight = (double)reader["weight"];
+                        }
                     }
                     else
                     {
@@ -815,5 +970,50 @@ namespace Musegician.Core.DBCommands
         }
 
         #endregion Delete Commands
+        #region Helper Methods
+
+        private string _GrabPathChunk(string path, int directories)
+        {
+            int index = 0;
+            for (int i = 0; i < directories; i++)
+            {
+                index = path.IndexOf(System.IO.Path.DirectorySeparatorChar, index + 1);
+                if (index == -1)
+                {
+                    return "";
+                }
+            }
+
+            return path.Substring(0, index);
+        }
+
+        private int _CountDirectories(string path)
+        {
+            int index = 0;
+            int count = -1;
+            while (index > -1)
+            {
+                index = path.IndexOf(System.IO.Path.DirectorySeparatorChar, index + 1);
+                ++count;
+            }
+
+            return count;
+
+        }
+
+        private bool _GetFileIsInDirectory(string path, string file)
+        {
+            file = file.ToLowerInvariant();
+            path = path.ToLowerInvariant();
+
+            if (file.StartsWith(path) && file.IndexOf(System.IO.Path.DirectorySeparatorChar, path.Length + 1) == -1)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        #endregion
     }
 }

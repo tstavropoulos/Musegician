@@ -76,6 +76,21 @@ namespace Musegician
             }
         }
 
+        List<DirectoryDTO> ILibraryRequestHandler.GetDirectories(string path)
+        {
+            return recordingCommands.GetDirectories(path);
+        }
+
+        List<RecordingDTO> ILibraryRequestHandler.GetDirectoryRecordings(string path)
+        {
+            return recordingCommands.GetDirectoryRecordings(path);
+        }
+
+        string ILibraryRequestHandler.GetRecordingFilepath(long recordingID)
+        {
+            return recordingCommands.GetData(recordingID).filename;
+        }
+
         #endregion ILibraryRequestHandler
     }
 }

@@ -61,6 +61,12 @@
       <MenuItem Header="Add Recording To Playlist" Click="Add_Shallow"/>
       <MenuItem Header="Play Recording" Click="Play_Shallow"/>
       <MenuItem Header="Edit Recording Information" Click="Edit"/>
+      <Separator/>
+      <MenuItem Header="Open Explorer To File" Click="Explore"/>
+    </ContextMenu>
+
+    <ContextMenu x:Key="DirectoryCM">
+      <MenuItem Header="Open Explorer To Directory" Click="Explore"/>
     </ContextMenu>
 
     <HierarchicalDataTemplate DataType="{x:Type local:ArtistViewModel}"
@@ -100,6 +106,21 @@
                    FontSize="14" FontFamily="Segoe UI Symbol" VerticalAlignment="Center"/>
       </StackPanel>
     </HierarchicalDataTemplate>
+
+    <HierarchicalDataTemplate DataType="{x:Type local:DirectoryViewModel}"
+                              ItemsSource="{Binding Children}">
+      <StackPanel Orientation="Horizontal" Background="Transparent"
+                  ContextMenu="{StaticResource DirectoryCM}">
+        <TextBlock x:Name="DirIcon" Text="🗀" FontSize="14" VerticalAlignment="Center" Margin="0,0,5,0"/>
+
+        <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
+      </StackPanel>
+      <HierarchicalDataTemplate.Triggers>
+        <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=IsExpanded}" Value="True">
+          <Setter TargetName="DirIcon" Property="TextBlock.Text" Value="🗁" />
+        </DataTrigger>
+      </HierarchicalDataTemplate.Triggers>
+    </HierarchicalDataTemplate>
   </UserControl.Resources>
   <DockPanel Background="{StaticResource DarkInsetPanel}">
     <DockPanel DockPanel.Dock="Top"  Margin="10,2,10,2">
@@ -137,7 +158,8 @@
                      IsChecked="{Binding Path=SearchChoice, 
                                   Converter={StaticResource EnumBooleanConverter}, 
                                   ConverterParameter={x:Static local:SearchChoices.Album}}"/>
-        <RadioButton Content="Song" GroupName="SearchSelection" Grid.Column="3" 
+        <RadioButton x:Name="radioSearchSong"
+                     Content="Song" GroupName="SearchSelection" Grid.Column="3" 
                      IsChecked="{Binding Path=SearchChoice, 
                                   Converter={StaticResource EnumBooleanConverter}, 
                                   ConverterParameter={x:Static local:SearchChoices.Song}}"/>
@@ -161,6 +183,13 @@
       <TabItem Header="Album"  FontSize="14">
         <core:MultiSelectTreeView x:Name="AlbumTreeView"
                                   ItemsSource="{Binding AlbumViewModels}" 
+                                  TreeViewItem.Expanded="TreeViewItem_Expanded"
+                                  ItemContainerStyle="{StaticResource LibraryStyle}"
+                                  KeyDown="Tree_KeyDown"/>
+      </TabItem>
+      <TabItem Header="Directories"  FontSize="14">
+        <core:MultiSelectTreeView x:Name="DirectoryTreeView"
+                                  ItemsSource="{Binding DirectoryViewModels}" 
                                   TreeViewItem.Expanded="TreeViewItem_Expanded"
                                   ItemContainerStyle="{StaticResource LibraryStyle}"
                                   KeyDown="Tree_KeyDown"/>

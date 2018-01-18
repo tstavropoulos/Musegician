@@ -14,7 +14,6 @@
     <ContextMenu x:Key="PlaylistSongCM">
       <MenuItem Header="Play Song" Click="Play"/>
       <MenuItem Header="Edit Song Information" Click="Edit"/>
-      <MenuItem Header="Find In Library" Click="Find"/>
       <Separator/>
       <MenuItem Header="Remove Song" Click="Remove"/>
     </ContextMenu>
@@ -22,7 +21,6 @@
     <ContextMenu x:Key="PlaylistRecordingCM">
       <MenuItem Header="Play Recording" Click="Play"/>
       <MenuItem Header="Edit Recording Information" Click="Edit"/>
-      <MenuItem Header="Find In Library" Click="Find"/>
       <Separator/>
       <MenuItem Header="Remove Recording" Click="Remove"/>
     </ContextMenu>

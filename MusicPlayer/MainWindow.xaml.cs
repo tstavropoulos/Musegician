@@ -35,6 +35,9 @@ namespace Musegician
         public MainWindow()
         {
             InitializeComponent();
+
+            Loaded += MainWindow_Loaded;
+            Unloaded += MainWindow_Unloaded;
         }
         
         private void MenuOpenClick(object sender, RoutedEventArgs e)
@@ -201,6 +204,16 @@ namespace Musegician
         {
             Window deredundafier = new Deredundafier.DeredundafierWindow();
             deredundafier.Show();
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            PlaylistControl.LookupRequest += libraryControl.LookupRequest;
+        }
+
+        private void MainWindow_Unloaded(object sender, RoutedEventArgs e)
+        {
+            PlaylistControl.LookupRequest -= libraryControl.LookupRequest;
         }
     }
 }

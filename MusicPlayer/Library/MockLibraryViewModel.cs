@@ -17,6 +17,7 @@ namespace Musegician.Library
         readonly ObservableCollection<ArtistViewModel> _classicArtistViewModels;
         readonly ObservableCollection<ArtistViewModel> _simpleArtistViewModels;
         readonly ObservableCollection<AlbumViewModel> _albumViewModels;
+        readonly ObservableCollection<DirectoryViewModel> _directoryViewModels;
 
         public SearchChoices SearchChoice { get; set; } = SearchChoices.All;
 
@@ -29,6 +30,7 @@ namespace Musegician.Library
 
             List<ArtistDTO> artistList = db.GenerateArtistList();
             List<AlbumDTO> albumList = db.GenerateAlbumList();
+            List<DirectoryDTO> directoryList = db.GetDirectories("");
 
 
             _classicArtistViewModels = new ObservableCollection<ArtistViewModel>(
@@ -47,6 +49,10 @@ namespace Musegician.Library
                  select new AlbumViewModel(album, null, false))
                      .ToList());
 
+            _directoryViewModels = new ObservableCollection<DirectoryViewModel>(
+                (from data in directoryList
+                 select new DirectoryViewModel(data, null, false))
+                     .ToList());
 
             _classicArtistViewModels[1].LoadChildren(db);
             _classicArtistViewModels[1].IsExpanded = true;
@@ -72,6 +78,11 @@ namespace Musegician.Library
         public ObservableCollection<ArtistViewModel> SimpleViewModels
         {
             get { return _simpleArtistViewModels; }
+        }
+
+        public ObservableCollection<DirectoryViewModel> DirectoryViewModels
+        {
+            get { return _directoryViewModels; }
         }
 
         #endregion ArtistViewModels
@@ -194,7 +205,7 @@ namespace Musegician.Library
                     songList.Add(new SongDTO(
                         songID: song.id,
                         titlePrefix: (++i).ToString("D2") + ". ",
-                        title:  song.name,
+                        title: song.name,
                         trackID: -1,
                         isHome: true));
                 }
@@ -235,7 +246,7 @@ namespace Musegician.Library
         List<SongDTO> ILibraryRequestHandler.GenerateArtistSongList(long artistID, string artistName)
         {
             List<SongDTO> songList = new List<SongDTO>();
-            
+
             foreach (var album in albums)
             {
                 if (artistID == album.artistID)
@@ -262,14 +273,14 @@ namespace Musegician.Library
         {
             List<RecordingDTO> recordingList = new List<RecordingDTO>();
 
-            foreach(var recording in recordings)
+            foreach (var recording in recordings)
             {
                 if (songID == recording.songID)
                 {
                     recordingList.Add(new RecordingDTO()
                     {
                         ID = recording.id,
-                        Name = GetAlbumArtistName(recording.homeAlbum) + " - " + 
+                        Name = GetAlbumArtistName(recording.homeAlbum) + " - " +
                             GetAlbumName(recording.homeAlbum) + " - " + recording.title,
                         Live = recording.live,
                         IsHome = (recording.homeAlbum == albumID),
@@ -288,6 +299,51 @@ namespace Musegician.Library
             throw new NotImplementedException();
         }
 
+        List<DirectoryDTO> ILibraryRequestHandler.GetDirectories(string path)
+        {
+            if (path == "")
+            {
+                return new List<DirectoryDTO>()
+                {
+                    new DirectoryDTO("C:")
+                };
+            }
+            else if (path == "C:")
+            {
+                return new List<DirectoryDTO>()
+                {
+                    new DirectoryDTO("TestDir")
+                };
+            }
+            
+            return new List<DirectoryDTO>();
+        }
+
+        List<RecordingDTO> ILibraryRequestHandler.GetDirectoryRecordings(string path)
+        {
+            if (path == "C:\\TestDir")
+            {
+                return new List<RecordingDTO>()
+                {
+                    new RecordingDTO()
+                    {
+                        ID=1,
+                        Name="Test1",
+                        Live = false,
+                        IsHome = true,
+                        Weight = 1.0
+                    }
+                };
+            }
+
+            return new List<RecordingDTO>();
+        }
+
+        string ILibraryRequestHandler.GetRecordingFilepath(long recordingID)
+        {
+            throw new NotImplementedException();
+        }
+
         event EventHandler ILibraryRequestHandler.RebuildNotifier
         {
             add { throw new NotImplementedException(); }
@@ -299,9 +355,9 @@ namespace Musegician.Library
 
         private string GetAlbumName(long albumID)
         {
-            foreach(var album in albums)
+            foreach (var album in albums)
             {
-                if(album.id == albumID)
+                if (album.id == albumID)
                 {
                     return album.name;
                 }
@@ -330,9 +386,9 @@ namespace Musegician.Library
 
         private long GetSongAlbum(long songID)
         {
-            foreach(var song in songs)
+            foreach (var song in songs)
             {
-                if(song.id == songID)
+                if (song.id == songID)
                 {
                     return song.albumID;
                 }

@@ -19,6 +19,12 @@ namespace Musegician.Library
                     lazyLoadChildren: false)
         { }
 
+        public RecordingViewModel(RecordingDTO recording, DirectoryViewModel directory)
+            : base(data: recording,
+                    parent: directory,
+                    lazyLoadChildren: false)
+        { }
+
         #endregion Constructors
         #region Properties
 
