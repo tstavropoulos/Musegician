@@ -1,6 +1,6 @@
 # Musegician
 
-Pronouced like a portmanteau of Magician and Musician - Musegician was designed to feel like extruding a mouthful of gravel through gritted teeth.
+Pronouced like a portmanteau of Magician and Musician - the name _Musegician_ was designed to feel like extruding a mouthful of gravel through gritted teeth.
 
 The goal of this project is to provide a relatively lightweight and zippy musicplayer with more intelligent playlists.  Where appropriate and discernable, live recordings will end up nested under their associated studio recording, and the "song" itself is added to playlists.  There will be a modifiable, global probability when playing a given song that a live recording will be substituted in its place, and this weighting value will be individually modifiable.  Additionally, songs themselves will have modifiable global- and playlist-specific weights allowing you to tune the distributions without needing to actually cull songs from your music collection.
 
@@ -10,7 +10,7 @@ This scheme implicitly depends on good quality metadata tags, and as such I am w
 
 ## Features
 
-Musegician is currently a full-featured MP3 player with several possible views.
+_Musegician_ is currently a full-featured MP3 player with several possible views.
 
 The Classic Library and Playlist browser...  
 ![Classic Simple Screenshot](README_Screenshots/ClassicSimple.gif)
@@ -26,7 +26,7 @@ What's different about it is that it understands the concept of a "song", and ca
 ![Live recordings with context highlighting](README_Screenshots/LiveAndContext.PNG)
 
 You can independently manipulate the weights of different recordings, away from their default values, by pressing the + and - keys.  
-![Independent track manipulation](README_Screenshots/CustomizeTrackWeight.PNG)
+![Independent track manipulation](README_Screenshots/CustomizeTrackWeight.gif)
 
 You can select multiple tracks at once, modifying all their weights simultaneously, or modifying their data in the Database and even push these updates to their ID3 tags.  
 ![Multiedit](README_Screenshots/MultiEdit.PNG)
@@ -34,10 +34,10 @@ You can select multiple tracks at once, modifying all their weights simultaneous
 ### Playlists
 
 When songs are added to a playlist, their weights are carried over automatically (based on context).  
-![Pushing Weights](README_Screenshots/PushProbabilities.PNG)
+![Pushing Weights](README_Screenshots/PushProbabilities.gif)
 
 But songs in the playlist also retain their independence, allowing you to create different playlists that have different weights for the same songs.  
-![Playlist Weight Independence](README_Screenshots/PlaylistWeightIndependence.PNG)
+![Playlist Weight Independence](README_Screenshots/PlaylistWeightIndependence.gif)
 
 You can Load Playlists...  
 ![Load Playlists](README_Screenshots/LoadPlaylist.png)
@@ -53,6 +53,13 @@ The TinyPlayer now even features access to the playlist!
 
 Built into the player is an Equalizer.  
 ![Equalizer](README_Screenshots/Equalizer.gif)
+
+### Directory View
+
+Now features the Directory View!  
+![Directory View](README_Screenshots/DirectoryView.png)
+
+Open the explorer directly to any directory or file from any view, or jump to a song in the library from the playlist's context menu.
 
 ### Installer
 
