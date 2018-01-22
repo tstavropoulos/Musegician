@@ -91,7 +91,7 @@ namespace Musegician.Library
                 _data.Weight = value;
                 OnPropertyChanged("Weight");
 
-                if(dimUpdate)
+                if (dimUpdate)
                 {
                     OnPropertyChanged("IsDim");
                 }

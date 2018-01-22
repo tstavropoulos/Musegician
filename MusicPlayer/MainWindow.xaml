@@ -33,44 +33,29 @@
       </DockPanel>
       <Menu>
         <MenuItem Header="_File">
-          <MenuItem x:Name="MenuAppExit"
-                    Header="E_xit"
-                    Click="MenuQuitClick"/>
+          <MenuItem Header="E_xit" Click="MenuQuitClick"/>
         </MenuItem>
         <MenuItem Header="_View">
-          <MenuItem Header="_Condensed View"
-                    Click="Menu_CondensedView"/>
+          <MenuItem Header="_Condensed View" Click="Menu_CondensedView"/>
         </MenuItem>
         <MenuItem Header="_Library">
-          <MenuItem x:Name="MenuOpenDirectory"
-                    Header="_Add Music Directory"
-                    Click="MenuOpenClick"/>
+          <MenuItem Header="_Add Music Directory" Click="MenuOpenClick"/>
           <MenuItem Header="_Deredundafier" Click="Menu_Deredundafier"/>
           <Separator />
-          <MenuItem x:Name="MenuClearLibrary"
-                    Header="_Clear Library"
-                    Click="MenuClearLibraryClick"/>
+          <MenuItem Header="_Clear Library" Click="MenuClearLibraryClick"/>
         </MenuItem>
         <MenuItem Header="_Playlist">
-          <MenuItem x:Name="MenuPlaylistSave"
-                    Header="_Save Playlist"
-                    Click="Menu_SavePlaylist"/>
-          <MenuItem x:Name="MenuPlaylistLoad"
-                    Header="_Load Playlist"
-                    Click="Menu_LoadPlaylist"/>
+          <MenuItem Header="_Save Playlist" Click="Menu_SavePlaylist"/>
+          <MenuItem Header="_Load Playlist" Click="Menu_LoadPlaylist"/>
           <Separator/>
-          <MenuItem x:Name="MenuPlaylistShuffle"
-                    Header="Shu_ffle Playlist"
+          <MenuItem Header="Shu_ffle Playlist"
                     IsCheckable="True"
                     IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Shuffle, Mode=TwoWay}"/>
-          <MenuItem x:Name="MenuPlaylistRepeat"
-                    Header="_Repeat Playlist"
+          <MenuItem Header="_Repeat Playlist"
                     IsCheckable="True"
                     IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Repeat, Mode=TwoWay}"/>
           <Separator/>
-          <MenuItem x:Name="MenuPlaylistClear"
-                    Header="_Clear Playlist"
-                    Click="Menu_ClearPlaylist"/>
+          <MenuItem Header="_Clear Playlist" Click="Menu_ClearPlaylist"/>
         </MenuItem>
       </Menu>
     </DockPanel>

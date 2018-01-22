@@ -47,7 +47,7 @@
     </HierarchicalDataTemplate>
   </UserControl.Resources>
   <DockPanel>
-    <core:MultiSelectTreeView x:Name="PlaylistTree"
+    <core:MultiSelectTreeView x:Name="PlaylistTree" FocusManager.IsFocusScope="True"
                               ItemsSource="{Binding PlaylistViewModels}"
                               KeyDown="Tree_KeyDown">
       <core:MultiSelectTreeView.ItemContainerStyle>

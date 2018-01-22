@@ -167,28 +167,28 @@
     </DockPanel>
     <TabControl SelectionChanged="LibraryView_SelectionChanged">
       <TabItem Header="Classic" FontSize="14">
-        <core:MultiSelectTreeView x:Name="ClassicTreeView"
+        <core:MultiSelectTreeView x:Name="ClassicTreeView" FocusManager.IsFocusScope="True"
                                   ItemsSource="{Binding ClassicArtistViewModels}"
                                   TreeViewItem.Expanded="TreeViewItem_Expanded"
                                   ItemContainerStyle="{StaticResource LibraryStyle}"
                                   KeyDown="Tree_KeyDown"/>
       </TabItem>
       <TabItem Header="Simple"  FontSize="14">
-        <core:MultiSelectTreeView x:Name="SimpleTreeView"
+        <core:MultiSelectTreeView x:Name="SimpleTreeView" FocusManager.IsFocusScope="True"
                                   ItemsSource="{Binding SimpleViewModels}" 
                                   TreeViewItem.Expanded="TreeViewItem_Expanded"
                                   ItemContainerStyle="{StaticResource LibraryStyle}"
                                   KeyDown="Tree_KeyDown"/>
       </TabItem>
       <TabItem Header="Album"  FontSize="14">
-        <core:MultiSelectTreeView x:Name="AlbumTreeView"
+        <core:MultiSelectTreeView x:Name="AlbumTreeView" FocusManager.IsFocusScope="True"
                                   ItemsSource="{Binding AlbumViewModels}" 
                                   TreeViewItem.Expanded="TreeViewItem_Expanded"
                                   ItemContainerStyle="{StaticResource LibraryStyle}"
                                   KeyDown="Tree_KeyDown"/>
       </TabItem>
       <TabItem Header="Directories"  FontSize="14">
-        <core:MultiSelectTreeView x:Name="DirectoryTreeView"
+        <core:MultiSelectTreeView x:Name="DirectoryTreeView" FocusManager.IsFocusScope="True"
                                   ItemsSource="{Binding DirectoryViewModels}" 
                                   TreeViewItem.Expanded="TreeViewItem_Expanded"
                                   ItemContainerStyle="{StaticResource LibraryStyle}"
