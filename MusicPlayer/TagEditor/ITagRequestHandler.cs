@@ -15,9 +15,18 @@ namespace Musegician.TagEditor
         IEnumerable<string> GetAffectedFiles(LibraryContext context, long id);
         IEnumerable<string> GetAffectedFiles(LibraryContext context, IEnumerable<long> id);
 
-        void UpdateRecord(LibraryContext context, IEnumerable<long> ids, MusicRecord record, string newValue);
-        void UpdateRecord(LibraryContext context, IEnumerable<long> ids, MusicRecord record, long newValue);
-        void UpdateRecord(LibraryContext context, IEnumerable<long> ids, MusicRecord record, bool newValue);
-        void UpdateRecord(LibraryContext context, IEnumerable<long> ids, MusicRecord record, double newValue);
+        void UpdateRecord(LibraryContext context, IEnumerable<long> ids, MusicRecord record,
+            string newValue);
+
+        void UpdateRecord(LibraryContext context, IEnumerable<long> ids, MusicRecord record,
+            long newValue);
+
+        void UpdateRecord(LibraryContext context, IEnumerable<long> ids, MusicRecord record,
+            bool newValue);
+
+        void UpdateRecord(LibraryContext context, IEnumerable<long> ids, MusicRecord record,
+            double newValue);
+
+        void PushChanges();
     }
 }

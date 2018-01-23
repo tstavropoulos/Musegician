@@ -48,8 +48,7 @@ namespace Musegician.Core.DBCommands
         public void UpdateArtistName(IEnumerable<long> artistIDs, string newArtistName)
         {
             List<long> artistIDsCopy = new List<long>(artistIDs);
-
-            //Assigning Albums to a different artist
+            
             dbConnection.Open();
 
             //First, find out if the new artist exists
@@ -65,7 +64,7 @@ namespace Musegician.Core.DBCommands
                     artistID = artistIDsCopy[0];
                     artistIDsCopy.RemoveAt(0);
 
-                    //Update the song formerly in the front
+                    //Update the artist formerly in the front
                     _UpdateArtistName_ByArtistID(
                         transaction: updateArtist,
                         artistID: artistID,
@@ -254,7 +253,7 @@ namespace Musegician.Core.DBCommands
             findArtist.CommandText =
                 "SELECT id " +
                 "FROM artist " +
-                "WHERE artist.name=@artistName COLLATE NOCASE " +
+                "WHERE name=@artistName COLLATE NOCASE " +
                 "LIMIT 1;";
 
             using (SQLiteDataReader reader = findArtist.ExecuteReader())
@@ -431,8 +430,8 @@ namespace Musegician.Core.DBCommands
             updateArtistName_ByArtistID.Parameters.Add(new SQLiteParameter("@artistID", artistID));
             updateArtistName_ByArtistID.CommandText =
                 "UPDATE artist " +
-                    "SET artist.name=@artistName " +
-                    "WHERE artist.id=@artistID;";
+                    "SET name=@artistName " +
+                    "WHERE id=@artistID;";
 
             updateArtistName_ByArtistID.ExecuteNonQuery();
         }

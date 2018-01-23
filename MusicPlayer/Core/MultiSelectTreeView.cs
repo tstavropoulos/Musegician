@@ -92,7 +92,7 @@ namespace Musegician.Core
             base.OnContextMenuOpening(e);
             if (e.OriginalSource is FrameworkElement elem)
             {
-                if (elem.DataContext.GetType() != OneSelectedItem.DataContext.GetType())
+                if (elem.DataContext.GetType() != OneSelectedItem?.DataContext.GetType())
                 {
                     //Block popups on wrong types
                     e.Handled = true;

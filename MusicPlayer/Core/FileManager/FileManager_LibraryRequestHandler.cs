@@ -5,15 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Musegician.DataStructures;
 using Musegician.Library;
-using ILibraryRequestHandler = Musegician.Library.ILibraryRequestHandler;
-using LibraryContext = Musegician.Library.LibraryContext;
 
 namespace Musegician
 {
     public partial class FileManager : ILibraryRequestHandler
     {
         #region ILibraryRequestHandler
-        private EventHandler _rebuildNotifier;
 
         event EventHandler ILibraryRequestHandler.RebuildNotifier
         {

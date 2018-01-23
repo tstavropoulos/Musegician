@@ -12,8 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
-using LibraryContext = Musegician.Library.LibraryContext;
 using Musegician.DataStructures;
+using LibraryContext = Musegician.Library.LibraryContext;
 
 namespace Musegician.TagEditor
 {
@@ -64,7 +64,7 @@ namespace Musegician.TagEditor
             get { return tags; }
         }
 
-        private ITagRequestHandler requestHandler
+        private ITagRequestHandler RequestHandler
         {
             get { return FileManager.Instance; }
         }
@@ -74,9 +74,9 @@ namespace Musegician.TagEditor
             InitializeComponent();
 
             this.context = context;
-            this.ids = new List<long>(new long[] { id });
+            ids = new List<long>(new long[] { id });
 
-            tags = requestHandler.GetTagData(context, id);
+            tags = RequestHandler.GetTagData(context, id);
 
             tagView.ItemsSource = Tags;
         }
@@ -88,7 +88,7 @@ namespace Musegician.TagEditor
             this.context = context;
             this.ids = ids;
 
-            tags = requestHandler.GetTagData(context, ids[0]);
+            tags = RequestHandler.GetTagData(context, ids[0]);
 
             tagView.ItemsSource = Tags;
         }
@@ -97,6 +97,7 @@ namespace Musegician.TagEditor
         {
             e.Handled = true;
             bool ID3Updates = false;
+            bool rebuild = false;
 
             foreach (TagData tag in tags)
             {
@@ -112,6 +113,7 @@ namespace Musegician.TagEditor
                         case MusicRecord.Live:
                         case MusicRecord.TrackTitle:
                         case MusicRecord.DiscNumber:
+                            rebuild = true;
                             UpdateRecord(tag.recordType, tag);
                             break;
                         case MusicRecord.Filename:
@@ -131,7 +133,7 @@ namespace Musegician.TagEditor
             {
                 foreach (long id in ids)
                 {
-                    IEnumerable<string> paths = requestHandler.GetAffectedFiles(context, id);
+                    IEnumerable<string> paths = RequestHandler.GetAffectedFiles(context, id);
 
                     foreach (string path in paths)
                     {
@@ -170,6 +172,11 @@ namespace Musegician.TagEditor
             }
 
             Close();
+
+            if (rebuild)
+            {
+                RequestHandler.PushChanges();
+            }
         }
 
         private void Click_Reset(object sender, RoutedEventArgs e)
@@ -196,8 +203,6 @@ namespace Musegician.TagEditor
 
         private void UpdateRecord(MusicRecord record, TagData tag)
         {
-            Console.WriteLine("Skipping real record update.");
-            return;
             switch (record)
             {
                 case MusicRecord.SongTitle:
@@ -208,7 +213,7 @@ namespace Musegician.TagEditor
                     {
                         if (tag is TagDataString data)
                         {
-                            requestHandler.UpdateRecord(context, ids, record, data.NewValue);
+                            RequestHandler.UpdateRecord(context, ids, record, data.NewValue);
                         }
                     }
                     break;
@@ -218,7 +223,7 @@ namespace Musegician.TagEditor
                     {
                         if (tag is TagDataLong data)
                         {
-                            requestHandler.UpdateRecord(context, ids, record, data.NewLong);
+                            RequestHandler.UpdateRecord(context, ids, record, data.NewLong);
                         }
                     }
                     break;
@@ -226,7 +231,7 @@ namespace Musegician.TagEditor
                     {
                         if (tag is TagDataBool data)
                         {
-                            requestHandler.UpdateRecord(context, ids, record, data.NewValue);
+                            RequestHandler.UpdateRecord(context, ids, record, data.NewValue);
                         }
                     }
                     break;
@@ -234,8 +239,6 @@ namespace Musegician.TagEditor
                 default:
                     throw new Exception("Invalid MusicRecord for Updating: " + record);
             }
-
-            Console.WriteLine("Not yet implemented.");
         }
 
         private void UpdateTags(TagLib.File file, IEnumerable<TagData> tags)

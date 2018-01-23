@@ -13,13 +13,19 @@ using Musegician.Core.DBCommands;
 
 namespace Musegician
 {
+    #region Exceptions
+
     public class LibraryContextException : Exception
     {
         public LibraryContextException(string message) : base(message) { }
     }
 
+    #endregion Exceptions
+
     public partial class FileManager
     {
+        #region Data
+
         private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3", "*.flac", "*.ogg" };
         private readonly string[] songNameDelimiter = new string[] { " - " };
 
@@ -41,6 +47,9 @@ namespace Musegician
         private ArtistCommands artistCommands = null;
 
         private PlaylistCommands playlistCommands = null;
+
+        #endregion Data
+        #region Inner Classes
 
         private struct DBRecords
         {
@@ -71,16 +80,13 @@ namespace Musegician
             public HashSet<long> loadedAlbumArt;
         }
 
-        private FileManager()
-        {
-            recordingCommands = new RecordingCommands();
-            trackCommands = new TrackCommands();
-            songCommands = new SongCommands();
-            albumCommands = new AlbumCommands();
-            artistCommands = new ArtistCommands();
+        #endregion Inner Classes
+        #region Event RebuildNotifier
 
-            playlistCommands = new PlaylistCommands();
-        }
+        private EventHandler _rebuildNotifier;
+
+        #endregion Event RebuildNotifier
+        #region Singleton Implementation
 
         private static object m_lock = new object();
         private static volatile FileManager _instance;
@@ -103,6 +109,19 @@ namespace Musegician
                 return _instance;
             }
         }
+
+        private FileManager()
+        {
+            recordingCommands = new RecordingCommands();
+            trackCommands = new TrackCommands();
+            songCommands = new SongCommands();
+            albumCommands = new AlbumCommands();
+            artistCommands = new ArtistCommands();
+
+            playlistCommands = new PlaylistCommands();
+        }
+
+        #endregion Singleton Implementation
         
         public void DropDB()
         {
@@ -181,6 +200,7 @@ namespace Musegician
                 dbConnection: dbConnection,
                 artistCommands: artistCommands,
                 songCommands: songCommands,
+                albumCommands: albumCommands,
                 recordingCommands: recordingCommands);
 
             songCommands.Initialize(

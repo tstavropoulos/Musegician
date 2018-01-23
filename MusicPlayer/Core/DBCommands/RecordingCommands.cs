@@ -83,12 +83,6 @@ namespace Musegician.Core.DBCommands
         {
             dbConnection.Open();
 
-            //First, grab the current songID:
-            RecordingData recordingData = _GetData(
-                recordingID: recordingIDs.ElementAt(0));
-
-            //long oldSongID = recordingData.songID;
-
             //Is there a song currently by the same artist with the same name?
             long newSongID = _FindSongID_ByTitle_MatchSongArtist(
                 songTitle: newTitle,
@@ -106,8 +100,8 @@ namespace Musegician.Core.DBCommands
                         songTitle: newTitle);
                 }
 
-                //New song did exist, or we passed in more than one track
-                //Update track table to point at new song
+                //New song did exist, or we passed in more than one recording
+                //Update recording table to point at new song
                 _ReassignSongIDs(
                     transaction: updateSongTitles,
                     songID: newSongID,
@@ -225,6 +219,25 @@ namespace Musegician.Core.DBCommands
             return recordingList;
         }
 
+        public void UpdateLive(IEnumerable<long> recordingIDs, bool newLiveValue)
+        {
+            dbConnection.Open();
+            
+            using (SQLiteTransaction updateLive = dbConnection.BeginTransaction())
+            {
+                foreach (long recordingID in recordingIDs)
+                {
+                    _UpdateLiveValue(
+                        transaction: updateLive,
+                        recordingID: recordingID,
+                        newLiveValue: newLiveValue);
+                }
+
+                updateLive.Commit();
+            }
+
+            dbConnection.Close();
+        }
 
         public PlayData GetRecordingPlayData(long recordingID)
         {
@@ -713,6 +726,23 @@ namespace Musegician.Core.DBCommands
 
         #endregion Lookup Commands
         #region Update Commands
+
+        public void _UpdateLiveValue(
+            SQLiteTransaction transaction,
+            long recordingID,
+            bool newLiveValue)
+        {
+            SQLiteCommand updateRecordingLive = dbConnection.CreateCommand();
+            updateRecordingLive.Transaction = transaction;
+            updateRecordingLive.CommandType = System.Data.CommandType.Text;
+            updateRecordingLive.Parameters.Add(new SQLiteParameter("@recordingID", recordingID));
+            updateRecordingLive.Parameters.Add(new SQLiteParameter("@live", newLiveValue));
+            updateRecordingLive.CommandText =
+                "UPDATE recording " +
+                    "SET live=@live " +
+                    "WHERE id=@recordingID;";
+            updateRecordingLive.ExecuteNonQuery();
+        }
 
         public void _ReassignArtistIDs_ByTrackID(
             SQLiteTransaction transaction,

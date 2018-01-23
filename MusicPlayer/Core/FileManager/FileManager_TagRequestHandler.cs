@@ -162,7 +162,10 @@ namespace Musegician
                             recordType = MusicRecord.AlbumTitle,
                             tagType = ID3TagType.Album
                         });
+                    }
 
+                    if (context == LibraryContext.Album)
+                    {
                         tagList.Add(new TagDataLong
                         {
                             _currentValue = (long)reader["year"],
@@ -616,12 +619,20 @@ namespace Musegician
                         switch (context)
                         {
                             case LibraryContext.Album:
-                                //Renaming an album
-                                throw new NotImplementedException();
+                                {
+                                    //Renaming and collapsing Albums
+                                    albumCommands.UpdateAlbumTitle(
+                                        albumIDs: ids,
+                                        newAlbumTitle: newString);
+                                }
                                 break;
                             case LibraryContext.Track:
-                                //Assigning a track to a different album
-                                throw new NotImplementedException();
+                                {
+                                    //Assigning a track to a different album
+                                    trackCommands.UpdateAlbumTitle(
+                                        trackIDs: ids,
+                                        newAlbumTitle: newString);
+                                }
                                 break;
                             default:
                                 throw new LibraryContextException(string.Format(
@@ -636,8 +647,12 @@ namespace Musegician
                         switch (context)
                         {
                             case LibraryContext.Track:
-                                //Renaming a track
-                                throw new NotImplementedException();
+                                {
+                                    //Renaming a track
+                                    trackCommands.UpdateTrackTitle(
+                                        trackIDs: ids,
+                                        newTrackTitle: newString);
+                                }
                                 break;
                             default:
                                 throw new LibraryContextException(string.Format(
@@ -668,8 +683,12 @@ namespace Musegician
                         switch (context)
                         {
                             case LibraryContext.Track:
-                                //Updating the track number of a track
-                                throw new NotImplementedException();
+                                {
+                                    //Updating the track number of a track
+                                    trackCommands.UpdateTrackNumber(
+                                        trackIDs: ids,
+                                        newTrackNumber: newLong);
+                                }
                                 break;
                             default:
                                 throw new LibraryContextException(string.Format(
@@ -684,8 +703,32 @@ namespace Musegician
                         switch (context)
                         {
                             case LibraryContext.Album:
-                                //Updating the year that an album was produced
-                                throw new NotImplementedException();
+                                {
+                                    //Updating the year that an album was produced
+                                    albumCommands.UpdateYear(
+                                        albumIDs: ids,
+                                        newYear: newLong);
+                                }
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
+                        }
+                    }
+                    break;
+                case MusicRecord.DiscNumber:
+                    {
+                        switch (context)
+                        {
+                            case LibraryContext.Track:
+                                {
+                                    //Updating the disc that a track appeared on
+                                    trackCommands.UpdateDisc(
+                                        trackIDs: ids,
+                                        newDisc: newLong);
+                                }
                                 break;
                             default:
                                 throw new LibraryContextException(string.Format(
@@ -713,15 +756,30 @@ namespace Musegician
             {
                 case MusicRecord.Live:
                     {
-                        //Update Recording Live Status Weight
-                        if (context != LibraryContext.Recording)
+                        switch (context)
                         {
-                            throw new LibraryContextException(string.Format(
-                                "Bad Context ({0}) for RecordUpdate ({1})",
-                                context.ToString(),
-                                record.ToString()));
+                            case LibraryContext.Track:
+                                {
+                                    //Update Recording Live Status Weight
+                                    trackCommands.UpdateLive(
+                                        trackIDs: ids,
+                                        newLiveValue: newBool);
+                                }
+                                break;
+                            case LibraryContext.Recording:
+                                {
+                                    //Update Recording Live Status Weight
+                                    recordingCommands.UpdateLive(
+                                        recordingIDs: ids,
+                                        newLiveValue: newBool);
+                                }
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
                         }
-                        throw new NotImplementedException();
                     }
                     break;
                 default:
@@ -738,58 +796,90 @@ namespace Musegician
             MusicRecord record,
             double newDouble)
         {
+            List<(long, double)> valueList = new List<(long, double)>();
+
+            foreach(long id in ids)
+            {
+                valueList.Add((id, newDouble));
+            }
+
+
             switch (record)
             {
                 case MusicRecord.ArtistWeight:
                     {
-                        //Update Artist Weight
-                        if (context != LibraryContext.Artist)
+                        switch (context)
                         {
-                            throw new LibraryContextException(string.Format(
-                                "Bad Context ({0}) for RecordUpdate ({1})",
-                                context.ToString(),
-                                record.ToString()));
+                            case LibraryContext.Artist:
+                                {
+                                    //Update Artist Weight
+                                    artistCommands.UpdateWeights(
+                                        values: valueList);
+                                }
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
                         }
-                        throw new NotImplementedException();
                     }
                     break;
                 case MusicRecord.AlbumWeight:
                     {
-                        //Update Album Weight
-                        if (context != LibraryContext.Album)
+                        switch (context)
                         {
-                            throw new LibraryContextException(string.Format(
-                                "Bad Context ({0}) for RecordUpdate ({1})",
-                                context.ToString(),
-                                record.ToString()));
+                            case LibraryContext.Album:
+                                {
+                                    //Update Album Weight
+                                    albumCommands.UpdateWeights(
+                                        values: valueList);
+                                }
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
                         }
-                        throw new NotImplementedException();
                     }
                     break;
                 case MusicRecord.SongWeight:
                     {
-                        //Update Album Weight
-                        if (context != LibraryContext.Song)
+                        switch (context)
                         {
-                            throw new LibraryContextException(string.Format(
-                                "Bad Context ({0}) for RecordUpdate ({1})",
-                                context.ToString(),
-                                record.ToString()));
+                            case LibraryContext.Song:
+                                {
+                                    //Update Song Weight
+                                    songCommands.UpdateWeights(
+                                        values: valueList);
+                                }
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
                         }
-                        throw new NotImplementedException();
                     }
                     break;
                 case MusicRecord.TrackWeight:
                     {
-                        //Update Track Weight
-                        if (context != LibraryContext.Track)
+                        switch (context)
                         {
-                            throw new LibraryContextException(string.Format(
-                                "Bad Context ({0}) for RecordUpdate ({1})",
-                                context.ToString(),
-                                record.ToString()));
+                            case LibraryContext.Track:
+                                {
+                                    //Update Track Weight
+                                    trackCommands.UpdateWeights(
+                                        values: valueList);
+                                }
+                                break;
+                            default:
+                                throw new LibraryContextException(string.Format(
+                                    "Bad Context ({0}) for RecordUpdate ({1})",
+                                    context.ToString(),
+                                    record.ToString()));
                         }
-                        throw new NotImplementedException();
                     }
                     break;
                 default:
@@ -798,6 +888,11 @@ namespace Musegician
                         newDouble.GetType().ToString(),
                         record.ToString()));
             }
+        }
+
+        void ITagRequestHandler.PushChanges()
+        {
+            _rebuildNotifier?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion ITagRequestHandler

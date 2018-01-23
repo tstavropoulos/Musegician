@@ -526,8 +526,8 @@ namespace Musegician.Core.DBCommands
             updateSongTitle_BySongID.Parameters.Add(new SQLiteParameter("@songID", songID));
             updateSongTitle_BySongID.CommandText =
                 "UPDATE song " +
-                    "SET song.title=@songTitle " +
-                    "WHERE song.id=@songID;";
+                    "SET title=@songTitle " +
+                    "WHERE id=@songID;";
 
             updateSongTitle_BySongID.ExecuteNonQuery();
         }

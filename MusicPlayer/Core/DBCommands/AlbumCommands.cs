@@ -365,9 +365,112 @@ namespace Musegician.Core.DBCommands
             dbConnection.Close();
         }
 
+        public void UpdateAlbumTitle(
+            IEnumerable<long> albumIDs,
+            string newAlbumTitle)
+        {
+            List<long> albumIDsCopy = new List<long>(albumIDs);
+
+            dbConnection.Open();
+
+            //First, find out if the new album exists
+            long albumID = _FindAlbum_ByName_MatchArtist(
+                albumTitle: newAlbumTitle,
+                oldAlbumID: albumIDsCopy[0]);
+
+
+            using (SQLiteTransaction updateAlbum = dbConnection.BeginTransaction())
+            {
+                if (albumID == -1)
+                {
+                    //Update an Album's name, because it doesn't exist
+
+                    //Pop off the front
+                    albumID = albumIDsCopy[0];
+                    albumIDsCopy.RemoveAt(0);
+
+                    //Update the album formerly in the front
+                    _UpdateAlbumTitle_ByAlbumID(
+                        transaction: updateAlbum,
+                        albumID: albumID,
+                        albumTitle: newAlbumTitle);
+                }
+
+                if (albumIDsCopy.Count > 0)
+                {
+                    //For the remaining artists, Remap foreign keys
+                    _UpdateForeignKeys(
+                        transaction: updateAlbum,
+                        newAlbumID: albumID,
+                        oldAlbumIDs: albumIDsCopy);
+
+                    //Now, delete any old artists with no remaining recordings
+                    _DeleteAllLeafs(
+                        transaction: updateAlbum);
+                }
+
+                updateAlbum.Commit();
+            }
+
+            dbConnection.Close();
+        }
+
+        public void UpdateYear(IEnumerable<long> albumIDs, long newYear)
+        {
+            dbConnection.Open();
+
+            using (SQLiteTransaction updateAlbumYears = dbConnection.BeginTransaction())
+            {
+                foreach (long albumID in albumIDs)
+                {
+                    _UpdateAlbumYear(
+                        transaction: updateAlbumYears,
+                        albumID: albumID,
+                        albumYear: newYear);
+                }
+
+                updateAlbumYears.Commit();
+            }
+
+            dbConnection.Close();
+        }
+
 
         #endregion High Level Commands
         #region Search Commands
+
+        public long _FindAlbum_ByName_MatchArtist(string albumTitle, long oldAlbumID)
+        {
+            long albumID = -1;
+
+            SQLiteCommand findArtist = dbConnection.CreateCommand();
+            findArtist.CommandType = System.Data.CommandType.Text;
+            findArtist.Parameters.Add(new SQLiteParameter("@albumTitle", albumTitle));
+            findArtist.Parameters.Add(new SQLiteParameter("@albumID", oldAlbumID));
+            findArtist.CommandText =
+                "SELECT album.id " +
+                "FROM recording " +
+                "LEFT JOIN track ON recording.id=track.recording_id " +
+                "LEFT JOIN album ON track.album_id=album.id " +
+                "WHERE " +
+                    "recording.artist_id IN ( " +
+                        "SELECT recording.artist_id " +
+                        "FROM track " +
+                        "LEFT JOIN recording ON track.recording_id=recording.id " +
+                        "WHERE track.album_id=@albumID ) AND " +
+                    "album.title=@albumTitle COLLATE NOCASE " +
+                "LIMIT 1;";
+
+            using (SQLiteDataReader reader = findArtist.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    albumID = (long)reader["id"];
+                }
+            }
+
+            return albumID;
+        }
 
         public byte[] _GetArt(long albumID)
         {
@@ -605,6 +708,23 @@ namespace Musegician.Core.DBCommands
         #endregion Lookup Commands
         #region Update Commands
 
+        public void _UpdateAlbumYear(
+            SQLiteTransaction transaction,
+            long albumID,
+            long albumYear)
+        {
+            SQLiteCommand updateAlbumYear = dbConnection.CreateCommand();
+            updateAlbumYear.Transaction = transaction;
+            updateAlbumYear.CommandType = System.Data.CommandType.Text;
+            updateAlbumYear.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+            updateAlbumYear.Parameters.Add(new SQLiteParameter("@albumYear", albumYear));
+            updateAlbumYear.CommandText =
+                "UPDATE album " +
+                    "SET year=@albumYear " +
+                    "WHERE id=@albumID;";
+            updateAlbumYear.ExecuteNonQuery();
+        }
+
         public void _UpdateAlbumTitle_ByAlbumID(
             SQLiteTransaction transaction,
             long albumID,
@@ -617,8 +737,8 @@ namespace Musegician.Core.DBCommands
             updateAlbumTitle_ByAlbumID.Parameters.Add(new SQLiteParameter("@albumID", albumID));
             updateAlbumTitle_ByAlbumID.CommandText =
                 "UPDATE album " +
-                    "SET album.title=@albumTitle " +
-                    "WHERE album.id=@albumID;";
+                    "SET title=@albumTitle " +
+                    "WHERE id=@albumID;";
 
             updateAlbumTitle_ByAlbumID.ExecuteNonQuery();
         }
