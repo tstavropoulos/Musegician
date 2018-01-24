@@ -164,18 +164,18 @@ namespace Musegician.Core
             double contentHeight = _Content.ActualHeight;
             switch (_Content.VerticalAlignment)
             {
-                case System.Windows.VerticalAlignment.Top:
+                case VerticalAlignment.Top:
                     Canvas.SetTop(_Content, 0);
                     break;
-                case System.Windows.VerticalAlignment.Bottom:
+                case VerticalAlignment.Bottom:
                     if (height > contentHeight)
                     {
                         Canvas.SetTop(_Content, height - contentHeight);
                     }
 
                     break;
-                case System.Windows.VerticalAlignment.Center:
-                case System.Windows.VerticalAlignment.Stretch:
+                case VerticalAlignment.Center:
+                case VerticalAlignment.Stretch:
                     if (height > contentHeight)
                     {
                         Canvas.SetTop(_Content, (height - contentHeight) / 2);
@@ -187,9 +187,7 @@ namespace Musegician.Core
 
         void UpdateAnimationDetails(double holderLength, double contentLength)
         {
-            DoubleAnimation animation =
-                _ContentTickerStoryboard.Children.First() as DoubleAnimation;
-            if (animation != null)
+            if (_ContentTickerStoryboard.Children.First() is DoubleAnimation animation)
             {
                 bool start = false;
                 if (IsStarted)
@@ -226,13 +224,17 @@ namespace Musegician.Core
                         oldDuration = animation.Duration.TimeSpan;
                     }
 
+                    double basis = (oldDuration.HasValue ? oldDuration.Value.TotalSeconds : 1.0);
+
+                    if (basis <= 1.0)
+                    {
+                        basis = 1.0;
+                    }
+
                     TimeSpan? currentTime = _ContentTickerStoryboard.GetCurrentTime(_ContentControl);
                     int? iteration = _ContentTickerStoryboard.GetCurrentIteration(_ContentControl);
-                    TimeSpan? offset =
-                        TimeSpan.FromSeconds(
-                        currentTime.HasValue ?
-                        currentTime.Value.TotalSeconds % (oldDuration.HasValue ? oldDuration.Value.TotalSeconds : 1.0) :
-                        0.0);
+                    TimeSpan? offset = TimeSpan.FromSeconds(
+                        currentTime.HasValue ? (currentTime.Value.TotalSeconds % basis) : 0.0);
 
                     Start();
 

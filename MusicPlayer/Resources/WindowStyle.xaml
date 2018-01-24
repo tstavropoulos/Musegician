@@ -70,53 +70,6 @@
     </Setter>
   </Style>
 
-  <Style x:Key="CustomTinyWindowStyle" TargetType="{x:Type Window}" BasedOn="{StaticResource {x:Type Window}}">
-    <Setter Property="WindowChrome.WindowChrome">
-      <Setter.Value>
-        <WindowChrome CaptionHeight="30" CornerRadius="0" UseAeroCaptionButtons="False"
-                      GlassFrameThickness="0" NonClientFrameEdges="None" ResizeBorderThickness="5"/>
-      </Setter.Value>
-    </Setter>
-    <Setter Property="BorderBrush" Value="Black" />
-    <Setter Property="Background" Value="Gray" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate TargetType="{x:Type Window}">
-          <Grid>
-            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="5,30,5,5">
-              <AdornerDecorator>
-                <ContentPresenter/>
-              </AdornerDecorator>
-            </Border>
-            <Grid Height="30" VerticalAlignment="Top" Margin="2,2,2,0">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <StackPanel Orientation="Horizontal" >
-                <Image Margin="5,2,6,4" Source="{TemplateBinding Icon}"/>
-              </StackPanel>
-              <core:MarqueeControl Grid.Column="1" Margin="5,0,0,0" ClipToBounds="True"
-                                   VerticalAlignment="Center" HorizontalAlignment="Center"
-                                   FontSize="16" Foreground="White" Rate="10"
-                                   Content="{Binding Source={x:Static player:MusicManager.Instance}, Path=SongLabel}"/>
-              <StackPanel Orientation="Horizontal" Grid.Column="2">
-                <Button x:Name="btnMinimize" WindowChrome.IsHitTestVisibleInChrome="True"
-                        VerticalContentAlignment="Bottom" Style="{StaticResource ChromeButtonStyle}"
-                        Width="40" Height="30" Margin="5,0,5,2" Click="MinimizeClick" Content="_"/>
-                <Button x:Name="btnClose" WindowChrome.IsHitTestVisibleInChrome="True"
-                        Style="{StaticResource ChromeButtonStyle}"
-                        Width="40" Height="30" Margin="5,0,5,2" Click="CloseClick" Content="X"/>
-              </StackPanel>
-            </Grid>
-          </Grid>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-  </Style>
-
   <Style x:Key="CustomOtherWindowStyle" TargetType="{x:Type Window}" BasedOn="{StaticResource {x:Type Window}}">
     <Setter Property="WindowChrome.WindowChrome">
       <Setter.Value>

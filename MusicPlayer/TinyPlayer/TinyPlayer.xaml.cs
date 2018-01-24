@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Musegician.Core;
 
 namespace Musegician.TinyPlayer
 {
@@ -34,6 +35,7 @@ namespace Musegician.TinyPlayer
         private void TinyPlayer_Loaded(object sender, RoutedEventArgs e)
         {
             Player.MusicManager.Instance.RecordingStarted += RecordingStarted;
+            Player.MusicManager.Instance.PlayerStateChanged += PlayerStateChanged;
 
             LoadPlaylistPopup.Opened += PlaylistManControl.Popup_Opened;
             LoadPlaylistPopup.Closed += PlaylistManControl.Popup_Closed;
@@ -42,9 +44,44 @@ namespace Musegician.TinyPlayer
         private void TinyPlayer_Unloaded(object sender, RoutedEventArgs e)
         {
             Player.MusicManager.Instance.RecordingStarted -= RecordingStarted;
+            Player.MusicManager.Instance.PlayerStateChanged -= PlayerStateChanged;
 
             LoadPlaylistPopup.Opened -= PlaylistManControl.Popup_Opened;
             LoadPlaylistPopup.Closed -= PlaylistManControl.Popup_Closed;
+        }
+
+        private void PlayerStateChanged(Player.PlayerState newState)
+        {
+            switch (newState)
+            {
+                case Player.PlayerState.Playing:
+                case Player.PlayerState.Paused:
+                    {
+                        if (Template.FindName("Marquee", this) is MarqueeControl marquee)
+                        {
+                            if (!marquee.IsStarted)
+                            {
+                                marquee.Start();
+                            }
+                        }
+                    }
+                    break;
+                case Player.PlayerState.NotLoaded:
+                case Player.PlayerState.Stopped:
+                    {
+                        if (Template.FindName("Marquee", this) is MarqueeControl marquee)
+                        {
+                            if (marquee.IsStarted)
+                            {
+                                marquee.Stop();
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    Console.WriteLine("Unrecognized PlayerState: " + newState);
+                    break;
+            }
         }
 
         private void RecordingStarted(long id)
@@ -54,7 +91,6 @@ namespace Musegician.TinyPlayer
 
         private void Toolbar_RestoreWindow(object sender, RoutedEventArgs e)
         {
-            //Application.Current.MainWindow.Show();
             Close();
         }
 
@@ -68,20 +104,14 @@ namespace Musegician.TinyPlayer
             Application.Current.MainWindow.Show();
         }
 
-        //protected override void OnMouseDown(MouseButtonEventArgs e)
-        //{
-        //    base.OnMouseDown(e);
+        private void CloseClick(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
 
-        //    if (PlaylistOptionsPopup.IsOpen)
-        //    {
-        //        PlaylistOptionsPopup.IsOpen = false;
-        //    }
-        //}
-
-        //private void PlaylistOptionsPopup_MouseDown(object sender, MouseButtonEventArgs e)
-        //{
-        //    //Block the window from closing the popup if we clicked inside.
-        //    e.Handled = true;
-        //}
+        private void MinimizeClick(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
     }
 }

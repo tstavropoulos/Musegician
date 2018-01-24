@@ -13,7 +13,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Windows;
 
-namespace MusicPlayer.Core
+namespace Musegician.Core
 {
     /// <summary>
     /// Monitors the PropertyChanged event of an object that implements INotifyPropertyChanged,

@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Musegician.Core;
 using Musegician.DataStructures;
 
 namespace Musegician.Playlist
@@ -92,22 +93,26 @@ namespace Musegician.Playlist
         {
             PlaylistMan.addBack += AddBack;
             PlaylistMan.rebuild += Rebuild;
-            PlaylistMan.RemoveAt += RemoveAt;
+            PlaylistMan.RemoveIndices += RemoveIndices;
 
             PlaylistMan.MarkIndex += MarkIndex;
             PlaylistMan.MarkRecordingIndex += MarkRecordingIndex;
             PlaylistMan.UnmarkAll += UnmarkAll;
+
+            PlaylistMan.RearrangeSongs += Move;
         }
 
         public void PlaylistControl_Unloaded(object sender, RoutedEventArgs e)
         {
             PlaylistMan.addBack -= AddBack;
             PlaylistMan.rebuild -= Rebuild;
-            PlaylistMan.RemoveAt -= RemoveAt;
+            PlaylistMan.RemoveIndices -= RemoveIndices;
 
             PlaylistMan.MarkIndex -= MarkIndex;
             PlaylistMan.MarkRecordingIndex -= MarkRecordingIndex;
             PlaylistMan.UnmarkAll -= UnmarkAll;
+
+            PlaylistMan.RearrangeSongs -= Move;
         }
 
         private void Rebuild(ICollection<SongDTO> songs)
@@ -203,9 +208,12 @@ namespace Musegician.Playlist
                 if (menuItem.DataContext is PlaylistSongViewModel song)
                 {
                     e.Handled = true;
-                    int indexToRemove = _playlistTree.PlaylistViewModels.IndexOf(song);
 
-                    PlaylistMan.RemoveIndex(indexToRemove);
+                    List<int> sourceIndices = new List<int>(
+                        from PlaylistSongViewModel model in PlaylistTree.SelectedItems
+                        select _playlistTree.PlaylistViewModels.IndexOf(model));
+
+                    PlaylistMan.RemoveIndex(sourceIndices);
                 }
                 else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
                 {
@@ -291,9 +299,16 @@ namespace Musegician.Playlist
             }
         }
 
-        private void RemoveAt(int index)
+        private void RemoveIndices(ICollection<int> indices)
         {
-            _playlistTree.PlaylistViewModels.RemoveAt(index);
+            List<int> indexCopy = new List<int>(indices);
+
+            indexCopy.Sort((a, b) => b.CompareTo(a));
+
+            foreach (int index in indexCopy)
+            {
+                _playlistTree.PlaylistViewModels.RemoveAt(index);
+            }
         }
 
         private enum KeyboardActions
@@ -414,6 +429,197 @@ namespace Musegician.Playlist
 
             return (context, weightList);
         }
+
+        #region Drag Handling
+        //Some implementation details borrowed from:
+        // https://stackoverflow.com/questions/3350187/wpf-c-rearrange-items-in-listbox-via-drag-and-drop
+
+        private Point _dragStartPoint;
+        private bool _validDragTarget = false;
+
+        private void Move(IEnumerable<int> sourceIndices, int targetIndex)
+        {
+            int preTargetMoves = 0;
+
+            foreach (int sourceIndex in sourceIndices)
+            {
+                if (sourceIndex < targetIndex)
+                {
+                    _playlistTree.PlaylistViewModels.Move(sourceIndex - preTargetMoves, targetIndex - 1);
+                    ++preTargetMoves;
+                }
+                else if (sourceIndex == targetIndex)
+                {
+                    ++targetIndex;
+                }
+                else // (sourceIndex > targetIndex)
+                {
+                    _playlistTree.PlaylistViewModels.Move(sourceIndex, targetIndex);
+                    ++targetIndex;
+                }
+            }
+        }
+
+        private void Item_Drop(object sender, DragEventArgs e)
+        {
+            if (sender is MultiSelectTreeViewItem treeItem)
+            {
+                //Find the next droppable target in hierarchy
+                while (!IsDraggable(treeItem) && treeItem != null)
+                {
+                    treeItem = FindDraggableVisualParent(treeItem);
+                }
+
+                if (treeItem == null)
+                {
+                    //No draggable item in hierarchy
+                    return;
+                }
+
+                if (e.Data.GetData(typeof(PlaylistSongViewModel)) is PlaylistSongViewModel source &&
+                    treeItem.DataContext is PlaylistSongViewModel target)
+                {
+                    target.ShowDropLine = false;
+
+                    List<int> sourceIndices = new List<int>(
+                        from PlaylistSongViewModel model in PlaylistTree.SelectedItems
+                        select _playlistTree.PlaylistViewModels.IndexOf(model));
+
+                    sourceIndices.Sort();
+
+                    int targetIndex = _playlistTree.PlaylistViewModels.IndexOf(target);
+
+                    PlaylistMan.BatchRearrangeSongs(sourceIndices, targetIndex);
+                }
+
+            }
+        }
+
+        private void Item_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _dragStartPoint = e.GetPosition(null);
+
+            MultiSelectTreeViewItem dragSource =
+                FindVisualParent<MultiSelectTreeViewItem>(((DependencyObject)e.OriginalSource));
+
+            _validDragTarget = IsDraggable(dragSource) && dragSource.IsItemSelected;
+        }
+
+        private void Item_DragEnter(object sender, DragEventArgs e)
+        {
+            if (sender is MultiSelectTreeViewItem treeItem)
+            {
+                //Find the next droppable target in hierarchy
+                while (!IsDraggable(treeItem) && treeItem != null)
+                {
+                    treeItem = FindDraggableVisualParent(treeItem);
+                }
+
+                if (treeItem == null)
+                {
+                    //No draggable item in hierarchy
+                    return;
+                }
+
+                if (treeItem.Header is PlaylistViewModel model)
+                {
+                    model.ShowDropLine = true;
+                }
+            }
+        }
+
+        private void Item_DragLeave(object sender, DragEventArgs e)
+        {
+            if (sender is MultiSelectTreeViewItem treeItem)
+            {
+                //Find the next droppable target in hierarchy
+                while (!IsDraggable(treeItem) && treeItem != null)
+                {
+                    treeItem = FindDraggableVisualParent(treeItem);
+                }
+
+                if (treeItem == null)
+                {
+                    //No draggable item in hierarchy
+                    return;
+                }
+
+                if (treeItem.Header is PlaylistViewModel model)
+                {
+                    model.ShowDropLine = false;
+                }
+            }
+        }
+
+        private void Tree_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && _validDragTarget)
+            {
+                Point point = e.GetPosition(null);
+                Vector diff = _dragStartPoint - point;
+                if (Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                {
+                    MultiSelectTreeView treeView = sender as MultiSelectTreeView;
+                    MultiSelectTreeViewItem treeViewItem =
+                        FindVisualParent<MultiSelectTreeViewItem>(((DependencyObject)e.OriginalSource));
+                    if (IsDraggable(treeViewItem))
+                    {
+                        DragDrop.DoDragDrop(treeViewItem, treeViewItem.DataContext, DragDropEffects.Move);
+                    }
+                }
+            }
+        }
+
+        private bool IsDraggable(MultiSelectTreeViewItem item)
+        {
+            if (item == null)
+            {
+                return false;
+            }
+
+            if (item.Header is PlaylistSongViewModel)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private MultiSelectTreeViewItem FindDraggableVisualParent(DependencyObject child)
+        {
+            MultiSelectTreeViewItem parentItem = FindVisualParent<MultiSelectTreeViewItem>(child);
+
+            if (parentItem == null)
+            {
+                return null;
+            }
+
+            if (IsDraggable(parentItem))
+            {
+                return parentItem;
+            }
+
+            return FindDraggableVisualParent(parentItem);
+        }
+
+        private T FindVisualParent<T>(DependencyObject child)
+            where T : DependencyObject
+        {
+            DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+            if (parentObject == null)
+            {
+                return null;
+            }
+
+            if (parentObject is T parent)
+            {
+                return parent;
+            }
+
+            return FindVisualParent<T>(parentObject);
+        }
+
+        #endregion Drag Handling
 
     }
 }

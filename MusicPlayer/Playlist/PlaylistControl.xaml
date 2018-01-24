@@ -26,14 +26,20 @@
       <Separator/>
       <MenuItem Header="Remove Recording" Click="Remove"/>
     </ContextMenu>
-
+    
+    <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+    
     <HierarchicalDataTemplate DataType="{x:Type playlist:PlaylistSongViewModel}"
                               ItemsSource="{Binding Children}">
-      <StackPanel Orientation="Horizontal" Background="Transparent"
+      <Grid>
+        <Border BorderThickness="0,2,0,0" BorderBrush="White"
+                Visibility="{Binding ShowDropLine, Converter={StaticResource BoolToVisConverter}}"/>
+        <StackPanel Orientation="Horizontal" Background="Transparent"
                   ContextMenu="{StaticResource PlaylistSongCM}">
-        <core:WeightBar Margin="0,0,5,0"/>
-        <TextBlock Text="{Binding Title}" FontSize="14" VerticalAlignment="Center"/>
-      </StackPanel>
+          <core:WeightBar Margin="0,0,5,0"/>
+          <TextBlock Text="{Binding Title}" FontSize="14" VerticalAlignment="Center"/>
+        </StackPanel>
+      </Grid>
     </HierarchicalDataTemplate>
 
     <HierarchicalDataTemplate DataType="{x:Type playlist:PlaylistRecordingViewModel}">
@@ -49,17 +55,22 @@
   <DockPanel>
     <core:MultiSelectTreeView x:Name="PlaylistTree" FocusManager.IsFocusScope="True"
                               ItemsSource="{Binding PlaylistViewModels}"
-                              KeyDown="Tree_KeyDown">
+                              KeyDown="Tree_KeyDown" PreviewMouseMove="Tree_PreviewMouseMove">
       <core:MultiSelectTreeView.ItemContainerStyle>
         <Style TargetType="core:MultiSelectTreeViewItem"
                BasedOn="{StaticResource {x:Type core:MultiSelectTreeViewItem}}">
           <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick"/>
+          <EventSetter Event="PreviewMouseLeftButtonDown" Handler="Item_PreviewMouseLeftButtonDown"/>
+          <EventSetter Event="Drop" Handler="Item_Drop"/>
+          <EventSetter Event="DragEnter" Handler="Item_DragEnter"/>
+          <EventSetter Event="DragLeave" Handler="Item_DragLeave"/>
           <Setter Property="VerticalContentAlignment" Value="Stretch"/>
           <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
           <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
           <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
-          <Setter Property="IsAltState" Value="{Binding Playing}" />
-          <Setter Property="FontWeight" Value="Normal" />
+          <Setter Property="IsAltState" Value="{Binding Playing}"/>
+          <Setter Property="FontWeight" Value="Normal"/>
+          <Setter Property="AllowDrop" Value="True"/>
           <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
               <Setter Property="FontWeight" Value="Bold" />

@@ -19,6 +19,7 @@ namespace Musegician.Playlist
 
         bool _isExpanded;
         bool _isSelected;
+        bool _showDropLine;
 
         #endregion Data
         #region Constructor
@@ -103,8 +104,7 @@ namespace Musegician.Playlist
         #region IsExpanded
 
         /// <summary>
-        /// Gets/sets whether the TreeViewItem 
-        /// associated with this object is expanded.
+        /// Gets/sets whether the TreeViewItem associated with this object is expanded.
         /// </summary>
         public bool IsExpanded
         {
@@ -128,8 +128,7 @@ namespace Musegician.Playlist
         #region IsSelected
 
         /// <summary>
-        /// Gets/sets whether the TreeViewItem 
-        /// associated with this object is selected.
+        /// Gets/sets whether the TreeViewItem associated with this object is selected.
         /// </summary>
         public bool IsSelected
         {
@@ -145,6 +144,25 @@ namespace Musegician.Playlist
         }
 
         #endregion IsSelected
+        #region ShowDropLine
+
+        /// <summary>
+        /// Gets/sets whether the TreeViewItem associated with this object should render a dragdrop line.
+        /// </summary>
+        public bool ShowDropLine
+        {
+            get { return _showDropLine; }
+            set
+            {
+                if (value != _showDropLine)
+                {
+                    _showDropLine = value;
+                    OnPropertyChanged("ShowDropLine");
+                }
+            }
+        }
+
+        #endregion ShowDropLine
         #region Parent
 
         public PlaylistViewModel Parent

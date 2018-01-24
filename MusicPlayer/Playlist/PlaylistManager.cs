@@ -23,7 +23,7 @@ namespace Musegician.Playlist
     {
         private Random random = new Random();
         private List<SongDTO> playlist = new List<SongDTO>();
-        private List<int> shuffleList = new List<int>();
+        private List<SongDTO> shuffleSet = new List<SongDTO>();
 
         /// <summary>
         /// A buffer holding the last 30 songs to play in Shuffle mode
@@ -38,6 +38,7 @@ namespace Musegician.Playlist
         }
 
         public delegate void PassIndex(int index);
+        public delegate void PassIndices(ICollection<int> indices);
 
         private event PassIndex _MarkIndex;
         public event PassIndex MarkIndex
@@ -67,13 +68,16 @@ namespace Musegician.Playlist
             remove { _MarkRecordingIndex -= value; }
         }
 
-        public event PassIndex RemoveAt;
+        public event PassIndices RemoveIndices;
 
         public delegate void Notify();
         public event Notify UnmarkAll;
 
         public delegate void UpdateSongs(ICollection<SongDTO> songs);
         public event UpdateSongs addBack;
+
+        public delegate void Rearrange(IEnumerable<int> sourceIndices, int targetIndex);
+        public event Rearrange RearrangeSongs;
 
         private static object m_addLock = new object();
         private event UpdateSongs _rebuild;
@@ -208,12 +212,12 @@ namespace Musegician.Playlist
                 //Add the item to the current shuffle buffer, and remove from shuffleList
                 if (Shuffle)
                 {
-                    if (shuffleList.Contains(CurrentIndex))
+                    if (shuffleSet.Contains(playlist[CurrentIndex]))
                     {
-                        shuffleList.Remove(CurrentIndex);
+                        shuffleSet.Remove(playlist[CurrentIndex]);
                     }
 
-                    //Pop off history elements in front of it
+                    //Pop off history elements in front of it - We have branched our history
                     while (bufferIndex > 0)
                     {
                         --bufferIndex;
@@ -243,9 +247,9 @@ namespace Musegician.Playlist
                 //Add the item to the current shuffle buffer, and remove from shuffleList
                 if (Shuffle)
                 {
-                    if (shuffleList.Contains(CurrentIndex))
+                    if (shuffleSet.Contains(playlist[CurrentIndex]))
                     {
-                        shuffleList.Remove(CurrentIndex);
+                        shuffleSet.Remove(playlist[CurrentIndex]);
                     }
 
                     //Pop off history elements in front of it
@@ -318,10 +322,10 @@ namespace Musegician.Playlist
                 int reshuffles = 0;
 
                 //Select the next song if we're not out of songs yet
-                while (shuffleList.Count > 0 || Repeat)
+                while (shuffleSet.Count > 0 || Repeat)
                 {
                     //Reshuffle list if Repeat is turned on
-                    if (shuffleList.Count == 0 && Repeat)
+                    if (shuffleSet.Count == 0 && Repeat)
                     {
                         PrepareShuffleList();
 
@@ -339,9 +343,9 @@ namespace Musegician.Playlist
 
                     }
 
-                    int nextShuffleIndex = random.Next(0, shuffleList.Count);
-                    int nextIndex = shuffleList[nextShuffleIndex];
-                    shuffleList.RemoveAt(nextShuffleIndex);
+                    int nextShuffleIndex = random.Next(0, shuffleSet.Count);
+                    int nextIndex = playlist.IndexOf(shuffleSet[nextShuffleIndex]);
+                    shuffleSet.RemoveAt(nextShuffleIndex);
 
                     if (!TestSongWeight(nextIndex))
                     {
@@ -528,38 +532,33 @@ namespace Musegician.Playlist
             int originalItemCount = ItemCount;
 
             playlist.AddRange(songs);
-
-            for (int i = originalItemCount; i < ItemCount; i++)
-            {
-                shuffleList.Add(i);
-            }
+            shuffleSet.AddRange(songs);
 
             addBack?.Invoke(songs);
         }
 
-        public void RemoveIndex(int songIndex)
+        public void RemoveIndex(ICollection<int> songIndices)
         {
-            if (songIndex < CurrentIndex)
-            {
-                --_currentIndex;
-            }
+            List<int> reverseSortedIndices = new List<int>(songIndices);
+            reverseSortedIndices.Sort((a, b) => b.CompareTo(a));
 
-            if (shuffleList.Contains(songIndex))
+            foreach (int songIndex in reverseSortedIndices)
             {
-                shuffleList.Remove(songIndex);
-            }
-
-            for (int i = 0; i < shuffleList.Count; i++)
-            {
-                if (songIndex < shuffleList[i])
+                if (songIndex < CurrentIndex)
                 {
-                    --shuffleList[i];
+                    --_currentIndex;
                 }
+
+
+                if (shuffleSet.Contains(playlist[songIndex]))
+                {
+                    shuffleSet.Remove(playlist[songIndex]);
+                }
+
+                playlist.RemoveAt(songIndex);
             }
 
-            playlist.RemoveAt(songIndex);
-
-            RemoveAt?.Invoke(songIndex);
+            RemoveIndices?.Invoke(songIndices);
         }
 
         private long SelectRecording(SongDTO song)
@@ -622,12 +621,9 @@ namespace Musegician.Playlist
 
         public void PrepareShuffleList()
         {
-            shuffleList.Clear();
+            shuffleSet.Clear();
 
-            for (int i = 0; i < ItemCount; i++)
-            {
-                shuffleList.Add(i);
-            }
+            shuffleSet.AddRange(playlist);
         }
 
         private void PlayRecording(long recordingID)
@@ -705,6 +701,35 @@ namespace Musegician.Playlist
 
             return random.NextDouble() <= playlist[playlistIndex].Weight;
 
+        }
+
+        public void BatchRearrangeSongs(IEnumerable<int> sourceIndices, int targetIndex)
+        {
+            int preTargetMoves = 0;
+            int postTargetMoves = 0;
+
+            foreach (int sourceIndex in sourceIndices)
+            {
+                if (sourceIndex < targetIndex)
+                {
+                    playlist.Insert(targetIndex, playlist[sourceIndex - preTargetMoves]);
+                    playlist.RemoveAt(sourceIndex - preTargetMoves);
+
+                    ++preTargetMoves;
+                }
+                else if (sourceIndex == targetIndex)
+                {
+                    ++postTargetMoves;
+                }
+                else // (sourceIndex > targetIndex)
+                {
+                    playlist.Insert(targetIndex + postTargetMoves, playlist[sourceIndex]);
+                    playlist.RemoveAt(sourceIndex + 1);
+                    ++postTargetMoves;
+                }
+            }
+
+            RearrangeSongs?.Invoke(sourceIndices, targetIndex);
         }
 
         #region INotifyPropertyChanged

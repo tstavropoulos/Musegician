@@ -100,32 +100,26 @@ namespace Musegician.Core
             }
         }
 
+        private MultiSelectTreeViewItem mouseDownItem = null;
         protected override void OnPreviewMouseDown(MouseButtonEventArgs e)
         {
             base.OnPreviewMouseDown(e);
 
+            mouseDownItem = null;
+
             // If clicking on a tree branch expander...
-            if (e.OriginalSource is Path)
+            if (InExpanderTree(e.OriginalSource))
             {
                 return;
             }
 
-            if (e.OriginalSource is Grid grid)
-            {
-                foreach (var child in grid.Children)
-                {
-                    if (child is Path)
-                    {
-                        return;
-                    }
-                }
-            }
 
             MultiSelectTreeViewItem item = GetTreeViewItemClicked((FrameworkElement)e.OriginalSource);
             if (item != null)
             {
-                if (e.ChangedButton == MouseButton.Right && GetIsItemSelected(item))
+                if (GetIsItemSelected(item))
                 {
+                    mouseDownItem = item;
                     return;
                 }
 
@@ -133,6 +127,50 @@ namespace Musegician.Core
 
                 item.IsSelected = true;
             }
+        }
+
+        protected override void OnPreviewMouseUp(MouseButtonEventArgs e)
+        {
+            base.OnPreviewMouseUp(e);
+
+            // If clicking on a tree branch expander...
+            if (InExpanderTree(e.OriginalSource))
+            {
+                return;
+            }
+
+            MultiSelectTreeViewItem item = GetTreeViewItemClicked((FrameworkElement)e.OriginalSource);
+            if (item != null)
+            {
+                if (e.ChangedButton == MouseButton.Left && item == mouseDownItem)
+                {
+                    SelectedItemChangedInternal(item);
+
+                    item.IsSelected = true;
+                }
+
+            }
+        }
+
+        private bool InExpanderTree(object obj)
+        {
+            if (obj is Path)
+            {
+                return true;
+            }
+
+            if (obj is Grid grid)
+            {
+                foreach (var child in grid.Children)
+                {
+                    if (child is Path)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         #endregion Event Handlers
@@ -306,6 +344,11 @@ namespace Musegician.Core
         {
             get { return (bool)GetValue(IsAltStateProperty); }
             set { SetValue(IsAltStateProperty, value); }
+        }
+
+        public bool IsItemSelected
+        {
+            get { return MultiSelectTreeView.GetIsItemSelected(this); }
         }
 
         public static readonly DependencyProperty IsAltStateProperty =

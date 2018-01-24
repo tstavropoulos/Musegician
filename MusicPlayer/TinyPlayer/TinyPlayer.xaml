@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:Musegician.TinyPlayer"
+        xmlns:core="clr-namespace:Musegician.Core"
         xmlns:player="clr-namespace:Musegician.Player"
         xmlns:playlist="clr-namespace:Musegician.Playlist"
         xmlns:equalizer="clr-namespace:Musegician.Equalizer"
@@ -12,9 +13,53 @@
         Title="{Binding Source={x:Static player:MusicManager.Instance}, Path=WindowTitle}"
         Height="420" Width="320"
         Deactivated="Window_Deactivated"
-        Style="{StaticResource CustomTinyWindowStyle}"
         Icon="/Musegician;component/Resources/logoHat.png"
         Closing="TinyPlayer_Closing">
+  <Window.Style>
+    <Style TargetType="{x:Type Window}" BasedOn="{StaticResource {x:Type Window}}">
+      <Setter Property="WindowChrome.WindowChrome">
+        <Setter.Value>
+          <WindowChrome CaptionHeight="30" CornerRadius="0" UseAeroCaptionButtons="False"
+                      GlassFrameThickness="0" NonClientFrameEdges="None" ResizeBorderThickness="5"/>
+        </Setter.Value>
+      </Setter>
+      <Setter Property="BorderBrush" Value="Black" />
+      <Setter Property="Background" Value="Gray" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="{x:Type Window}">
+            <Grid>
+              <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="5,30,5,5">
+                <AdornerDecorator>
+                  <ContentPresenter/>
+                </AdornerDecorator>
+              </Border>
+              <Grid Height="30" VerticalAlignment="Top" Margin="2,2,2,0">
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" >
+                    <Image Margin="5,2,6,4" Source="{TemplateBinding Icon}"/>
+                  </StackPanel>
+                  <StackPanel DockPanel.Dock="Right"  Orientation="Horizontal">
+                    <Button x:Name="btnMinimize" WindowChrome.IsHitTestVisibleInChrome="True"
+                        VerticalContentAlignment="Bottom" Style="{StaticResource ChromeButtonStyle}"
+                        Width="40" Height="30" Margin="5,0,5,2" Click="MinimizeClick" Content="_"/>
+                    <Button x:Name="btnClose" WindowChrome.IsHitTestVisibleInChrome="True"
+                        Style="{StaticResource ChromeButtonStyle}"
+                        Width="40" Height="30" Margin="5,0,5,2" Click="CloseClick" Content="X"/>
+                  </StackPanel>
+                  <core:MarqueeControl x:Name="Marquee" Grid.Column="1" Margin="5,0,0,0" ClipToBounds="True"
+                                     VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                                     FontSize="16" Foreground="White" Rate="10"
+                                     Content="{Binding Source={x:Static player:MusicManager.Instance}, Path=SongLabel}"/>
+                </DockPanel>
+              </Grid>
+            </Grid>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+  </Window.Style>
   <Window.Resources>
     <Style x:Key="UIFontStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
       <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
@@ -56,8 +101,6 @@
       </BeginStoryboard>
     </EventTrigger>
   </Window.Triggers>
-  
-  
   <Grid Margin="0">
     <DockPanel Margin="0">
       <player:PlaybackPanel x:Name="playbackPanel" DockPanel.Dock="Bottom"/>
