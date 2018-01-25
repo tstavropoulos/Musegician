@@ -9,6 +9,7 @@
         xmlns:player="clr-namespace:Musegician.Player"
         xmlns:playlist="clr-namespace:Musegician.Playlist"
         xmlns:equalizer="clr-namespace:Musegician.Equalizer"
+        xmlns:spatializer="clr-namespace:Musegician.Spatializer"
         mc:Ignorable="d"
         Title="{Binding Source={x:Static player:MusicManager.Instance}, Path=WindowTitle}"
         Height="800" Width="1200"
@@ -50,12 +51,20 @@
           <Separator/>
           <MenuItem Header="Shu_ffle Playlist"
                     IsCheckable="True"
-                    IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Shuffle, Mode=TwoWay}"/>
+                    IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance},
+                      Path=Shuffle, Mode=TwoWay}"/>
           <MenuItem Header="_Repeat Playlist"
                     IsCheckable="True"
-                    IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance}, Path=Repeat, Mode=TwoWay}"/>
+                    IsChecked="{Binding Source={x:Static playlist:PlaylistManager.Instance},
+                      Path=Repeat, Mode=TwoWay}"/>
           <Separator/>
           <MenuItem Header="_Clear Playlist" Click="Menu_ClearPlaylist"/>
+        </MenuItem>
+        <MenuItem Header="_Sound">
+          <MenuItem Header="_Enable Spatializer"
+                    IsCheckable="True"
+                    IsChecked="{Binding Source={x:Static spatializer:SpatializationManager.Instance},
+                      Path=EnableSpatializer, Mode=TwoWay}"/>
         </MenuItem>
       </Menu>
     </DockPanel>

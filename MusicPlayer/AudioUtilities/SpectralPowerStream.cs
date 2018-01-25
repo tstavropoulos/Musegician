@@ -7,6 +7,7 @@ using CSCore;
 using CSCore.DSP;
 using CSCore.Streams.Effects;
 using CSCore.Utils;
+using Musegician.Core;
 
 namespace Musegician.AudioUtilities
 {
@@ -20,8 +21,8 @@ namespace Musegician.AudioUtilities
         private int[] freqBandLB;
         private int[] freqBandUB;
 
-        private Complex[] bufferL;
-        private Complex[] bufferR;
+        private RingBuffer<Complex> bufferL;
+        private RingBuffer<Complex> bufferR;
         private Complex[] fftBufferL;
         private Complex[] fftBufferR;
 
@@ -85,8 +86,8 @@ namespace Musegician.AudioUtilities
 
             samplesToProcess = (int)Math.Pow(2, _fftSize);
 
-            bufferL = new Complex[samplesToProcess];
-            bufferR = new Complex[samplesToProcess];
+            bufferL = new RingBuffer<Complex>(samplesToProcess);
+            bufferR = new RingBuffer<Complex>(samplesToProcess);
             fftBufferL = new Complex[samplesToProcess];
             fftBufferR = new Complex[samplesToProcess];
 
@@ -140,8 +141,8 @@ namespace Musegician.AudioUtilities
             {
                 if (_blocksProcessed >= 0)
                 {
-                    bufferL[_blocksProcessed].Real = buffer[i];
-                    bufferR[_blocksProcessed].Real = buffer[i + 1];
+                    bufferL.Add(new Complex(buffer[i]));
+                    bufferR.Add(new Complex(buffer[i + 1]));
                 }
 
                 _blocksProcessed++;
@@ -162,15 +163,8 @@ namespace Musegician.AudioUtilities
 
         private void CalculatePower()
         {
-            Array.Copy(
-                sourceArray: bufferL,
-                destinationArray: fftBufferL,
-                length: samplesToProcess);
-
-            Array.Copy(
-                sourceArray: bufferR,
-                destinationArray: fftBufferR,
-                length: samplesToProcess);
+            bufferL.CopyTo(fftBufferL, 0);
+            bufferR.CopyTo(fftBufferR, 0);
 
             for (int i = 0; i < samplesToProcess; i++)
             {
@@ -196,24 +190,6 @@ namespace Musegician.AudioUtilities
         private void Reset()
         {
             _blocksProcessed = samplesToProcess - _blocksToProcess;
-
-            if (_blocksProcessed > 0)
-            {
-                //Shift remaining samples left here
-                Array.Copy(
-                    sourceArray: bufferL,
-                    sourceIndex: _blocksToProcess,
-                    destinationArray: bufferL,
-                    destinationIndex: 0,
-                    length: _blocksProcessed);
-
-                Array.Copy(
-                    sourceArray: bufferR,
-                    sourceIndex: _blocksToProcess,
-                    destinationArray: bufferR,
-                    destinationIndex: 0,
-                    length: _blocksProcessed);
-            }
         }
 
         private (float, float) GetPowers(int index)
@@ -227,7 +203,7 @@ namespace Musegician.AudioUtilities
                 right += fftBufferR[i].Value;
             }
 
-            left *=  powerCoeff;
+            left *= powerCoeff;
             right *= powerCoeff;
 
             return (UnitaryClamp((float)left), UnitaryClamp((float)right));

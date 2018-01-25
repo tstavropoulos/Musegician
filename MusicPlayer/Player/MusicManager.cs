@@ -120,6 +120,8 @@ namespace Musegician.Player
 
         bool prepareNext = false;
 
+        #region Singleton
+
         private static object m_lock = new object();
         private static volatile MusicManager _instance = null;
         public static MusicManager Instance
@@ -151,6 +153,8 @@ namespace Musegician.Player
                 return _instance;
             }
         }
+
+        #endregion Singleton
 
         private double _length = 1.0;
         public double Length
@@ -398,31 +402,28 @@ namespace Musegician.Player
             }
 
             AudioUtilities.SpectralPowerStream spectralPowerStream;
+            AudioUtilities.SpatializerStream spatializerStream;
+            _equalizer = null;
 
+            ISampleSource sampleSource = CodecFactory.Instance.GetCodec(playData.filename)
+                .ToSampleSource()
+                .ToStereo()
+                .AppendSource(AudioUtilities.SpectralPowerStream.CreatePowerStream, out spectralPowerStream);
 
-            _waveSource = CodecFactory.Instance.GetCodec(playData.filename);
-            if (_waveSource.WaveFormat.SampleRate < 32_000)
+            if (sampleSource.WaveFormat.SampleRate >= 32_000)
             {
-                Console.WriteLine("Bypassing equalizer - song samplerate is too low: " + 
-                    _waveSource.WaveFormat.SampleRate);
-
-                _equalizer = null;
-
-                _waveSource = _waveSource
-                    .ToSampleSource()
-                    .ToStereo()
-                    .AppendSource(AudioUtilities.SpectralPowerStream.CreatePowerStream, out spectralPowerStream)
-                    .ToWaveSource();
+                sampleSource = sampleSource.AppendSource(
+                    CSCoreEq.Create10BandEqualizer,
+                    out _equalizer);
             }
-            else
-            {
-                _waveSource = _waveSource
-                    .ToSampleSource()
-                    .ToStereo()
-                    .AppendSource(AudioUtilities.SpectralPowerStream.CreatePowerStream, out spectralPowerStream)
-                    .AppendSource(CSCoreEq.Create10BandEqualizer, out _equalizer)
-                    .ToWaveSource();
-            }
+
+
+            sampleSource = sampleSource.AppendSource(
+                AudioUtilities.SpatializerStream.CreateSpatializerStream,
+                out spatializerStream);
+
+
+            _waveSource = sampleSource.ToWaveSource();
 
             spectralPowerStream.PowerUpdate += (s,e) => MeterUpdate?.Invoke(s, e);
 

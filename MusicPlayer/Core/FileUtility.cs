@@ -11,30 +11,43 @@ namespace Musegician
     {
         public static string GetDataPath()
         {
-            string path = System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
             if (!Directory.Exists(path))
             {
                 path = "C:\\";
+
+                if (!Directory.Exists(path))
+                {
+                    throw new IOException("Can't find proper location for application data");
+                }
             }
 
-            if (!Directory.Exists(path))
-            {
-                throw new Exception("Can't find proper location for application data");
-            }
-            
             path = Path.Combine(path, "Musegician");
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
-            }
-            
-            if (!Directory.Exists(path))
-            {
-                throw new Exception("Failed to create Musegician directory?");
+
+                if (!Directory.Exists(path))
+                {
+                    throw new IOException("Failed to create Musegician directory?");
+                }
             }
 
             return path;
         }
+
+        //public static string GetIRPath()
+        //{
+        //    string path = Environment.GetFolderPath(Environment.SpecialFolder.);
+
+        //    path = Path.Combine(path, "IRFiles");
+        //    if (!Directory.Exists(path))
+        //    {
+
+        //    }
+
+        //    return path;
+        //}
     }
 }
