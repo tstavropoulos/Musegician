@@ -61,12 +61,14 @@
           <MenuItem Header="_Clear Playlist" Click="Menu_ClearPlaylist"/>
         </MenuItem>
         <MenuItem Header="_Sound">
-          <MenuItem Header="_Enable Spatializer"
-                    IsCheckable="True"
-                    IsChecked="{Binding Source={x:Static spatializer:SpatializationManager.Instance},
-                      Path=EnableSpatializer, Mode=TwoWay}"/>
+          <MenuItem Header="Open _Spatializer" Click="Menu_OpenSpatializer"/>
         </MenuItem>
       </Menu>
+      <Popup x:Name="SpatializerPopup" StaysOpen="False">
+        <Grid Background="{StaticResource DarkInsetPanel}">
+          <spatializer:SpatializerControl/>
+        </Grid>
+      </Popup>
     </DockPanel>
     <player:PlaybackPanel x:Name="playbackPanel" DockPanel.Dock="Bottom"/>
     <Grid>

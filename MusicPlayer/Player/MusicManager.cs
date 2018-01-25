@@ -13,6 +13,7 @@ using CSCore.Streams.Effects;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows;
+using Musegician.AudioUtilities;
 
 using PlaylistManager = Musegician.Playlist.PlaylistManager;
 using PlayData = Musegician.DataStructures.PlayData;
@@ -34,6 +35,7 @@ namespace Musegician.Player
         private ISoundOut _soundOut;
         private IWaveSource _waveSource;
         private CSCoreEq _equalizer;
+        private SpatializerStream _spatializer;
 
         private AudioClient _audioClient = null;
         private AudioClient AudioClient
@@ -401,27 +403,23 @@ namespace Musegician.Player
                 return;
             }
 
-            AudioUtilities.SpectralPowerStream spectralPowerStream;
-            AudioUtilities.SpatializerStream spatializerStream;
+            SpectralPowerStream spectralPowerStream;
+            _spatializer = null;
             _equalizer = null;
 
             ISampleSource sampleSource = CodecFactory.Instance.GetCodec(playData.filename)
                 .ToSampleSource()
                 .ToStereo()
-                .AppendSource(AudioUtilities.SpectralPowerStream.CreatePowerStream, out spectralPowerStream);
+                .AppendSource(SpectralPowerStream.CreatePowerStream, out spectralPowerStream);
 
             if (sampleSource.WaveFormat.SampleRate >= 32_000)
             {
-                sampleSource = sampleSource.AppendSource(
-                    CSCoreEq.Create10BandEqualizer,
-                    out _equalizer);
+                sampleSource = sampleSource.AppendSource(CSCoreEq.Create10BandEqualizer, out _equalizer);
             }
 
-
             sampleSource = sampleSource.AppendSource(
-                AudioUtilities.SpatializerStream.CreateSpatializerStream,
-                out spatializerStream);
-
+                SpatializerStream.CreateSpatializerStream,
+                out _spatializer);
 
             _waveSource = sampleSource.ToWaveSource();
 
@@ -508,6 +506,12 @@ namespace Musegician.Player
             {
                 _equalizer.Dispose();
                 _equalizer = null;
+            }
+
+            if (_spatializer != null)
+            {
+                _spatializer.Dispose();
+                _spatializer = null;
             }
         }
 
@@ -819,6 +823,17 @@ namespace Musegician.Player
             }
         }
 
+        public void SpatializerUpdated(object sender, Spatializer.SpatializerChangedArgs e)
+        {
+            //We do not care about updates if we haven't instantiated a spatializer
+            if (_spatializer == null)
+            {
+                return;
+            }
+
+            _spatializer.PrepareNewIRFs();
+        }
+
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -868,6 +883,12 @@ namespace Musegician.Player
                     {
                         _equalizer.Dispose();
                         _equalizer = null;
+                    }
+
+                    if (_spatializer != null)
+                    {
+                        _spatializer.Dispose();
+                        _spatializer = null;
                     }
 
                     if (_waveSource != null)

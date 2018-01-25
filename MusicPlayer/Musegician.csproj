@@ -244,6 +244,11 @@
       <Generator>MSBuild:Compile</Generator>
     </Compile>
     <Compile Include="Spatializer\SpatializationManager.cs" />
+    <Compile Include="Spatializer\SpatializerControl.xaml.cs">
+      <DependentUpon>SpatializerControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Spatializer\SpatializerSettingDTO.cs" />
+    <Compile Include="Spatializer\SpatializerSettingViewModel.cs" />
     <Compile Include="TagEditor\ITagRequestHandler.cs" />
     <Compile Include="TagEditor\TagEditor.xaml.cs">
       <DependentUpon>TagEditor.xaml</DependentUpon>
@@ -308,6 +313,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Resources\WindowStyle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Spatializer\SpatializerControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

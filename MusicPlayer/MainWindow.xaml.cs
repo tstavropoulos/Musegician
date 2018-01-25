@@ -215,5 +215,10 @@ namespace Musegician
         {
             PlaylistControl.LookupRequest -= libraryControl.LookupRequest;
         }
+
+        private void Menu_OpenSpatializer(object sender, RoutedEventArgs e)
+        {
+            SpatializerPopup.IsOpen = true;
+        }
     }
 }

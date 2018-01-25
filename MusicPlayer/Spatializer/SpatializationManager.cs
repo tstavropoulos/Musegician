@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,28 @@ using System.Threading.Tasks;
 
 namespace Musegician.Spatializer
 {
+    #region EventArgs
+
+    public class SpatializerChangedArgs : EventArgs
+    {
+        //public bool Enabled { get; set; }
+        //public bool Isolated { get; set; }
+        //public IR_Position[,] Positions { get; private set; }
+
+        //public SpatializerChangedArgs(IR_Position[,] positions, bool enabled, bool isolated)
+        //{
+        //    Positions = new IR_Position[2, 2];
+        //    Positions[1, 1] = positions[1, 1];
+        //    Positions[1, 2] = positions[1, 2];
+        //    Positions[2, 1] = positions[2, 1];
+        //    Positions[2, 2] = positions[2, 2];
+
+        //    Enabled = enabled;
+        //    Isolated = isolated;
+        //}
+    }
+
+    #endregion EventArgs
     public enum IR_Position
     {
         IR_0 = 0,
@@ -52,6 +75,13 @@ namespace Musegician.Spatializer
         Dictionary<IR_Position, float[]> leftIRFs = new Dictionary<IR_Position, float[]>();
         Dictionary<IR_Position, float[]> rightIRFs = new Dictionary<IR_Position, float[]>();
 
+        private string presetName;
+        private ReadOnlyCollection<SpatializerSettingDTO> presets;
+
+        private IR_Position[,] _positions = new IR_Position[2, 2];
+
+        private float[] zeroIRF = null;
+
         #endregion Data
         #region Singleton
 
@@ -88,6 +118,11 @@ namespace Musegician.Spatializer
         }
 
         #endregion Singleton
+        #region Events
+
+        public event EventHandler<SpatializerChangedArgs> SpatializerChanged;
+
+        #endregion Events
         #region Properties
 
         private bool _enableSpatializer = false;
@@ -100,8 +135,44 @@ namespace Musegician.Spatializer
                 {
                     _enableSpatializer = value;
                     OnPropertyChanged("EnableSpatializer");
+                    //SpatializerChanged?.Invoke(this, new SpatializerChangedArgs());
                 }
             }
+        }
+
+        private bool _isolateChannels = false;
+        public bool IsolateChannels
+        {
+            get { return _isolateChannels; }
+            set
+            {
+                if (_isolateChannels != value)
+                {
+                    _isolateChannels = value;
+                    OnPropertyChanged("IsolateChannels");
+                    SpatializerChanged?.Invoke(this, new SpatializerChangedArgs());
+                }
+            }
+        }
+
+        public ReadOnlyCollection<SpatializerSettingDTO> Presets { get { return presets; } }
+
+        public string PresetName
+        {
+            get { return presetName; }
+            private set
+            {
+                if (presetName != value)
+                {
+                    presetName = value;
+                    OnPropertyChanged("PresetName");
+                }
+            }
+        }
+
+        public IR_Position[,] Positions
+        {
+            get { return _positions; }
         }
 
         #endregion Properties
@@ -109,10 +180,87 @@ namespace Musegician.Spatializer
 
         private SpatializationManager()
         {
+            presetName = "Offset";
+
+            presets = new ReadOnlyCollection<SpatializerSettingDTO>(
+                new SpatializerSettingDTO[]
+                {
+                    new SpatializerSettingDTO()
+                    {
+                        name = "Offset",
+                        position = new IR_Position[2,2]
+                        {
+                            {IR_Position.IR_n45, IR_Position.IR_n45},
+                            {IR_Position.IR_p45, IR_Position.IR_p45}
+                        }
+                    },
+                    new SpatializerSettingDTO()
+                    {
+                        name = "Distant Offset",
+                        position = new IR_Position[2,2]
+                        {
+                            {IR_Position.IR_n80, IR_Position.IR_n80},
+                            {IR_Position.IR_p80, IR_Position.IR_p80}
+                        }
+                    },
+                    new SpatializerSettingDTO()
+                    {
+                        name = "Forward",
+                        position = new IR_Position[2,2]
+                        {
+                            {IR_Position.IR_0, IR_Position.IR_0},
+                            {IR_Position.IR_0, IR_Position.IR_0}
+                        }
+                    },
+                    new SpatializerSettingDTO()
+                    {
+                        name = "Left",
+                        position = new IR_Position[2,2]
+                        {
+                            {IR_Position.IR_n45, IR_Position.IR_n45},
+                            {IR_Position.IR_n45, IR_Position.IR_n45}
+                        }
+                    },
+                    new SpatializerSettingDTO()
+                    {
+                        name = "Right",
+                        position = new IR_Position[2,2]
+                        {
+                            {IR_Position.IR_p45, IR_Position.IR_p45},
+                            {IR_Position.IR_p45, IR_Position.IR_p45}
+                        }
+                    }
+                });
+
+
+            SpatializerChanged += Player.MusicManager.Instance.SpatializerUpdated;
         }
 
         #endregion Constructor
         #region Helper Methods
+
+        public void SetPositions(IR_Position[,] positions)
+        {
+            bool changed = false;
+
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    if (positions[i, j] != _positions[i, j])
+                    {
+                        _positions[i, j] = positions[i, j];
+                        changed = true;
+                    }
+                }
+            }
+
+            if (changed)
+            {
+                OnPropertyChanged("Positions");
+                SpatializerChanged?.Invoke(this, new SpatializerChangedArgs());
+            }
+        }
 
         string GetFilename(IR_Position position)
         {
@@ -120,7 +268,7 @@ namespace Musegician.Spatializer
 
         }
 
-        void Load(IR_Position position)
+        void LoadCheck(IR_Position position)
         {
             if (leftIRFs.ContainsKey(position))
             {
@@ -149,6 +297,42 @@ namespace Musegician.Spatializer
             //Add to dictionaries
             leftIRFs.Add(position, leftIRF.ToArray());
             rightIRFs.Add(position, rightIRF.ToArray());
+
+            if (zeroIRF == null)
+            {
+                zeroIRF = new float[leftIRF.Count];
+            }
+        }
+
+        private void UpdatePresetName()
+        {
+            foreach (SpatializerSettingDTO data in Presets)
+            {
+                if (CompareToPreset(data))
+                {
+                    PresetName = data.name;
+                    return;
+                }
+            }
+
+            PresetName = "Custom";
+        }
+
+        private bool CompareToPreset(SpatializerSettingDTO data)
+        {
+
+            for (int i = 0; i < 2; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    if (_positions[i, j] != data.position[i, j])
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         #endregion Helper Methods
@@ -156,9 +340,16 @@ namespace Musegician.Spatializer
 
         public float[] GetIRF(AudioChannel speaker, AudioChannel channel)
         {
-            Load(PositionL);
-            Load(PositionR);
-            
+            LoadCheck(Positions[0,0]);
+            LoadCheck(Positions[0,1]);
+            LoadCheck(Positions[1,0]);
+            LoadCheck(Positions[1,1]);
+
+            if (IsolateChannels && speaker != channel)
+            {
+                return zeroIRF;
+            }
+
             Dictionary<IR_Position, float[]> dict;
 
             switch (channel)
@@ -173,20 +364,8 @@ namespace Musegician.Spatializer
                     throw new ArgumentException("Unexpected AudioChannel: " + channel);
             }
 
-            switch (speaker)
-            {
-                case AudioChannel.Left:
-                    return dict[PositionL];
-                case AudioChannel.Right:
-                    return dict[PositionR];
-                case AudioChannel.MAX:
-                default:
-                    throw new ArgumentException("Unexpected AudioChannel: " + channel);
-            }
+            return dict[Positions[(int)channel, (int)speaker]];
         }
-
-        public IR_Position PositionL { get; set; } = IR_Position.IR_n80;
-        public IR_Position PositionR { get; set; } = IR_Position.IR_p80;
 
         #endregion Public Interface
         #region INotifyPropertyChanged
