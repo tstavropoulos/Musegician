@@ -140,7 +140,7 @@ namespace Musegician.Spatializer
             }
         }
 
-        private bool _isolateChannels = true;
+        private bool _isolateChannels = false;
         public bool IsolateChannels
         {
             get { return _isolateChannels; }
