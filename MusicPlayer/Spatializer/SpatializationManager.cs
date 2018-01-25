@@ -140,7 +140,7 @@ namespace Musegician.Spatializer
             }
         }
 
-        private bool _isolateChannels = false;
+        private bool _isolateChannels = true;
         public bool IsolateChannels
         {
             get { return _isolateChannels; }
@@ -364,7 +364,7 @@ namespace Musegician.Spatializer
                     throw new ArgumentException("Unexpected AudioChannel: " + channel);
             }
 
-            return dict[Positions[(int)channel, (int)speaker]];
+            return dict[Positions[(int)speaker, (int)channel]];
         }
 
         #endregion Public Interface

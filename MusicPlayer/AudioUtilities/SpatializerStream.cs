@@ -37,13 +37,15 @@ namespace Musegician.AudioUtilities
         //2^9 = 512
         private const int FFT_EXP_MIN = 9;
         private int _fftSize = 12;
-        private int _fftSizeBump = 2;
+        private int _fftSizeBump = 1;
 
         private int _bufferCopied = 0;
         private int _samplesPerOverlap = 0;
         private int _overlapSize = 0;
 
         private bool _writingTail = false;
+
+        private volatile object _bufferLock = new object();
 
         #endregion Data
         #region Constructor
@@ -150,67 +152,70 @@ namespace Musegician.AudioUtilities
 
         public void PrepareNewIRFs()
         {
-            float[] leftIRF = SpatializationManager.Instance.GetIRF(
-                speaker: AudioChannel.Left,
-                channel: AudioChannel.Left);
-            float[] rightIRF = SpatializationManager.Instance.GetIRF(
-                speaker: AudioChannel.Left,
-                channel: AudioChannel.Right);
-
-            _fftSize = Math.Max(FFT_EXP_MIN, ToNextExponentOf2(leftIRF.Length) + _fftSizeBump);
-
-            _fftSamples = (int)Math.Pow(2, _fftSize);
-
-            _samplesPerOverlap = _fftSamples - leftIRF.Length;
-            _overlapSize = leftIRF.Length - 1;
-
-            _bufferCopied = _samplesPerOverlap;
-
-            localSampleBuffer = new float[2 * _samplesPerOverlap];
-
-            bufferL = new Complex[_samplesPerOverlap];
-            bufferR = new Complex[_samplesPerOverlap];
-
-            overlapL = new Complex[_overlapSize];
-            overlapR = new Complex[_overlapSize];
-
-            fftBufferL = new Complex[_fftSamples];
-            fftBufferR = new Complex[_fftSamples];
-
-            //Prepare left speaker
-            leftSpeakerIRL = new Complex[_fftSamples];
-            leftSpeakerIRR = new Complex[_fftSamples];
-
-            for (int i = 0; i < leftIRF.Length; i++)
+            lock(_bufferLock)
             {
-                leftSpeakerIRL[i] = new Complex(leftIRF[i]);
-                leftSpeakerIRR[i] = new Complex(rightIRF[i]);
+                float[] leftIRF = SpatializationManager.Instance.GetIRF(
+                    speaker: AudioChannel.Left,
+                    channel: AudioChannel.Left);
+                float[] rightIRF = SpatializationManager.Instance.GetIRF(
+                    speaker: AudioChannel.Left,
+                    channel: AudioChannel.Right);
+
+                _fftSize = Math.Max(FFT_EXP_MIN, ToNextExponentOf2(leftIRF.Length) + _fftSizeBump);
+
+                _fftSamples = (int)Math.Pow(2, _fftSize);
+
+                _samplesPerOverlap = _fftSamples - leftIRF.Length;
+                _overlapSize = leftIRF.Length - 1;
+
+                _bufferCopied = _samplesPerOverlap;
+
+                localSampleBuffer = new float[2 * _samplesPerOverlap];
+
+                bufferL = new Complex[_samplesPerOverlap];
+                bufferR = new Complex[_samplesPerOverlap];
+
+                overlapL = new Complex[_overlapSize];
+                overlapR = new Complex[_overlapSize];
+
+                fftBufferL = new Complex[_fftSamples];
+                fftBufferR = new Complex[_fftSamples];
+
+                //Prepare left speaker
+                leftSpeakerIRL = new Complex[_fftSamples];
+                leftSpeakerIRR = new Complex[_fftSamples];
+
+                for (int i = 0; i < leftIRF.Length; i++)
+                {
+                    leftSpeakerIRL[i] = new Complex(leftIRF[i]);
+                    leftSpeakerIRR[i] = new Complex(rightIRF[i]);
+                }
+
+                FastFourierTransformation.Fft(leftSpeakerIRL, _fftSize);
+                FastFourierTransformation.Fft(leftSpeakerIRR, _fftSize);
+
+                //Prepare right speaker
+                leftIRF = SpatializationManager.Instance.GetIRF(
+                    speaker: AudioChannel.Right,
+                    channel: AudioChannel.Left);
+                rightIRF = SpatializationManager.Instance.GetIRF(
+                    speaker: AudioChannel.Right,
+                    channel: AudioChannel.Right);
+
+                rightSpeakerIRL = new Complex[_fftSamples];
+                rightSpeakerIRR = new Complex[_fftSamples];
+
+                for (int i = 0; i < leftIRF.Length; i++)
+                {
+                    rightSpeakerIRL[i] = new Complex(leftIRF[i]);
+                    rightSpeakerIRR[i] = new Complex(rightIRF[i]);
+                }
+
+                FastFourierTransformation.Fft(rightSpeakerIRL, _fftSize);
+                FastFourierTransformation.Fft(rightSpeakerIRR, _fftSize);
+
+                _writingTail = false;
             }
-
-            FastFourierTransformation.Fft(leftSpeakerIRL, _fftSize);
-            FastFourierTransformation.Fft(leftSpeakerIRR, _fftSize);
-
-            //Prepare right speaker
-            leftIRF = SpatializationManager.Instance.GetIRF(
-                speaker: AudioChannel.Right,
-                channel: AudioChannel.Left);
-            rightIRF = SpatializationManager.Instance.GetIRF(
-                speaker: AudioChannel.Right,
-                channel: AudioChannel.Right);
-
-            rightSpeakerIRL = new Complex[_fftSamples];
-            rightSpeakerIRR = new Complex[_fftSamples];
-
-            for (int i = 0; i < leftIRF.Length; i++)
-            {
-                rightSpeakerIRL[i] = new Complex(leftIRF[i]);
-                rightSpeakerIRR[i] = new Complex(rightIRF[i]);
-            }
-
-            FastFourierTransformation.Fft(rightSpeakerIRL, _fftSize);
-            FastFourierTransformation.Fft(rightSpeakerIRR, _fftSize);
-
-            _writingTail = false;
         }
 
         void FlushBuffers()
@@ -271,34 +276,41 @@ namespace Musegician.AudioUtilities
 
         private const float factor = 512f;
 
+
         private int ReadTail(float[] buffer, int offset, int count)
         {
-            int samplesWritten = Math.Max(0, Math.Min(count, 2 * (_overlapSize - _bufferCopied)));
-
-            for (int i = 0; i < samplesWritten / 2; i++)
+            lock (_bufferLock)
             {
-                buffer[offset + 2 * i] = factor * overlapL[_bufferCopied + i].Real;
-                buffer[offset + 2 * i + 1] = factor * overlapR[_bufferCopied + i].Real;
+                int samplesWritten = Math.Max(0, Math.Min(count, 2 * (_overlapSize - _bufferCopied)));
+
+                for (int i = 0; i < samplesWritten / 2; i++)
+                {
+                    buffer[offset + 2 * i] = factor * overlapL[_bufferCopied + i].Real;
+                    buffer[offset + 2 * i + 1] = factor * overlapR[_bufferCopied + i].Real;
+                }
+
+                _bufferCopied += samplesWritten / 2;
+
+                return samplesWritten;
             }
-
-            _bufferCopied += samplesWritten / 2;
-
-            return samplesWritten;
         }
 
         private int ReadBody(float[] buffer, int offset, int count)
         {
-            int samplesWritten = Math.Max(0, Math.Min(count, 2 * (_samplesPerOverlap - _bufferCopied)));
-
-            for (int i = 0; i < samplesWritten / 2; i++)
+            lock (_bufferLock)
             {
-                buffer[offset + 2 * i] = factor * bufferL[_bufferCopied + i].Real;
-                buffer[offset + 2 * i + 1] = factor * bufferR[_bufferCopied + i].Real;
+                int samplesWritten = Math.Max(0, Math.Min(count, 2 * (_samplesPerOverlap - _bufferCopied)));
+
+                for (int i = 0; i < samplesWritten / 2; i++)
+                {
+                    buffer[offset + 2 * i] = factor * bufferL[_bufferCopied + i].Real;
+                    buffer[offset + 2 * i + 1] = factor * bufferR[_bufferCopied + i].Real;
+                }
+
+                _bufferCopied += samplesWritten / 2;
+
+                return samplesWritten;
             }
-
-            _bufferCopied += samplesWritten / 2;
-
-            return samplesWritten;
         }
 
         #endregion Helper Methods
