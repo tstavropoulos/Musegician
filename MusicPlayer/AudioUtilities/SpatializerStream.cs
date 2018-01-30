@@ -64,7 +64,6 @@ namespace Musegician.AudioUtilities
             }
 
             PrepareNewIRFs();
-
         }
 
         public static SpatializerStream CreateSpatializerStream(ISampleSource source)

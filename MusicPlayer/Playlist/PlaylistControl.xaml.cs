@@ -531,6 +531,21 @@ namespace Musegician.Playlist
                 FindVisualParent<MultiSelectTreeViewItem>(((DependencyObject)e.OriginalSource));
 
             _validDragTarget = IsDraggable(dragSource) && dragSource.IsItemSelected;
+
+            if (_validDragTarget)
+            {
+                dragSource.CaptureMouse();
+            }
+        }
+
+        private void Item_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            _validDragTarget = false;
+
+            if (sender is UIElement element)
+            {
+                element.ReleaseMouseCapture();
+            }
         }
 
         private void Item_DragEnter(object sender, DragEventArgs e)
@@ -546,12 +561,16 @@ namespace Musegician.Playlist
                 if (treeItem == null)
                 {
                     //No draggable item in hierarchy
+                    e.Effects = DragDropEffects.None;
+                    e.Handled = true;
                     return;
                 }
 
                 if (treeItem.Header is PlaylistViewModel model)
                 {
                     model.ShowDropLine = true;
+                    e.Effects = DragDropEffects.Move;
+                    e.Handled = true;
                 }
             }
         }
@@ -583,16 +602,20 @@ namespace Musegician.Playlist
         {
             if (e.LeftButton == MouseButtonState.Pressed && _validDragTarget)
             {
-                Point point = e.GetPosition(null);
-                Vector diff = _dragStartPoint - point;
-                if (Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                if (sender is UIElement elem && elem.IsMouseCaptureWithin)
                 {
-                    MultiSelectTreeView treeView = sender as MultiSelectTreeView;
-                    MultiSelectTreeViewItem treeViewItem =
-                        FindVisualParent<MultiSelectTreeViewItem>(((DependencyObject)e.OriginalSource));
-                    if (IsDraggable(treeViewItem))
+                    Point point = e.GetPosition(null);
+                    Vector diff = _dragStartPoint - point;
+                    if (Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
                     {
-                        DragDrop.DoDragDrop(treeViewItem, treeViewItem.DataContext, DragDropEffects.Move);
+                        MultiSelectTreeView treeView = sender as MultiSelectTreeView;
+                        MultiSelectTreeViewItem treeViewItem = e.OriginalSource as MultiSelectTreeViewItem;
+                        //MultiSelectTreeViewItem treeViewItem =
+                        //    FindVisualParent<MultiSelectTreeViewItem>(((DependencyObject)e.OriginalSource));
+                        if (IsDraggable(treeViewItem))
+                        {
+                            DragDrop.DoDragDrop(treeViewItem, treeViewItem.DataContext, DragDropEffects.Move);
+                        }
                     }
                 }
             }

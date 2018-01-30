@@ -262,37 +262,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_FC7C3AD41B7C85C409C62B50D65E6639"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_DD718384FD90C23354DD3231C33C3352"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_02E7D1683D4AA7D31C7CA68A15DDE411"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_B63CAFD1AA58D11077FFF1E05417CF7B"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_E6CAE0410105164269D80C85D62CC82B"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_5CED121953AFE299DD861502D9D67FA8"
+        "OwnerKey" = "8:_6C3728D5014E72C45C6C9C5927999C75"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -304,7 +274,37 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_6C3728D5014E72C45C6C9C5927999C75"
+        "OwnerKey" = "8:_5CED121953AFE299DD861502D9D67FA8"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_E6CAE0410105164269D80C85D62CC82B"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_B63CAFD1AA58D11077FFF1E05417CF7B"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_02E7D1683D4AA7D31C7CA68A15DDE411"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_DD718384FD90C23354DD3231C33C3352"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_FC7C3AD41B7C85C409C62B50D65E6639"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -1350,15 +1350,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Musegician"
-        "ProductCode" = "8:{DB9D3933-9E4E-4981-86EA-800051B7053D}"
-        "PackageCode" = "8:{71BA4574-2AC4-4D27-85C7-F7A83C48E5EB}"
+        "ProductCode" = "8:{5438356A-D398-4007-8C50-76F60B7D19B6}"
+        "PackageCode" = "8:{9BCAE9C6-4F9D-40FB-A854-8BADF79D7B37}"
         "UpgradeCode" = "8:{0AC03E56-07F3-43C4-AABD-800BDFD29BAE}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:0.6.0"
+        "ProductVersion" = "8:0.6.1"
         "Manufacturer" = "8:TASAgency"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:https://github.com/tstavropoulos/Musegician/"

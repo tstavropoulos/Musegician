@@ -4,27 +4,53 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Musegician.Spatializer"
-             mc:Ignorable="d" 
-             d:DesignHeight="75" d:DesignWidth="300">
-  <Grid>
-    <Grid Margin="4,2,2,2">
-      <Grid.RowDefinitions>
-        <RowDefinition/>
-        <RowDefinition/>
-        <RowDefinition/>
-      </Grid.RowDefinitions>
-      <CheckBox Content="Enable Spatialization" Grid.Row="0" VerticalAlignment="Center"
+             mc:Ignorable="d">
+  <Border Background="{StaticResource DarkInsetPanel}" BorderBrush="Black" BorderThickness="2">
+    <DockPanel>
+      <Grid Margin="4,2,2,2" DockPanel.Dock="Top">
+        <Grid.RowDefinitions>
+          <RowDefinition/>
+          <RowDefinition/>
+          <RowDefinition/>
+        </Grid.RowDefinitions>
+        <CheckBox Content="Enable Spatialization" Grid.Row="0" VerticalAlignment="Center"
                 IsChecked="{Binding Source={x:Static local:SpatializationManager.Instance},
                   Path=EnableSpatializer, Mode=TwoWay}"/>
-      <CheckBox Content="Isolate Channels" Grid.Row="1" VerticalAlignment="Center"
+        <CheckBox Content="Isolate Channels" Grid.Row="1" VerticalAlignment="Center"
                 IsChecked="{Binding Source={x:Static local:SpatializationManager.Instance},
                   Path=IsolateChannels, Mode=TwoWay}"/>
-      <ComboBox x:Name="SpatializationPresets" Grid.Row="2" Margin="2"
+        <ComboBox x:Name="SpatializationPresets" Grid.Row="2" Margin="2"
                 ItemsSource="{Binding Presets}" DisplayMemberPath="Name" SelectedValuePath="Name"
                 SelectedValue="{Binding Source={x:Static local:SpatializationManager.Instance}, 
                                 Path=PresetName, Mode=OneWay}"
                 SelectionChanged="SpatializationPresets_SelectionChanged"/>
-    </Grid>
+      </Grid>
 
-  </Grid>
+      <Grid>
+        <ItemsControl ItemsSource="{Binding InterfacePositions}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <Canvas Margin="2" Height="160" Width="300"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type local:SpatializerLocationsViewModel}">
+              <local:SpeakerVisualization ShowLL="{Binding ShowLL}" ShowLR="{Binding ShowLR}"
+                                        ShowRL="{Binding ShowRL}" ShowRR="{Binding ShowRR}"/>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+          <ItemsControl.ItemContainerStyle>
+            <Style>
+              <Setter Property="Canvas.Top" Value="{Binding Top}"/>
+              <Setter Property="Canvas.Left" Value="{Binding Left}"/>
+            </Style>
+          </ItemsControl.ItemContainerStyle>
+        </ItemsControl>
+        <Canvas Margin="2">
+          <Ellipse Fill="Yellow" Height="16" Width="32" StrokeThickness="1" Stroke="Black"
+               Canvas.Bottom="12" Canvas.Left="134"/>
+        </Canvas>
+      </Grid>
+    </DockPanel>
+  </Border>
 </UserControl>

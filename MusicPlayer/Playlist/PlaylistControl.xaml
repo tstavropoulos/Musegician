@@ -61,6 +61,7 @@
                BasedOn="{StaticResource {x:Type core:MultiSelectTreeViewItem}}">
           <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick"/>
           <EventSetter Event="PreviewMouseLeftButtonDown" Handler="Item_PreviewMouseLeftButtonDown"/>
+          <EventSetter Event="PreviewMouseLeftButtonUp" Handler="Item_PreviewMouseLeftButtonUp"/>
           <EventSetter Event="Drop" Handler="Item_Drop"/>
           <EventSetter Event="DragEnter" Handler="Item_DragEnter"/>
           <EventSetter Event="DragLeave" Handler="Item_DragLeave"/>

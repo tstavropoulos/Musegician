@@ -1,0 +1,79 @@
+﻿<UserControl x:Class="Musegician.Spatializer.SpeakerVisualization"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Musegician.Spatializer"
+             mc:Ignorable="d" 
+             x:Name="SpeakerVis"
+             d:DesignHeight="18" d:DesignWidth="18">
+  <UserControl.Resources>
+    <BooleanToVisibilityConverter x:Key="Vis"/>
+  </UserControl.Resources>
+  <Canvas Margin="1">
+    <Path Stroke="Black" StrokeThickness="1" Fill="White"
+          Visibility="{Binding Path=ShowLL, ElementName=SpeakerVis, Converter={StaticResource Vis}}">
+      <Path.Data>
+        <PathGeometry>
+          <PathGeometry.Figures>
+            <PathFigure StartPoint="0,8" >
+              <PathFigure.Segments>
+                <ArcSegment Size="8,8" IsLargeArc="False" SweepDirection="Clockwise" Point="8,0"/>
+                <LineSegment Point="8,8"></LineSegment>
+                <LineSegment Point="-0.5,8"></LineSegment>
+              </PathFigure.Segments>
+            </PathFigure >
+          </PathGeometry.Figures>
+        </PathGeometry>
+      </Path.Data>
+    </Path>
+    <Path Stroke="Black" StrokeThickness="1" Fill="White"
+          Visibility="{Binding Path=ShowLR, ElementName=SpeakerVis, Converter={StaticResource Vis}}">
+      <Path.Data>
+        <PathGeometry>
+          <PathGeometry.Figures>
+            <PathFigure StartPoint="8,0" >
+              <PathFigure.Segments>
+                <ArcSegment Size="8,8" IsLargeArc="False" SweepDirection="Clockwise" Point="16,8"/>
+                <LineSegment Point="8,8"></LineSegment>
+                <LineSegment Point="8,-0.5"></LineSegment>
+              </PathFigure.Segments>
+            </PathFigure >
+          </PathGeometry.Figures>
+        </PathGeometry>
+      </Path.Data>
+    </Path>
+    <Path Stroke="Black" StrokeThickness="1" Fill="Red"
+          Visibility="{Binding Path=ShowRL, ElementName=SpeakerVis, Converter={StaticResource Vis}}">
+      <Path.Data>
+        <PathGeometry>
+          <PathGeometry.Figures>
+            <PathFigure StartPoint="8,16" >
+              <PathFigure.Segments>
+                <ArcSegment Size="8,8" IsLargeArc="False" SweepDirection="Clockwise" Point="0,8"/>
+                <LineSegment Point="8,8"></LineSegment>
+                <LineSegment Point="8,16.5"></LineSegment>
+              </PathFigure.Segments>
+            </PathFigure >
+          </PathGeometry.Figures>
+        </PathGeometry>
+      </Path.Data>
+    </Path>
+    <Path Stroke="Black" StrokeThickness="1" Fill="Red"
+          Visibility="{Binding Path=ShowRR, ElementName=SpeakerVis, Converter={StaticResource Vis}}">
+      <Path.Data>
+        <PathGeometry>
+          <PathGeometry.Figures>
+            <PathFigure StartPoint="16,8" >
+              <PathFigure.Segments>
+                <ArcSegment Size="8,8" IsLargeArc="False" SweepDirection="Clockwise" Point="8,16"/>
+                <LineSegment Point="8,8"></LineSegment>
+                <LineSegment Point="16.5,8"></LineSegment>
+              </PathFigure.Segments>
+            </PathFigure >
+          </PathGeometry.Figures>
+        </PathGeometry>
+      </Path.Data>
+    </Path>
+  </Canvas>
+</UserControl>
