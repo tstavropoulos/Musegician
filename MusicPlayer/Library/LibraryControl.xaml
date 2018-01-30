@@ -13,12 +13,16 @@
     <Style x:Key="LibraryStyle" 
            TargetType="{x:Type core:MultiSelectTreeViewItem}" 
            BasedOn="{StaticResource {x:Type core:MultiSelectTreeViewItem}}">
-      <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick" />
+      <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick"/>
+      <EventSetter Event="PreviewMouseDown" Handler="Item_PreviewMouseDown"/>
+      <EventSetter Event="MouseEnter" Handler="Item_MouseEnter"/>
+      <EventSetter Event="MouseLeave" Handler="Item_MouseLeave"/>
       <Setter Property="VerticalContentAlignment" Value="Stretch"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
       <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
       <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
       <Setter Property="FontWeight" Value="Normal" />
+      <Setter Property="AllowDrop" Value="False"/>
       <Style.Triggers>
         <Trigger Property="IsSelected" Value="True">
           <Setter Property="commands:TreeViewItemBehavior.BringIntoViewWhenSelected" Value="True" />

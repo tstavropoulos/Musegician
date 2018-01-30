@@ -434,8 +434,7 @@ namespace Musegician.Playlist
         //Some implementation details borrowed from:
         // https://stackoverflow.com/questions/3350187/wpf-c-rearrange-items-in-listbox-via-drag-and-drop
 
-        private Point _dragStartPoint;
-        private bool _validDragTarget = false;
+        private bool _validForDrag = false;
 
         private void Move(IEnumerable<int> sourceIndices, int targetIndex)
         {
@@ -495,16 +494,6 @@ namespace Musegician.Playlist
             }
         }
 
-        private void Item_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            _dragStartPoint = e.GetPosition(null);
-
-            MultiSelectTreeViewItem dragSource =
-                FindVisualParent<MultiSelectTreeViewItem>(((DependencyObject)e.OriginalSource));
-
-            _validDragTarget = IsDraggable(dragSource) && dragSource.IsItemSelected;
-        }
-
         private void Item_DragEnter(object sender, DragEventArgs e)
         {
             if (sender is MultiSelectTreeViewItem treeItem)
@@ -518,11 +507,15 @@ namespace Musegician.Playlist
                 if (treeItem == null)
                 {
                     //No draggable item in hierarchy
+                    e.Effects = DragDropEffects.None;
+                    e.Handled = true;
                     return;
                 }
 
                 if (treeItem.Header is PlaylistViewModel model)
                 {
+                    e.Effects = DragDropEffects.Move;
+                    e.Handled = true;
                     model.ShowDropLine = true;
                 }
             }
@@ -551,22 +544,27 @@ namespace Musegician.Playlist
             }
         }
 
-        private void Tree_PreviewMouseMove(object sender, MouseEventArgs e)
+        private void Item_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed && _validDragTarget)
+            if (sender is MultiSelectTreeViewItem dragSource &&
+                IsDraggable(dragSource) && dragSource.IsItemSelected)
             {
-                Point point = e.GetPosition(null);
-                Vector diff = _dragStartPoint - point;
-                if (Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
-                {
-                    MultiSelectTreeView treeView = sender as MultiSelectTreeView;
-                    MultiSelectTreeViewItem treeViewItem =
-                        FindVisualParent<MultiSelectTreeViewItem>(((DependencyObject)e.OriginalSource));
-                    if (IsDraggable(treeViewItem))
-                    {
-                        DragDrop.DoDragDrop(treeViewItem, treeViewItem.DataContext, DragDropEffects.Move);
-                    }
-                }
+                _validForDrag = true;
+            }
+        }
+
+        private void Item_MouseEnter(object sender, MouseEventArgs e)
+        {
+            _validForDrag = false;
+        }
+
+        private void Item_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && _validForDrag &&
+                sender is MultiSelectTreeViewItem dragSource &&
+                IsDraggable(dragSource) && dragSource.IsItemSelected)
+            {
+                DragDrop.DoDragDrop(dragSource, dragSource.DataContext, DragDropEffects.Move);
             }
         }
 
@@ -620,6 +618,5 @@ namespace Musegician.Playlist
         }
 
         #endregion Drag Handling
-
     }
 }

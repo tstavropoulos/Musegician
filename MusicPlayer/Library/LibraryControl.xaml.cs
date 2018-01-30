@@ -9,6 +9,7 @@ using Musegician.DataStructures;
 using Musegician.Core;
 using IPlaylistTransferRequestHandler = Musegician.Playlist.IPlaylistTransferRequestHandler;
 using System.Windows;
+using System.Windows.Media;
 
 namespace Musegician.Library
 {
@@ -56,6 +57,19 @@ namespace Musegician.Library
     }
 
     #endregion Library Enums
+    #region Drag Data
+
+    public class LibraryDragData
+    {
+        public delegate void AddCallback();
+        public AddCallback callback;
+        public LibraryDragData(AddCallback callback)
+        {
+            this.callback = callback;
+        }
+    }
+
+    #endregion Drag Data
 
     public partial class LibraryControl : UserControl
     {
@@ -549,6 +563,96 @@ namespace Musegician.Library
         }
 
         #endregion External Callbacks
+        #region Drag Callbacks
+
+        private bool _validForDrag = false;
+
+        private void Item_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is MultiSelectTreeViewItem dragSource &&
+                IsDraggable(dragSource) && dragSource.IsItemSelected)
+            {
+                _validForDrag = true;
+            }
+        }
+
+        private void Item_MouseEnter(object sender, MouseEventArgs e)
+        {
+            _validForDrag = false;
+        }
+
+        private void Item_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && _validForDrag &&
+                sender is MultiSelectTreeViewItem dragSource &&
+                IsDraggable(dragSource) && dragSource.IsItemSelected)
+            {
+                DragDrop.DoDragDrop(
+                    dragSource: dragSource,
+                    data: new LibraryDragData(AddCallback),
+                    allowedEffects: DragDropEffects.Link);
+            }
+        }
+
+        private void AddCallback()
+        {
+            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Add);
+
+            if (ids.Count() > 0)
+            {
+                Add(context, ids, false);
+            }
+        }
+
+        private bool IsDraggable(MultiSelectTreeViewItem item)
+        {
+            if (item == null)
+            {
+                return false;
+            }
+
+            if (item.Header is SongViewModel)
+            {
+                return true;
+            }
+
+            if (item.Header is ArtistViewModel)
+            {
+                return true;
+            }
+
+            if (item.Header is AlbumViewModel)
+            {
+                return true;
+            }
+
+            if (item.Header is RecordingViewModel)
+            {
+                return true;
+            }
+
+
+            return false;
+        }
+
+        private T FindVisualParent<T>(DependencyObject child)
+            where T : DependencyObject
+        {
+            DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+            if (parentObject == null)
+            {
+                return null;
+            }
+
+            if (parentObject is T parent)
+            {
+                return parent;
+            }
+
+            return FindVisualParent<T>(parentObject);
+        }
+
+        #endregion DragCallbacks
         #endregion Callbacks
         #region Helper Fuctions
 

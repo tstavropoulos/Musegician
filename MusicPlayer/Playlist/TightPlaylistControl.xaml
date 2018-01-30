@@ -51,11 +51,17 @@
   <DockPanel>
     <core:MultiSelectTreeView x:Name="PlaylistTree"
                               ItemsSource="{Binding PlaylistViewModels}"
-                              KeyDown="Tree_KeyDown"  PreviewMouseMove="Tree_PreviewMouseMove">
+                              KeyDown="Tree_KeyDown">
       <core:MultiSelectTreeView.ItemContainerStyle>
         <Style TargetType="core:MultiSelectTreeViewItem"
                BasedOn="{StaticResource {x:Type core:MultiSelectTreeViewItem}}">
           <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick"/>
+          <EventSetter Event="PreviewMouseDown" Handler="Item_PreviewMouseDown"/>
+          <EventSetter Event="MouseLeave" Handler="Item_MouseLeave"/>
+          <EventSetter Event="MouseEnter" Handler="Item_MouseEnter"/>
+          <EventSetter Event="Drop" Handler="Item_Drop"/>
+          <EventSetter Event="DragEnter" Handler="Item_DragEnter"/>
+          <EventSetter Event="DragLeave" Handler="Item_DragLeave"/>
           <Setter Property="VerticalContentAlignment" Value="Stretch"/>
           <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
           <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
@@ -63,11 +69,6 @@
           <Setter Property="IsAltState" Value="{Binding Playing}" />
           <Setter Property="FontWeight" Value="Normal" />
           <Setter Property="AllowDrop" Value="True"/>
-          <EventSetter Event="PreviewMouseLeftButtonDown" Handler="Item_PreviewMouseLeftButtonDown"/>
-          <EventSetter Event="PreviewMouseLeftButtonUp" Handler="Item_PreviewMouseLeftButtonUp"/>
-          <EventSetter Event="Drop" Handler="Item_Drop"/>
-          <EventSetter Event="DragEnter" Handler="Item_DragEnter"/>
-          <EventSetter Event="DragLeave" Handler="Item_DragLeave"/>
           <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
               <Setter Property="FontWeight" Value="Bold" />
