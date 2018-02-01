@@ -26,10 +26,10 @@ namespace Musegician.TinyPlayer
             InitializeComponent();
 
             Loaded += TinyPlayer_Loaded;
-            Loaded += TightPlaylist.PlaylistControl_Loaded;
+            Loaded += TightPlaylist.TightPlaylistControl_Loaded;
 
             Unloaded += TinyPlayer_Unloaded;
-            Unloaded += TightPlaylist.PlaylistControl_Unloaded;
+            Unloaded += TightPlaylist.TightPlaylistControl_Unloaded;
         }
 
         private void TinyPlayer_Loaded(object sender, RoutedEventArgs e)

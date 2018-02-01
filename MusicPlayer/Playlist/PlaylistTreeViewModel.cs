@@ -33,16 +33,20 @@ namespace Musegician.Playlist
         #endregion Constructors
         #region Data Methods
 
-        public void Add(SongDTO song)
-        {
-            _playlistViewModels.Add(new PlaylistSongViewModel(song));
-        }
-
         public void Add(ICollection<SongDTO> songs)
         {
-            foreach(SongDTO song in songs)
+            foreach (SongDTO song in songs)
             {
-                Add(song);
+                _playlistViewModels.Add(new PlaylistSongViewModel(song));
+            }
+        }
+
+        public void InsertRange(int index, ICollection<SongDTO> songs)
+        {
+            foreach (SongDTO song in songs)
+            {
+                _playlistViewModels.Insert(index, new PlaylistSongViewModel(song));
+                ++index;
             }
         }
 

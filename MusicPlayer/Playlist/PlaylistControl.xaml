@@ -53,9 +53,9 @@
     </HierarchicalDataTemplate>
   </UserControl.Resources>
   <DockPanel>
-    <core:MultiSelectTreeView x:Name="PlaylistTree" FocusManager.IsFocusScope="True"
-                              ItemsSource="{Binding PlaylistViewModels}"
-                              KeyDown="Tree_KeyDown">
+    <core:MultiSelectTreeView x:Name="PlaylistTree" KeyDown="Tree_KeyDown"
+                              ItemsSource="{Binding PlaylistViewModels}" AllowDrop="True"
+                              DragEnter="Tree_DragEnter" DragLeave="Tree_DragLeave" Drop="Tree_Drop">
       <core:MultiSelectTreeView.ItemContainerStyle>
         <Style TargetType="core:MultiSelectTreeViewItem"
                BasedOn="{StaticResource {x:Type core:MultiSelectTreeViewItem}}">

@@ -37,6 +37,7 @@ namespace Musegician.AudioUtilities
         //2^12 = 4096
         private const int FFT_EXP_MIN = 12;
         private const int MIN_PERIOD = 4;
+        private const int SAMPLE_STRIDE = 2;
         private int _fftSize = 12;
 
         private int _blocksToProcess = 0;
@@ -52,8 +53,8 @@ namespace Musegician.AudioUtilities
 
         public int Interval
         {
-            get { return (int)((1000.0 * _blocksToProcess) / WaveFormat.SampleRate); }
-            set { _blocksToProcess = (int)((value / 1000.0) * WaveFormat.SampleRate); }
+            get { return (int)(_blocksToProcess / (WaveFormat.SampleRate / (SAMPLE_STRIDE * 1000.0))); }
+            set { _blocksToProcess = (int)(value * (WaveFormat.SampleRate / (SAMPLE_STRIDE * 1000.0))); }
         }
 
         #endregion Properties
@@ -82,7 +83,7 @@ namespace Musegician.AudioUtilities
             int sampleRate = source.WaveFormat.SampleRate;
 
             _fftSize = Math.Max(FFT_EXP_MIN,
-               ToNextExponentOf2((int)Math.Ceiling(MIN_PERIOD * sampleRate / freqs[0])));
+               ToNextExponentOf2((int)Math.Ceiling(MIN_PERIOD * sampleRate / (SAMPLE_STRIDE * freqs[0]))));
 
             samplesToProcess = (int)Math.Pow(2, _fftSize);
 
@@ -113,7 +114,7 @@ namespace Musegician.AudioUtilities
                 freqBandLB[i + 1] = freqBandUB[i];
             }
 
-            powerCoeff = 2.0 * sampleRate / (4.0 * samplesToProcess);
+            powerCoeff = sampleRate / (2.0 * SAMPLE_STRIDE * samplesToProcess);
 
             Interval = 50;
         }
@@ -137,7 +138,7 @@ namespace Musegician.AudioUtilities
         {
             int read = base.Read(buffer, offset, count);
 
-            for (int i = offset; i < read; i += 2)
+            for (int i = offset; i < read; i += 2 * SAMPLE_STRIDE)
             {
                 if (_blocksProcessed >= 0)
                 {
@@ -224,12 +225,14 @@ namespace Musegician.AudioUtilities
 
         public static int GetFrequencySample(float frequency, int fftSize, int sampleRate)
         {
-            return (int)((frequency / (sampleRate / 2.0f)) * (fftSize / 2));
+            int value = (int)(frequency * SAMPLE_STRIDE * fftSize / sampleRate);
+
+            return Math.Min(value, fftSize / 2);
         }
 
         public static double GetFrequency(int index, int fftSize, int sampleRate)
         {
-            return index * ((double)sampleRate) / fftSize;
+            return index * ((double)sampleRate / SAMPLE_STRIDE) / fftSize;
         }
 
         public static float UnitaryClamp(float value)

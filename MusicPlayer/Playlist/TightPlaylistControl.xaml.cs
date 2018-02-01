@@ -21,7 +21,7 @@ namespace Musegician.Playlist
     /// <summary>
     /// Interaction logic for PlaylistControl.xaml
     /// </summary>
-    public partial class TightPlaylistControl : UserControl
+    public partial class TightPlaylistControl : UserControl, IPlaylistUpdateListener
     {
         PlaylistTreeViewModel _playlistTree;
 
@@ -29,7 +29,6 @@ namespace Musegician.Playlist
         {
             get { return PlaylistManager.Instance; }
         }
-
 
         private PlaylistSongViewModel _playingSong;
         private PlaylistSongViewModel PlayingSong
@@ -89,30 +88,20 @@ namespace Musegician.Playlist
             _playlistTree = new PlaylistTreeViewModel();
         }
 
-        public void PlaylistControl_Loaded(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Called by the TinyPlayer's Load/Unload events
+        /// </summary>
+        public void TightPlaylistControl_Loaded(object sender, RoutedEventArgs e)
         {
-            PlaylistMan.addBack += AddBack;
-            PlaylistMan.rebuild += Rebuild;
-            PlaylistMan.RemoveIndices += RemoveIndices;
-
-            PlaylistMan.MarkIndex += MarkIndex;
-            PlaylistMan.MarkRecordingIndex += MarkRecordingIndex;
-            PlaylistMan.UnmarkAll += UnmarkAll;
-
-            PlaylistMan.RearrangeSongs += Move;
+            PlaylistMan.AddListener(this);
         }
 
-        public void PlaylistControl_Unloaded(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Called by the TinyPlayer's Load/Unload events
+        /// </summary>
+        public void TightPlaylistControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            PlaylistMan.addBack -= AddBack;
-            PlaylistMan.rebuild -= Rebuild;
-            PlaylistMan.RemoveIndices -= RemoveIndices;
-
-            PlaylistMan.MarkIndex -= MarkIndex;
-            PlaylistMan.MarkRecordingIndex -= MarkRecordingIndex;
-            PlaylistMan.UnmarkAll -= UnmarkAll;
-
-            PlaylistMan.RearrangeSongs -= Move;
+            PlaylistMan.RemoveListener(this);
         }
 
         private void Rebuild(ICollection<SongDTO> songs)
@@ -122,11 +111,6 @@ namespace Musegician.Playlist
                 _playlistTree = new PlaylistTreeViewModel(songs);
                 DataContext = _playlistTree;
             }
-        }
-
-        private void AddBack(ICollection<SongDTO> songs)
-        {
-            _playlistTree.Add(songs);
         }
 
         private void ClearPlaylist()
@@ -269,48 +253,6 @@ namespace Musegician.Playlist
             }
         }
 
-        private void UnmarkAll()
-        {
-            PlayingSong = null;
-            PlayingRecording = null;
-        }
-
-        private void MarkIndex(int index)
-        {
-            if (index >= 0 && index < ItemCount)
-            {
-                PlayingSong = _playlistTree.PlaylistViewModels[index];
-            }
-            else
-            {
-                PlayingSong = null;
-            }
-        }
-
-        private void MarkRecordingIndex(int index)
-        {
-            if (index >= 0 && index < PlayingSong.Children.Count)
-            {
-                PlayingRecording = PlayingSong.Children[index] as PlaylistRecordingViewModel;
-            }
-            else
-            {
-                PlayingRecording = null;
-            }
-        }
-
-        private void RemoveIndices(ICollection<int> indices)
-        {
-            List<int> indexCopy = new List<int>(indices);
-
-            indexCopy.Sort((a, b) => b.CompareTo(a));
-
-            foreach (int index in indexCopy)
-            {
-                _playlistTree.PlaylistViewModels.RemoveAt(index);
-            }
-        }
-
         private enum KeyboardActions
         {
             None = 0,
@@ -436,26 +378,45 @@ namespace Musegician.Playlist
 
         private bool _validForDrag = false;
 
-        private void Move(IEnumerable<int> sourceIndices, int targetIndex)
+        private void Tree_DragEnter(object sender, DragEventArgs e)
         {
-            int preTargetMoves = 0;
-
-            foreach (int sourceIndex in sourceIndices)
+            if (sender is MultiSelectTreeView tree)
             {
-                if (sourceIndex < targetIndex)
+                e.Effects = DragDropEffects.Move;
+                e.Handled = true;
+            }
+        }
+
+        private void Tree_DragLeave(object sender, DragEventArgs e)
+        {
+            if (sender is MultiSelectTreeView tree)
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void Tree_Drop(object sender, DragEventArgs e)
+        {
+            if (sender is MultiSelectTreeView tree)
+            {
+                e.Handled = true;
+                int targetIndex = _playlistTree.PlaylistViewModels.Count;
+
+                if (e.Data.GetData(typeof(PlaylistSongViewModel)) is PlaylistSongViewModel source)
                 {
-                    _playlistTree.PlaylistViewModels.Move(sourceIndex - preTargetMoves, targetIndex - 1);
-                    ++preTargetMoves;
+                    List<int> sourceIndices = new List<int>(
+                        from PlaylistSongViewModel model in PlaylistTree.SelectedItems
+                        select _playlistTree.PlaylistViewModels.IndexOf(model));
+
+                    sourceIndices.Sort();
+
+                    PlaylistMan.BatchRearrangeSongs(sourceIndices, targetIndex);
                 }
-                else if (sourceIndex == targetIndex)
+                else if (e.Data.GetData(typeof(Library.LibraryDragData)) is Library.LibraryDragData dragData)
                 {
-                    ++targetIndex;
+                    dragData.callback(targetIndex);
                 }
-                else // (sourceIndex > targetIndex)
-                {
-                    _playlistTree.PlaylistViewModels.Move(sourceIndex, targetIndex);
-                    ++targetIndex;
-                }
+
             }
         }
 
@@ -472,6 +433,7 @@ namespace Musegician.Playlist
                 if (treeItem == null)
                 {
                     //No draggable item in hierarchy
+                    e.Handled = true;
                     return;
                 }
 
@@ -489,8 +451,8 @@ namespace Musegician.Playlist
                     int targetIndex = _playlistTree.PlaylistViewModels.IndexOf(target);
 
                     PlaylistMan.BatchRearrangeSongs(sourceIndices, targetIndex);
+                    e.Handled = true;
                 }
-
             }
         }
 
@@ -498,6 +460,7 @@ namespace Musegician.Playlist
         {
             if (sender is MultiSelectTreeViewItem treeItem)
             {
+                e.Handled = true;
                 //Find the next droppable target in hierarchy
                 while (!IsDraggable(treeItem) && treeItem != null)
                 {
@@ -508,14 +471,12 @@ namespace Musegician.Playlist
                 {
                     //No draggable item in hierarchy
                     e.Effects = DragDropEffects.None;
-                    e.Handled = true;
                     return;
                 }
 
                 if (treeItem.Header is PlaylistViewModel model)
                 {
                     e.Effects = DragDropEffects.Move;
-                    e.Handled = true;
                     model.ShowDropLine = true;
                 }
             }
@@ -525,6 +486,7 @@ namespace Musegician.Playlist
         {
             if (sender is MultiSelectTreeViewItem treeItem)
             {
+                e.Handled = true;
                 //Find the next droppable target in hierarchy
                 while (!IsDraggable(treeItem) && treeItem != null)
                 {
@@ -618,5 +580,88 @@ namespace Musegician.Playlist
         }
 
         #endregion Drag Handling
+        #region IPlaylistUpdateListener
+
+        void IPlaylistUpdateListener.Rebuild(ICollection<SongDTO> songs)
+        {
+            Rebuild(songs);
+        }
+
+        void IPlaylistUpdateListener.AddBack(ICollection<SongDTO> songs)
+        {
+            _playlistTree.Add(songs);
+        }
+
+        void IPlaylistUpdateListener.InsertSongs(int index, ICollection<SongDTO> songs)
+        {
+            _playlistTree.InsertRange(index, songs);
+        }
+
+        void IPlaylistUpdateListener.RemoveIndices(ICollection<int> indices)
+        {
+            List<int> indexCopy = new List<int>(indices);
+
+            indexCopy.Sort((a, b) => b.CompareTo(a));
+
+            foreach (int index in indexCopy)
+            {
+                _playlistTree.PlaylistViewModels.RemoveAt(index);
+            }
+        }
+
+        void IPlaylistUpdateListener.MarkIndex(int index)
+        {
+            if (index >= 0 && index < ItemCount)
+            {
+                PlayingSong = _playlistTree.PlaylistViewModels[index];
+            }
+            else
+            {
+                PlayingSong = null;
+            }
+        }
+
+        void IPlaylistUpdateListener.MarkRecordingIndex(int index)
+        {
+            if (index >= 0 && index < PlayingSong.Children.Count)
+            {
+                PlayingRecording = PlayingSong.Children[index] as PlaylistRecordingViewModel;
+            }
+            else
+            {
+                PlayingRecording = null;
+            }
+        }
+
+        void IPlaylistUpdateListener.UnmarkAll()
+        {
+            PlayingSong = null;
+            PlayingRecording = null;
+        }
+
+        void IPlaylistUpdateListener.Rearrange(IEnumerable<int> sourceIndices, int targetIndex)
+        {
+            int preTargetMoves = 0;
+
+            foreach (int sourceIndex in sourceIndices)
+            {
+                if (sourceIndex < targetIndex)
+                {
+                    _playlistTree.PlaylistViewModels.Move(sourceIndex - preTargetMoves, targetIndex - 1);
+                    ++preTargetMoves;
+                }
+                else if (sourceIndex == targetIndex)
+                {
+                    ++targetIndex;
+                }
+                else // (sourceIndex > targetIndex)
+                {
+                    _playlistTree.PlaylistViewModels.Move(sourceIndex, targetIndex);
+                    ++targetIndex;
+                }
+            }
+        }
+
+        #endregion IPlaylistUpdateListener
     }
 }

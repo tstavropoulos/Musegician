@@ -43,6 +43,8 @@ namespace Musegician.Library
         //For dummy child
         private LibraryViewModel()
         {
+            _data = new ArtistDTO(-1, "");
+            _children = new ObservableCollection<LibraryViewModel>();
         }
 
         #endregion Constructors

@@ -37,68 +37,8 @@ namespace Musegician.Playlist
             get { return FileManager.Instance; }
         }
 
-        public delegate void PassIndex(int index);
-        public delegate void PassIndices(ICollection<int> indices);
-
-        private event PassIndex _MarkIndex;
-        public event PassIndex MarkIndex
-        {
-            add
-            {
-                _MarkIndex += value;
-                if (CurrentIndex != -1)
-                {
-                    value?.Invoke(CurrentIndex);
-                }
-            }
-            remove { _MarkIndex -= value; }
-        }
-
-        private event PassIndex _MarkRecordingIndex;
-        public event PassIndex MarkRecordingIndex
-        {
-            add
-            {
-                _MarkRecordingIndex += value;
-                if (LastRecordingIndex != -1)
-                {
-                    value?.Invoke(LastRecordingIndex);
-                }
-            }
-            remove { _MarkRecordingIndex -= value; }
-        }
-
-        public event PassIndices RemoveIndices;
-
-        public delegate void Notify();
-        public event Notify UnmarkAll;
-
-        public delegate void UpdateSongs(ICollection<SongDTO> songs);
-        public event UpdateSongs addBack;
-
-        public delegate void Rearrange(IEnumerable<int> sourceIndices, int targetIndex);
-        public event Rearrange RearrangeSongs;
-
-        private static object m_addLock = new object();
-        private event UpdateSongs _rebuild;
-        public event UpdateSongs rebuild
-        {
-            add
-            {
-                lock (m_addLock)
-                {
-                    _rebuild += value;
-                    value?.Invoke(playlist);
-                }
-            }
-            remove
-            {
-                lock (m_addLock)
-                {
-                    _rebuild -= value;
-                }
-            }
-        }
+        private List<WeakReference<IPlaylistUpdateListener>> _playlistUpdateListeners =
+            new List<WeakReference<IPlaylistUpdateListener>>();
 
         private string _playlistName = "";
         public string PlaylistName
@@ -162,7 +102,11 @@ namespace Musegician.Playlist
             set
             {
                 _currentIndex = value;
-                _MarkIndex?.Invoke(_currentIndex);
+
+                foreach (IPlaylistUpdateListener listener in GetValidListeners())
+                {
+                    listener.MarkIndex(_currentIndex);
+                }
             }
         }
 
@@ -173,7 +117,11 @@ namespace Musegician.Playlist
             set
             {
                 _lastRecordingIndex = value;
-                _MarkRecordingIndex?.Invoke(_lastRecordingIndex);
+
+                foreach (IPlaylistUpdateListener listener in GetValidListeners())
+                {
+                    listener.MarkRecordingIndex(_lastRecordingIndex);
+                }
             }
         }
 
@@ -426,7 +374,6 @@ namespace Musegician.Playlist
                 return new PlayData();
             }
 
-
             if (Shuffle)
             {
                 //Shuffle logic
@@ -509,7 +456,6 @@ namespace Musegician.Playlist
                     return RequestHandler.GetRecordingPlayData(
                         SelectRecording(playlist[CurrentIndex]));
                 }
-
             }
 
             return new PlayData();
@@ -524,17 +470,40 @@ namespace Musegician.Playlist
             ringBuffer.Clear();
             bufferIndex = 0;
 
-            _rebuild?.Invoke(songs);
+            foreach (IPlaylistUpdateListener listener in GetValidListeners())
+            {
+                listener.Rebuild(songs);
+            }
         }
 
         public void AddBack(ICollection<SongDTO> songs)
         {
-            int originalItemCount = ItemCount;
-
             playlist.AddRange(songs);
             shuffleSet.AddRange(songs);
 
-            addBack?.Invoke(songs);
+            foreach (IPlaylistUpdateListener listener in GetValidListeners())
+            {
+                listener.AddBack(songs);
+            }
+        }
+
+        public void InsertSongs(int position, ICollection<SongDTO> songs)
+        {
+            if (position == -1)
+            {
+                AddBack(songs);
+            }
+            else
+            {
+                position = Math.Min(position, playlist.Count);
+                playlist.InsertRange(position, songs);
+                shuffleSet.InsertRange(position, songs);
+            }
+
+            foreach (IPlaylistUpdateListener listener in GetValidListeners())
+            {
+                listener.InsertSongs(position, songs);
+            }
         }
 
         public void RemoveIndex(ICollection<int> songIndices)
@@ -558,7 +527,10 @@ namespace Musegician.Playlist
                 playlist.RemoveAt(songIndex);
             }
 
-            RemoveIndices?.Invoke(songIndices);
+            foreach (IPlaylistUpdateListener listener in GetValidListeners())
+            {
+                listener.RemoveIndices(songIndices);
+            }
         }
 
         private long SelectRecording(SongDTO song)
@@ -700,7 +672,6 @@ namespace Musegician.Playlist
             }
 
             return random.NextDouble() <= playlist[playlistIndex].Weight;
-
         }
 
         public void BatchRearrangeSongs(IEnumerable<int> sourceIndices, int targetIndex)
@@ -729,9 +700,63 @@ namespace Musegician.Playlist
                 }
             }
 
-            RearrangeSongs?.Invoke(sourceIndices, targetIndex);
+            foreach (IPlaylistUpdateListener listener in GetValidListeners())
+            {
+                listener.Rearrange(sourceIndices, targetIndex);
+            }
         }
 
+        #region PlaylistUpdateListener
+
+        private IEnumerable<IPlaylistUpdateListener> GetValidListeners()
+        {
+            //Clean up dead weak references
+            _playlistUpdateListeners.RemoveAll(x => !x.TryGetTarget(out IPlaylistUpdateListener y));
+
+            foreach (var weakListener in _playlistUpdateListeners)
+            {
+                if (weakListener.TryGetTarget(out IPlaylistUpdateListener target) && target != null)
+                {
+                    yield return target;
+                }
+            }
+        }
+
+        public void AddListener(IPlaylistUpdateListener listener)
+        {
+            //Check that it wasn't already added
+            foreach (IPlaylistUpdateListener target in GetValidListeners())
+            {
+                if (target == listener)
+                {
+                    //Target already exists, bail
+                    return;
+                }
+            }
+
+            _playlistUpdateListeners.Add(new WeakReference<IPlaylistUpdateListener>(listener));
+
+            //Newly added listeners immediately have Rebuild, Mark, and Mark Recording called
+            listener.Rebuild(playlist);
+
+            if (CurrentIndex != -1)
+            {
+                listener.MarkIndex(CurrentIndex);
+            }
+
+            if (LastRecordingIndex != -1)
+            {
+                listener.MarkRecordingIndex(LastRecordingIndex);
+            }
+        }
+
+        public void RemoveListener(IPlaylistUpdateListener listener)
+        {
+            _playlistUpdateListeners.RemoveAll(
+                weakRef => !weakRef.TryGetTarget(out IPlaylistUpdateListener target) || target == listener);
+        }
+
+        #endregion PlaylistUpdateListener
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;

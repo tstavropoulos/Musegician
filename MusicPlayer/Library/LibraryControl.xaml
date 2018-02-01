@@ -129,17 +129,12 @@
   <DockPanel Background="{StaticResource DarkInsetPanel}">
     <DockPanel DockPanel.Dock="Top"  Margin="10,2,10,2">
       <DockPanel DockPanel.Dock="Top">
-        <TextBlock DockPanel.Dock="Left"
-                   VerticalAlignment="Center"
-                   Text="Search:"
-                   TextBlock.FontSize="14" TextAlignment="Left"
-                   Margin="0,0,10,0"/>
-        <TextBox Name="shuffleToggleButton"
+        <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,10,0"
+                   Text="Search:" TextBlock.FontSize="14" TextAlignment="Left"/>
+        <TextBox Name="shuffleToggleButton" VerticalContentAlignment="Center" Margin="1,2,4,2" Height="24"
                  TextBlock.FontSize="12" TextBlock.TextAlignment="Left"
                  KeyDown="SearchTextBox_KeyDown" 
-                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                 VerticalContentAlignment="Center"
-                 Margin="1,2,4,2" Height="24" />
+                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
       </DockPanel>
       <Grid DockPanel.Dock="Bottom" Margin="55,0,0,0">
         <Grid.ColumnDefinitions>
@@ -171,28 +166,28 @@
     </DockPanel>
     <TabControl SelectionChanged="LibraryView_SelectionChanged">
       <TabItem Header="Classic" FontSize="14">
-        <core:MultiSelectTreeView x:Name="ClassicTreeView" FocusManager.IsFocusScope="True"
+        <core:MultiSelectTreeView x:Name="ClassicTreeView"
                                   ItemsSource="{Binding ClassicArtistViewModels}"
                                   TreeViewItem.Expanded="TreeViewItem_Expanded"
                                   ItemContainerStyle="{StaticResource LibraryStyle}"
                                   KeyDown="Tree_KeyDown"/>
       </TabItem>
-      <TabItem Header="Simple"  FontSize="14">
-        <core:MultiSelectTreeView x:Name="SimpleTreeView" FocusManager.IsFocusScope="True"
+      <TabItem Header="Simple" FontSize="14">
+        <core:MultiSelectTreeView x:Name="SimpleTreeView"
                                   ItemsSource="{Binding SimpleViewModels}" 
                                   TreeViewItem.Expanded="TreeViewItem_Expanded"
                                   ItemContainerStyle="{StaticResource LibraryStyle}"
                                   KeyDown="Tree_KeyDown"/>
       </TabItem>
-      <TabItem Header="Album"  FontSize="14">
-        <core:MultiSelectTreeView x:Name="AlbumTreeView" FocusManager.IsFocusScope="True"
+      <TabItem Header="Album" FontSize="14">
+        <core:MultiSelectTreeView x:Name="AlbumTreeView"
                                   ItemsSource="{Binding AlbumViewModels}" 
                                   TreeViewItem.Expanded="TreeViewItem_Expanded"
                                   ItemContainerStyle="{StaticResource LibraryStyle}"
                                   KeyDown="Tree_KeyDown"/>
       </TabItem>
-      <TabItem Header="Directories"  FontSize="14">
-        <core:MultiSelectTreeView x:Name="DirectoryTreeView" FocusManager.IsFocusScope="True"
+      <TabItem Header="Directories" FontSize="14">
+        <core:MultiSelectTreeView x:Name="DirectoryTreeView"
                                   ItemsSource="{Binding DirectoryViewModels}" 
                                   TreeViewItem.Expanded="TreeViewItem_Expanded"
                                   ItemContainerStyle="{StaticResource LibraryStyle}"

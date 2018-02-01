@@ -5,11 +5,11 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Musegician.DataStructures;
-using Musegician.Core;
-using IPlaylistTransferRequestHandler = Musegician.Playlist.IPlaylistTransferRequestHandler;
 using System.Windows;
 using System.Windows.Media;
+using Musegician.Core;
+using Musegician.DataStructures;
+using IPlaylistTransferRequestHandler = Musegician.Playlist.IPlaylistTransferRequestHandler;
 
 namespace Musegician.Library
 {
@@ -61,7 +61,7 @@ namespace Musegician.Library
 
     public class LibraryDragData
     {
-        public delegate void AddCallback();
+        public delegate void AddCallback(int position);
         public AddCallback callback;
         public LibraryDragData(AddCallback callback)
         {
@@ -79,18 +79,12 @@ namespace Musegician.Library
 
         ILibraryRequestHandler LibraryRequestHandler
         {
-            get
-            {
-                return FileManager.Instance;
-            }
+            get { return FileManager.Instance; }
         }
 
         IPlaylistTransferRequestHandler PlaylistTransferRequestHandler
         {
-            get
-            {
-                return FileManager.Instance;
-            }
+            get { return FileManager.Instance; }
         }
 
         #endregion Data
@@ -236,9 +230,9 @@ namespace Musegician.Library
             Player.MusicManager.Instance.Next();
         }
 
-        private void Add(LibraryContext context, IEnumerable<long> ids, bool deep)
+        private void Add(LibraryContext context, IEnumerable<long> ids, bool deep, int position = -1)
         {
-            ICollection<SongDTO> songs;
+            List<SongDTO> songs = new List<SongDTO>();
 
             foreach (long id in ids)
             {
@@ -246,21 +240,21 @@ namespace Musegician.Library
                 {
                     case LibraryContext.Artist:
                         {
-                            songs = PlaylistTransferRequestHandler.GetArtistData(
+                            songs.AddRange(PlaylistTransferRequestHandler.GetArtistData(
                                 artistID: id,
-                                deep: deep);
+                                deep: deep));
                         }
                         break;
                     case LibraryContext.Album:
                         {
-                            songs = PlaylistTransferRequestHandler.GetAlbumData(
+                            songs.AddRange(PlaylistTransferRequestHandler.GetAlbumData(
                                 albumID: id,
-                                deep: deep);
+                                deep: deep));
                         }
                         break;
                     case LibraryContext.Song:
                         {
-                            songs = PlaylistTransferRequestHandler.GetSongData(id);
+                            songs.AddRange(PlaylistTransferRequestHandler.GetSongData(id));
                         }
                         break;
                     case LibraryContext.Track:
@@ -269,7 +263,7 @@ namespace Musegician.Library
                         }
                     case LibraryContext.Recording:
                         {
-                            songs = PlaylistTransferRequestHandler.GetSongDataFromRecordingID(id);
+                            songs.AddRange(PlaylistTransferRequestHandler.GetSongDataFromRecordingID(id));
                         }
                         break;
                     case LibraryContext.MAX:
@@ -277,8 +271,15 @@ namespace Musegician.Library
                         Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
                         return;
                 }
+            }
 
+            if (position == -1)
+            {
                 Playlist.PlaylistManager.Instance.AddBack(songs);
+            }
+            else
+            {
+                Playlist.PlaylistManager.Instance.InsertSongs(position, songs);
             }
         }
 
@@ -589,18 +590,18 @@ namespace Musegician.Library
             {
                 DragDrop.DoDragDrop(
                     dragSource: dragSource,
-                    data: new LibraryDragData(AddCallback),
+                    data: new LibraryDragData(AddSelectedItems),
                     allowedEffects: DragDropEffects.Link);
             }
         }
 
-        private void AddCallback()
+        private void AddSelectedItems(int position)
         {
             (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Add);
 
             if (ids.Count() > 0)
             {
-                Add(context, ids, false);
+                Add(context, ids, false, position);
             }
         }
 
