@@ -21,6 +21,9 @@ using CSCoreEq = CSCore.Streams.Effects.Equalizer;
 
 namespace Musegician.Player
 {
+
+    #region Enumerations
+
     public enum PlayerState
     {
         NotLoaded = 0,
@@ -30,12 +33,19 @@ namespace Musegician.Player
         MAX
     }
 
+    #endregion Enumerations
+
     public class MusicManager : INotifyPropertyChanged, IDisposable
     {
+        #region Current Stream
+
         private ISoundOut _soundOut;
         private IWaveSource _waveSource;
         private CSCoreEq _equalizer;
         private SpatializerStream _spatializer;
+
+        #endregion Current Stream
+        #region Audio System References
 
         private AudioClient _audioClient = null;
         private AudioClient AudioClient
@@ -61,8 +71,7 @@ namespace Musegician.Player
                     }
 
                     _simpleAudioVolume = SimpleAudioVolume.FromAudioClient(_audioClient);
-
-
+                    
                     if (_audioSessionControl != null)
                     {
                         _audioSessionControl.SimpleVolumeChanged -= AudioSessionControl_SimpleVolumeChanged;
@@ -114,7 +123,27 @@ namespace Musegician.Player
             get { return MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia); }
         }
 
+        private string _deviceIdentifier = "";
+        public string DeviceIdentifier
+        {
+            get { return _deviceIdentifier; }
+            set
+            {
+                if (_deviceIdentifier != value)
+                {
+                    _deviceIdentifier = value;
+
+                }
+            }
+        }
+
+        #endregion Audio System References
+        #region Events
+
         public EventHandler<Equalizer.MeterUpdateArgs> MeterUpdate;
+
+        #endregion Events
+        #region Data
 
         PlayData lastPlay;
 
@@ -122,6 +151,7 @@ namespace Musegician.Player
 
         bool prepareNext = false;
 
+        #endregion Data
         #region Singleton
 
         private static object m_lock = new object();
@@ -157,6 +187,7 @@ namespace Musegician.Player
         }
 
         #endregion Singleton
+        #region Music Properties
 
         private double _length = 1.0;
         public double Length
@@ -271,18 +302,7 @@ namespace Musegician.Player
             }
         }
 
-        private void AudioSessionControl_SimpleVolumeChanged(
-            object sender,
-            AudioSessionSimpleVolumeChangedEventArgs e)
-        {
-            if (!suppressUpdate)
-            {
-                Muted = e.IsMuted;
-                Volume = e.NewVolume;
-            }
-
-            suppressUpdate = false;
-        }
+        #endregion Music Properties
 
         private PlayerState _state = PlayerState.NotLoaded;
         public PlayerState State
@@ -344,6 +364,8 @@ namespace Musegician.Player
             }
         }
 
+        #region Constructor
+
         public MusicManager()
         {
             EventManager.RegisterClassHandler(
@@ -374,6 +396,22 @@ namespace Musegician.Player
 
         }
 
+        #endregion Constructor
+        #region Callbacks
+
+        private void AudioSessionControl_SimpleVolumeChanged(
+            object sender,
+            AudioSessionSimpleVolumeChangedEventArgs e)
+        {
+            if (!suppressUpdate)
+            {
+                Muted = e.IsMuted;
+                Volume = e.NewVolume;
+            }
+
+            suppressUpdate = false;
+        }
+
         public void SongFinished(object sender, PlaybackStoppedEventArgs e)
         {
             if (_soundOut != null &&
@@ -384,6 +422,33 @@ namespace Musegician.Player
                 prepareNext = true;
             }
         }
+
+        private void Tick_ProgressTimer(object s, EventArgs e)
+        {
+            if (_soundOut != null && _waveSource != null)
+            {
+                switch (_soundOut.PlaybackState)
+                {
+                    case PlaybackState.Stopped:
+                        //Do nothing
+                        break;
+                    case PlaybackState.Playing:
+                    case PlaybackState.Paused:
+                        ProgressTickUpdate?.Invoke(_waveSource.Position);
+                        break;
+                    default:
+                        throw new Exception("Unexpeted playbackState: " + _soundOut.PlaybackState);
+                }
+            }
+
+            if (prepareNext)
+            {
+                prepareNext = false;
+                PlaySong(PlaylistManager.Instance.Next());
+            }
+        }
+
+        #endregion Callbacks
 
         public void PlaySong(PlayData playData)
         {
@@ -434,26 +499,22 @@ namespace Musegician.Player
                 }
             }
 
-            MMDevice device = MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
-
-            if (device == null)
+            if (Device == null)
             {
                 return;
             }
 
-            AudioClient temp = AudioClient.FromMMDevice(Device);
-
             _soundOut = new WasapiOut()
             {
                 Latency = 100,
-                Device = device,
+                Device = Device
             };
 
             _soundOut.Initialize(_waveSource);
             _soundOut.Stopped += SongFinished;
 
             _soundOut.Play();
-            _soundOut.Volume = (float)Volume;
+            _soundOut.Volume = Volume;
 
             _RecordingStarted?.Invoke(playData.recordingID);
 
@@ -461,31 +522,6 @@ namespace Musegician.Player
             Length = _waveSource.Length;
 
             State = PlayerState.Playing;
-        }
-
-        private void Tick_ProgressTimer(object s, EventArgs e)
-        {
-            if (_soundOut != null && _waveSource != null)
-            {
-                switch (_soundOut.PlaybackState)
-                {
-                    case PlaybackState.Stopped:
-                        //Do nothing
-                        break;
-                    case PlaybackState.Playing:
-                    case PlaybackState.Paused:
-                        ProgressTickUpdate?.Invoke(_waveSource.Position);
-                        break;
-                    default:
-                        throw new Exception("Unexpeted playbackState: " + _soundOut.PlaybackState);
-                }
-            }
-
-            if (prepareNext)
-            {
-                prepareNext = false;
-                PlaySong(PlaylistManager.Instance.Next());
-            }
         }
 
         public void CleanUp()
