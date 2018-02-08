@@ -71,7 +71,7 @@ namespace Musegician.Player
                     }
 
                     _simpleAudioVolume = SimpleAudioVolume.FromAudioClient(_audioClient);
-                    
+
                     if (_audioSessionControl != null)
                     {
                         _audioSessionControl.SimpleVolumeChanged -= AudioSessionControl_SimpleVolumeChanged;
@@ -233,6 +233,55 @@ namespace Musegician.Player
                     _songLabel = value;
                     OnPropertyChanged("SongLabel");
                     OnPropertyChanged("WindowTitle");
+                    OnPropertyChanged("PlaybackLabel");
+                }
+            }
+        }
+
+        public string PlaybackLabel
+        {
+            get
+            {
+                if (SongLabel == "")
+                {
+                    return "";
+                }
+
+                if (TimeStamp == -1)
+                {
+                    return $"{SongLabel}  [{SongLengthLabel}]";
+                }
+
+                return $"{SongLabel}  [{TimestampToLabel(TimeStamp)} / {SongLengthLabel}]";
+            }
+        }
+
+        private int _timeStamp = -1;
+        public int TimeStamp
+        {
+            get { return _timeStamp; }
+            set
+            {
+                if (_timeStamp != value)
+                {
+                    _timeStamp = value;
+                    OnPropertyChanged("TimeStamp");
+                    OnPropertyChanged("PlaybackLabel");
+                }
+            }
+        }
+
+        private string _songLengthLabel = "";
+        public string SongLengthLabel
+        {
+            get { return _songLengthLabel; }
+            set
+            {
+                if (_songLengthLabel != value)
+                {
+                    _songLengthLabel = value;
+                    OnPropertyChanged("SongLengthLabel");
+                    OnPropertyChanged("PlaybackLabel");
                 }
             }
         }
@@ -398,6 +447,7 @@ namespace Musegician.Player
 
         #endregion Constructor
         #region Callbacks
+        #region Callbacks Volume
 
         private void AudioSessionControl_SimpleVolumeChanged(
             object sender,
@@ -411,6 +461,9 @@ namespace Musegician.Player
 
             suppressUpdate = false;
         }
+
+        #endregion Callbacks Volume
+        #region Callbacks Audio Player
 
         public void SongFinished(object sender, PlaybackStoppedEventArgs e)
         {
@@ -434,6 +487,7 @@ namespace Musegician.Player
                         break;
                     case PlaybackState.Playing:
                     case PlaybackState.Paused:
+                        TimeStamp = (int)_waveSource.GetPosition().TotalSeconds;
                         ProgressTickUpdate?.Invoke(_waveSource.Position);
                         break;
                     default:
@@ -448,6 +502,52 @@ namespace Musegician.Player
             }
         }
 
+        #endregion Callbacks Audio Player
+        #region Callbacks Equalizer
+
+        public void EqualizerUpdated(object sender, Equalizer.EqualizerChangedArgs e)
+        {
+            //We do not care about updates if we haven't instantiated an equalizer
+            if (_equalizer == null)
+            {
+                return;
+            }
+
+            if (e.Index == -1)
+            {
+                for (int i = 0; i < _equalizer.SampleFilters.Count; i++)
+                {
+                    _equalizer.SampleFilters[i].AverageGainDB = Equalizer.EqualizerManager.Instance.GetGain(i);
+                }
+            }
+            else if (e.Index >= 0 && e.Index < _equalizer.SampleFilters.Count)
+            {
+                _equalizer.SampleFilters[e.Index].AverageGainDB = Equalizer.EqualizerManager.Instance.GetGain(e.Index);
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(
+                    "Bad Filter Index: {0}.  MaxValue: {1}",
+                    e.Index,
+                    _equalizer.SampleFilters.Count));
+            }
+        }
+
+        #endregion Callbacks Equalizer
+        #region Spatializer Callbacks
+
+        public void SpatializerUpdated(object sender, Spatializer.SpatializerChangedArgs e)
+        {
+            //We do not care about updates if we haven't instantiated a spatializer
+            if (_spatializer == null)
+            {
+                return;
+            }
+
+            _spatializer.PrepareNewIRFs();
+        }
+
+        #endregion Spatializer Callbacks
         #endregion Callbacks
 
         public void PlaySong(PlayData playData)
@@ -488,7 +588,7 @@ namespace Musegician.Player
 
             _waveSource = sampleSource.ToWaveSource();
 
-            spectralPowerStream.PowerUpdate += (s,e) => MeterUpdate?.Invoke(s, e);
+            spectralPowerStream.PowerUpdate += (s, e) => MeterUpdate?.Invoke(s, e);
 
             if (_equalizer != null)
             {
@@ -521,6 +621,11 @@ namespace Musegician.Player
             DataRate = 0.25 * _waveSource.WaveFormat.BytesPerSecond;
             Length = _waveSource.Length;
 
+            int duration = (int)Math.Ceiling(_waveSource.GetLength().TotalSeconds);
+            SongLengthLabel = TimestampToLabel(duration);
+            TimeStamp = 0;
+
+
             State = PlayerState.Playing;
         }
 
@@ -551,6 +656,20 @@ namespace Musegician.Player
             }
         }
 
+
+        #region Helper Methods
+
+        private string TimestampToLabel(int time)
+        {
+            int minutes = time / 60;
+            int seconds = time % 60;
+
+            return $"{minutes.ToString()}:{seconds.ToString("D2")}";
+        }
+
+        #endregion Helper Methods
+        #region Playback Control Methods
+
         public void Next()
         {
             PlaySong(PlaylistManager.Instance.Next());
@@ -564,6 +683,7 @@ namespace Musegician.Player
             {
                 //Restart if it's within the first 2 seconds
                 _waveSource.Position = 0;
+                TimeStamp = 0;
             }
             else
             {
@@ -583,7 +703,9 @@ namespace Musegician.Player
                 case PlayerState.Paused:
                     //Stop
                     State = PlayerState.Stopped;
-                    SongLabel = "";
+                    //Clearing the SongLabel is wrong... because Play will still start it again
+                    //SongLabel = "";
+                    TimeStamp = -1;
                     _soundOut.Stop();
                     break;
                 case PlayerState.MAX:
@@ -639,24 +761,6 @@ namespace Musegician.Player
             }
         }
 
-        public void DragRequest(long value)
-        {
-            switch (State)
-            {
-                case PlayerState.NotLoaded:
-                case PlayerState.Stopped:
-                    //Do nothing
-                    break;
-                case PlayerState.Playing:
-                case PlayerState.Paused:
-                    _waveSource.Position = value;
-                    break;
-                case PlayerState.MAX:
-                default:
-                    throw new Exception("Unexpected MusicManager State: " + State);
-            }
-        }
-
         public void MutePlayer()
         {
             Muted = true;
@@ -681,6 +785,27 @@ namespace Musegician.Player
         {
             Volume -= 0.1f;
         }
+
+        public void DragRequest(long value)
+        {
+            switch (State)
+            {
+                case PlayerState.NotLoaded:
+                case PlayerState.Stopped:
+                    //Do nothing
+                    break;
+                case PlayerState.Playing:
+                case PlayerState.Paused:
+                    _waveSource.Position = value;
+                    break;
+                case PlayerState.MAX:
+                default:
+                    throw new Exception("Unexpected MusicManager State: " + State);
+            }
+        }
+
+        #endregion Playback Control Methods
+        #region Keyboard Controls
 
         private enum KeyboardAction
         {
@@ -831,45 +956,7 @@ namespace Musegician.Player
             }
         }
 
-        public void EqualizerUpdated(object sender, Equalizer.EqualizerChangedArgs e)
-        {
-            //We do not care about updates if we haven't instantiated an equalizer
-            if (_equalizer == null)
-            {
-                return;
-            }
-
-            if (e.Index == -1)
-            {
-                for (int i = 0; i < _equalizer.SampleFilters.Count; i++)
-                {
-                    _equalizer.SampleFilters[i].AverageGainDB = Equalizer.EqualizerManager.Instance.GetGain(i);
-                }
-            }
-            else if (e.Index >= 0 && e.Index < _equalizer.SampleFilters.Count)
-            {
-                _equalizer.SampleFilters[e.Index].AverageGainDB = Equalizer.EqualizerManager.Instance.GetGain(e.Index);
-            }
-            else
-            {
-                throw new ArgumentException(string.Format(
-                    "Bad Filter Index: {0}.  MaxValue: {1}",
-                    e.Index,
-                    _equalizer.SampleFilters.Count));
-            }
-        }
-
-        public void SpatializerUpdated(object sender, Spatializer.SpatializerChangedArgs e)
-        {
-            //We do not care about updates if we haven't instantiated a spatializer
-            if (_spatializer == null)
-            {
-                return;
-            }
-
-            _spatializer.PrepareNewIRFs();
-        }
-
+        #endregion Keyboard Controls
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -99,8 +99,8 @@
     </Grid.RowDefinitions>
     <Grid Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="0">
       <Label Name="songLabel"  
-           Background="Black" Foreground="Wheat" HorizontalContentAlignment="Center"
-           Content="{Binding Source={x:Static local:MusicManager.Instance}, Path=SongLabel}"/>
+             Background="Black" Foreground="Wheat" HorizontalContentAlignment="Center"
+             Content="{Binding Source={x:Static local:MusicManager.Instance}, Path=PlaybackLabel}"/>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
         <equalizer:SimplePowerView/>
       </StackPanel>

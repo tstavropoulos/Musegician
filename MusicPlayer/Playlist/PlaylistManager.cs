@@ -497,7 +497,7 @@ namespace Musegician.Playlist
             {
                 position = Math.Min(position, playlist.Count);
                 playlist.InsertRange(position, songs);
-                shuffleSet.InsertRange(position, songs);
+                shuffleSet.AddRange(songs);
             }
 
             foreach (IPlaylistUpdateListener listener in GetValidListeners())
