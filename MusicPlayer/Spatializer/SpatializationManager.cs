@@ -214,7 +214,7 @@ namespace Musegician.Spatializer
                     },
                     new SpatializerSettingDTO()
                     {
-                        name = "Left",
+                        name = "Left Merged",
                         position = new IR_Position[2,2]
                         {
                             {IR_Position.IR_n45, IR_Position.IR_n45},
@@ -223,11 +223,29 @@ namespace Musegician.Spatializer
                     },
                     new SpatializerSettingDTO()
                     {
-                        name = "Right",
+                        name = "Left Offset",
+                        position = new IR_Position[2,2]
+                        {
+                            {IR_Position.IR_n80, IR_Position.IR_n80},
+                            {IR_Position.IR_0, IR_Position.IR_0}
+                        }
+                    },
+                    new SpatializerSettingDTO()
+                    {
+                        name = "Right Merged",
                         position = new IR_Position[2,2]
                         {
                             {IR_Position.IR_p45, IR_Position.IR_p45},
                             {IR_Position.IR_p45, IR_Position.IR_p45}
+                        }
+                    },
+                    new SpatializerSettingDTO()
+                    {
+                        name = "Right Offset",
+                        position = new IR_Position[2,2]
+                        {
+                            {IR_Position.IR_0, IR_Position.IR_0},
+                            {IR_Position.IR_p80, IR_Position.IR_p80}
                         }
                     }
                 });
