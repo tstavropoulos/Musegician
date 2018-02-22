@@ -29,12 +29,42 @@ namespace Musegician
         private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3", "*.flac", "*.ogg" };
         private readonly string[] songNameDelimiter = new string[] { " - " };
 
+        #region RegEx
+
+        /// <summary>
+        /// Identifies text of the form (Live*) or [Live*].
+        /// </summary>
         private const string livePatternA = @"(\s*?[\(\[][Ll]ive.*?[\)\]])";
+        /// <summary>
+        /// Identifies text of the form (Bootleg*) or [Bootleg*].
+        /// </summary>
         private const string livePatternB = @"(\s*?[\(\[][Bb]ootleg.*?[\)\]])";
+        /// <summary>
+        /// Identifies text of the form (Acoustic*) or [Acoustic*].
+        /// Ex: Sting - A Day In The Life (Acoustic)
+        /// </summary>
+        private const string acousticPattern = @"(\s*?[\(\[][Aa]coustic.*?[\)\]])";
+        /// <summary>
+        /// Identifies text of the form (Explicit*) or [Explicit*].
+        /// Ex: Queens of the Stone Age - Song For The Dead [Explicit]
+        /// </summary>
         private const string explicitCleanupPattern = @"(\s*?[\(\[][Ee]xplicit.*?[\)\]])";
+        /// <summary>
+        /// Identifies text of the form (Album*) or [Album*].
+        /// Ex: [Album Version]
+        /// </summary>
         private const string albumVersionCleanupPattern = @"(\s*?[\(\[][Aa]lbum.*?[\)\]])";
+        /// <summary>
+        /// Identifies text of the form (Disc #) or [Disc #].
+        /// Ex: Physical Graffiti (Disc 1)
+        /// </summary>
         private const string discNumberPattern = @"(\s*?[\(\[][Dd]isc.*?\d+[\)\]])";
+        /// <summary>
+        /// Captures and extracts numbers
+        /// </summary>
         private const string numberExtractor = @"(\d+)";
+
+        #endregion RegEx
 
         private const string songDBFilename = "SongDB.sqlite";
 
@@ -499,7 +529,7 @@ namespace Musegician
             {
                 songTitle = Regex.Replace(songTitle, explicitCleanupPattern, "");
             }
-
+            
             if (Regex.IsMatch(songTitle, albumVersionCleanupPattern))
             {
                 songTitle = Regex.Replace(songTitle, albumVersionCleanupPattern, "");
@@ -516,6 +546,13 @@ namespace Musegician
             {
                 live = true;
                 songTitle = Regex.Replace(songTitle, livePatternB, "");
+            }
+
+            if (Regex.IsMatch(songTitle, acousticPattern))
+            {
+                //Do we want acoustic tracks marked live?  I don't think so, in general
+                //live = true;
+                songTitle = Regex.Replace(songTitle, acousticPattern, "");
             }
 
             if (Regex.IsMatch(albumTitle, livePatternA))
