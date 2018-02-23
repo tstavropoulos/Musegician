@@ -423,6 +423,11 @@
             "AssemblyAsmDisplayName" = "8:CSCore, Version=1.2.1.2, Culture=neutral, PublicKeyToken=5a08f2b6f4415dea, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_02E7D1683D4AA7D31C7CA68A15DDE411"
+                    {
+                    "Name" = "8:CSCore.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:CSCore.dll"
             "TargetName" = "8:"
@@ -589,6 +594,11 @@
             "AssemblyAsmDisplayName" = "8:taglib-sharp, Version=2.1.0.0, Culture=neutral, PublicKeyToken=db62eba44689b5b0, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_5CED121953AFE299DD861502D9D67FA8"
+                    {
+                    "Name" = "8:taglib-sharp.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:taglib-sharp.dll"
             "TargetName" = "8:"
@@ -655,6 +665,11 @@
             "AssemblyAsmDisplayName" = "8:Microsoft.WindowsAPICodePack.Shell, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_6C3728D5014E72C45C6C9C5927999C75"
+                    {
+                    "Name" = "8:Microsoft.WindowsAPICodePack.Shell.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:Microsoft.WindowsAPICodePack.Shell.dll"
             "TargetName" = "8:"
@@ -781,6 +796,11 @@
             "AssemblyAsmDisplayName" = "8:Microsoft.WindowsAPICodePack, Version=1.1.2.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_7F57A665E1304F6D7E8A3E2852D57690"
+                    {
+                    "Name" = "8:Microsoft.WindowsAPICodePack.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:Microsoft.WindowsAPICodePack.dll"
             "TargetName" = "8:"
@@ -887,6 +907,11 @@
             "AssemblyAsmDisplayName" = "8:RibbonControlsLibrary, Version=4.0.0.11019, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_B63CAFD1AA58D11077FFF1E05417CF7B"
+                    {
+                    "Name" = "8:RibbonControlsLibrary.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:RibbonControlsLibrary.dll"
             "TargetName" = "8:"
@@ -1033,6 +1058,16 @@
             "AssemblyAsmDisplayName" = "8:policy.2.0.taglib-sharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=db62eba44689b5b0, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_DBDE3EC97C86B02EA38530355D159150"
+                    {
+                    "Name" = "8:policy.2.0.taglib-sharp.dll"
+                    "Attributes" = "3:512"
+                    }
+                    "_E9C79C6D58D404C2887377C2761B38A1"
+                    {
+                    "Name" = "8:policy.2.0.taglib-sharp.config"
+                    "Attributes" = "3:1"
+                    }
                 }
             "SourcePath" = "8:policy.2.0.taglib-sharp.dll"
             "TargetName" = "8:"
@@ -1079,6 +1114,11 @@
             "AssemblyAsmDisplayName" = "8:System.Windows.Controls.Ribbon, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
                 "ScatterAssemblies"
                 {
+                    "_DD718384FD90C23354DD3231C33C3352"
+                    {
+                    "Name" = "8:System.Windows.Controls.Ribbon.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:System.Windows.Controls.Ribbon.dll"
             "TargetName" = "8:"
@@ -1125,6 +1165,11 @@
             "AssemblyAsmDisplayName" = "8:System.Data.SQLite, Version=1.0.106.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
+                    "_E6CAE0410105164269D80C85D62CC82B"
+                    {
+                    "Name" = "8:System.Data.SQLite.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:System.Data.SQLite.dll"
             "TargetName" = "8:"
@@ -1231,6 +1276,11 @@
             "AssemblyAsmDisplayName" = "8:System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"
                 "ScatterAssemblies"
                 {
+                    "_FC7C3AD41B7C85C409C62B50D65E6639"
+                    {
+                    "Name" = "8:System.Net.Http.dll"
+                    "Attributes" = "3:512"
+                    }
                 }
             "SourcePath" = "8:System.Net.Http.dll"
             "TargetName" = "8:"
@@ -1350,15 +1400,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Musegician"
-        "ProductCode" = "8:{D56AD351-925B-4AFF-9535-21F8250DE4A1}"
-        "PackageCode" = "8:{689AB473-63A5-428B-A92A-14EA7D556D7C}"
+        "ProductCode" = "8:{A7C30A9D-09AC-49D3-9C0F-B9945E39DBCE}"
+        "PackageCode" = "8:{878956AD-D67D-495F-AF0D-D2B53B4C917F}"
         "UpgradeCode" = "8:{0AC03E56-07F3-43C4-AABD-800BDFD29BAE}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:0.7.1"
+        "ProductVersion" = "8:0.7.2"
         "Manufacturer" = "8:TASAgency"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:https://github.com/tstavropoulos/Musegician/"
@@ -2156,7 +2206,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_39D074A9385A473A9F0E173B3F9781AA"
             {
-            "SourcePath" = "8:..\\MusicPlayer\\obj\\Release\\Musegician.exe"
+            "SourcePath" = "8:..\\MusicPlayer\\obj\\Debug\\Musegician.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_825BFD651757448D818DFBB4D684BE6B"

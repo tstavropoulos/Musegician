@@ -69,7 +69,7 @@ namespace Musegician.Player
                         _simpleAudioVolume.Dispose();
                         _simpleAudioVolume = null;
                     }
-
+                    
                     _simpleAudioVolume = SimpleAudioVolume.FromAudioClient(_audioClient);
 
                     if (_audioSessionControl != null)
@@ -299,8 +299,6 @@ namespace Musegician.Player
             }
         }
 
-        private bool suppressUpdate = false;
-
         private bool _muted = false;
         public bool Muted
         {
@@ -313,11 +311,20 @@ namespace Musegician.Player
                 if (_muted != value)
                 {
                     _muted = value;
-
                     OnPropertyChanged("Mute");
-
-                    suppressUpdate = true;
                     SimpleAudioVolume.IsMuted = _muted;
+                }
+            }
+        }
+
+        public bool NonFeedbackMuted
+        {
+            set
+            {
+                if (_muted != value)
+                {
+                    _muted = value;
+                    OnPropertyChanged("Mute");
                 }
             }
         }
@@ -325,10 +332,7 @@ namespace Musegician.Player
         private float _volume = 1.0f;
         public float Volume
         {
-            get
-            {
-                return _volume;
-            }
+            get { return _volume; }
             set
             {
                 value = MathExt.Clamp(value, 0.0f, 1.0f);
@@ -336,17 +340,21 @@ namespace Musegician.Player
                 {
                     _volume = value;
                     Muted = false;
-
                     OnPropertyChanged("Volume");
-
-                    //Update the volume
-                    if (_soundOut != null)
-                    {
-                        _soundOut.Volume = Volume;
-                    }
-
-                    suppressUpdate = true;
                     SimpleAudioVolume.MasterVolume = Volume;
+                }
+            }
+        }
+
+        public float NonFeedbackVolume
+        {
+            set
+            {
+                value = MathExt.Clamp(value, 0.0f, 1.0f);
+                if (_volume != value)
+                {
+                    _volume = value;
+                    OnPropertyChanged("Volume");
                 }
             }
         }
@@ -453,13 +461,8 @@ namespace Musegician.Player
             object sender,
             AudioSessionSimpleVolumeChangedEventArgs e)
         {
-            if (!suppressUpdate)
-            {
-                Muted = e.IsMuted;
-                Volume = e.NewVolume;
-            }
-
-            suppressUpdate = false;
+            NonFeedbackMuted = e.IsMuted;
+            NonFeedbackVolume = e.NewVolume;
         }
 
         #endregion Callbacks Volume
@@ -614,7 +617,6 @@ namespace Musegician.Player
             _soundOut.Stopped += SongFinished;
 
             _soundOut.Play();
-            _soundOut.Volume = Volume;
 
             _RecordingStarted?.Invoke(playData.recordingID);
 
