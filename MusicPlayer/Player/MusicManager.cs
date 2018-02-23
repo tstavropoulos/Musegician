@@ -69,7 +69,7 @@ namespace Musegician.Player
                         _simpleAudioVolume.Dispose();
                         _simpleAudioVolume = null;
                     }
-                    
+
                     _simpleAudioVolume = SimpleAudioVolume.FromAudioClient(_audioClient);
 
                     if (_audioSessionControl != null)
@@ -198,29 +198,18 @@ namespace Musegician.Player
                 if (_length != value)
                 {
                     _length = value;
+                    
+                    _songLengthLabel = TimestampToLabel((int)Math.Floor(Length));
+
                     OnPropertyChanged("Length");
+                    OnPropertyChanged("SongLengthLabel");
+                    OnPropertyChanged("PlaybackLabel");
                 }
             }
         }
 
-        private double _dataRate = 100;
-        public double DataRate
-        {
-            get { return _dataRate; }
-            private set
-            {
-                if (_dataRate != value)
-                {
-                    _dataRate = value;
-                    OnPropertyChanged("DataRate");
-                    OnPropertyChanged("ClickJump");
-                    OnPropertyChanged("KBJump");
-                }
-            }
-        }
-
-        public double ClickJump { get { return DataRate * 10.0; } }
-        public double KBJump { get { return DataRate * 0.5; } }
+        public double ClickJump { get { return 10.0; } }
+        public double KBJump { get { return 0.5; } }
 
         private string _songLabel = "";
         public string SongLabel
@@ -247,27 +236,12 @@ namespace Musegician.Player
                     return "";
                 }
 
-                if (TimeStamp == -1)
+                if (PositionSeconds == -1)
                 {
                     return $"{SongLabel}  [{SongLengthLabel}]";
                 }
 
-                return $"{SongLabel}  [{TimestampToLabel(TimeStamp)} / {SongLengthLabel}]";
-            }
-        }
-
-        private int _timeStamp = -1;
-        public int TimeStamp
-        {
-            get { return _timeStamp; }
-            set
-            {
-                if (_timeStamp != value)
-                {
-                    _timeStamp = value;
-                    OnPropertyChanged("TimeStamp");
-                    OnPropertyChanged("PlaybackLabel");
-                }
+                return $"{SongLabel}  [{TimestampToLabel(PositionSeconds)} / {SongLengthLabel}]";
             }
         }
 
@@ -275,15 +249,6 @@ namespace Musegician.Player
         public string SongLengthLabel
         {
             get { return _songLengthLabel; }
-            set
-            {
-                if (_songLengthLabel != value)
-                {
-                    _songLengthLabel = value;
-                    OnPropertyChanged("SongLengthLabel");
-                    OnPropertyChanged("PlaybackLabel");
-                }
-            }
         }
 
         public string WindowTitle
@@ -302,10 +267,7 @@ namespace Musegician.Player
         private bool _muted = false;
         public bool Muted
         {
-            get
-            {
-                return _muted || (_volume == 0.0);
-            }
+            get { return _muted || (_volume == 0.0); }
             set
             {
                 if (_muted != value)
@@ -359,6 +321,49 @@ namespace Musegician.Player
             }
         }
 
+        private double _position = 0L;
+        public double Position
+        {
+            get { return _position; }
+            set
+            {
+                if (_position != value)
+                {
+                    _position = value;
+                    SetPositionRequest(_position);
+                    OnPropertyChanged("Position");
+                    PositionSeconds = (int)Math.Floor(_position);
+                }
+            }
+        }
+
+        public double NonFeedbackPosition
+        {
+            set
+            {
+                if (_position != value)
+                {
+                    _position = value;
+                    OnPropertyChanged("Position");
+                    PositionSeconds = (int)Math.Floor(_position);
+                }
+            }
+        }
+
+        private int _positionSeconds = 0;
+        private int PositionSeconds
+        {
+            get { return _positionSeconds; }
+            set
+            {
+                if (_positionSeconds != value)
+                {
+                    _positionSeconds = value;
+                    OnPropertyChanged("PlaybackLabel");
+                }
+            }
+        }
+
         #endregion Music Properties
 
         private PlayerState _state = PlayerState.NotLoaded;
@@ -397,9 +402,6 @@ namespace Musegician.Player
                 }
             }
         }
-
-        public delegate void TickUpdate(long position);
-        public event TickUpdate ProgressTickUpdate;
 
         public delegate void IDNotifier(long id);
         private event IDNotifier _RecordingStarted;
@@ -442,7 +444,6 @@ namespace Musegician.Player
             {
                 throw new Exception("Unable to initialize AudioClient");
             }
-
 
             playTimer = new DispatcherTimer
             {
@@ -490,8 +491,7 @@ namespace Musegician.Player
                         break;
                     case PlaybackState.Playing:
                     case PlaybackState.Paused:
-                        TimeStamp = (int)_waveSource.GetPosition().TotalSeconds;
-                        ProgressTickUpdate?.Invoke(_waveSource.Position);
+                        NonFeedbackPosition = _waveSource.GetPosition().TotalSeconds;
                         break;
                     default:
                         throw new Exception("Unexpeted playbackState: " + _soundOut.PlaybackState);
@@ -620,14 +620,9 @@ namespace Musegician.Player
 
             _RecordingStarted?.Invoke(playData.recordingID);
 
-            DataRate = 0.25 * _waveSource.WaveFormat.BytesPerSecond;
-            Length = _waveSource.Length;
-
-            int duration = (int)Math.Ceiling(_waveSource.GetLength().TotalSeconds);
-            SongLengthLabel = TimestampToLabel(duration);
-            TimeStamp = 0;
-
-
+            Length = _waveSource.GetLength().TotalSeconds;
+            NonFeedbackPosition = 0.0;
+            
             State = PlayerState.Playing;
         }
 
@@ -658,7 +653,6 @@ namespace Musegician.Player
             }
         }
 
-
         #region Helper Methods
 
         private string TimestampToLabel(int time)
@@ -684,8 +678,7 @@ namespace Musegician.Player
                 _waveSource.Position > 2.0f * _waveSource.WaveFormat.BytesPerSecond)
             {
                 //Restart if it's within the first 2 seconds
-                _waveSource.Position = 0;
-                TimeStamp = 0;
+                Position = 0.0;
             }
             else
             {
@@ -705,9 +698,7 @@ namespace Musegician.Player
                 case PlayerState.Paused:
                     //Stop
                     State = PlayerState.Stopped;
-                    //Clearing the SongLabel is wrong... because Play will still start it again
-                    //SongLabel = "";
-                    TimeStamp = -1;
+                    NonFeedbackPosition = -1.0;
                     _soundOut.Stop();
                     break;
                 case PlayerState.MAX:
@@ -788,7 +779,7 @@ namespace Musegician.Player
             Volume -= 0.1f;
         }
 
-        public void DragRequest(long value)
+        public void SetPositionRequest(double time)
         {
             switch (State)
             {
@@ -798,7 +789,7 @@ namespace Musegician.Player
                     break;
                 case PlayerState.Playing:
                 case PlayerState.Paused:
-                    _waveSource.Position = value;
+                    _waveSource.SetPosition(TimeSpan.FromSeconds(time));
                     break;
                 case PlayerState.MAX:
                 default:

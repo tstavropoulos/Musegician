@@ -51,13 +51,11 @@ namespace Musegician.Player
         private void PlaybackPanel_Loaded(object sender, RoutedEventArgs e)
         {
             MusicMan.PlayerStateChanged += PlayerStateChanged;
-            MusicMan.ProgressTickUpdate += TickUpdate;
         }
 
         private void PlaybackPanel_Unloaded(object sender, RoutedEventArgs e)
         {
             MusicMan.PlayerStateChanged -= PlayerStateChanged;
-            MusicMan.ProgressTickUpdate -= TickUpdate;
         }
 
         public void OnPlayClick(object sender, RoutedEventArgs e)
@@ -80,15 +78,10 @@ namespace Musegician.Player
             MusicMan.Back();
         }
 
-        private void Slider_Drag(object s, DragDeltaEventArgs e)
-        {
-            MusicMan.DragRequest((long)progressSlider.Value);
-        }
-
-        private void TickUpdate(long position)
-        {
-            progressSlider.Value = position;
-        }
+        //private void Slider_Drag(object s, DragDeltaEventArgs e)
+        //{
+        //    MusicMan.DragRequest((long)progressSlider.Value);
+        //}
 
         private void PlayerStateChanged(PlayerState newState)
         {

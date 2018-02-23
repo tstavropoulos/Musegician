@@ -108,11 +108,14 @@
     </Grid>
     <Slider Name="progressSlider" Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" Margin="10,2,10,2"
             Background="{StaticResource ButtonBackground}"
-            VerticalAlignment="Center" Thumb.DragDelta="Slider_Drag"
+            VerticalAlignment="Center" 
+            Value="{Binding Source={x:Static local:MusicManager.Instance}, Path=Position}"
             Minimum="0.0"
             Maximum="{Binding Source={x:Static local:MusicManager.Instance}, Path=Length}"
             LargeChange="{Binding Source={x:Static local:MusicManager.Instance}, Path=ClickJump}"
             SmallChange="{Binding Source={x:Static local:MusicManager.Instance}, Path=KBJump}"/>
+    <!--Thumb.DragDelta="Slider_Drag"-->
+    
     <Button ToolTip="Previous" Grid.Column="0" Grid.Row="2" Margin="0"
             Click="OnBackClick"
             Content="⏮" Style="{StaticResource PlayerButtons}"/>
