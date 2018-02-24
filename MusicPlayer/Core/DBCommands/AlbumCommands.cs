@@ -665,8 +665,8 @@ namespace Musegician.Core.DBCommands
                 "LEFT JOIN artist ON artist.id IN ( " +
                     "SELECT recording.artist_id " +
                     "FROM track " +
-                    "LEFT JOIN recording ON track.recording_id= recording.id " +
-                    "WHERE track.album_id= album.id); ";
+                    "LEFT JOIN recording ON track.recording_id=recording.id " +
+                    "WHERE track.album_id=album.id);";
 
             using (SQLiteDataReader reader = loadAlbums.ExecuteReader())
             {

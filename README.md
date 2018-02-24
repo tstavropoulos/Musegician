@@ -70,8 +70,7 @@ And now it's packaged with an installer that will handle the installation of the
 Requirements:
 * Visual Studio 2017
 * .NET 4.7.1 framework (or better)  [Available Here](https://www.microsoft.com/net/download/thank-you/net471-developer-pack)
-
-
+* WiX for the Installer Project.  [WiX Installer Here](https://github.com/wixtoolset/wix3/releases), and [VS2017 Extension Here](https://marketplace.visualstudio.com/items?itemName=RobMensching.WixToolsetVisualStudio2017Extension)
 
 ## About The Developer
 

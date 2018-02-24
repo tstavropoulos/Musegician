@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Name="Musegician" Language="1033"
+           Manufacturer="TASAgency" Version="!(bind.FileVersion.MusegicianEXE)"
+           Id="*"
+           UpgradeCode="746CB42F-76BD-4EA9-BEE4-D44F506C8EFF">
+    <Package Keywords="Installer" Description="Musegician v[ProductVersion] Installer"
+             Manufacturer="TASAgency" InstallerVersion="200" Compressed="yes" InstallScope="perMachine"/>
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
+    <MediaTemplate/>
+    <Feature Id="Complete" Title="Musegician Installer" Level="1">
+      <ComponentGroupRef Id="ProductComponents"/>
+      <ComponentRef Id="SQLiteInteropLibx86"/>
+      <ComponentRef Id="SQLiteInteropLibx64"/>
+      <ComponentGroupRef Id="IRFs"/>
+    </Feature>
+    <Icon Id="Musegician.exe" SourceFile="$(var.Musegician.TargetDir)Musegician.exe" />
+  </Product>
+
+  <!-- Directories -->
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="TASAgency" Name="TASAgency">
+          <Directory Id="INSTALLFOLDER" Name="Musegician">
+            <Directory Id="x86DLLDir" Name="x86"/>
+            <Directory Id="x64DLLDir" Name="x64"/>
+            <Directory Id="ResourcesDir" Name="Resources">
+              <Directory Id="IRFilesDir" Name="IRFiles"/>
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+      <Directory Id="ProgramMenuFolder" Name="Programs"/>
+      <Directory Id="DesktopFolder" Name="Desktop"/>
+    </Directory>
+  </Fragment>
+
+  <!-- Actual Installation Components -->
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <!--Musegician.exe-->
+      <Component Id="MainExecutable" Guid="CB7BD741-BE9D-4A82-BCC1-42C60A94DBA1">
+        <File Id="MusegicianEXE" Name="Musegician.exe" Source="$(var.Musegician.TargetDir)Musegician.exe" KeyPath="yes">
+          <Shortcut Id="startmenuMusegician" Directory="ProgramMenuFolder" Name="Musegician"
+                    WorkingDirectory="INSTALLFOLDER" Icon="Musegician.exe" IconIndex="0" Advertise="yes"/>
+          <Shortcut Id="desktopMusegician" Directory="DesktopFolder" Name="Musegician"
+                    WorkingDirectory="INSTALLFOLDER" Icon="Musegician.exe" IconIndex="0" Advertise="yes"/>
+        </File>
+      </Component>
+
+      <!--CSCore-->
+      <Component Id="CSCoreLibrary" Guid="95555245-9759-4597-9396-2CE8356B8DC8">
+        <File Id="CSCoreDLL" Name="CSCore.dll" Source="$(var.Musegician.TargetDir)CSCore.dll" KeyPath="yes"/>
+      </Component>
+
+      <!--Microsoft.WindowsAPICodePack-->
+      <Component Id="MSCodePack" Guid="202267CB-0F0C-4DE0-800F-FBF771D31DCF">
+        <File Id="MSCodePackDLL" Name="Microsoft.WindowsAPICodePack.dll" Source="$(var.Musegician.TargetDir)Microsoft.WindowsAPICodePack.dll" KeyPath="yes"/>
+      </Component>
+
+      <!--Microsoft.WindowsAPICodePack.Shell-->
+      <Component Id="MSCodePackShell" Guid="AD27FB50-E8A6-4641-9D66-A2EC7811BC56">
+        <File Id="MSCodePackShellDLL" Name="Microsoft.WindowsAPICodePack.Shell.dll" Source="$(var.Musegician.TargetDir)Microsoft.WindowsAPICodePack.Shell.dll" KeyPath="yes"/>
+      </Component>
+
+      <!--taglib-sharp-->
+      <Component Id="TagLib" Guid="6D31EEC3-0FE8-44C5-A51E-B492D7D99BAF">
+        <File Id="TagLibDLL" Name="taglib-sharp.dll" Source="$(var.Musegician.TargetDir)taglib-sharp.dll" KeyPath="yes"/>
+        <File Id="TagLibPolicyDLL" Name="policy.2.0.taglib-sharp.dll" Source="$(var.Musegician.TargetDir)policy.2.0.taglib-sharp.dll"/>
+      </Component>
+
+      <!--RibbonControlsLibrary-->
+      <Component Id="RibbonControlsLib" Guid="BDD41DD8-412B-45AD-A04B-B35B2C557C29">
+        <File Id="RibbonControlsDLL" Name="RibbonControlsLibrary.dll" Source="$(var.Musegician.TargetDir)RibbonControlsLibrary.dll" KeyPath="yes"/>
+      </Component>
+
+      <!--System.Data.SQLite-->
+      <Component Id="SystemDataSQLiteLib" Guid="BCA8CF6F-4644-43CB-BFCF-77BCEA5A3B64">
+        <File Id="SystemDataSQLiteDLL" Name="System.Data.SQLite.dll" Source="$(var.Musegician.TargetDir)System.Data.SQLite.dll" KeyPath="yes"/>
+      </Component>
+    </ComponentGroup>
+
+    <!--x86 SQLite.Interop-->
+    <Component Id="SQLiteInteropLibx86" Guid="30DB25DB-FEEC-41D2-B3B6-146D087C84D7" Directory="x86DLLDir">
+      <File Id="SQLiteInteropDLLx86" Name="SQLite.Interop.dll" Source="$(var.Musegician.TargetDir)x86\SQLite.Interop.dll" KeyPath="yes"/>
+    </Component>
+
+    <!--x64 SQLite.Interop-->
+    <Component Id="SQLiteInteropLibx64" Guid="5C609059-3BF2-4F70-9295-16AB742BCBA5" Directory="x64DLLDir">
+      <File Id="SQLiteInteropDLLx64" Name="SQLite.Interop.dll" Source="$(var.Musegician.TargetDir)x64\SQLite.Interop.dll" KeyPath="yes"/>
+    </Component>
+
+    <!--Impulse Response Functions-->
+    <ComponentGroup Id="IRFs" Directory="IRFilesDir">
+      <Component Id="IRF_0" Guid="C579C3B5-4862-4E95-8B80-9114272720EB">
+        <File Id="IRF_0File" Name="IR_0.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_0.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N05" Guid="623E3307-33F5-4BCA-BE2D-BF75733E6A60">
+        <File Id="IRF_N05File" Name="IR_n5.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n5.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P05" Guid="9902E914-154A-4914-89A5-DBEF87B62FB2">
+        <File Id="IRF_P05File" Name="IR_p5.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p5.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N10" Guid="24210287-0225-4E54-AD0A-6A21BC2C2248">
+        <File Id="IRF_N10File" Name="IR_n10.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n10.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P10" Guid="1F65AAF9-110B-4438-9603-44F0802EA7FD">
+        <File Id="IRF_P10File" Name="IR_p10.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p10.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N15" Guid="699F8011-2241-4443-B2C1-8126F44D0676">
+        <File Id="IRF_N15File" Name="IR_n15.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n15.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P15" Guid="47A7D39D-4CA6-42D2-87FB-16D6EDCF5314">
+        <File Id="IRF_P15File" Name="IR_p15.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p15.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N20" Guid="22B4A428-0CED-4ED7-AFF1-9D651A9EA4DD">
+        <File Id="IRF_N20File" Name="IR_n20.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n20.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P20" Guid="06B7940B-65AD-4A3F-979C-515B0A9BC12C">
+        <File Id="IRF_P20File" Name="IR_p20.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p20.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N25" Guid="CE5A8E30-A8A6-4DB7-9767-3D8748FFBF09">
+        <File Id="IRF_N25File" Name="IR_n25.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n25.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P25" Guid="2983C429-490E-4A6F-B85A-D2BB5AD5D923">
+        <File Id="IRF_P25File" Name="IR_p25.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p25.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N30" Guid="6EABF61D-2A2B-4789-8E4F-C203D689DD6A">
+        <File Id="IRF_N30File" Name="IR_n30.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n30.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P30" Guid="81A6863B-8ABA-4054-A335-0420337BC4A7">
+        <File Id="IRF_P30File" Name="IR_p30.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p30.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N35" Guid="5AA51938-AEA5-4A15-91E2-760CEB22BBCA">
+        <File Id="IRF_N35File" Name="IR_n35.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n35.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P35" Guid="744A80C8-C459-4E99-AFBC-A9A4DB0A512C">
+        <File Id="IRF_P35File" Name="IR_p35.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p35.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N40" Guid="AE3CEF80-B428-420E-99FB-B03FD5006421">
+        <File Id="IRF_N40File" Name="IR_n40.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n40.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P40" Guid="7D8D90A4-15EF-40C8-9D2D-1DF666E5EECD">
+        <File Id="IRF_P40File" Name="IR_p40.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p40.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N45" Guid="A3C46ADD-C9E5-40C9-8103-D5855C287218">
+        <File Id="IRF_N45File" Name="IR_n45.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n45.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P45" Guid="B8C28D2E-A140-4DE9-A474-0A8209603A98">
+        <File Id="IRF_P45File" Name="IR_p45.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p45.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N55" Guid="2997BD62-9F61-4C8F-A544-3FAF8186D746">
+        <File Id="IRF_N55File" Name="IR_n55.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n55.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P55" Guid="3F66BF9B-EB20-4AD9-912B-F9DA518BE0F7">
+        <File Id="IRF_P55File" Name="IR_p55.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p55.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N65" Guid="38388BB3-CB9F-4EEE-8BF8-8900DFBD3114">
+        <File Id="IRF_N65File" Name="IR_n65.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n65.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P65" Guid="5D8FA3D0-35E3-4DFC-B39B-2076362EA7CB">
+        <File Id="IRF_P65File" Name="IR_p65.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p65.txt" KeyPath="yes"/>
+      </Component>
+
+      <Component Id="IRF_N80" Guid="28D963AF-A2A4-42F6-8AB2-26FE4AFF1807">
+        <File Id="IRF_N80File" Name="IR_n80.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_n80.txt" KeyPath="yes"/>
+      </Component>
+      <Component Id="IRF_P80" Guid="B0EF3808-095D-43A9-943C-D0584B2FC38E">
+        <File Id="IRF_P80File" Name="IR_p80.txt" Source="$(var.Musegician.TargetDir)Resources\IRFiles\IR_p80.txt" KeyPath="yes"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

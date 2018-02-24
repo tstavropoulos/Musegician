@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
+	<Bundle Name="Musegician v!(bind.packageVersion.MusegicianMSI)" Manufacturer="TASAgency"
+          Version="!(bind.packageVersion.MusegicianMSI)"
+          AboutUrl="https://github.com/tstavropoulos/Musegician"
+          UpgradeCode="53c1b044-0e1b-4213-a900-a254a8de5976">
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
+      <bal:WixStandardBootstrapperApplication 
+        LicenseUrl=""
+        LogoFile="$(var.ProjectDir)..\IconResources\LogoSmall.png"/>
+    </BootstrapperApplicationRef>
+    <Chain>
+      <PackageGroupRef Id="NetFx471Web"/>
+      <MsiPackage Id="MusegicianMSI" SourceFile="$(var.MusegicianInstallerv2.TargetPath)" Vital="yes"/>
+    </Chain>
+  </Bundle>
+</Wix>
