@@ -6,7 +6,7 @@
           AboutUrl="https://github.com/tstavropoulos/Musegician"
           UpgradeCode="53c1b044-0e1b-4213-a900-a254a8de5976">
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
-      <bal:WixStandardBootstrapperApplication 
+      <bal:WixStandardBootstrapperApplication
         LicenseUrl=""
         LogoFile="$(var.ProjectDir)..\IconResources\LogoSmall.png"/>
     </BootstrapperApplicationRef>

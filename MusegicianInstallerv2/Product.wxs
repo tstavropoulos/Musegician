@@ -2,11 +2,10 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Name="Musegician" Language="1033"
            Manufacturer="TASAgency" Version="!(bind.FileVersion.MusegicianEXE)"
-           Id="*"
-           UpgradeCode="746CB42F-76BD-4EA9-BEE4-D44F506C8EFF">
+           Id="*" UpgradeCode="746CB42F-76BD-4EA9-BEE4-D44F506C8EFF">
     <Package Keywords="Installer" Description="Musegician v[ProductVersion] Installer"
              Manufacturer="TASAgency" InstallerVersion="200" Compressed="yes" InstallScope="perMachine"/>
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
+    <MajorUpgrade AllowDowngrades="yes"/>
     <MediaTemplate/>
     <Feature Id="Complete" Title="Musegician Installer" Level="1">
       <ComponentGroupRef Id="ProductComponents"/>
@@ -16,7 +15,7 @@
     </Feature>
     <Icon Id="Musegician.exe" SourceFile="$(var.Musegician.TargetDir)Musegician.exe" />
   </Product>
-
+  
   <!-- Directories -->
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
