@@ -18,14 +18,13 @@ namespace Musegician
     {
         public App()
         {
-            Exit += App_Exit;
-
-            //System.Windows.Input.Keyboard.AddKeyDownHandler()
+            SessionEnding += App_SessionEnding;
         }
 
-        private void App_Exit(object sender, ExitEventArgs e)
+        private void App_SessionEnding(object sender, SessionEndingCancelEventArgs e)
         {
-            //Player.MusicManager.Instance.CleanUp();
+            Player.MusicManager.Instance.CleanUp();
+            Shutdown();
         }
     }
 }
