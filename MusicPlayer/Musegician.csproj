@@ -181,6 +181,15 @@
     <Compile Include="Deredundafier\PassiveViewModel.cs" />
     <Compile Include="Deredundafier\PotentialMatchViewModel.cs" />
     <Compile Include="Deredundafier\SelectorViewModel.cs" />
+    <Compile Include="Driller\DrillerWindow.xaml.cs">
+      <DependentUpon>DrillerWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Driller\LooperPlaybackPanel.xaml.cs">
+      <DependentUpon>LooperPlaybackPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Driller\LoopSlider.xaml.cs">
+      <DependentUpon>LoopSlider.xaml</DependentUpon>
+    </Compile>
     <Compile Include="EntryPoint.cs" />
     <Compile Include="Equalizer\EqualizerControl.xaml.cs">
       <DependentUpon>EqualizerControl.xaml</DependentUpon>
@@ -281,6 +290,18 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Deredundafier\DeredundafierWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Driller\DrillerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Driller\LooperPlaybackPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Driller\LoopSlider.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

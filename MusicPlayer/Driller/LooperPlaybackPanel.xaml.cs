@@ -5,21 +5,24 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
-using System.Threading;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 using System.ComponentModel;
 
-namespace Musegician.Player
+using MusicManager = Musegician.Player.MusicManager;
+using PlayerState = Musegician.Player.PlayerState;
+
+namespace Musegician.Driller
 {
     /// <summary>
-    /// Interaction logic for PlaybackPanel.xaml
+    /// Interaction logic for LooperPlaybackPanel.xaml
     /// </summary>
-    public partial class PlaybackPanel : UserControl, INotifyPropertyChanged
+    public partial class LooperPlaybackPanel : UserControl, INotifyPropertyChanged
     {
         private MusicManager MusicMan
         {
@@ -40,20 +43,20 @@ namespace Musegician.Player
             }
         }
 
-        public PlaybackPanel()
+        public LooperPlaybackPanel()
         {
             InitializeComponent();
 
-            Loaded += PlaybackPanel_Loaded;
-            Unloaded += PlaybackPanel_Unloaded;
+            Loaded += LooperPlaybackPanel_Loaded;
+            Unloaded += LooperPlaybackPanel_Unloaded;
         }
 
-        private void PlaybackPanel_Loaded(object sender, RoutedEventArgs e)
+        private void LooperPlaybackPanel_Loaded(object sender, RoutedEventArgs e)
         {
             MusicMan.PlayerStateChanged += PlayerStateChanged;
         }
 
-        private void PlaybackPanel_Unloaded(object sender, RoutedEventArgs e)
+        private void LooperPlaybackPanel_Unloaded(object sender, RoutedEventArgs e)
         {
             MusicMan.PlayerStateChanged -= PlayerStateChanged;
         }
@@ -76,6 +79,22 @@ namespace Musegician.Player
         public void OnBackClick(object sender, RoutedEventArgs e)
         {
             MusicMan.Back();
+        }
+
+        private void OnLoopbackClick(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("Temp OnLoopbackClick behavior");
+            MusicMan.Back();
+        }
+
+        private void OnSetStartClick(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnSetStopClick(object sender, RoutedEventArgs e)
+        {
+
         }
 
         private void PlayerStateChanged(PlayerState newState)

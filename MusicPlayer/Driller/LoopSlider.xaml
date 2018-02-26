@@ -1,0 +1,138 @@
+﻿<UserControl x:Class="Musegician.Driller.LoopSlider"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Musegician.Driller"
+             mc:Ignorable="d"
+             x:Name="Root"
+             d:DesignHeight="30" d:DesignWidth="300">
+  <UserControl.Resources>
+    <ControlTemplate x:Key="leftRangeSlider" TargetType="{x:Type Slider}">
+      <Border SnapsToDevicePixels="true" BorderBrush="{TemplateBinding BorderBrush}" 
+              BorderThickness="{TemplateBinding BorderThickness}">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Rectangle x:Name="PART_SelectionRange"/>
+          <Track x:Name="PART_Track" Grid.Row="1">
+            <Track.Thumb>
+              <Thumb x:Name="Thumb">
+                <Thumb.Template>
+                  <ControlTemplate TargetType="Thumb">
+                    <Path Stroke="Black" StrokeThickness="1" Fill="Red">
+                      <Path.Data>
+                        <PathGeometry>
+                          <PathGeometry.Figures>
+                            <PathFigure StartPoint="0,0" IsClosed="True">
+                              <LineSegment Point="6,0"/>
+                              <LineSegment Point="6,18"/>
+                              <LineSegment Point="0,9"/>
+                            </PathFigure>
+                          </PathGeometry.Figures>
+                        </PathGeometry>
+                      </Path.Data>
+                    </Path>
+                  </ControlTemplate>
+                </Thumb.Template>
+              </Thumb>
+            </Track.Thumb>
+          </Track>
+        </Grid>
+      </Border>
+    </ControlTemplate>
+    <ControlTemplate x:Key="rightRangeSlider" TargetType="{x:Type Slider}">
+      <Border SnapsToDevicePixels="true" BorderBrush="{TemplateBinding BorderBrush}" 
+              BorderThickness="{TemplateBinding BorderThickness}">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Rectangle x:Name="PART_SelectionRange"/>
+          <Track x:Name="PART_Track" Grid.Row="1">
+            <Track.Thumb>
+              <Thumb x:Name="Thumb">
+                <Thumb.Template>
+                  <ControlTemplate TargetType="Thumb">
+                    <Path Stroke="Black" StrokeThickness="1" Fill="Red">
+                      <Path.Data>
+                        <PathGeometry>
+                          <PathGeometry.Figures>
+                            <PathFigure StartPoint="0,0" IsClosed="True">
+                              <LineSegment Point="6,0"/>
+                              <LineSegment Point="6,9"/>
+                              <LineSegment Point="0,18"/>
+                            </PathFigure>
+                          </PathGeometry.Figures>
+                        </PathGeometry>
+                      </Path.Data>
+                    </Path>
+                  </ControlTemplate>
+                </Thumb.Template>
+              </Thumb>
+            </Track.Thumb>
+          </Track>
+        </Grid>
+      </Border>
+    </ControlTemplate>
+    <ControlTemplate x:Key="valueSlider" TargetType="{x:Type Slider}">
+      <Border SnapsToDevicePixels="true" BorderBrush="{TemplateBinding BorderBrush}" 
+              BorderThickness="{TemplateBinding BorderThickness}">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Rectangle x:Name="PART_SelectionRange"/>
+          <Track x:Name="PART_Track" Grid.Row="1">
+            <Track.Thumb>
+              <Thumb x:Name="Thumb">
+                <Thumb.Template>
+                  <ControlTemplate TargetType="Thumb">
+                    <Path Stroke="Black" StrokeThickness="1" Fill="White">
+                      <Path.Data>
+                        <PathGeometry>
+                          <PathGeometry.Figures>
+                            <PathFigure StartPoint="0,0" IsClosed="True">
+                              <LineSegment Point="6,0"/>
+                              <LineSegment Point="6,18"/>
+                              <LineSegment Point="0,18"/>
+                            </PathFigure>
+                          </PathGeometry.Figures>
+                        </PathGeometry>
+                      </Path.Data>
+                    </Path>
+                  </ControlTemplate>
+                </Thumb.Template>
+              </Thumb>
+            </Track.Thumb>
+          </Track>
+        </Grid>
+      </Border>
+    </ControlTemplate>
+  </UserControl.Resources>
+  <Grid VerticalAlignment="Top">
+    <Border BorderThickness="0,1,0,0" BorderBrush="Black" Height="1" VerticalAlignment="Center" Margin="5,0,5,0"/>
+    <Slider x:Name="LowerSlider" Margin="0,0,12,0"
+            Minimum="{Binding ElementName=Root, Path=Minimum}"
+            Maximum="{Binding ElementName=Root, Path=Maximum}"
+            Value="{Binding ElementName=Root, Path=LowerValue}"
+            Template="{StaticResource leftRangeSlider}"/>
+    <Slider x:Name="ValueSlider" Margin="6,0,6,0"
+            Minimum="{Binding ElementName=Root, Path=Minimum}"
+            Maximum="{Binding ElementName=Root, Path=Maximum}"
+            Value="{Binding ElementName=Root, Path=Value}"
+            Template="{StaticResource valueSlider}"/>
+    <Slider x:Name="UpperSlider" Margin="12,0,0,0"
+            Minimum="{Binding ElementName=Root, Path=Minimum}"
+            Maximum="{Binding ElementName=Root, Path=Maximum}"
+            Value="{Binding ElementName=Root, Path=UpperValue}"
+            Template="{StaticResource rightRangeSlider}"/>
+  </Grid>
+</UserControl>
