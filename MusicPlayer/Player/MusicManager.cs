@@ -758,7 +758,7 @@ namespace Musegician.Player
         {
             if (_soundOut != null && _waveSource != null &&
                 (_soundOut.PlaybackState == PlaybackState.Playing || _soundOut.PlaybackState == PlaybackState.Paused) &&
-                _waveSource.Position > 2.0f &&
+                Position > 2.0 &&
                 AttachedLooper == null)
             {
                 //Restart if it's not within the first 2 seconds
@@ -772,10 +772,10 @@ namespace Musegician.Player
 
         public void Restart()
         {
-            if (_soundOut != null && _waveSource != null &&
-                (_soundOut.PlaybackState == PlaybackState.Playing || _soundOut.PlaybackState == PlaybackState.Paused))
+            if (_soundOut != null && _waveSource != null)
             {
                 ILooperUpdater looper = AttachedLooper;
+
                 if (looper == null)
                 {
                     Position = 0.0;
@@ -784,6 +784,12 @@ namespace Musegician.Player
                 {
                     Position = looper.GetStartPosition();
                     _endPosition = looper.GetEndPosition();
+                }
+
+                if (_soundOut.PlaybackState != PlaybackState.Playing)
+                {
+                    State = PlayerState.Playing;
+                    _soundOut.Play();
                 }
             }
         }
@@ -886,9 +892,9 @@ namespace Musegician.Player
             switch (State)
             {
                 case PlayerState.NotLoaded:
-                case PlayerState.Stopped:
                     //Do nothing
                     break;
+                case PlayerState.Stopped:
                 case PlayerState.Playing:
                 case PlayerState.Paused:
                     _waveSource.SetPosition(TimeSpan.FromSeconds(time));
