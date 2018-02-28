@@ -61,9 +61,23 @@ Now features the Directory View!
 
 Open the explorer directly to any directory or file from any view, or jump to a song in the library from the playlist's context menu.
 
+### Spatialization
+
+Leveraging the latest only slightly outdated techniques from auditory research, Musegician can spatialize auditory recordings, simulating listening to the music from speakers in your physical environment.  
+![Spatialization](README_Screenshots/Spatialization.gif)
+
+This tends to sounds great on older tracks, and occasionally bizarre on more recent ones.
+
+### Music Driller
+
+Currently rather feature-light, the Music Driller lets you loop over pieces of songs in your library.  
+![Music Driller](README_Screenshots/MusicDriller.gif)
+
+Ideal if you are learning an instrument and want to practice a tricky part.  Forthcomming features will expand on this functionality.
+
 ### Installer
 
-And now it's packaged with an installer that will handle the installation of the requirements for you.  Just grab it from [The Releases Page](https://github.com/tstavropoulos/Musegician/releases).
+It's packaged with an installer that will handle the installation of the requirements for you.  Just grab it from [The Releases Page](https://github.com/tstavropoulos/Musegician/releases).  Windows SmartScan will likely flag it, but clicking "More Information" on the warning that pops up will reveal a button that lets you install anyway.
 
 ## Development
 
