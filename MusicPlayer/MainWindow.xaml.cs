@@ -220,5 +220,13 @@ namespace Musegician
         {
             SpatializerPopup.IsOpen = true;
         }
+
+        private void Menu_MusicDriller(object sender, RoutedEventArgs e)
+        {
+            Window musicDriller = new Driller.DrillerWindow();
+
+            musicDriller.Show();
+            Hide();
+        }
     }
 }

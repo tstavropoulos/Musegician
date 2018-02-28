@@ -9,8 +9,7 @@
              d:DesignHeight="30" d:DesignWidth="300">
   <UserControl.Resources>
     <ControlTemplate x:Key="leftRangeSlider" TargetType="{x:Type Slider}">
-      <Border SnapsToDevicePixels="true" BorderBrush="{TemplateBinding BorderBrush}" 
-              BorderThickness="{TemplateBinding BorderThickness}">
+      <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -45,8 +44,7 @@
       </Border>
     </ControlTemplate>
     <ControlTemplate x:Key="rightRangeSlider" TargetType="{x:Type Slider}">
-      <Border SnapsToDevicePixels="true" BorderBrush="{TemplateBinding BorderBrush}" 
-              BorderThickness="{TemplateBinding BorderThickness}">
+      <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -81,8 +79,7 @@
       </Border>
     </ControlTemplate>
     <ControlTemplate x:Key="valueSlider" TargetType="{x:Type Slider}">
-      <Border SnapsToDevicePixels="true" BorderBrush="{TemplateBinding BorderBrush}" 
-              BorderThickness="{TemplateBinding BorderThickness}">
+      <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

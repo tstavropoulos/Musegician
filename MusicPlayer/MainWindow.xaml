@@ -38,6 +38,7 @@
         </MenuItem>
         <MenuItem Header="_View">
           <MenuItem Header="_Condensed View" Click="Menu_CondensedView"/>
+          <MenuItem Header="Music _Driller" Click="Menu_MusicDriller"/>
         </MenuItem>
         <MenuItem Header="_Library">
           <MenuItem Header="_Add Music Directory" Click="MenuOpenClick"/>

@@ -12,7 +12,8 @@
         mc:Ignorable="d"
         Title="{Binding Source={x:Static player:MusicManager.Instance}, Path=WindowTitle}"
         Height="500" Width="500"
-        Icon="/Musegician;component/Resources/logoHat.png">
+        Icon="/Musegician;component/Resources/logoHat.png"
+        Closing="DrillerWindow_Closing">
   <Window.Style>
     <Style TargetType="{x:Type Window}" BasedOn="{StaticResource {x:Type Window}}">
       <Setter Property="WindowChrome.WindowChrome">

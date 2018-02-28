@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,7 +26,10 @@ namespace Musegician.Driller
             InitializeComponent();
 
             Loaded += DrillerWindow_Loaded;
+            Loaded += TightPlaylist.TightPlaylistControl_Loaded;
+
             Unloaded += DrillerWindow_Unloaded;
+            Unloaded += TightPlaylist.TightPlaylistControl_Unloaded;
         }
 
         private void DrillerWindow_Loaded(object sender, RoutedEventArgs e)
@@ -91,6 +95,11 @@ namespace Musegician.Driller
                     Console.WriteLine("Unrecognized PlayerState: " + newState);
                     break;
             }
+        }
+
+        private void DrillerWindow_Closing(object sender, CancelEventArgs e)
+        {
+            Application.Current.MainWindow.Show();
         }
     }
 }

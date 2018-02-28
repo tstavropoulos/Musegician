@@ -112,11 +112,13 @@
     
     <!-- Row 1 -->
     <local:LoopSlider x:Name="progressSlider" Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" Margin="10,2,10,2"
-            Background="{StaticResource ButtonBackground}"
-            VerticalAlignment="Center" 
-            Value="{Binding Source={x:Static player:MusicManager.Instance}, Path=Position}"
-            Minimum="0.0"
-            Maximum="{Binding Source={x:Static player:MusicManager.Instance}, Path=Length}"/>
+                      Background="{StaticResource ButtonBackground}"
+                      VerticalAlignment="Center" 
+                      Value="{Binding Source={x:Static player:MusicManager.Instance}, Path=Position}"
+                      Minimum="0.0"
+                      Maximum="{Binding Source={x:Static player:MusicManager.Instance}, Path=Length}"
+                      BoundsExceeded="progressSlider_BoundsExceeded"
+                      BoundsChanged="progressSlider_BoundsChanged"/>
     
     <!-- Row 2 -->
     <Button ToolTip="Previous" Grid.Column="0" Grid.Row="2" Margin="0"

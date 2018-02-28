@@ -157,7 +157,6 @@
     </Compile>
     <Compile Include="Core\MathExtension.cs" />
     <Compile Include="Core\OSInterop.cs" />
-    <Compile Include="Core\PropertyObserver.cs" />
     <Compile Include="Core\RingBuffer.cs" />
     <Compile Include="Core\TwoValueVisualizerSlider.cs" />
     <Compile Include="Core\WeightBar.xaml.cs">
@@ -184,6 +183,7 @@
     <Compile Include="Driller\DrillerWindow.xaml.cs">
       <DependentUpon>DrillerWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Driller\ILooperUpdater.cs" />
     <Compile Include="Driller\LooperPlaybackPanel.xaml.cs">
       <DependentUpon>LooperPlaybackPanel.xaml</DependentUpon>
     </Compile>

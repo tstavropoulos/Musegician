@@ -22,7 +22,7 @@ namespace Musegician.Driller
     /// <summary>
     /// Interaction logic for LooperPlaybackPanel.xaml
     /// </summary>
-    public partial class LooperPlaybackPanel : UserControl, INotifyPropertyChanged
+    public partial class LooperPlaybackPanel : UserControl, INotifyPropertyChanged, ILooperUpdater
     {
         private MusicManager MusicMan
         {
@@ -54,11 +54,13 @@ namespace Musegician.Driller
         private void LooperPlaybackPanel_Loaded(object sender, RoutedEventArgs e)
         {
             MusicMan.PlayerStateChanged += PlayerStateChanged;
+            MusicMan.SetLooperUpdater(this);
         }
 
         private void LooperPlaybackPanel_Unloaded(object sender, RoutedEventArgs e)
         {
             MusicMan.PlayerStateChanged -= PlayerStateChanged;
+            MusicMan.RemoveLooperUpdater(this);
         }
 
         public void OnPlayClick(object sender, RoutedEventArgs e)
@@ -83,18 +85,17 @@ namespace Musegician.Driller
 
         private void OnLoopbackClick(object sender, RoutedEventArgs e)
         {
-            Console.WriteLine("Temp OnLoopbackClick behavior");
-            MusicMan.Back();
+            MusicMan.Restart();
         }
 
         private void OnSetStartClick(object sender, RoutedEventArgs e)
         {
-
+            progressSlider.LowerValue = progressSlider.Value;
         }
 
         private void OnSetStopClick(object sender, RoutedEventArgs e)
         {
-
+            progressSlider.UpperValue = progressSlider.Value;
         }
 
         private void PlayerStateChanged(PlayerState newState)
@@ -102,6 +103,36 @@ namespace Musegician.Driller
             State = newState;
         }
 
+        private void progressSlider_BoundsChanged(object sender, BoundsChangedEventArgs e)
+        {
+            MusicMan.StartPosition = e.LowerBound;
+            MusicMan.EndPosition = e.UpperBound;
+        }
+
+        private void progressSlider_BoundsExceeded(object sender, BoundsExceededEventArgs e)
+        {
+            //Do nothing
+        }
+
+        #region ILooperUpdater
+
+        double ILooperUpdater.GetStartPosition()
+        {
+            return progressSlider.LowerValue;
+        }
+
+        double ILooperUpdater.GetEndPosition()
+        {
+            return progressSlider.UpperValue;
+        }
+
+        void ILooperUpdater.ResetBounds()
+        {
+            progressSlider.LowerValue = progressSlider.Minimum;
+            progressSlider.UpperValue = progressSlider.Maximum;
+        }
+
+        #endregion ILooperUpdater
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;

@@ -18,6 +18,7 @@ using Musegician.AudioUtilities;
 using PlaylistManager = Musegician.Playlist.PlaylistManager;
 using PlayData = Musegician.DataStructures.PlayData;
 using CSCoreEq = CSCore.Streams.Effects.Equalizer;
+using ILooperUpdater = Musegician.Driller.ILooperUpdater;
 
 namespace Musegician.Player
 {
@@ -143,6 +144,37 @@ namespace Musegician.Player
         public EventHandler<Equalizer.MeterUpdateArgs> MeterUpdate;
 
         #endregion Events
+        #region LooperUpdaters
+
+        private ILooperUpdater AttachedLooper
+        {
+            get
+            {
+                if (_looperUpdater != null && _looperUpdater.TryGetTarget(out ILooperUpdater updater))
+                {
+                    return updater;
+                }
+
+                _looperUpdater = null;
+                return null;
+            }
+        }
+
+        private WeakReference<ILooperUpdater> _looperUpdater = null;
+
+        public void SetLooperUpdater(ILooperUpdater listener)
+        {
+            _looperUpdater = new WeakReference<ILooperUpdater>(listener);
+            listener.ResetBounds();
+        }
+
+        public void RemoveLooperUpdater(ILooperUpdater updater)
+        {
+            _looperUpdater = null;
+            EndPosition = Length;
+        }
+
+        #endregion LooperUpdaters
         #region Data
 
         PlayData lastPlay;
@@ -198,12 +230,39 @@ namespace Musegician.Player
                 if (_length != value)
                 {
                     _length = value;
-                    
+                    EndPosition = value;
+
                     _songLengthLabel = TimestampToLabel((int)Math.Floor(Length));
 
                     OnPropertyChanged("Length");
                     OnPropertyChanged("SongLengthLabel");
                     OnPropertyChanged("PlaybackLabel");
+                }
+            }
+        }
+
+        private double _endPosition = 1.0;
+        public double EndPosition
+        {
+            get { return _endPosition; }
+            set
+            {
+                if (_endPosition != value)
+                {
+                    _endPosition = value;
+
+                    OnPropertyChanged("EndPosition");
+                }
+            }
+        }
+
+        public double StartPosition
+        {
+            set
+            {
+                if (Position < value)
+                {
+                    Position = value;
                 }
             }
         }
@@ -321,7 +380,7 @@ namespace Musegician.Player
             }
         }
 
-        private double _position = 0L;
+        private double _position = 0.0;
         public double Position
         {
             get { return _position; }
@@ -482,6 +541,7 @@ namespace Musegician.Player
 
         private void Tick_ProgressTimer(object s, EventArgs e)
         {
+            ILooperUpdater looper = AttachedLooper;
             if (_soundOut != null && _waveSource != null)
             {
                 switch (_soundOut.PlaybackState)
@@ -492,6 +552,10 @@ namespace Musegician.Player
                     case PlaybackState.Playing:
                     case PlaybackState.Paused:
                         NonFeedbackPosition = _waveSource.GetPosition().TotalSeconds;
+                        if (looper != null && Position >= _endPosition)
+                        {
+                            prepareNext = true;
+                        }
                         break;
                     default:
                         throw new Exception("Unexpeted playbackState: " + _soundOut.PlaybackState);
@@ -501,7 +565,15 @@ namespace Musegician.Player
             if (prepareNext)
             {
                 prepareNext = false;
-                PlaySong(PlaylistManager.Instance.Next());
+
+                if (looper != null)
+                {
+                    Restart();
+                }
+                else
+                {
+                    PlaySong(PlaylistManager.Instance.Next());
+                }
             }
         }
 
@@ -553,7 +625,7 @@ namespace Musegician.Player
         #endregion Spatializer Callbacks
         #endregion Callbacks
 
-        public void PlaySong(PlayData playData)
+        public void PlaySong(PlayData playData, bool preserveLoopBounds = false)
         {
             lastPlay = playData;
 
@@ -622,7 +694,18 @@ namespace Musegician.Player
 
             Length = _waveSource.GetLength().TotalSeconds;
             NonFeedbackPosition = 0.0;
-            
+
+            ILooperUpdater looper = AttachedLooper;
+            if (looper != null)
+            {
+                if (!preserveLoopBounds)
+                {
+                    looper.ResetBounds();
+                }
+
+                Position = looper.GetStartPosition();
+            }
+
             State = PlayerState.Playing;
         }
 
@@ -674,15 +757,34 @@ namespace Musegician.Player
         public void Back()
         {
             if (_soundOut != null && _waveSource != null &&
-                _soundOut.PlaybackState == PlaybackState.Playing &&
-                _waveSource.Position > 2.0f * _waveSource.WaveFormat.BytesPerSecond)
+                (_soundOut.PlaybackState == PlaybackState.Playing || _soundOut.PlaybackState == PlaybackState.Paused) &&
+                _waveSource.Position > 2.0f &&
+                AttachedLooper == null)
             {
-                //Restart if it's within the first 2 seconds
+                //Restart if it's not within the first 2 seconds
                 Position = 0.0;
             }
             else
             {
                 PlaySong(PlaylistManager.Instance.Previous());
+            }
+        }
+
+        public void Restart()
+        {
+            if (_soundOut != null && _waveSource != null &&
+                (_soundOut.PlaybackState == PlaybackState.Playing || _soundOut.PlaybackState == PlaybackState.Paused))
+            {
+                ILooperUpdater looper = AttachedLooper;
+                if (looper == null)
+                {
+                    Position = 0.0;
+                }
+                else
+                {
+                    Position = looper.GetStartPosition();
+                    _endPosition = looper.GetEndPosition();
+                }
             }
         }
 
