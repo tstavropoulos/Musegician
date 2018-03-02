@@ -1,0 +1,91 @@
+﻿<UserControl x:Class="Musegician.Library.TightLibraryControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Musegician.Library"
+             xmlns:core="clr-namespace:Musegician.Core"
+             xmlns:commands="clr-namespace:Musegician.Commands"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="500"
+             d:DataContext="{d:DesignInstance Type=local:MockLibraryViewModel, IsDesignTimeCreatable=True}">
+  <UserControl.Resources>
+    <Style x:Key="LibraryStyle" 
+           TargetType="{x:Type core:MultiSelectTreeViewItem}" 
+           BasedOn="{StaticResource {x:Type core:MultiSelectTreeViewItem}}">
+      <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick"/>
+      <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+      <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+      <Setter Property="FontWeight" Value="Normal" />
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="commands:TreeViewItemBehavior.BringIntoViewWhenSelected" Value="True"/>
+          <Setter Property="FontWeight" Value="Bold"/>
+        </Trigger>
+        <DataTrigger Binding="{Binding IsDim}" Value="True">
+          <Setter Property="TextBlock.Foreground" Value="DimGray"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <core:EnumBoolConverter x:Key="EnumBooleanConverter"/>
+
+    <ContextMenu x:Key="ArtistCM">
+      <MenuItem Header="Add Artist To Playlist" Click="Add_Shallow"/>
+    </ContextMenu>
+
+    <ContextMenu x:Key="AlbumCM">
+      <MenuItem Header="Add Album To Playlist" Click="Add_Shallow"/>
+    </ContextMenu>
+
+    <ContextMenu x:Key="SongCM">
+      <MenuItem Header="Add Song To Playlist" Click="Add_Shallow"/>
+    </ContextMenu>
+
+    <ContextMenu x:Key="RecordingCM">
+      <MenuItem Header="Add Recording To Playlist" Click="Add_Shallow"/>
+    </ContextMenu>
+
+    <HierarchicalDataTemplate DataType="{x:Type local:ArtistViewModel}"
+                              ItemsSource="{Binding Children}">
+      <StackPanel Orientation="Horizontal" Background="Transparent"
+                  ContextMenu="{StaticResource ArtistCM}">
+        <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"/>
+      </StackPanel>
+    </HierarchicalDataTemplate>
+
+    <HierarchicalDataTemplate DataType="{x:Type local:AlbumViewModel}"
+                              ItemsSource="{Binding Children}">
+      <StackPanel Orientation="Horizontal" Background="Transparent"
+                  ContextMenu="{StaticResource AlbumCM}">
+        <Image Width="24" Height="24" Margin="0,0,5,0" Source="{Binding AlbumArt}"/>
+        <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"/>
+      </StackPanel>
+    </HierarchicalDataTemplate>
+
+    <HierarchicalDataTemplate DataType="{x:Type local:SongViewModel}"
+                              ItemsSource="{Binding Children}">
+      <StackPanel Orientation="Horizontal" Background="Transparent"
+                  ContextMenu="{StaticResource SongCM}">
+        <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"/>
+      </StackPanel>
+    </HierarchicalDataTemplate>
+
+    <HierarchicalDataTemplate DataType="{x:Type local:RecordingViewModel}">
+      <StackPanel Orientation="Horizontal" Background="Transparent"
+                  ContextMenu="{StaticResource RecordingCM}">
+        <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"/>
+        <TextBlock Text="{Binding LiveString}" Margin="5,0,0,0"
+                   FontSize="14" FontFamily="Segoe UI Symbol" VerticalAlignment="Center"/>
+      </StackPanel>
+    </HierarchicalDataTemplate>
+  </UserControl.Resources>
+  <DockPanel>
+    <core:MultiSelectTreeView x:Name="ClassicTreeView"
+                              ItemsSource="{Binding ClassicArtistViewModels}"
+                              TreeViewItem.Expanded="TreeViewItem_Expanded"
+                              ItemContainerStyle="{StaticResource LibraryStyle}"/>
+  </DockPanel>
+</UserControl>

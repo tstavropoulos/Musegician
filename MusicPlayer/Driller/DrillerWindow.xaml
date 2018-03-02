@@ -6,6 +6,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:Musegician.Driller"
         xmlns:core="clr-namespace:Musegician.Core"
+        xmlns:library="clr-namespace:Musegician.Library"
         xmlns:player="clr-namespace:Musegician.Player"
         xmlns:playlist="clr-namespace:Musegician.Playlist"
         xmlns:equalizer="clr-namespace:Musegician.Equalizer"
@@ -99,16 +100,42 @@
         <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>
-        <ToggleButton x:Name="LoadPlaylistButton" ToolTip="Load Playlist"
-                      Margin="0" Height="33" Width="33"
-                      Content="📂" ContentTemplate="{StaticResource UIFontButton}"/>
-        <Popup x:Name="LoadPlaylistPopup" StaysOpen="False"
-                       IsOpen="{Binding Path=IsChecked, ElementName=LoadPlaylistButton}"
-                       Placement="Bottom" PlacementTarget="{Binding ElementName=LoadPlaylistButton}">
-          <Border BorderThickness="2" BorderBrush="Black" Background="{StaticResource DarkInsetPanel}" Height="200">
-            <playlist:PlaylistManagementControl x:Name="PlaylistManControl" SaveMode="False"/>
+
+        <!--Add Songs-->
+        <ToggleButton x:Name="AddSongButton" ToolTip="Add Songs"
+                      Margin="0,0,2,0" Height="33" Width="33"
+                      Content="+" ContentTemplate="{StaticResource UIFontButton}"/>
+        <Popup x:Name="AddSongPopup" StaysOpen="False"
+               IsOpen="{Binding Path=IsChecked, ElementName=AddSongButton}"
+               Placement="Bottom" PlacementTarget="{Binding ElementName=AddSongButton}">
+          <Border BorderThickness="2" BorderBrush="Black" Background="{StaticResource DarkInsetPanel}" Height="300">
+            <library:TightLibraryControl x:Name="LibraryControl"
+                                         d:DataContext="{d:DesignInstance Type=library:MockLibraryViewModel,
+                                           IsDesignTimeCreatable=True}"/>
           </Border>
         </Popup>
+        
+        <!--Load Playlist-->
+        <ToggleButton x:Name="LoadPlaylistButton" ToolTip="Load Playlist"
+                      Margin="2,0,2,0" Height="33" Width="33"
+                      Click="Toolbar_LoadPlaylist"
+                      Content="📂" ContentTemplate="{StaticResource UIFontButton}"/>
+
+        <!--Save Playlist-->
+        <ToggleButton x:Name="SavePlaylistButton" ToolTip="Save Playlist"
+                      Margin="2,0,0,0" Height="33" Width="33"
+                      Click="Toolbar_SavePlaylist"
+                      Content="💾" ContentTemplate="{StaticResource UIFontButton}"/>
+        
+        <!--Playlist Popup-->
+        <Popup x:Name="LoadPlaylistPopup" StaysOpen="False"
+               Placement="Bottom" PlacementTarget="{Binding ElementName=LoadPlaylistButton}"
+               Closed="Popup_PlaylistClosed">
+          <Border BorderThickness="2" BorderBrush="Black" Background="{StaticResource DarkInsetPanel}" Height="200">
+            <playlist:PlaylistManagementControl x:Name="PlaylistManControl"/>
+          </Border>
+        </Popup>
+
         <StackPanel Orientation="Horizontal" Margin="4,0,4,0">
           <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
         </StackPanel>

@@ -209,6 +209,9 @@
     </Compile>
     <Compile Include="Library\DirectoryViewModel.cs" />
     <Compile Include="Library\ILibraryRequestHandler.cs" />
+    <Compile Include="Library\TightLibraryControl.xaml.cs">
+      <DependentUpon>TightLibraryControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Library\LibraryViewModel.cs" />
     <Compile Include="Library\LibraryControl.xaml.cs">
       <DependentUpon>LibraryControl.xaml</DependentUpon>
@@ -320,6 +323,10 @@
     <Page Include="Equalizer\SimplePowerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Library\TightLibraryControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Library\LibraryControl.xaml">
       <SubType>Designer</SubType>

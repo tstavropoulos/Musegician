@@ -73,14 +73,14 @@
                 Content="🗋" ContentTemplate="{StaticResource UIFontButton}"
                 Click="Toolbar_NewPlaylist"/>
       <ToggleButton Name="SavePlaylist" ToolTip="Save Playlist" Margin="0,0,4,0" Height="33" Width="33"
-                      Click="Toolbar_SavePlaylist"
-                      Content="💾" ContentTemplate="{StaticResource UIFontButton}"/>
+                    Click="Toolbar_SavePlaylist"
+                    Content="💾" ContentTemplate="{StaticResource UIFontButton}"/>
       <ToggleButton Name="LoadPlaylist" ToolTip="Load Playlist" Margin="0,0,4,0" Height="33" Width="33"
-                      Click="Toolbar_LoadPlaylist"
-                      Content="📂" ContentTemplate="{StaticResource UIFontButton}"/>
+                    Click="Toolbar_LoadPlaylist"
+                    Content="📂" ContentTemplate="{StaticResource UIFontButton}"/>
       <Popup Name="LoadPlaylistPopup" StaysOpen="False"
-               Placement="Bottom" PlacementTarget="{Binding ElementName=LoadPlaylist}"
-               Closed="Popup_PlaylistClosed">
+             Placement="Bottom" PlacementTarget="{Binding ElementName=LoadPlaylist}"
+             Closed="Popup_PlaylistClosed">
         <Border BorderThickness="2" BorderBrush="Black" Background="{StaticResource DarkInsetPanel}" Height="200">
           <local:PlaylistManagementControl x:Name="PlaylistManControl"/>
         </Border>

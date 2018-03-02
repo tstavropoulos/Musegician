@@ -14,6 +14,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Musegician.Core;
 
+using PlaylistManager = Musegician.Playlist.PlaylistManager;
+using PlayerState = Musegician.Player.PlayerState;
+
 namespace Musegician.Driller
 {
     /// <summary>
@@ -21,6 +24,11 @@ namespace Musegician.Driller
     /// </summary>
     public partial class DrillerWindow : Window
     {
+        PlaylistManager PlaylistMan
+        {
+            get { return PlaylistManager.Instance; }
+        }
+
         public DrillerWindow()
         {
             InitializeComponent();
@@ -63,12 +71,12 @@ namespace Musegician.Driller
             Close();
         }
 
-        private void PlayerStateChanged(Player.PlayerState newState)
+        private void PlayerStateChanged(PlayerState newState)
         {
             switch (newState)
             {
-                case Player.PlayerState.Playing:
-                case Player.PlayerState.Paused:
+                case PlayerState.Playing:
+                case PlayerState.Paused:
                     {
                         if (Template.FindName("Marquee", this) is MarqueeControl marquee)
                         {
@@ -79,8 +87,8 @@ namespace Musegician.Driller
                         }
                     }
                     break;
-                case Player.PlayerState.NotLoaded:
-                case Player.PlayerState.Stopped:
+                case PlayerState.NotLoaded:
+                case PlayerState.Stopped:
                     {
                         if (Template.FindName("Marquee", this) is MarqueeControl marquee)
                         {
@@ -97,9 +105,42 @@ namespace Musegician.Driller
             }
         }
 
+        #region Callbacks
+
         private void DrillerWindow_Closing(object sender, CancelEventArgs e)
         {
             Application.Current.MainWindow.Show();
         }
+
+        private void Toolbar_SavePlaylist(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            if (PlaylistMan.ItemCount == 0)
+            {
+                MessageBox.Show("Cannot save empty playlist.", "Empty Playlist");
+                SavePlaylistButton.IsChecked = false;
+                return;
+            }
+
+            PlaylistManControl.SaveMode = true;
+            LoadPlaylistPopup.IsOpen = true;
+        }
+
+        private void Toolbar_LoadPlaylist(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+
+            PlaylistManControl.SaveMode = false;
+            LoadPlaylistPopup.IsOpen = true;
+        }
+
+        private void Popup_PlaylistClosed(object sender, EventArgs e)
+        {
+            SavePlaylistButton.IsChecked = false;
+            LoadPlaylistButton.IsChecked = false;
+        }
+
+        #endregion Callbacks
     }
 }
