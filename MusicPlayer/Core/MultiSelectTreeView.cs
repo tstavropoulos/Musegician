@@ -152,6 +152,27 @@ namespace Musegician.Core
             }
         }
 
+        protected override void OnIsKeyboardFocusWithinChanged(DependencyPropertyChangedEventArgs e)
+        {
+            base.OnIsKeyboardFocusWithinChanged(e);
+
+            if (!Convert.ToBoolean(e.NewValue) &&
+                SelectedItem != null)
+            {
+                if (SelectedItem is TreeViewItem item)
+                {
+                    item.IsSelected = false;
+                }
+                else
+                {
+                    if (ItemContainerGenerator.ContainerFromItem(SelectedItem) is TreeViewItem foundItem)
+                    {
+                        foundItem.IsSelected = false;
+                    }
+                }
+            }
+        }
+
         private bool InExpanderTree(object obj)
         {
             if (obj is Path)
