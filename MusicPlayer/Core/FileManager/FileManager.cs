@@ -152,7 +152,7 @@ namespace Musegician
         }
 
         #endregion Singleton Implementation
-        
+
         public void DropDB()
         {
             if (dbConnection != null)
@@ -255,7 +255,7 @@ namespace Musegician
 
             playlistCommands.Initialize(
                 dbConnection: dbConnection);
-            
+
             dbConnection.Open();
 
             using (SQLiteTransaction createTablesTransaction = dbConnection.BeginTransaction())
@@ -529,7 +529,7 @@ namespace Musegician
             {
                 songTitle = Regex.Replace(songTitle, explicitCleanupPattern, "");
             }
-            
+
             if (Regex.IsMatch(songTitle, albumVersionCleanupPattern))
             {
                 songTitle = Regex.Replace(songTitle, albumVersionCleanupPattern, "");
@@ -613,14 +613,18 @@ namespace Musegician
 
             if (tag.Pictures.Length > 0 && !lookups.loadedAlbumArt.Contains(albumID))
             {
-                lookups.loadedAlbumArt.Add(albumID);
-
-                newRecords.art.Add(new ArtData()
+                //Try to open it
+                if (AlbumCommands.LoadImage(file.Tag.Pictures[0].Data.Data) != null)
                 {
-                    albumArtID = albumCommands.NextAlbumArtID,
-                    albumID = albumID,
-                    image = file.Tag.Pictures[0].Data.Data
-                });
+                    lookups.loadedAlbumArt.Add(albumID);
+
+                    newRecords.art.Add(new ArtData()
+                    {
+                        albumArtID = albumCommands.NextAlbumArtID,
+                        albumID = albumID,
+                        image = file.Tag.Pictures[0].Data.Data
+                    });
+                }
             }
 
             long recordingID = recordingCommands.NextID;

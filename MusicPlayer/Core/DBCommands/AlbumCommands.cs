@@ -98,7 +98,7 @@ namespace Musegician.Core.DBCommands
                             (string)reader["title"],
                             ((long)reader["year"]).ToString()),
                         albumArt: LoadImage(_GetArt(albumID)))
-                    { Weight= weight });
+                    { Weight = weight });
                 }
             }
 
@@ -328,10 +328,10 @@ namespace Musegician.Core.DBCommands
             updateWeight.Parameters.Add("@albumID", DbType.Int64);
             updateWeight.Parameters.Add("@weight", DbType.Double);
 
-            foreach(var value in values)
+            foreach (var value in values)
             {
                 updateWeight.Parameters["@albumID"].Value = value.albumID;
-                updateWeight.Parameters["@weight"].Value = 
+                updateWeight.Parameters["@weight"].Value =
                     double.IsNaN(value.weight) ? null : (object)value.weight;
                 updateWeight.ExecuteNonQuery();
             }
@@ -826,7 +826,7 @@ namespace Musegician.Core.DBCommands
             writeArt.Parameters.Add(new SQLiteParameter("@albumArtID", albumArtID));
             writeArt.Parameters.Add(new SQLiteParameter("@albumID", albumID));
             writeArt.Parameters.Add(new SQLiteParameter("@image", imageData));
-            
+
             writeArt.ExecuteNonQuery();
         }
 
@@ -929,7 +929,7 @@ namespace Musegician.Core.DBCommands
                 deleteAlbumArt_ByAlbumID.Parameters["@albumID"].Value = id;
                 deleteAlbumArt_ByAlbumID.ExecuteNonQuery();
             }
-            
+
         }
 
         /// <summary>
@@ -1021,27 +1021,35 @@ namespace Musegician.Core.DBCommands
             }
         }
 
-        private static BitmapImage LoadImage(byte[] imageData)
+        public static BitmapImage LoadImage(byte[] imageData)
         {
             if (imageData == null || imageData.Length == 0)
             {
                 return null;
             }
 
-            BitmapImage image = new BitmapImage();
-            using (MemoryStream mem = new MemoryStream(imageData))
+            try
             {
-                mem.Position = 0;
-                image.BeginInit();
-                image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
-                image.CacheOption = BitmapCacheOption.OnLoad;
-                image.UriSource = null;
-                image.StreamSource = mem;
-                image.EndInit();
-            }
+                BitmapImage image = new BitmapImage();
+                using (MemoryStream mem = new MemoryStream(imageData))
+                {
+                    mem.Position = 0;
+                    image.BeginInit();
+                    image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.UriSource = null;
+                    image.StreamSource = mem;
+                    image.EndInit();
+                }
 
-            image.Freeze();
-            return image;
+                image.Freeze();
+                return image;
+            }
+            catch (NotSupportedException)
+            {
+                Console.WriteLine("Failed to load image.  Skipping.");
+            }
+            return null;
         }
     }
 }
