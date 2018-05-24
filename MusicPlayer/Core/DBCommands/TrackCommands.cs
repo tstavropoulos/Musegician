@@ -395,7 +395,7 @@ namespace Musegician.Core.DBCommands
             updateTrackDisc.Parameters.Add(new SQLiteParameter("@albumDisc", newDisc));
             updateTrackDisc.CommandText =
                 "UPDATE track " +
-                    "SET disc=@albumDisc " +
+                    "SET disc_number=@albumDisc " +
                     "WHERE id=@trackID;";
             updateTrackDisc.ExecuteNonQuery();
         }
