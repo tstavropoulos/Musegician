@@ -7,6 +7,7 @@ using System.Data.SQLite;
 using DbType = System.Data.DbType;
 using Musegician.DataStructures;
 using Musegician.Deredundafier;
+using Musegician.Database;
 
 namespace Musegician.Core.DBCommands
 {
@@ -17,33 +18,25 @@ namespace Musegician.Core.DBCommands
         RecordingCommands recordingCommands = null;
         PlaylistCommands playlistCommands = null;
 
-        SQLiteConnection dbConnection;
-
-        private long _lastIDAssigned = 0;
-        public long NextID
-        {
-            get { return ++_lastIDAssigned; }
-        }
+        MusegicianData db = null;
 
         public SongCommands()
         {
         }
 
         public void Initialize(
-            SQLiteConnection dbConnection,
+            MusegicianData db,
             ArtistCommands artistCommands,
             TrackCommands trackCommands,
             RecordingCommands recordingCommands,
             PlaylistCommands playlistCommands)
         {
-            this.dbConnection = dbConnection;
+            this.db = db;
 
             this.artistCommands = artistCommands;
             this.trackCommands = trackCommands;
             this.recordingCommands = recordingCommands;
             this.playlistCommands = playlistCommands;
-
-            _lastIDAssigned = 0;
         }
 
         #region High Level Commands
@@ -102,59 +95,6 @@ namespace Musegician.Core.DBCommands
             }
 
             dbConnection.Close();
-        }
-
-
-        public List<SongDTO> GenerateAlbumSongList(long artistID, long albumID)
-        {
-            List<SongDTO> songList = new List<SongDTO>();
-
-            dbConnection.Open();
-
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.CommandText =
-                "SELECT " +
-                    "recording.artist_id AS artist_id, " +
-                    "recording.song_id AS song_id, " +
-                    "track.id AS track_id, " +
-                    "track.title AS track_title, " +
-                    "track.track_number AS track_number, " +
-                    "song_weight.weight AS weight " +
-                "FROM track " +
-                "LEFT JOIN album ON track.album_id=album.id " +
-                "LEFT JOIN recording ON track.recording_id=recording.id " +
-                "LEFT JOIN song_weight ON recording.song_id=song_weight.song_id " +
-                "WHERE track.album_id=@albumID ORDER BY track.disc_number ASC, track.track_number ASC;";
-            readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
-
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    double weight = double.NaN;
-
-                    if (!(reader["weight"] is DBNull))
-                    {
-                        weight = (double)reader["weight"];
-                    }
-
-                    songList.Add(new SongDTO(
-                        songID: (long)reader["song_id"],
-                        titlePrefix: ((long)reader["track_number"]).ToString("D2") + ". ",
-                        title: (string)reader["track_title"],
-                        trackID: (long)reader["track_id"],
-                        isHome: (artistID == (long)reader["artist_id"] || artistID == -1))
-                    {
-                        Weight = weight
-                    });
-                }
-            }
-
-
-            dbConnection.Close();
-
-            return songList;
         }
 
         public List<SongDTO> GenerateArtistSongList(long artistID, string artistName)
@@ -456,62 +396,40 @@ namespace Musegician.Core.DBCommands
         }
 
         #endregion Search Commands
-        #region Initialization Commands
+        //#region Lookup Commands
 
-        public void _InitializeValues()
-        {
-            SQLiteCommand loadSongs = dbConnection.CreateCommand();
-            loadSongs.CommandType = System.Data.CommandType.Text;
-            loadSongs.CommandText =
-                "SELECT id " +
-                "FROM song " +
-                "ORDER BY id DESC " +
-                "LIMIT 1;";
+        //public void _PopulateLookup(
+        //    Dictionary<(long, string), long> artistID_SongTitleDict)
+        //{
+        //    SQLiteCommand loadSongs = dbConnection.CreateCommand();
+        //    loadSongs.CommandType = System.Data.CommandType.Text;
+        //    loadSongs.CommandText =
+        //        "SELECT " +
+        //            "song.id AS song_id, " +
+        //            "song.title AS title, " +
+        //            "recording.artist_id AS artist_id " +
+        //        "FROM song " +
+        //        "LEFT JOIN recording ON song.id=recording.song_id;";
 
-            using (SQLiteDataReader reader = loadSongs.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    _lastIDAssigned = (long)reader["id"];
-                }
-            }
-        }
+        //    using (SQLiteDataReader reader = loadSongs.ExecuteReader())
+        //    {
+        //        while (reader.Read())
+        //        {
+        //            long songID = (long)reader["song_id"];
+        //            string songTitle = (string)reader["title"];
+        //            long artistID = (long)reader["artist_id"];
 
-        #endregion Initialization Commands
-        #region Lookup Commands
+        //            var key = (artistID, songTitle.ToLowerInvariant());
 
-        public void _PopulateLookup(
-            Dictionary<(long, string), long> artistID_SongTitleDict)
-        {
-            SQLiteCommand loadSongs = dbConnection.CreateCommand();
-            loadSongs.CommandType = System.Data.CommandType.Text;
-            loadSongs.CommandText =
-                "SELECT " +
-                    "song.id AS song_id, " +
-                    "song.title AS title, " +
-                    "recording.artist_id AS artist_id " +
-                "FROM song " +
-                "LEFT JOIN recording ON song.id=recording.song_id;";
+        //            if (!artistID_SongTitleDict.ContainsKey(key))
+        //            {
+        //                artistID_SongTitleDict.Add(key, songID);
+        //            }
+        //        }
+        //    }
+        //}
 
-            using (SQLiteDataReader reader = loadSongs.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    long songID = (long)reader["song_id"];
-                    string songTitle = (string)reader["title"];
-                    long artistID = (long)reader["artist_id"];
-
-                    var key = (artistID, songTitle.ToLowerInvariant());
-
-                    if (!artistID_SongTitleDict.ContainsKey(key))
-                    {
-                        artistID_SongTitleDict.Add(key, songID);
-                    }
-                }
-            }
-        }
-
-        #endregion Lookup Commands
+        //#endregion Lookup Commands
         #region Update Commands
 
         public void _UpdateSongTitle_BySongID(
@@ -550,44 +468,13 @@ namespace Musegician.Core.DBCommands
         }
 
         #endregion Update Commands
-        #region Create Commands
-
-        public void _CreateSongTables(SQLiteTransaction transaction)
-        {
-            SQLiteCommand createSongTable = dbConnection.CreateCommand();
-            createSongTable.Transaction = transaction;
-            createSongTable.CommandType = System.Data.CommandType.Text;
-            createSongTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS song (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "title TEXT);";
-            createSongTable.ExecuteNonQuery();
-
-            SQLiteCommand createSongWeightTable = dbConnection.CreateCommand();
-            createSongWeightTable.Transaction = transaction;
-            createSongWeightTable.CommandType = System.Data.CommandType.Text;
-            createSongWeightTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS song_weight (" +
-                    "song_id INTEGER PRIMARY KEY, " +
-                    "weight REAL);";
-            createSongWeightTable.ExecuteNonQuery();
-
-            SQLiteCommand createSongTitleIndex = dbConnection.CreateCommand();
-            createSongTitleIndex.Transaction = transaction;
-            createSongTitleIndex.CommandType = System.Data.CommandType.Text;
-            createSongTitleIndex.CommandText =
-                    "CREATE INDEX IF NOT EXISTS idx_song_title ON song (title COLLATE NOCASE);";
-            createSongTitleIndex.ExecuteNonQuery();
-        }
-
-        #endregion Create Commands
         #region Insert Commands
 
         public long _CreateSong(
             SQLiteTransaction transaction,
             string songTitle)
         {
-            long songID = NextID;
+            long songID = -1;
 
             SQLiteCommand writeSong = dbConnection.CreateCommand();
             writeSong.Transaction = transaction;
@@ -603,47 +490,14 @@ namespace Musegician.Core.DBCommands
             return songID;
         }
 
-        public void _BatchCreateSong(
-            SQLiteTransaction transaction,
-            ICollection<SongData> newSongRecords)
-        {
-            SQLiteCommand writeSong = dbConnection.CreateCommand();
-            writeSong.Transaction = transaction;
-            writeSong.CommandType = System.Data.CommandType.Text;
-            writeSong.CommandText =
-                "INSERT INTO song " +
-                    "(id, title) VALUES " +
-                    "(@songID, @songTitle);";
-            writeSong.Parameters.Add("@songID", DbType.Int64);
-            writeSong.Parameters.Add("@songTitle", DbType.String);
-            foreach (SongData song in newSongRecords)
-            {
-                writeSong.Parameters["@songID"].Value = song.songID;
-                writeSong.Parameters["@songTitle"].Value = song.songTitle;
-                writeSong.ExecuteNonQuery();
-            }
-        }
-
 
         #endregion Insert Commands
         #region Delete Commands
 
-        public void _DropTable(
-            SQLiteTransaction transaction)
+        public void _DropTable()
         {
-            SQLiteCommand dropSongTable = dbConnection.CreateCommand();
-            dropSongTable.Transaction = transaction;
-            dropSongTable.CommandType = System.Data.CommandType.Text;
-            dropSongTable.CommandText =
-                "DROP TABLE IF EXISTS song;";
-            dropSongTable.ExecuteNonQuery();
-
-            SQLiteCommand dropSongWeightTable = dbConnection.CreateCommand();
-            dropSongWeightTable.Transaction = transaction;
-            dropSongWeightTable.CommandType = System.Data.CommandType.Text;
-            dropSongWeightTable.CommandText =
-                "DROP TABLE IF EXISTS song_weight;";
-            dropSongWeightTable.ExecuteNonQuery();
+            var allSongs = from song in db.Songs select song;
+            db.Songs.RemoveRange(allSongs);
         }
 
         public void _DeleteSongID(

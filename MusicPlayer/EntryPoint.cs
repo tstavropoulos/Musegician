@@ -13,6 +13,7 @@ namespace Musegician
         [STAThread]
         static void Main()
         {
+            using (FileManager.Instance = new FileManager())
             using (Player.MusicManager.Instance = new Player.MusicManager())
             using (KeyboardHook hook = new KeyboardHook(Player.MusicManager.GetHookKeys()))
             {

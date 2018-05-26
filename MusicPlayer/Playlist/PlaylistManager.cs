@@ -32,10 +32,7 @@ namespace Musegician.Playlist
 
         private int bufferIndex = 0;
 
-        private IPlaylistRequestHandler RequestHandler
-        {
-            get { return FileManager.Instance; }
-        }
+        private IPlaylistRequestHandler RequestHandler => FileManager.Instance;
 
         private List<WeakReference<IPlaylistUpdateListener>> _playlistUpdateListeners =
             new List<WeakReference<IPlaylistUpdateListener>>();
@@ -89,10 +86,7 @@ namespace Musegician.Playlist
             }
         }
 
-        public int ItemCount
-        {
-            get { return playlist.Count; }
-        }
+        public int ItemCount => playlist.Count;
 
 
         private int _currentIndex = -1;

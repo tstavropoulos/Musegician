@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
-using Musegician.DataStructures;
+using Musegician.Database;
 using Musegician.Playlist;
 
 using LibraryContext = Musegician.Library.LibraryContext;
@@ -15,39 +15,28 @@ namespace Musegician
     {
         #region IPlaylistTransferRequestHandler
 
-        private IPlaylistTransferRequestHandler ThisTransfer
+        private IPlaylistTransferRequestHandler ThisTransfer => this;
+
+        IEnumerable<Song> IPlaylistTransferRequestHandler.GetSongData(
+            Recording recording)
         {
-            get { return this; }
-        }
-
-        List<SongDTO> IPlaylistTransferRequestHandler.GetSongDataFromRecordingID(
-            long recordingID)
-        {
-            RecordingData data = recordingCommands.GetData(
-                recordingID: recordingID);
-
-            if (!data.RecordFound())
-            {
-                return null;
-            }
-
             return ThisTransfer.GetSongData(
-                songID: data.songID,
-                exclusiveRecordingID: recordingID);
+                song: recording.Song,
+                exclusiveRecording: recording);
         }
 
-        List<SongDTO> IPlaylistTransferRequestHandler.GetSongData(
-            long songID,
-            long exclusiveArtistID,
-            long exclusiveRecordingID)
+        IEnumerable<Song> IPlaylistTransferRequestHandler.GetSongData(
+            Song song,
+            Artist exclusiveArtist = null,
+            Recording exclusiveRecording = null)
         {
-            List<SongDTO> songData = new List<SongDTO>();
+            List<Song> songData = new List<Song>();
 
             dbConnection.Open();
 
             string playlistName;
 
-            if (exclusiveRecordingID != -1)
+            if (exclusiveRecording != -1)
             {
                 playlistName = recordingCommands._GetPlaylistName(
                     recordingID: exclusiveRecordingID);
@@ -64,14 +53,14 @@ namespace Musegician
                     songID: songID);
             }
 
-            songData.Add(new SongDTO(
+            songData.Add(new Song(
                 songID: songID,
                 title: playlistName));
 
-            foreach (RecordingDTO data in GetRecordingList(
-                                            songID: songID,
-                                            exclusiveArtistID: exclusiveArtistID,
-                                            exclusiveRecordingID: exclusiveRecordingID))
+            foreach (Recording data in GetRecordingList(
+                songID: songID,
+                exclusiveArtistID: exclusiveArtistID,
+                exclusiveRecordingID: exclusiveRecordingID))
             {
                 songData[0].Children.Add(data);
             }
@@ -81,8 +70,8 @@ namespace Musegician
             return songData;
         }
 
-        List<SongDTO> IPlaylistTransferRequestHandler.GetAlbumData(
-            long albumID,
+        IEnumerable<Song> IPlaylistTransferRequestHandler.GetAlbumData(
+            Album album,
             bool deep)
         {
             if (deep)
@@ -97,11 +86,11 @@ namespace Musegician
             }
         }
 
-        List<SongDTO> IPlaylistTransferRequestHandler.GetArtistData(
-            long artistID,
+        IEnumerable<Song> IPlaylistTransferRequestHandler.GetArtistData(
+            Artist artist,
             bool deep)
         {
-            List<SongDTO> artistData = new List<SongDTO>();
+            List<Song> artistData = new List<Song>();
 
             dbConnection.Open();
 
@@ -147,14 +136,14 @@ namespace Musegician
                         weight = (double)reader["weight"];
                     }
 
-                    SongDTO newSong = new SongDTO(
+                    Song newSong = new Song(
                         songID: songID,
                         title: playlistName)
                     {
                         Weight = weight
                     };
 
-                    foreach (RecordingDTO recording in GetRecordingList(
+                    foreach (Recording recording in GetRecordingList(
                             songID: songID,
                             exclusiveArtistID: deep ? -1 : artistID))
                     {
@@ -170,7 +159,7 @@ namespace Musegician
             return artistData;
         }
 
-        string IPlaylistTransferRequestHandler.GetDefaultPlaylistName(LibraryContext context, long id)
+        string IPlaylistTransferRequestHandler.GetDefaultPlaylistName(LibraryContext context, BaseData data)
         {
             switch (context)
             {
@@ -189,15 +178,15 @@ namespace Musegician
             }
         }
 
-        List<RecordingDTO> GetRecordingList(
-            long songID,
-            long exclusiveArtistID = -1,
-            long exclusiveRecordingID = -1)
+        IEnumerable<Recording> GetRecordingList(
+            Song song,
+            Artist exclusiveArtist = null,
+            Recording exclusiveRecording = null)
         {
             return recordingCommands._GetRecordingList(
-                songID: songID,
-                exclusiveArtistID: exclusiveArtistID,
-                exclusiveRecordingID: exclusiveRecordingID);
+                song: song,
+                exclusiveArtist: exclusiveArtist,
+                exclusiveRecording: exclusiveRecording);
         }
 
         #endregion IPlaylistTransferRequestHandler

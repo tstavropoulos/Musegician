@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -24,13 +22,7 @@ namespace Musegician
     /// </summary>
     public partial class MainWindow : Window
     {
-        FileManager FileMan
-        {
-            get
-            {
-                return FileManager.Instance;
-            }
-        }
+        FileManager FileMan => FileManager.Instance;
 
         public MainWindow()
         {

@@ -8,7 +8,7 @@ using System.Windows.Input;
 using System.Windows;
 using System.Windows.Media;
 using Musegician.Core;
-using Musegician.DataStructures;
+using Musegician.Database;
 using IPlaylistTransferRequestHandler = Musegician.Playlist.IPlaylistTransferRequestHandler;
 
 namespace Musegician.Library
@@ -169,7 +169,7 @@ namespace Musegician.Library
 
         private void Play(LibraryContext context, IList<long> ids, bool deep)
         {
-            List<SongDTO> songs = new List<SongDTO>();
+            List<Song> songs = new List<Song>();
 
             foreach (long id in ids)
             {
@@ -310,7 +310,7 @@ namespace Musegician.Library
                     }
 
                     e.Handled = true;
-                    Play(LibraryContext.Song, new long[] { songModel.ID }, false);
+                    Play(LibraryContext.Song, new BaseData[] { songModel.Data }, false);
                 }
                 else if (treeItem.Header is RecordingViewModel recordingModel)
                 {
@@ -320,7 +320,7 @@ namespace Musegician.Library
                     }
 
                     e.Handled = true;
-                    Play(LibraryContext.Recording, new long[] { recordingModel.ID }, false);
+                    Play(LibraryContext.Recording, new BaseData[] { recordingModel.Data }, false);
                 }
             }
         }
@@ -517,41 +517,28 @@ namespace Musegician.Library
 
                 e.Handled = true;
 
-                (LibraryContext context, List<(long id, double weight)> values) =
-                    ExtractContextIDAndWeights();
 
-                for (int i = 0; i < values.Count; i++)
+                foreach (LibraryViewModel model in GetSelectedItems(ViewMode.MAX))
                 {
-                    (long id, double weight) = values[i];
-
-                    if (id == -1)
-                    {
-                        throw new Exception("Unexpected id = -1!");
-                    }
-
                     switch (action)
                     {
                         case KeyboardActions.WeightUp:
-                            weight = Math.Min(weight + 0.05, 1.0);
+                            model.Weight = Math.Min(model.Weight + 0.05, 1.0);
                             break;
                         case KeyboardActions.WeightDown:
-                            weight = Math.Max(weight - 0.05, 0.0);
+                            model.Weight = Math.Max(model.Weight - 0.05, 0.0);
                             break;
                         case KeyboardActions.Play:
-                            //Play thing
-
+                            //play thing
                             return;
                         case KeyboardActions.None:
                         case KeyboardActions.MAX:
                         default:
                             throw new Exception("Unexpected KeyboardAction: " + action);
                     }
-
-                    values[i] = (id, weight);
                 }
 
-                LibraryRequestHandler.UpdateWeights(context, values);
-                UpdateWeights(values);
+                LibraryRequestHandler.DatabaseUpdated();
             }
         }
 
@@ -714,75 +701,6 @@ namespace Musegician.Library
             }
 
             return (context, ids);
-        }
-
-        private (LibraryContext, List<(long, double)>) ExtractContextIDAndWeights(
-            ViewMode overrideMode = ViewMode.MAX)
-        {
-            IList selectedItems = GetSelectedItems(overrideMode);
-
-            LibraryContext context = LibraryContext.MAX;
-
-            List<(long, double)> weightsList = new List<(long, double)>();
-
-            if (selectedItems.Count > 0)
-            {
-                object firstSelectedItem = selectedItems[0];
-
-                if (firstSelectedItem is ArtistViewModel artist)
-                {
-                    context = LibraryContext.Artist;
-                }
-                else if (firstSelectedItem is AlbumViewModel album)
-                {
-                    context = LibraryContext.Album;
-                }
-                else if (firstSelectedItem is SongViewModel song)
-                {
-                    context = LibraryContext.Song;
-                }
-                else if (firstSelectedItem is RecordingViewModel recording)
-                {
-                    context = LibraryContext.Track;
-                }
-
-                foreach (LibraryViewModel model in selectedItems)
-                {
-                    if (model is RecordingViewModel recording)
-                    {
-                        weightsList.Add((recording.TrackID, model.Weight));
-                    }
-                    else
-                    {
-                        weightsList.Add((model.ID, model.Weight));
-                    }
-                }
-            }
-
-            return (context, weightsList);
-        }
-
-        private void UpdateWeights(
-            IList<(long id, double weight)> values,
-            ViewMode overrideMode = ViewMode.MAX)
-        {
-            IEnumerable<LibraryViewModel> selectedItems =
-                GetSelectedItems(overrideMode).OfType<LibraryViewModel>();
-
-            int i = 0;
-            foreach (LibraryViewModel model in selectedItems)
-            {
-                //Nevermind... This is problematic because of things like Recording vs Track
-                ////Lets find out if this is sufficient...
-                //if (model.ID != values[i].id)
-                //{
-                //    throw new Exception("selectedItem doesn't match up!");
-                //}
-
-                model.Weight = values[i].weight;
-
-                i++;
-            }
         }
 
         /// <summary>

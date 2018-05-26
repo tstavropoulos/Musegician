@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Musegician.DataStructures;
+using Musegician.Database;
 using System.Windows.Media.Imaging;
 
 namespace Musegician.Library
@@ -14,7 +14,7 @@ namespace Musegician.Library
     {
         #region Constructors
 
-        public AlbumViewModel(AlbumDTO album, ArtistViewModel artist, bool lazyLoadChildren = true)
+        public AlbumViewModel(Album album, ArtistViewModel artist, bool lazyLoadChildren = true)
             : base(
                   data: album,
                   parent: artist,
@@ -25,14 +25,20 @@ namespace Musegician.Library
         #endregion Constructors
         #region Properties
 
-        public AlbumDTO _album
-        {
-            get { return Data as AlbumDTO; }
-        }
+        public Album _album => Data as Album;
 
+        private BitmapImage _image = null;
         public BitmapImage AlbumArt
         {
-            get { return _album.AlbumArt; }
+            get
+            {
+                if (_image == null)
+                {
+                    _image = FileManager.LoadImage(_album.Image);
+                }
+
+                return _image;
+            }
         }
 
         #endregion Properties
@@ -41,12 +47,11 @@ namespace Musegician.Library
         public override void LoadChildren(ILibraryRequestHandler dataManager)
         {
             base.LoadChildren(dataManager);
-            foreach (SongDTO songData in dataManager.GenerateAlbumSongList(
-                artistID: (Parent != null) ? Parent.ID : -1,
-                albumID: ID))
+            foreach (Song song in dataManager.GenerateAlbumSongList(
+                artist: Parent?.Data as Artist,
+                album: _album))
             {
-                Data.Children.Add(songData);
-                Children.Add(new SongViewModel(songData, this));
+                Children.Add(new SongViewModel(song, this));
             }
         }
 

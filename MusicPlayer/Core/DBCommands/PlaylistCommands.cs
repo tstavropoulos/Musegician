@@ -6,43 +6,22 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using DbType = System.Data.DbType;
 using Musegician.DataStructures;
+using Musegician.Database;
 
 namespace Musegician.Core.DBCommands
 {
     public class PlaylistCommands
     {
-        SQLiteConnection dbConnection;
-
-        private long _lastPlaylistIDAssigned = 0;
-        public long NextPlaylistID
-        {
-            get { return ++_lastPlaylistIDAssigned; }
-        }
-
-        private long _lastPlaylistSongIDAssigned = 0;
-        public long NextPlaylistSongID
-        {
-            get { return ++_lastPlaylistSongIDAssigned; }
-        }
-
-        private long _lastPlaylistRecordingIDAssigned = 0;
-        public long NextPlaylistRecordingID
-        {
-            get { return ++_lastPlaylistRecordingIDAssigned; }
-        }
+        MusegicianData db = null;
 
         public PlaylistCommands()
         {
         }
 
         public void Initialize(
-            SQLiteConnection dbConnection)
+            MusegicianData db)
         {
-            this.dbConnection = dbConnection;
-
-            _lastPlaylistIDAssigned = 0;
-            _lastPlaylistSongIDAssigned = 0;
-            _lastPlaylistRecordingIDAssigned = 0;
+            this.db = db;
         }
 
         #region High Level Commands
@@ -197,7 +176,7 @@ namespace Musegician.Core.DBCommands
             {
                 ++position;
 
-                long songID = NextPlaylistSongID;
+                long songID = -1;
 
                 playlistSongs.Add(new PlaylistSongData()
                 {
@@ -311,60 +290,6 @@ namespace Musegician.Core.DBCommands
         }
 
         #endregion Search Commands
-        #region Initialization Commands
-
-        public void _InitializeValues()
-        {
-            SQLiteCommand loadPlaylists = dbConnection.CreateCommand();
-            loadPlaylists.CommandType = System.Data.CommandType.Text;
-            loadPlaylists.CommandText =
-                "SELECT id " +
-                "FROM playlists " +
-                "ORDER BY id DESC " +
-                "LIMIT 1;";
-
-            using (SQLiteDataReader reader = loadPlaylists.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    _lastPlaylistIDAssigned = (long)reader["id"];
-                }
-            }
-
-            SQLiteCommand loadPlaylistSongs = dbConnection.CreateCommand();
-            loadPlaylistSongs.CommandType = System.Data.CommandType.Text;
-            loadPlaylistSongs.CommandText =
-                "SELECT id " +
-                "FROM playlist_songs " +
-                "ORDER BY id DESC " +
-                "LIMIT 1;";
-
-            using (SQLiteDataReader reader = loadPlaylistSongs.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    _lastPlaylistSongIDAssigned = (long)reader["id"];
-                }
-            }
-
-            SQLiteCommand loadPlaylistRecordings = dbConnection.CreateCommand();
-            loadPlaylistRecordings.CommandType = System.Data.CommandType.Text;
-            loadPlaylistRecordings.CommandText =
-                "SELECT id " +
-                "FROM playlist_recordings " +
-                "ORDER BY id DESC " +
-                "LIMIT 1;";
-
-            using (SQLiteDataReader reader = loadPlaylistRecordings.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    _lastPlaylistRecordingIDAssigned = (long)reader["id"];
-                }
-            }
-        }
-
-        #endregion Lookup Commands
         #region Update Commands
 
         public void _RemapSongID(
@@ -389,61 +314,6 @@ namespace Musegician.Core.DBCommands
         }
 
         #endregion Update Commands
-        #region Create Commands
-
-        public void _CreatePlaylistTables(SQLiteTransaction transaction)
-        {
-            SQLiteCommand createPlaylistsTable = dbConnection.CreateCommand();
-            createPlaylistsTable.Transaction = transaction;
-            createPlaylistsTable.CommandType = System.Data.CommandType.Text;
-            createPlaylistsTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS playlists (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "title TEXT);";
-            createPlaylistsTable.ExecuteNonQuery();
-
-            SQLiteCommand createPlaylistSongsTable = dbConnection.CreateCommand();
-            createPlaylistSongsTable.Transaction = transaction;
-            createPlaylistSongsTable.CommandType = System.Data.CommandType.Text;
-            createPlaylistSongsTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS playlist_songs (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "playlist_id INTEGER REFERENCES playlists, " +
-                    "title TEXT, " +
-                    "song_id INTEGER REFERENCES song, " +
-                    "number INTEGER, " +
-                    "weight REAL);";
-            createPlaylistSongsTable.ExecuteNonQuery();
-
-            SQLiteCommand createPlaylistRecordingsTable = dbConnection.CreateCommand();
-            createPlaylistRecordingsTable.Transaction = transaction;
-            createPlaylistRecordingsTable.CommandType = System.Data.CommandType.Text;
-            createPlaylistRecordingsTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS playlist_recordings (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "playlist_song_id INTEGER REFERENCES playlist_songs, " +
-                    "recording_id INTEGER REFERENCES recording, " +
-                    "weight REAL);";
-            createPlaylistRecordingsTable.ExecuteNonQuery();
-
-            SQLiteCommand createPlaylistIDIndex = dbConnection.CreateCommand();
-            createPlaylistIDIndex.Transaction = transaction;
-            createPlaylistIDIndex.CommandType = System.Data.CommandType.Text;
-            createPlaylistIDIndex.CommandText =
-                "CREATE INDEX IF NOT EXISTS " +
-                    "idx_playlistsongs_playlistid ON playlist_songs (playlist_id);";
-            createPlaylistIDIndex.ExecuteNonQuery();
-
-            SQLiteCommand createPlaylistRecordingIDIndex = dbConnection.CreateCommand();
-            createPlaylistRecordingIDIndex.Transaction = transaction;
-            createPlaylistRecordingIDIndex.CommandType = System.Data.CommandType.Text;
-            createPlaylistRecordingIDIndex.CommandText =
-                "CREATE INDEX IF NOT EXISTS " +
-                    "idx_playlistrecordings_playlistsongid ON playlist_recordings (playlist_song_id);";
-            createPlaylistRecordingIDIndex.ExecuteNonQuery();
-        }
-
-        #endregion Create Commands
         #region Insert Commands
 
         public long _CreatePlaylist(
@@ -591,29 +461,16 @@ namespace Musegician.Core.DBCommands
         #endregion Insert Commands
         #region Delete Commands
 
-        public void _DropTable(
-            SQLiteTransaction transaction)
+        public void _DropTable()
         {
-            SQLiteCommand dropPlaylistsTable = dbConnection.CreateCommand();
-            dropPlaylistsTable.Transaction = transaction;
-            dropPlaylistsTable.CommandType = System.Data.CommandType.Text;
-            dropPlaylistsTable.CommandText =
-                "DROP TABLE IF EXISTS playlists;";
-            dropPlaylistsTable.ExecuteNonQuery();
+            var allPlaylists = from playlist in db.Playlists select playlist;
+            db.Playlists.RemoveRange(allPlaylists);
 
-            SQLiteCommand dropPlaylistSongsTable = dbConnection.CreateCommand();
-            dropPlaylistSongsTable.Transaction = transaction;
-            dropPlaylistSongsTable.CommandType = System.Data.CommandType.Text;
-            dropPlaylistSongsTable.CommandText =
-                "DROP TABLE IF EXISTS playlist_songs;";
-            dropPlaylistSongsTable.ExecuteNonQuery();
+            var allPlaylistSongs = from playlistSong in db.PlaylistSongs select playlistSong;
+            db.PlaylistSongs.RemoveRange(allPlaylistSongs);
 
-            SQLiteCommand dropPlaylistRecordingsTable = dbConnection.CreateCommand();
-            dropPlaylistRecordingsTable.Transaction = transaction;
-            dropPlaylistRecordingsTable.CommandType = System.Data.CommandType.Text;
-            dropPlaylistRecordingsTable.CommandText =
-                "DROP TABLE IF EXISTS playlist_recordings;";
-            dropPlaylistRecordingsTable.ExecuteNonQuery();
+            var allPlaylistRecordings = from playlistRecording in db.PlaylistRecordings select playlistRecording;
+            db.PlaylistRecordings.RemoveRange(allPlaylistRecordings);
         }
 
         public void _DeepDeletePlaylist(SQLiteTransaction transaction, long id)

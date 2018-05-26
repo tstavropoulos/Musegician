@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using DbType = System.Data.DbType;
 using Musegician.DataStructures;
+using Musegician.Database;
 
 namespace Musegician.Core.DBCommands
 {
@@ -16,13 +17,7 @@ namespace Musegician.Core.DBCommands
         AlbumCommands albumCommands = null;
         RecordingCommands recordingCommands = null;
 
-        SQLiteConnection dbConnection;
-
-        private long _lastIDAssigned = 0;
-        public long NextID
-        {
-            get { return ++_lastIDAssigned; }
-        }
+        MusegicianData db = null;
 
         public TrackCommands()
         {
@@ -30,19 +25,18 @@ namespace Musegician.Core.DBCommands
         }
 
         public void Initialize(
-            SQLiteConnection dbConnection,
+            MusegicianData db,
             ArtistCommands artistCommands,
             SongCommands songCommands,
             AlbumCommands albumCommands,
             RecordingCommands recordingCommands)
         {
-            this.dbConnection = dbConnection;
+            this.db = db;
+
             this.artistCommands = artistCommands;
             this.songCommands = songCommands;
             this.albumCommands = albumCommands;
             this.recordingCommands = recordingCommands;
-
-            _lastIDAssigned = 0;
         }
 
         #region High Level Commands
@@ -325,28 +319,6 @@ namespace Musegician.Core.DBCommands
         }
 
         #endregion Search Commands
-        #region Initialization Commands
-
-        public void _InitializeValues()
-        {
-            SQLiteCommand loadSongs = dbConnection.CreateCommand();
-            loadSongs.CommandType = System.Data.CommandType.Text;
-            loadSongs.CommandText =
-                "SELECT id " +
-                "FROM track " +
-                "ORDER BY id DESC " +
-                "LIMIT 1;";
-
-            using (SQLiteDataReader reader = loadSongs.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    _lastIDAssigned = (long)reader["id"];
-                }
-            }
-        }
-
-        #endregion Initialization Commands
         #region Update Commands
 
         public void _UpdateTrackTitle(
@@ -463,93 +435,12 @@ namespace Musegician.Core.DBCommands
         }
 
         #endregion Update Commands
-        #region Create Commands
-
-        public void _CreateTrackTables(SQLiteTransaction transaction)
-        {
-            SQLiteCommand createTrackTable = dbConnection.CreateCommand();
-            createTrackTable.Transaction = transaction;
-            createTrackTable.CommandType = System.Data.CommandType.Text;
-            createTrackTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS track (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "album_id INTEGER REFERENCES album, " +
-                    "recording_id INTEGER REFERENCES recording, " +
-                    "title TEXT, " +
-                    "track_number INTEGER, " +
-                    "disc_number INTEGER);";
-            createTrackTable.ExecuteNonQuery();
-
-            SQLiteCommand createRecordingIDIndex = dbConnection.CreateCommand();
-            createRecordingIDIndex.Transaction = transaction;
-            createRecordingIDIndex.CommandType = System.Data.CommandType.Text;
-            createRecordingIDIndex.CommandText =
-                    "CREATE INDEX IF NOT EXISTS idx_track_recordingid ON track (recording_id);";
-            createRecordingIDIndex.ExecuteNonQuery();
-
-            SQLiteCommand createTrackWeightTable = dbConnection.CreateCommand();
-            createTrackWeightTable.Transaction = transaction;
-            createTrackWeightTable.CommandType = System.Data.CommandType.Text;
-            createTrackWeightTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS track_weight (" +
-                    "track_id INTEGER PRIMARY KEY, " +
-                    "weight REAL);";
-            createTrackWeightTable.ExecuteNonQuery();
-        }
-
-        #endregion Create Commands
-        #region Insert Commands
-
-        public void _BatchCreateTracks(
-            SQLiteTransaction transaction,
-            IEnumerable<TrackData> newTrackRecords)
-        {
-            SQLiteCommand writeTrack = dbConnection.CreateCommand();
-            writeTrack.Transaction = transaction;
-            writeTrack.CommandType = System.Data.CommandType.Text;
-            writeTrack.CommandText = 
-                "INSERT INTO track " +
-                    "(id, album_id, recording_id, title, track_number, disc_number) VALUES " +
-                    "(@trackID, @albumID, @recordingID, @trackTitle, @trackNumber, @discNumber);";
-            writeTrack.Parameters.Add("@trackID", DbType.Int64);
-            writeTrack.Parameters.Add("@albumID", DbType.Int64);
-            writeTrack.Parameters.Add("@recordingID", DbType.Int64);
-            writeTrack.Parameters.Add("@trackTitle", DbType.String);
-            writeTrack.Parameters.Add("@trackNumber", DbType.Int64);
-            writeTrack.Parameters.Add("@discNumber", DbType.Int64);
-
-            foreach (TrackData track in newTrackRecords)
-            {
-                writeTrack.Parameters["@trackID"].Value = track.trackID;
-                writeTrack.Parameters["@albumID"].Value = track.albumID;
-                writeTrack.Parameters["@recordingID"].Value = track.recordingID;
-                writeTrack.Parameters["@trackTitle"].Value = track.trackTitle;
-                writeTrack.Parameters["@trackNumber"].Value = track.trackNumber;
-                writeTrack.Parameters["@discNumber"].Value = track.discNumber;
-
-                writeTrack.ExecuteNonQuery();
-            }
-        }
-
-        #endregion Insert Commands
         #region Delete Commands
 
-        public void _DropTable(
-            SQLiteTransaction transaction)
+        public void _DropTable()
         {
-            SQLiteCommand dropTrackTable = dbConnection.CreateCommand();
-            dropTrackTable.Transaction = transaction;
-            dropTrackTable.CommandType = System.Data.CommandType.Text;
-            dropTrackTable.CommandText =
-                "DROP TABLE IF EXISTS track;";
-            dropTrackTable.ExecuteNonQuery();
-
-            SQLiteCommand dropTracksWeightTable = dbConnection.CreateCommand();
-            dropTracksWeightTable.Transaction = transaction;
-            dropTracksWeightTable.CommandType = System.Data.CommandType.Text;
-            dropTracksWeightTable.CommandText =
-                "DROP TABLE IF EXISTS track_weight;";
-            dropTracksWeightTable.ExecuteNonQuery();
+            var allTracks = from track in db.Tracks select track;
+            db.Tracks.RemoveRange(allTracks);
         }
 
         #endregion Delete Commands

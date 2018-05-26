@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows.Input;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using Musegician.DataStructures;
+using Musegician.Database;
 
 namespace Musegician.Library
 {
@@ -14,36 +14,37 @@ namespace Musegician.Library
     {
         #region Constructor
 
-        public SongViewModel(SongDTO song, LibraryViewModel parent)
+        public SongViewModel(Song song, LibraryViewModel parent)
             : base(
                 data: song,
                 parent: parent,
                 lazyLoadChildren: true)
         {
+            ContextualTrack = null;
+        }
+
+        public SongViewModel(Track track, LibraryViewModel parent)
+            : base(
+                data: track.Recording.Song,
+                parent: parent,
+                lazyLoadChildren: true)
+        {
+            Artist recordingArtist = track.Recording.Artist;
+            Artist contextArtist = parent?.Parent?.Data as Artist ?? recordingArtist;
+            _isHome = (recordingArtist == contextArtist);
+            ContextualTrack = track;
         }
 
         #endregion Constructor
         #region Properties
 
-        public SongDTO _song
-        {
-            get { return Data as SongDTO; }
-        }
+        public Song _song => Data as Song;
+        public string SearchableName => _song.Title;
+        public Track ContextualTrack { get; }
 
-        public override bool IsDim
-        {
-            get { return base.IsDim || !_song.IsHome; }
-        }
+        private bool _isHome = true;
 
-        public long ContextualTrackID
-        {
-            get { return _song.TrackID; }
-        }
-
-        public string SearchableName
-        {
-            get { return _song.SearchableName; }
-        }
+        public override bool IsDim => base.IsDim || !_isHome;
 
         #endregion Properties
         #region LoadChildren
@@ -51,10 +52,9 @@ namespace Musegician.Library
         public override void LoadChildren(ILibraryRequestHandler dataManager)
         {
             base.LoadChildren(dataManager);
-            foreach (RecordingDTO recordingData in dataManager.GenerateSongRecordingList(ID, Parent.ID))
+            foreach (Recording recording in dataManager.GenerateSongRecordingList(_song))
             {
-                Data.Children.Add(recordingData);
-                Children.Add(new RecordingViewModel(recordingData, this));
+                Children.Add(new RecordingViewModel(recording, this));
             }
         }
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using DbType = System.Data.DbType;
 using Musegician.DataStructures;
+using Musegician.Database;
 
 namespace Musegician.Core.DBCommands
 {
@@ -14,29 +15,21 @@ namespace Musegician.Core.DBCommands
         ArtistCommands artistCommands = null;
         SongCommands songCommands = null;
 
-        SQLiteConnection dbConnection;
-
-        private long _lastIDAssigned = 0;
-        public long NextID
-        {
-            get { return ++_lastIDAssigned; }
-        }
+        MusegicianData db = null;
 
         public RecordingCommands()
         {
         }
 
         public void Initialize(
-            SQLiteConnection dbConnection,
+            MusegicianData db,
             ArtistCommands artistCommands,
             SongCommands songCommands)
         {
-            this.dbConnection = dbConnection;
+            this.db = db;
 
             this.artistCommands = artistCommands;
             this.songCommands = songCommands;
-
-            _lastIDAssigned = 0;
         }
 
         #region High Level Commands
@@ -371,62 +364,6 @@ namespace Musegician.Core.DBCommands
             return directoryList;
         }
 
-        public List<RecordingDTO> GetDirectoryRecordings(string path)
-        {
-            List<RecordingDTO> recordingData = new List<RecordingDTO>();
-
-            dbConnection.Open();
-
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.CommandText =
-                "SELECT " +
-                    "recording.id AS recording_id, " +
-                    "recording.live AS live, " +
-                    "track_weight.weight AS weight, " +
-                    "artist.name || ' - ' || album.title || ' - ' || track.title AS title, " +
-                    "track.id AS track_id, " +
-                    "recording.filename AS filename " +
-                "FROM recording " +
-                "LEFT JOIN track ON recording.id=track.recording_id " +
-                "LEFT JOIN album ON track.album_id=album.id " +
-                "LEFT JOIN artist ON recording.artist_id=artist.id " +
-                "LEFT JOIN track_weight ON track.id=track_weight.track_id " +
-                "WHERE recording.filename LIKE @Path || '%'";
-
-            readTracks.Parameters.Add(new SQLiteParameter("@Path", path));
-
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    if (_GetFileIsInDirectory(path, (string)reader["filename"]))
-                    {
-                        double weight = double.NaN;
-
-                        if (reader["weight"].GetType() != typeof(DBNull))
-                        {
-                            weight = (double)reader["weight"];
-                        }
-
-                        recordingData.Add(new RecordingDTO()
-                        {
-                            ID = (long)reader["recording_id"],
-                            Name = (string)reader["title"],
-                            Weight = weight,
-                            IsHome = true,
-                            Live = (bool)reader["Live"],
-                            TrackID = (long)reader["track_id"]
-                        });
-                    }
-                }
-            }
-
-            dbConnection.Close();
-
-            return recordingData;
-        }
-
         #endregion High Level Commands
         #region Search Commands
 
@@ -678,53 +615,31 @@ namespace Musegician.Core.DBCommands
         }
 
         #endregion Search Commands
-        #region Initialization Commands
+        //#region Lookup Commands
 
-        public void _InitializeValues()
-        {
-            SQLiteCommand loadSongs = dbConnection.CreateCommand();
-            loadSongs.CommandType = System.Data.CommandType.Text;
-            loadSongs.CommandText =
-                "SELECT id " +
-                "FROM recording " +
-                "ORDER BY id DESC " +
-                "LIMIT 1;";
+        //public void _PopulateLookup(
+        //    HashSet<string> loadedFilenames)
+        //{
+        //    SQLiteCommand loadRecordings = dbConnection.CreateCommand();
+        //    loadRecordings.CommandType = System.Data.CommandType.Text;
+        //    loadRecordings.CommandText =
+        //        "SELECT id, filename " +
+        //        "FROM recording;";
 
-            using (SQLiteDataReader reader = loadSongs.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    _lastIDAssigned = (long)reader["id"];
-                }
-            }
-        }
+        //    using (SQLiteDataReader reader = loadRecordings.ExecuteReader())
+        //    {
+        //        while (reader.Read())
+        //        {
+        //            long recordingID = (long)reader["id"];
+        //            string filename = (string)reader["filename"];
+        //            bool valid = System.IO.File.Exists(filename);
 
-        #endregion Initialization Commands
-        #region Lookup Commands
+        //            loadedFilenames.Add(filename);
+        //        }
+        //    }
+        //}
 
-        public void _PopulateLookup(
-            HashSet<string> loadedFilenames)
-        {
-            SQLiteCommand loadRecordings = dbConnection.CreateCommand();
-            loadRecordings.CommandType = System.Data.CommandType.Text;
-            loadRecordings.CommandText =
-                "SELECT id, filename " +
-                "FROM recording;";
-
-            using (SQLiteDataReader reader = loadRecordings.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    long recordingID = (long)reader["id"];
-                    string filename = (string)reader["filename"];
-                    bool valid = System.IO.File.Exists(filename);
-
-                    loadedFilenames.Add(filename);
-                }
-            }
-        }
-
-        #endregion Lookup Commands
+        //#endregion Lookup Commands
         #region Update Commands
 
         public void _UpdateLiveValue(
@@ -877,38 +792,6 @@ namespace Musegician.Core.DBCommands
         }
 
         #endregion Update Commands
-        #region Create Commands
-
-        public void _CreateRecordingTables(SQLiteTransaction transaction)
-        {
-            SQLiteCommand createRecordingTable = dbConnection.CreateCommand();
-            createRecordingTable.Transaction = transaction;
-            createRecordingTable.CommandType = System.Data.CommandType.Text;
-            createRecordingTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS recording (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "artist_id INTEGER REFERENCES artist, " +
-                    "song_id INTEGER REFERENCES song, " +
-                    "filename TEXT, " +
-                    "live BOOLEAN);";
-            createRecordingTable.ExecuteNonQuery();
-
-            SQLiteCommand createSongIDIndex = dbConnection.CreateCommand();
-            createSongIDIndex.Transaction = transaction;
-            createSongIDIndex.CommandType = System.Data.CommandType.Text;
-            createSongIDIndex.CommandText =
-                    "CREATE INDEX IF NOT EXISTS idx_recording_songid ON recording (song_id);";
-            createSongIDIndex.ExecuteNonQuery();
-
-            SQLiteCommand createArtistIDIndex = dbConnection.CreateCommand();
-            createArtistIDIndex.Transaction = transaction;
-            createArtistIDIndex.CommandType = System.Data.CommandType.Text;
-            createArtistIDIndex.CommandText =
-                    "CREATE INDEX IF NOT EXISTS idx_recording_artistid ON recording (artist_id);";
-            createArtistIDIndex.ExecuteNonQuery();
-        }
-
-        #endregion Create Commands
         #region Insert Commands
 
         public long _CreateRecording(
@@ -918,7 +801,7 @@ namespace Musegician.Core.DBCommands
             long songID,
             bool live = false)
         {
-            long recordingID = NextID;
+            long recordingID = -1;
 
             SQLiteCommand createRecording = dbConnection.CreateCommand();
             createRecording.Transaction = transaction;
@@ -938,47 +821,14 @@ namespace Musegician.Core.DBCommands
             return recordingID;
         }
 
-        public void _BatchCreateRecording(
-            SQLiteTransaction transaction,
-            ICollection<RecordingData> newRecordingRecords)
-        {
-            SQLiteCommand createRecordings = dbConnection.CreateCommand();
-            createRecordings.Transaction = transaction;
-            createRecordings.CommandType = System.Data.CommandType.Text;
-            createRecordings.CommandText =
-                "INSERT INTO recording " +
-                    "(id, artist_id, song_id, filename, live) VALUES " +
-                    "(@recordingID, @artistID, @songID, @filename, @live);";
-            createRecordings.Parameters.Add("@recordingID", DbType.Int64);
-            createRecordings.Parameters.Add("@artistID", DbType.Int64);
-            createRecordings.Parameters.Add("@songID", DbType.Int64);
-            createRecordings.Parameters.Add("@filename", DbType.String);
-            createRecordings.Parameters.Add("@live", DbType.Boolean);
-
-            foreach (RecordingData recording in newRecordingRecords)
-            {
-                createRecordings.Parameters["@recordingID"].Value = recording.recordingID;
-                createRecordings.Parameters["@artistID"].Value = recording.artistID;
-                createRecordings.Parameters["@songID"].Value = recording.songID;
-                createRecordings.Parameters["@filename"].Value = recording.filename;
-                createRecordings.Parameters["@live"].Value = recording.live;
-                createRecordings.ExecuteNonQuery();
-            }
-        }
-
 
         #endregion Insert Commands
         #region Delete Commands
 
-        public void _DropTable(
-            SQLiteTransaction transaction)
+        public void _DropTable()
         {
-            SQLiteCommand dropRecordingsTable = dbConnection.CreateCommand();
-            dropRecordingsTable.Transaction = transaction;
-            dropRecordingsTable.CommandType = System.Data.CommandType.Text;
-            dropRecordingsTable.CommandText =
-                "DROP TABLE IF EXISTS recording;";
-            dropRecordingsTable.ExecuteNonQuery();
+            var allRecordings = from recording in db.Recordings select recording;
+            db.Recordings.RemoveRange(allRecordings);
         }
 
         public void _DeleteRecordingID(

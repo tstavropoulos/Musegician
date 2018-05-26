@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Musegician.DataStructures;
 using Musegician.Library;
+using Musegician.Database;
 
 namespace Musegician
 {
@@ -18,59 +19,52 @@ namespace Musegician
             remove { _rebuildNotifier -= value; }
         }
 
-        List<ArtistDTO> ILibraryRequestHandler.GenerateArtistList()
+        IEnumerable<Artist> ILibraryRequestHandler.GenerateArtistList()
         {
-            return artistCommands.GeneratArtistList();
+            return (from artist in db.Artists
+                    orderby (artist.Name.StartsWith("The ") ? artist.Name.Substring(4) : artist.Name)
+                    select artist);
         }
 
-        List<AlbumDTO> ILibraryRequestHandler.GenerateArtistAlbumList(long artistID, string artistName)
+        IEnumerable<Album> ILibraryRequestHandler.GenerateArtistAlbumList(Artist artist)
         {
-            return albumCommands.GenerateArtistAlbumList(artistID, artistName);
+            return (from recording in artist.Recordings
+                    from track in recording.Tracks
+                    orderby track.Album.Year ascending
+                    select track.Album).Distinct();
         }
 
-        List<SongDTO> ILibraryRequestHandler.GenerateAlbumSongList(long artistID, long albumID)
+        IEnumerable<Song> ILibraryRequestHandler.GenerateAlbumSongList(Artist artist, Album album)
         {
-            return songCommands.GenerateAlbumSongList(artistID, albumID);
+            return (from track in album.Tracks
+                    orderby track.DiscNumber ascending, track.TrackNumber ascending
+                    select track.Recording.Song);
         }
 
-        List<RecordingDTO> ILibraryRequestHandler.GenerateSongRecordingList(long songID, long albumID)
+        IEnumerable<Recording> ILibraryRequestHandler.GenerateSongRecordingList(Song song)
         {
-            return recordingCommands.GenerateSongRecordingList(songID, albumID);
+            return (from recording in song.Recordings
+                    orderby recording.Live
+                    select recording);
         }
 
-        List<AlbumDTO> ILibraryRequestHandler.GenerateAlbumList()
+        IEnumerable<Album> ILibraryRequestHandler.GenerateAlbumList()
         {
-            return albumCommands.GenerateAlbumList();
+            return (from album in db.Albums
+                    orderby album.Title
+                    select album);
         }
 
-        List<SongDTO> ILibraryRequestHandler.GenerateArtistSongList(long artistID, string artistName)
+        IEnumerable<Song> ILibraryRequestHandler.GenerateArtistSongList(Artist artist)
         {
-            return songCommands.GenerateArtistSongList(artistID, artistName);
+            return (from recording in artist.Recordings
+                    orderby (recording.Song.Title.StartsWith("The ") ? recording.Song.Title.Substring(4) : recording.Song.Title)
+                    select recording.Song);
         }
 
-        void ILibraryRequestHandler.UpdateWeights(
-            LibraryContext context,
-            IList<(long id, double weight)> values)
+        void ILibraryRequestHandler.DatabaseUpdated()
         {
-            switch (context)
-            {
-                case LibraryContext.Artist:
-                    artistCommands.UpdateWeights(values);
-                    break;
-                case LibraryContext.Album:
-                    albumCommands.UpdateWeights(values);
-                    break;
-                case LibraryContext.Song:
-                    songCommands.UpdateWeights(values);
-                    break;
-                case LibraryContext.Track:
-                    trackCommands.UpdateWeights(values);
-                    break;
-                case LibraryContext.Recording:
-                case LibraryContext.MAX:
-                default:
-                    throw new Exception("Unexpected LibraryContext: " + context);
-            }
+            db.SaveChanges();
         }
 
         List<DirectoryDTO> ILibraryRequestHandler.GetDirectories(string path)
@@ -78,9 +72,12 @@ namespace Musegician
             return recordingCommands.GetDirectories(path);
         }
 
-        List<RecordingDTO> ILibraryRequestHandler.GetDirectoryRecordings(string path)
+        IEnumerable<Recording> ILibraryRequestHandler.GetDirectoryRecordings(string path)
         {
-            return recordingCommands.GetDirectoryRecordings(path);
+            return (from recording in db.Recordings
+                    where recording.Filename.StartsWith(path)
+                    orderby recording.Filename ascending
+                    select recording);
         }
 
         string ILibraryRequestHandler.GetRecordingFilepath(long recordingID)

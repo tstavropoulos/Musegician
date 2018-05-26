@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Windows.Input;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using Musegician.DataStructures;
+using Musegician.Database;
 
 namespace Musegician.Library
 {
@@ -13,13 +13,15 @@ namespace Musegician.Library
     {
         #region Constructors
 
-        public RecordingViewModel(RecordingDTO recording, SongViewModel song)
+        public RecordingViewModel(Recording recording, SongViewModel song)
             : base(data: recording,
                     parent: song,
                     lazyLoadChildren: false)
-        { }
+        {
+            _isHome = song.ContextualTrack?.Recording == recording;
+        }
 
-        public RecordingViewModel(RecordingDTO recording, DirectoryViewModel directory)
+        public RecordingViewModel(Recording recording, DirectoryViewModel directory)
             : base(data: recording,
                     parent: directory,
                     lazyLoadChildren: false)
@@ -28,37 +30,12 @@ namespace Musegician.Library
         #endregion Constructors
         #region Properties
 
-        public RecordingDTO _recording
-        {
-            get { return Data as RecordingDTO; }
-        }
+        public Recording _recording => Data as Recording;
+        public string LiveString => Live ? "🎤" : "";
+        public bool Live => _recording.Live;
 
-        public string LiveString
-        {
-            get
-            {
-                if (Live)
-                {
-                    return "🎤";
-                }
-                return "";
-            }
-        }
-
-        public bool Live
-        {
-            get { return _recording.Live; }
-        }
-
-        public override bool IsDim
-        {
-            get { return base.IsDim || !_recording.IsHome; }
-        }
-
-        public long TrackID
-        {
-            get { return _recording.TrackID; }
-        }
+        private readonly bool _isHome = true;
+        public override bool IsDim => base.IsDim || !_isHome;
 
         #endregion Properties
     }

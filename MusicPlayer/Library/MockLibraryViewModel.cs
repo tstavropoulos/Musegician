@@ -1,5 +1,4 @@
-﻿using Musegician.DataStructures;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -7,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using Musegician.Database;
+using Musegician.DataStructures;
 
 namespace Musegician.Library
 {
@@ -28,8 +29,8 @@ namespace Musegician.Library
         {
             ILibraryRequestHandler db = new MockDB();
 
-            List<ArtistDTO> artistList = db.GenerateArtistList();
-            List<AlbumDTO> albumList = db.GenerateAlbumList();
+            IEnumerable<Artist> artistList = db.GenerateArtistList();
+            IEnumerable<Album> albumList = db.GenerateAlbumList();
             List<DirectoryDTO> directoryList = db.GetDirectories("");
 
 

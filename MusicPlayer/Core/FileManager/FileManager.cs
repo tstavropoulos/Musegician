@@ -5,11 +5,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.IO;
-using System.Data.SQLite;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Musegician.DataStructures;
 using Musegician.Core.DBCommands;
+using Musegician.Database;
 
 namespace Musegician
 {
@@ -22,7 +22,7 @@ namespace Musegician
 
     #endregion Exceptions
 
-    public partial class FileManager
+    public partial class FileManager : IDisposable
     {
         #region Data
 
@@ -66,10 +66,6 @@ namespace Musegician
 
         #endregion RegEx
 
-        private const string songDBFilename = "SongDB.sqlite";
-
-        private SQLiteConnection dbConnection = null;
-
         private RecordingCommands recordingCommands = null;
         private TrackCommands trackCommands = null;
         private SongCommands songCommands = null;
@@ -78,39 +74,12 @@ namespace Musegician
 
         private PlaylistCommands playlistCommands = null;
 
+        /// <summary>
+        /// A long-running Database reference
+        /// </summary>
+        private MusegicianData db = null;
+
         #endregion Data
-        #region Inner Classes
-
-        private struct DBRecords
-        {
-            public List<ArtistData> artists;
-            public List<AlbumData> albums;
-            public List<SongData> songs;
-            public List<RecordingData> recordings;
-            public List<TrackData> tracks;
-            public List<ArtData> art;
-
-            public bool HasRecords()
-            {
-                return (artists.Count > 0 ||
-                    albums.Count > 0 ||
-                    tracks.Count > 0 ||
-                    songs.Count > 0 ||
-                    recordings.Count > 0 ||
-                    art.Count > 0);
-            }
-        }
-
-        private struct DBBuilderLookups
-        {
-            public Dictionary<string, long> artistName;
-            public Dictionary<ValueTuple<long, string>, long> artistID_AlbumTitle;
-            public Dictionary<ValueTuple<long, string>, long> artistID_SongTitle;
-            public HashSet<string> loadedFilenames;
-            public HashSet<long> loadedAlbumArt;
-        }
-
-        #endregion Inner Classes
         #region Event RebuildNotifier
 
         private EventHandler _rebuildNotifier;
@@ -118,29 +87,9 @@ namespace Musegician
         #endregion Event RebuildNotifier
         #region Singleton Implementation
 
-        private static object m_lock = new object();
-        private static volatile FileManager _instance;
-        public static FileManager Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    lock (m_lock)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new FileManager();
-                            _instance.OpenDB();
-                            _instance.Initialize();
-                        }
-                    }
-                }
-                return _instance;
-            }
-        }
+        public static FileManager Instance;
 
-        private FileManager()
+        public FileManager()
         {
             recordingCommands = new RecordingCommands();
             trackCommands = new TrackCommands();
@@ -149,185 +98,65 @@ namespace Musegician
             artistCommands = new ArtistCommands();
 
             playlistCommands = new PlaylistCommands();
+
+            db = new MusegicianData();
+
+            Initialize();
         }
 
         #endregion Singleton Implementation
 
         public void DropDB()
         {
-            if (dbConnection != null)
-            {
-                dbConnection.Open();
+            artistCommands._DropTable();
+            albumCommands._DropTable();
+            songCommands._DropTable();
+            recordingCommands._DropTable();
+            trackCommands._DropTable();
 
-                using (SQLiteTransaction dropTablesTransaction = dbConnection.BeginTransaction())
-                {
-                    //Set Up Tables
-                    artistCommands._DropTable(dropTablesTransaction);
-                    albumCommands._DropTable(dropTablesTransaction);
-                    songCommands._DropTable(dropTablesTransaction);
-                    recordingCommands._DropTable(dropTablesTransaction);
-                    trackCommands._DropTable(dropTablesTransaction);
+            playlistCommands._DropTable();
 
-                    playlistCommands._DropTable(dropTablesTransaction);
-
-                    dropTablesTransaction.Commit();
-                }
-
-                dbConnection.Close();
-            }
-            else
-            {
-                try
-                {
-                    string dbPath = Path.Combine(FileUtility.GetDataPath(), songDBFilename);
-
-                    if (File.Exists(dbPath))
-                    {
-                        File.Delete(dbPath);
-                    }
-
-                    OpenDB();
-
-                }
-                catch (Exception e)
-                {
-                    MessageBox.Show(
-                        messageBoxText: string.Format(
-                            "There was an error of type ({0}) attempting to delete the database file.\n\n{1}",
-                            e.GetType().ToString(),
-                            e.Message),
-                        caption: "Cannot Delete Database",
-                        button: MessageBoxButton.OK,
-                        icon: MessageBoxImage.Error);
-                }
-            }
+            db.SaveChanges();
 
             Initialize();
-        }
-
-        public void OpenDB()
-        {
-            string dbPath = Path.Combine(FileUtility.GetDataPath(), songDBFilename);
-
-            if (!File.Exists(dbPath))
-            {
-                SQLiteConnection.CreateFile(dbPath);
-            }
-
-            dbConnection = new SQLiteConnection(String.Format(
-                "Data Source=\"{0}\";Version=3;",
-                dbPath));
         }
 
         public void Initialize()
         {
             recordingCommands.Initialize(
-                dbConnection: dbConnection,
+                db: db,
                 artistCommands: artistCommands,
                 songCommands: songCommands);
 
             trackCommands.Initialize(
-                dbConnection: dbConnection,
+                db: db,
                 artistCommands: artistCommands,
                 songCommands: songCommands,
                 albumCommands: albumCommands,
                 recordingCommands: recordingCommands);
 
             songCommands.Initialize(
-                dbConnection: dbConnection,
+                db: db,
                 artistCommands: artistCommands,
                 trackCommands: trackCommands,
                 recordingCommands: recordingCommands,
                 playlistCommands: playlistCommands);
 
             albumCommands.Initialize(
-                dbConnection: dbConnection,
+                db: db,
                 artistCommands: artistCommands,
                 songCommands: songCommands,
                 trackCommands: trackCommands,
                 recordingCommands: recordingCommands);
 
             artistCommands.Initialize(
-                dbConnection: dbConnection,
+                db: db,
                 albumCommands: albumCommands,
                 songCommands: songCommands,
                 recordingCommands: recordingCommands);
 
             playlistCommands.Initialize(
-                dbConnection: dbConnection);
-
-            dbConnection.Open();
-
-            using (SQLiteTransaction createTablesTransaction = dbConnection.BeginTransaction())
-            {
-                //Set Up Tables
-                artistCommands._CreateArtistTables(createTablesTransaction);
-                albumCommands._CreateAlbumTables(createTablesTransaction);
-                songCommands._CreateSongTables(createTablesTransaction);
-                recordingCommands._CreateRecordingTables(createTablesTransaction);
-                trackCommands._CreateTrackTables(createTablesTransaction);
-
-                playlistCommands._CreatePlaylistTables(createTablesTransaction);
-
-                createTablesTransaction.Commit();
-            }
-
-            dbConnection.Close();
-
-            InitializeCommands();
-        }
-
-
-        /// <summary>
-        /// Load in LastIDAssigned for all command classes
-        /// </summary>
-        private void InitializeCommands()
-        {
-            dbConnection.Open();
-
-            //Initialize Artists
-            artistCommands._InitializeValues();
-
-            //Initialize Albums
-            albumCommands._InitializeValues();
-
-            //Initialize Songs
-            songCommands._InitializeValues();
-
-            //Initialize Recordings
-            recordingCommands._InitializeValues();
-
-            //Initialize Tracks
-            trackCommands._InitializeValues();
-
-            //Initialize Playlists
-            playlistCommands._InitializeValues();
-
-            dbConnection.Close();
-        }
-
-        private void LoadLibraryDictionaries(DBBuilderLookups lookups)
-        {
-            dbConnection.Open();
-
-            //Load Artists
-            artistCommands._PopulateLookup(
-                artistNameDict: lookups.artistName);
-
-            //Load Albums
-            albumCommands._PopulateLookup(
-                artistID_AlbumTitleDict: lookups.artistID_AlbumTitle,
-                albumArt: lookups.loadedAlbumArt);
-
-            //Load Songs
-            songCommands._PopulateLookup(
-                artistID_SongTitleDict: lookups.artistID_SongTitle);
-
-            //Load Recordings
-            recordingCommands._PopulateLookup(
-                loadedFilenames: lookups.loadedFilenames);
-
-            dbConnection.Close();
+                db: db);
         }
 
         public void AddMusicDirectory(string path, List<string> newMusic, HashSet<string> loadedFilenames)
@@ -350,85 +179,23 @@ namespace Musegician
         public void AddDirectoryToLibrary(string path)
         {
             List<string> newMusic = new List<string>();
-
-            DBBuilderLookups lookups = new DBBuilderLookups()
-            {
-                artistName = new Dictionary<string, long>(),
-                artistID_AlbumTitle = new Dictionary<ValueTuple<long, string>, long>(),
-                artistID_SongTitle = new Dictionary<ValueTuple<long, string>, long>(),
-                loadedFilenames = new HashSet<string>(),
-                loadedAlbumArt = new HashSet<long>()
-            };
-
-            DBRecords newRecords = new DBRecords()
-            {
-                albums = new List<AlbumData>(),
-                artists = new List<ArtistData>(),
-                songs = new List<SongData>(),
-                tracks = new List<TrackData>(),
-                recordings = new List<RecordingData>(),
-                art = new List<ArtData>()
-            };
-
-
-            LoadLibraryDictionaries(lookups);
-
-            AddMusicDirectory(path, newMusic, lookups.loadedFilenames);
+            HashSet<string> loadedFilenames = new HashSet<string>();
+            
+            AddMusicDirectory(path, newMusic, loadedFilenames);
 
             foreach (string songFilename in newMusic)
             {
                 LoadFileData(
                     path: songFilename,
-                    lookups: lookups,
-                    newRecords: newRecords);
+                    db: db);
             }
 
-            if (newRecords.HasRecords())
-            {
-                dbConnection.Open();
-
-                using (SQLiteTransaction writeRecordsTransaction = dbConnection.BeginTransaction())
-                {
-                    //Add Artists
-                    artistCommands._BatchCreateArtist(
-                        transaction: writeRecordsTransaction,
-                        newArtistRecords: newRecords.artists);
-
-                    //Add Albums
-                    albumCommands._BatchCreateAlbum(
-                        transaction: writeRecordsTransaction,
-                        newAlbumRecords: newRecords.albums);
-
-                    albumCommands._BatchCreateArt(
-                        transaction: writeRecordsTransaction,
-                        newArtRecords: newRecords.art);
-
-                    //Add Tracks
-                    trackCommands._BatchCreateTracks(
-                        transaction: writeRecordsTransaction,
-                        newTrackRecords: newRecords.tracks);
-
-                    //Add Songs
-                    songCommands._BatchCreateSong(
-                        transaction: writeRecordsTransaction,
-                        newSongRecords: newRecords.songs);
-
-                    // Add Recordings
-                    recordingCommands._BatchCreateRecording(
-                        transaction: writeRecordsTransaction,
-                        newRecordingRecords: newRecords.recordings);
-
-                    writeRecordsTransaction.Commit();
-                }
-
-                dbConnection.Close();
-            }
+            db.SaveChanges();
         }
 
         private void LoadFileData(
             string path,
-            DBBuilderLookups lookups,
-            DBRecords newRecords)
+            MusegicianData db)
         {
             TagLib.File file = null;
 
@@ -464,21 +231,19 @@ namespace Musegician
                 artistName = tag.JoinedPerformers;
             }
 
-            long artistID = -1;
-            if (!lookups.artistName.ContainsKey(artistName))
+            Artist artist = db.Artists.Local
+                .Where(x => x.Name == artistName)
+                .FirstOrDefault();
+            
+            if (artist == null)
             {
-                artistID = artistCommands.NextID;
-
-                lookups.artistName.Add(artistName, artistID);
-                newRecords.artists.Add(new ArtistData()
+                artist = new Artist()
                 {
-                    artistID = artistID,
-                    artistName = artistName
-                });
-            }
-            else
-            {
-                artistID = lookups.artistName[artistName];
+                    Name = artistName,
+                    Weight = double.NaN
+                };
+                
+                db.Artists.Add(artist);
             }
 
             string songTitle = "UNDEFINED";
@@ -574,80 +339,66 @@ namespace Musegician
                 albumTitle = Regex.Replace(albumTitle, discNumberPattern, "");
             }
 
-            long songID = -1;
-            var songLookupKey = (artistID, songTitle.ToLowerInvariant());
-            if (!lookups.artistID_SongTitle.ContainsKey(songLookupKey))
-            {
-                songID = songCommands.NextID;
+            Song song = db.Songs.Local
+                .Where(x => x.Title == songTitle)
+                .FirstOrDefault();
 
-                lookups.artistID_SongTitle.Add(songLookupKey, songID);
-                newRecords.songs.Add(new SongData()
+            if (song == null)
+            {
+                song = new Song()
                 {
-                    songID = songID,
-                    songTitle = songTitle
-                });
-            }
-            else
-            {
-                songID = lookups.artistID_SongTitle[songLookupKey];
+                    Title = songTitle,
+                    Weight = double.NaN
+                };
+                
+                db.Songs.Add(song);
             }
 
-            long albumID = -1;
-            var albumTuple = (artistID, albumTitle.ToLowerInvariant());
-            if (lookups.artistID_AlbumTitle.ContainsKey(albumTuple))
-            {
-                albumID = lookups.artistID_AlbumTitle[albumTuple];
-            }
-            else
-            {
-                albumID = albumCommands.NextID;
+            Album album = (from matchingTrack in db.Tracks.Local
+                           where matchingTrack.Album.Title == albumTitle &&
+                           matchingTrack.Recording.Artist == artist
+                           select matchingTrack.Album).FirstOrDefault();
 
-                lookups.artistID_AlbumTitle.Add(albumTuple, albumID);
-                newRecords.albums.Add(new AlbumData()
+            if(album == null)
+            {
+                album = new Album()
                 {
-                    albumID = albumID,
-                    albumTitle = albumTitle,
-                    albumYear = tag.Year
-                });
+                    Title = albumTitle,
+                    Year = (int)tag.Year,
+                    Weight = double.NaN
+                };
+                
+                db.Albums.Add(album);
             }
 
-            if (tag.Pictures.Length > 0 && !lookups.loadedAlbumArt.Contains(albumID))
+            if (tag.Pictures.Length > 0 && album.Image == null)
             {
                 //Try to open it
-                if (AlbumCommands.LoadImage(file.Tag.Pictures[0].Data.Data) != null)
+                if (LoadImage(file.Tag.Pictures[0].Data.Data) != null)
                 {
-                    lookups.loadedAlbumArt.Add(albumID);
-
-                    newRecords.art.Add(new ArtData()
-                    {
-                        albumArtID = albumCommands.NextAlbumArtID,
-                        albumID = albumID,
-                        image = file.Tag.Pictures[0].Data.Data
-                    });
+                    album.Image = file.Tag.Pictures[0].Data.Data;
                 }
             }
 
-            long recordingID = recordingCommands.NextID;
-            newRecords.recordings.Add(new RecordingData
+            Recording recording = new Recording()
             {
-                recordingID = recordingID,
-                artistID = artistID,
-                songID = songID,
-                filename = path,
-                live = live,
-                valid = true
-            });
+                Artist = artist,
+                Song = song,
+                Filename = path,
+                Live = live
+            };
+            db.Recordings.Add(recording);
 
-            long trackID = trackCommands.NextID;
-            newRecords.tracks.Add(new TrackData
+            Track track = new Track()
             {
-                trackID = trackID,
-                albumID = albumID,
-                recordingID = recordingID,
-                trackTitle = trackTitle,
-                trackNumber = tag.Track,
-                discNumber = discNumber
-            });
+                Album = album,
+                Recording = recording,
+                Title = trackTitle,
+                TrackNumber = (int)tag.Track,
+                DiscNumber = (int)discNumber,
+                Weight = double.NaN
+            };
+            db.Tracks.Add(track);
         }
 
         public void SetAlbumArt(long albumID, string path)
@@ -655,9 +406,67 @@ namespace Musegician
             albumCommands.SetAlbumArt(albumID, path);
         }
 
-        public BitmapImage GetAlbumArtForRecording(long recordingID)
+        public BitmapImage GetAlbumArtForRecording(Recording recording)
         {
-            return albumCommands.GetAlbumArtForRecording(recordingID);
+            return LoadImage(recording.Tracks.First().Album.Image);
         }
+
+        public static BitmapImage LoadImage(byte[] imageData)
+        {
+            if (imageData == null || imageData.Length == 0)
+            {
+                return null;
+            }
+
+            try
+            {
+                BitmapImage image = new BitmapImage();
+                using (MemoryStream mem = new MemoryStream(imageData))
+                {
+                    mem.Position = 0;
+                    image.BeginInit();
+                    image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.UriSource = null;
+                    image.StreamSource = mem;
+                    image.EndInit();
+                }
+
+                image.Freeze();
+                return image;
+            }
+            catch (NotSupportedException)
+            {
+                Console.WriteLine("Failed to load image.  Skipping.");
+            }
+            return null;
+        }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    db?.Dispose();
+                    db = null;
+                }
+                
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+        }
+        #endregion
     }
 }

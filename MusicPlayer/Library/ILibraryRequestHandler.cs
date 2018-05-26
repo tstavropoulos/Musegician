@@ -4,24 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using Musegician.Database;
 using Musegician.DataStructures;
 
 namespace Musegician.Library
 {
     public interface ILibraryRequestHandler
     {
-        List<ArtistDTO> GenerateArtistList();
-        List<AlbumDTO> GenerateArtistAlbumList(long artistID, string artistName);
-        List<SongDTO> GenerateAlbumSongList(long artistID, long albumID);
-        List<RecordingDTO> GenerateSongRecordingList(long songID, long albumID);
+        IEnumerable<Artist> GenerateArtistList();
+        IEnumerable<Album> GenerateArtistAlbumList(Artist artist);
+        IEnumerable<Song> GenerateAlbumSongList(Artist artist, Album album);
+        IEnumerable<Recording> GenerateSongRecordingList(Song song);
 
-        List<AlbumDTO> GenerateAlbumList();
-        List<SongDTO> GenerateArtistSongList(long artistID, string artistName);
+        IEnumerable<Album> GenerateAlbumList();
+        IEnumerable<Song> GenerateArtistSongList(Artist artist);
 
         List<DirectoryDTO> GetDirectories(string path);
-        List<RecordingDTO> GetDirectoryRecordings(string path);
+        IEnumerable<Recording> GetDirectoryRecordings(string path);
 
-        void UpdateWeights(LibraryContext context, IList<(long id, double weight)> values);
+        void DatabaseUpdated();
 
         string GetRecordingFilepath(long recordingID);
 

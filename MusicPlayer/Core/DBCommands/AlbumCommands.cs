@@ -8,11 +8,10 @@ using DbType = System.Data.DbType;
 using System.Drawing;
 using System.Windows.Media.Imaging;
 using System.IO;
-
 using Musegician.DataStructures;
-
 using TagLib;
 using Musegician.Deredundafier;
+using Musegician.Database;
 
 namespace Musegician.Core.DBCommands
 {
@@ -23,269 +22,141 @@ namespace Musegician.Core.DBCommands
         TrackCommands trackCommands = null;
         RecordingCommands recordingCommands = null;
 
-        SQLiteConnection dbConnection;
-
-        private long _lastIDAssigned = 0;
-        public long NextID
-        {
-            get { return ++_lastIDAssigned; }
-        }
-
-        private long _lastAlbumArtIDAssigned = 0;
-        public long NextAlbumArtID
-        {
-            get { return ++_lastAlbumArtIDAssigned; }
-        }
+        MusegicianData db = null;
 
         public AlbumCommands()
         {
         }
 
         public void Initialize(
-            SQLiteConnection dbConnection,
+            MusegicianData db,
             ArtistCommands artistCommands,
             SongCommands songCommands,
             TrackCommands trackCommands,
             RecordingCommands recordingCommands)
         {
-            this.dbConnection = dbConnection;
+            this.db = db;
 
             this.artistCommands = artistCommands;
             this.songCommands = songCommands;
             this.trackCommands = trackCommands;
             this.recordingCommands = recordingCommands;
-
-            _lastIDAssigned = 0;
         }
 
         #region High Level Commands
 
-        public List<AlbumDTO> GenerateArtistAlbumList(long artistID, string artistName)
-        {
-            List<AlbumDTO> albumList = new List<AlbumDTO>();
+        
 
-            dbConnection.Open();
+        //public IEnumerable<Song> GetAlbumData(
+        //    long albumID)
+        //{
+        //    List<SongDTO> albumData = new List<SongDTO>();
 
-            SQLiteCommand readAlbums = dbConnection.CreateCommand();
-            readAlbums.CommandType = System.Data.CommandType.Text;
-            readAlbums.CommandText =
-                "SELECT id, title, year, weight " +
-                "FROM album " +
-                "WHERE id IN ( " +
-                    "SELECT track.album_id " +
-                    "FROM recording " +
-                    "LEFT JOIN track ON recording.id=track.recording_id " +
-                    "WHERE recording.artist_id=@artistID ) " +
-                "ORDER BY year ASC;";
-            readAlbums.Parameters.Add(new SQLiteParameter("@artistID", artistID));
+        //    dbConnection.Open();
 
-            using (SQLiteDataReader reader = readAlbums.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    long albumID = (long)reader["id"];
+        //    SQLiteCommand readTracks = dbConnection.CreateCommand();
+        //    readTracks.CommandType = System.Data.CommandType.Text;
+        //    readTracks.CommandText =
+        //        "SELECT " +
+        //            "song.id AS song_id, " +
+        //            "song.title AS song_title, " +
+        //            "artist.name AS artist_name," +
+        //            "recording.id AS recording_id, " +
+        //            "song_weight.weight AS weight " +
+        //        "FROM track " +
+        //        "LEFT JOIN recording ON track.recording_id=recording.id " +
+        //        "LEFT JOIN album ON track.album_id=album.id " +
+        //        "LEFT JOIN song ON recording.song_id=song.id " +
+        //        "LEFT JOIN artist ON recording.artist_id=artist.id " +
+        //        "LEFT JOIN song_weight ON song.id=song_weight.song_id " +
+        //        "WHERE track.album_id=@albumID " +
+        //        "ORDER BY track.disc_number ASC, track.track_number ASC;";
+        //    readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
 
-                    double weight = double.NaN;
-                    if (reader["weight"].GetType() != typeof(DBNull))
-                    {
-                        weight = (double)reader["weight"];
-                    }
+        //    using (SQLiteDataReader reader = readTracks.ExecuteReader())
+        //    {
+        //        while (reader.Read())
+        //        {
+        //            long songID = (long)reader["song_id"];
 
-                    albumList.Add(new AlbumDTO(
-                        albumID: albumID,
-                        albumTitle: String.Format(
-                            "{0} ({1})",
-                            (string)reader["title"],
-                            ((long)reader["year"]).ToString()),
-                        albumArt: LoadImage(_GetArt(albumID)))
-                    { Weight = weight });
-                }
-            }
+        //            SongDTO newSong = new SongDTO(
+        //                songID: songID,
+        //                title: _GetPlaylistSongName(
+        //                    albumID: albumID,
+        //                    songID: songID));
 
-            dbConnection.Close();
+        //            if (reader["weight"].GetType() != typeof(DBNull))
+        //            {
+        //                newSong.Weight = (double)reader["weight"];
+        //            }
 
-            return albumList;
-        }
+        //            RecordingDTO recording = recordingCommands._GetRecording(
+        //                recordingID: (long)reader["recording_id"],
+        //                albumID: albumID);
 
-        public List<AlbumDTO> GenerateAlbumList()
-        {
-            List<AlbumDTO> albumList = new List<AlbumDTO>();
-
-            dbConnection.Open();
-
-            SQLiteCommand readAlbums = dbConnection.CreateCommand();
-            readAlbums.CommandType = System.Data.CommandType.Text;
-            readAlbums.CommandText =
-                "SELECT id, title " +
-                "FROM album " +
-                "ORDER BY title ASC;";
-            using (SQLiteDataReader reader = readAlbums.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    long albumID = (long)reader["id"];
-
-                    albumList.Add(new AlbumDTO(
-                        albumID: albumID,
-                        albumTitle: (string)reader["title"],
-                        albumArt: LoadImage(_GetArt(albumID))));
-                }
-            }
-
-            dbConnection.Close();
-
-            return albumList;
-        }
-
-        public BitmapImage GetAlbumArtForRecording(long recordingID)
-        {
-            dbConnection.Open();
-
-            long albumID = recordingCommands._GetAlbumID(recordingID);
-
-            BitmapImage image = LoadImage(_GetArt(albumID));
-
-            dbConnection.Close();
-
-            return image;
-        }
-
-        public string GetAlbumTitle(long albumID)
-        {
-            string albumName = "";
-
-            dbConnection.Open();
-
-            SQLiteCommand findArtist = dbConnection.CreateCommand();
-            findArtist.CommandType = System.Data.CommandType.Text;
-            findArtist.CommandText =
-                "SELECT title " +
-                "FROM album " +
-                "WHERE id=@albumID;";
-            findArtist.Parameters.Add(new SQLiteParameter("@albumID", albumID));
-            using (SQLiteDataReader reader = findArtist.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    albumName = (string)reader["title"];
-                }
-            }
-
-            dbConnection.Close();
-
-            return albumName;
-        }
-
-        public List<SongDTO> GetAlbumData(
-            long albumID)
-        {
-            List<SongDTO> albumData = new List<SongDTO>();
-
-            dbConnection.Open();
-
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.CommandText =
-                "SELECT " +
-                    "song.id AS song_id, " +
-                    "song.title AS song_title, " +
-                    "artist.name AS artist_name," +
-                    "recording.id AS recording_id, " +
-                    "song_weight.weight AS weight " +
-                "FROM track " +
-                "LEFT JOIN recording ON track.recording_id=recording.id " +
-                "LEFT JOIN album ON track.album_id=album.id " +
-                "LEFT JOIN song ON recording.song_id=song.id " +
-                "LEFT JOIN artist ON recording.artist_id=artist.id " +
-                "LEFT JOIN song_weight ON song.id=song_weight.song_id " +
-                "WHERE track.album_id=@albumID " +
-                "ORDER BY track.disc_number ASC, track.track_number ASC;";
-            readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
-
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    long songID = (long)reader["song_id"];
-
-                    SongDTO newSong = new SongDTO(
-                        songID: songID,
-                        title: _GetPlaylistSongName(
-                            albumID: albumID,
-                            songID: songID));
-
-                    if (reader["weight"].GetType() != typeof(DBNull))
-                    {
-                        newSong.Weight = (double)reader["weight"];
-                    }
-
-                    RecordingDTO recording = recordingCommands._GetRecording(
-                        recordingID: (long)reader["recording_id"],
-                        albumID: albumID);
-
-                    if (recording != null)
-                    {
-                        newSong.Children.Add(recording);
-                    }
+        //            if (recording != null)
+        //            {
+        //                newSong.Children.Add(recording);
+        //            }
 
 
-                    albumData.Add(newSong);
-                }
-            }
+        //            albumData.Add(newSong);
+        //        }
+        //    }
 
-            dbConnection.Close();
+        //    dbConnection.Close();
 
-            return albumData;
-        }
+        //    return albumData;
+        //}
 
-        public List<SongDTO> GetAlbumDataDeep(
-            long albumID)
-        {
-            List<SongDTO> albumData = new List<SongDTO>();
+        //public List<SongDTO> GetAlbumDataDeep(
+        //    long albumID)
+        //{
+        //    List<SongDTO> albumData = new List<SongDTO>();
 
-            dbConnection.Open();
+        //    dbConnection.Open();
 
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.CommandText =
-                "SELECT " +
-                    "song.id AS song_id, " +
-                    "song.title AS song_title, " +
-                    "artist.name AS artist_name " +
-                "FROM track " +
-                "LEFT JOIN recording ON track.recording_id=recording.id " +
-                "LEFT JOIN album ON track.album_id=album.id " +
-                "LEFT JOIN song ON recording.song_id=song.id " +
-                "LEFT JOIN artist ON recording.artist_id=artist.id " +
-                "WHERE track.album_id=@albumID ORDER BY track.disc_number ASC, track.track_number ASC;";
-            readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
+        //    SQLiteCommand readTracks = dbConnection.CreateCommand();
+        //    readTracks.CommandType = System.Data.CommandType.Text;
+        //    readTracks.CommandText =
+        //        "SELECT " +
+        //            "song.id AS song_id, " +
+        //            "song.title AS song_title, " +
+        //            "artist.name AS artist_name " +
+        //        "FROM track " +
+        //        "LEFT JOIN recording ON track.recording_id=recording.id " +
+        //        "LEFT JOIN album ON track.album_id=album.id " +
+        //        "LEFT JOIN song ON recording.song_id=song.id " +
+        //        "LEFT JOIN artist ON recording.artist_id=artist.id " +
+        //        "WHERE track.album_id=@albumID ORDER BY track.disc_number ASC, track.track_number ASC;";
+        //    readTracks.Parameters.Add(new SQLiteParameter("@albumID", albumID));
 
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    long songID = (long)reader["song_id"];
+        //    using (SQLiteDataReader reader = readTracks.ExecuteReader())
+        //    {
+        //        while (reader.Read())
+        //        {
+        //            long songID = (long)reader["song_id"];
 
-                    SongDTO newSong = new SongDTO(
-                        songID: songID,
-                        title: songCommands._GetPlaylistSongName(
-                            songID: songID));
+        //            SongDTO newSong = new SongDTO(
+        //                songID: songID,
+        //                title: songCommands._GetPlaylistSongName(
+        //                    songID: songID));
 
-                    foreach (RecordingDTO recording in recordingCommands._GetRecordingList(
-                            songID: songID))
-                    {
-                        newSong.Children.Add(recording);
-                    }
+        //            foreach (RecordingDTO recording in recordingCommands._GetRecordingList(
+        //                    songID: songID))
+        //            {
+        //                newSong.Children.Add(recording);
+        //            }
 
 
-                    albumData.Add(newSong);
-                }
-            }
+        //            albumData.Add(newSong);
+        //        }
+        //    }
 
-            dbConnection.Close();
+        //    dbConnection.Close();
 
-            return albumData;
-        }
+        //    return albumData;
+        //}
 
         public IList<DeredundafierDTO> GetDeredundancyTargets()
         {
@@ -610,102 +481,64 @@ namespace Musegician.Core.DBCommands
         }
 
         #endregion Search Commands
-        #region Initialization Commands
+        //#region Lookup Commands
 
-        public void _InitializeValues()
-        {
-            SQLiteCommand loadAlbums = dbConnection.CreateCommand();
-            loadAlbums.CommandType = System.Data.CommandType.Text;
-            loadAlbums.CommandText =
-                "SELECT id " +
-                "FROM album " +
-                "ORDER BY id DESC " +
-                "LIMIT 1;";
+        //public void _PopulateLookup(
+        //    Dictionary<(long, string), long> artistID_AlbumTitleDict,
+        //    HashSet<long> albumArt)
+        //{
+        //    SQLiteCommand loadAlbums = dbConnection.CreateCommand();
+        //    loadAlbums.CommandType = System.Data.CommandType.Text;
+        //    loadAlbums.CommandText =
+        //        "SELECT " +
+        //            "album.id AS album_id, " +
+        //            "album.title AS title, " +
+        //            "artist.id AS artist_id " +
+        //        "FROM album " +
+        //        "LEFT JOIN artist ON artist.id IN ( " +
+        //            "SELECT recording.artist_id " +
+        //            "FROM track " +
+        //            "LEFT JOIN recording ON track.recording_id=recording.id " +
+        //            "WHERE track.album_id=album.id);";
 
-            using (SQLiteDataReader reader = loadAlbums.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    _lastIDAssigned = (long)reader["id"];
-                }
-            }
+        //    using (SQLiteDataReader reader = loadAlbums.ExecuteReader())
+        //    {
+        //        while (reader.Read())
+        //        {
+        //            long albumID = (long)reader["album_id"];
+        //            long artistID = (long)reader["artist_id"];
+        //            string albumTitle = (string)reader["title"];
 
-            SQLiteCommand loadAlbumArt = dbConnection.CreateCommand();
-            loadAlbumArt.CommandType = System.Data.CommandType.Text;
-            loadAlbumArt.CommandText =
-                "SELECT id " +
-                "FROM album_art " +
-                "ORDER BY id DESC " +
-                "LIMIT 1;";
+        //            var key = (artistID, albumTitle.ToLowerInvariant());
 
-            using (SQLiteDataReader reader = loadAlbumArt.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    _lastAlbumArtIDAssigned = (long)reader["id"];
-                }
-            }
-        }
+        //            if (!artistID_AlbumTitleDict.ContainsKey(key))
+        //            {
+        //                artistID_AlbumTitleDict.Add(key, albumID);
+        //            }
+        //        }
+        //    }
 
-        #endregion Initialization Commands
-        #region Lookup Commands
+        //    SQLiteCommand loadAlbumArt = dbConnection.CreateCommand();
+        //    loadAlbumArt.CommandType = System.Data.CommandType.Text;
+        //    loadAlbumArt.CommandText =
+        //        "SELECT album_id " +
+        //        "FROM album_art; ";
 
-        public void _PopulateLookup(
-            Dictionary<(long, string), long> artistID_AlbumTitleDict,
-            HashSet<long> albumArt)
-        {
-            SQLiteCommand loadAlbums = dbConnection.CreateCommand();
-            loadAlbums.CommandType = System.Data.CommandType.Text;
-            loadAlbums.CommandText =
-                "SELECT " +
-                    "album.id AS album_id, " +
-                    "album.title AS title, " +
-                    "artist.id AS artist_id " +
-                "FROM album " +
-                "LEFT JOIN artist ON artist.id IN ( " +
-                    "SELECT recording.artist_id " +
-                    "FROM track " +
-                    "LEFT JOIN recording ON track.recording_id=recording.id " +
-                    "WHERE track.album_id=album.id);";
+        //    using (SQLiteDataReader reader = loadAlbumArt.ExecuteReader())
+        //    {
+        //        while (reader.Read())
+        //        {
+        //            long albumID = (long)reader["album_id"];
 
-            using (SQLiteDataReader reader = loadAlbums.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    long albumID = (long)reader["album_id"];
-                    long artistID = (long)reader["artist_id"];
-                    string albumTitle = (string)reader["title"];
+        //            if (!albumArt.Contains(albumID))
+        //            {
+        //                albumArt.Add(albumID);
+        //            }
+        //        }
+        //    }
+        //}
 
-                    var key = (artistID, albumTitle.ToLowerInvariant());
-
-                    if (!artistID_AlbumTitleDict.ContainsKey(key))
-                    {
-                        artistID_AlbumTitleDict.Add(key, albumID);
-                    }
-                }
-            }
-
-            SQLiteCommand loadAlbumArt = dbConnection.CreateCommand();
-            loadAlbumArt.CommandType = System.Data.CommandType.Text;
-            loadAlbumArt.CommandText =
-                "SELECT album_id " +
-                "FROM album_art; ";
-
-            using (SQLiteDataReader reader = loadAlbumArt.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    long albumID = (long)reader["album_id"];
-
-                    if (!albumArt.Contains(albumID))
-                    {
-                        albumArt.Add(albumID);
-                    }
-                }
-            }
-        }
-
-        #endregion Lookup Commands
+        //#endregion Lookup Commands
         #region Update Commands
 
         public void _UpdateAlbumYear(
@@ -755,33 +588,6 @@ namespace Musegician.Core.DBCommands
         }
 
         #endregion Update Commands
-        #region Create Commands
-
-        public void _CreateAlbumTables(SQLiteTransaction transaction)
-        {
-            SQLiteCommand createAlbumTable = dbConnection.CreateCommand();
-            createAlbumTable.Transaction = transaction;
-            createAlbumTable.CommandType = System.Data.CommandType.Text;
-            createAlbumTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS album (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "title TEXT, " +
-                    "year INTEGER, " +
-                    "weight REAL);";
-            createAlbumTable.ExecuteNonQuery();
-
-            SQLiteCommand createArtTable = dbConnection.CreateCommand();
-            createArtTable.Transaction = transaction;
-            createArtTable.CommandType = System.Data.CommandType.Text;
-            createArtTable.CommandText =
-                "CREATE TABLE IF NOT EXISTS album_art (" +
-                    "id INTEGER PRIMARY KEY, " +
-                    "album_id INTEGER REFERENCES album, " +
-                    "image BLOB);";
-            createArtTable.ExecuteNonQuery();
-        }
-
-        #endregion Create Commands
         #region Insert Commands
 
         public long _CreateAlbum(
@@ -790,7 +596,7 @@ namespace Musegician.Core.DBCommands
             long albumYear = 0,
             double albumWeight = double.NaN)
         {
-            long albumID = NextID;
+            long albumID = -1;
 
             SQLiteCommand writeAlbum = dbConnection.CreateCommand();
             writeAlbum.Transaction = transaction;
@@ -814,7 +620,7 @@ namespace Musegician.Core.DBCommands
             long albumID,
             byte[] imageData)
         {
-            long albumArtID = NextAlbumArtID;
+            long albumArtID = -1;
 
             SQLiteCommand writeArt = dbConnection.CreateCommand();
             writeArt.Transaction = transaction;
@@ -830,75 +636,13 @@ namespace Musegician.Core.DBCommands
             writeArt.ExecuteNonQuery();
         }
 
-        public void _BatchCreateAlbum(
-            SQLiteTransaction transaction,
-            ICollection<AlbumData> newAlbumRecords)
-        {
-            SQLiteCommand writeAlbum = dbConnection.CreateCommand();
-            writeAlbum.Transaction = transaction;
-            writeAlbum.CommandType = System.Data.CommandType.Text;
-            writeAlbum.CommandText =
-                "INSERT INTO album " +
-                    "(id, title, year, weight) VALUES " +
-                    "(@albumID, @albumTitle, @albumYear, @albumWeight);";
-            writeAlbum.Parameters.Add("@albumID", DbType.Int64);
-            writeAlbum.Parameters.Add("@albumTitle", DbType.String);
-            writeAlbum.Parameters.Add("@albumYear", DbType.Int64);
-            writeAlbum.Parameters.Add("@albumWeight", DbType.Double);
-
-            foreach (AlbumData album in newAlbumRecords)
-            {
-                writeAlbum.Parameters["@albumID"].Value = album.albumID;
-                writeAlbum.Parameters["@albumTitle"].Value = album.albumTitle;
-                writeAlbum.Parameters["@albumYear"].Value = album.albumYear;
-                writeAlbum.Parameters["@albumWeight"].Value = null;
-                writeAlbum.ExecuteNonQuery();
-            }
-        }
-
-        public void _BatchCreateArt(
-            SQLiteTransaction transaction,
-            ICollection<ArtData> newArtRecords)
-        {
-            SQLiteCommand writeArt = dbConnection.CreateCommand();
-            writeArt.Transaction = transaction;
-            writeArt.CommandType = System.Data.CommandType.Text;
-            writeArt.CommandText =
-                "INSERT INTO album_art " +
-                    "(id, album_id, image) VALUES " +
-                    "(@albumArtID, @albumID, @image);";
-            writeArt.Parameters.Add("@albumArtID", DbType.Int64);
-            writeArt.Parameters.Add("@albumID", DbType.Int64);
-            writeArt.Parameters.Add("@image", DbType.Binary);
-
-            foreach (ArtData art in newArtRecords)
-            {
-                writeArt.Parameters["@albumArtID"].Value = art.albumArtID;
-                writeArt.Parameters["@albumID"].Value = art.albumID;
-                writeArt.Parameters["@image"].Value = art.image;
-                writeArt.ExecuteNonQuery();
-            }
-        }
-
         #endregion Insert Commands
         #region Delete Commands
 
-        public void _DropTable(
-            SQLiteTransaction transaction)
+        public void _DropTable()
         {
-            SQLiteCommand dropAlbumTable = dbConnection.CreateCommand();
-            dropAlbumTable.Transaction = transaction;
-            dropAlbumTable.CommandType = System.Data.CommandType.Text;
-            dropAlbumTable.CommandText =
-                "DROP TABLE IF EXISTS album;";
-            dropAlbumTable.ExecuteNonQuery();
-
-            SQLiteCommand dropAlbumArtTable = dbConnection.CreateCommand();
-            dropAlbumArtTable.Transaction = transaction;
-            dropAlbumArtTable.CommandType = System.Data.CommandType.Text;
-            dropAlbumArtTable.CommandText =
-                "DROP TABLE IF EXISTS album_art;";
-            dropAlbumArtTable.ExecuteNonQuery();
+            var allAlbums = from album in db.Albums select album;
+            db.Albums.RemoveRange(allAlbums);
         }
 
         public void _DeleteAlbumID(
@@ -1021,35 +765,5 @@ namespace Musegician.Core.DBCommands
             }
         }
 
-        public static BitmapImage LoadImage(byte[] imageData)
-        {
-            if (imageData == null || imageData.Length == 0)
-            {
-                return null;
-            }
-
-            try
-            {
-                BitmapImage image = new BitmapImage();
-                using (MemoryStream mem = new MemoryStream(imageData))
-                {
-                    mem.Position = 0;
-                    image.BeginInit();
-                    image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
-                    image.CacheOption = BitmapCacheOption.OnLoad;
-                    image.UriSource = null;
-                    image.StreamSource = mem;
-                    image.EndInit();
-                }
-
-                image.Freeze();
-                return image;
-            }
-            catch (NotSupportedException)
-            {
-                Console.WriteLine("Failed to load image.  Skipping.");
-            }
-            return null;
-        }
     }
 }

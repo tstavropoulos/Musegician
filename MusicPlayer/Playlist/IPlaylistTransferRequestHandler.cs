@@ -3,31 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Musegician.DataStructures;
+using Musegician.Database;
 using LibraryContext = Musegician.Library.LibraryContext;
 
 namespace Musegician.Playlist
 {
     public interface IPlaylistTransferRequestHandler
     {
-        List<SongDTO> GetAlbumData(
-            long albumID,
+        IEnumerable<Song> GetAlbumData(
+            Album album,
             bool deep = true);
 
-        List<SongDTO> GetArtistData(
-            long artistID,
+        IEnumerable<Song> GetArtistData(
+            Artist artist,
             bool deep = true);
 
-        List<SongDTO> GetSongData(
-            long songID,
-            long exclusiveArtistID = -1,
-            long exclusiveRecordingID = -1);
+        IEnumerable<Song> GetSongData(
+            Song song,
+            Artist exclusiveArtist = null,
+            Recording exclusiveRecording = null);
 
-        List<SongDTO> GetSongDataFromRecordingID(
-            long recordingID);
+        IEnumerable<Song> GetSongData(
+            Recording recording);
 
         string GetDefaultPlaylistName(
             LibraryContext context,
-            long id);
+            BaseData data);
     }
 }

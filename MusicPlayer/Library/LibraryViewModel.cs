@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows;
-using Musegician.DataStructures;
+using Musegician.Database;
 
 namespace Musegician.Library
 {
@@ -17,43 +17,35 @@ namespace Musegician.Library
 
         static readonly LibraryViewModel DummyChild = new LibraryViewModel();
 
-        readonly ObservableCollection<LibraryViewModel> _children;
-        readonly LibraryViewModel _parent;
-        readonly DTO _data;
-
         bool _isExpanded;
         bool _isSelected;
 
         #endregion Data
         #region Constructors
 
-        public LibraryViewModel(DTO data, LibraryViewModel parent, bool lazyLoadChildren)
+        public LibraryViewModel(BaseData data, LibraryViewModel parent, bool lazyLoadChildren)
         {
-            _data = data;
-            _parent = parent;
-
-            _children = new ObservableCollection<LibraryViewModel>();
+            Data = data;
+            Parent = parent;
 
             if (lazyLoadChildren)
             {
-                _children.Add(DummyChild);
+                Children.Add(DummyChild);
             }
         }
 
         //For dummy child
         private LibraryViewModel()
         {
-            _data = new ArtistDTO(-1, "");
-            _children = new ObservableCollection<LibraryViewModel>();
+            Parent = null;
+            Data = new Artist();
         }
 
         #endregion Constructors
         #region Properties
 
-        public ObservableCollection<LibraryViewModel> Children
-        {
-            get { return _children; }
-        }
+        public ObservableCollection<LibraryViewModel> Children { get; }
+            = new ObservableCollection<LibraryViewModel>();
 
         /// <summary>
         /// Returns true if this object's Children have not yet been populated.
@@ -63,24 +55,20 @@ namespace Musegician.Library
             get { return Children.Count == 1 && Children[0] == DummyChild; }
         }
 
-        public DTO Data
-        {
-            get { return _data; }
-        }
+        public BaseData Data { get; }
 
-        public string Name
-        {
-            get { return _data.Name; }
-        }
-
-        public long ID
-        {
-            get { return _data.ID; }
-        }
+        public virtual string Name => "";
 
         public double Weight
         {
-            get { return _data.Weight; }
+            get
+            {
+                if (double.IsNaN(Data.Weight))
+                {
+                    return Data.DefaultWeight;
+                }
+                return Data.Weight;
+            }
             set
             {
                 bool dimUpdate = false;
@@ -90,7 +78,7 @@ namespace Musegician.Library
                     dimUpdate = true;
                 }
 
-                _data.Weight = value;
+                Data.Weight = value;
                 OnPropertyChanged("Weight");
 
                 if (dimUpdate)
@@ -100,10 +88,7 @@ namespace Musegician.Library
             }
         }
 
-        public virtual bool IsDim
-        {
-            get { return Weight == 0.0; }
-        }
+        public virtual bool IsDim => Weight == 0.0;
 
         #endregion Properties
         #region Presentation Members
@@ -125,9 +110,9 @@ namespace Musegician.Library
                 }
 
                 // Expand all the way up to the root.
-                if (_isExpanded && _parent != null)
+                if (_isExpanded && Parent != null)
                 {
-                    _parent.IsExpanded = true;
+                    Parent.IsExpanded = true;
                 }
             }
         }
@@ -151,9 +136,9 @@ namespace Musegician.Library
                 }
 
                 //Expand Parent
-                if (_isSelected && _parent != null && !_parent.IsExpanded)
+                if (_isSelected && Parent != null && !Parent.IsExpanded)
                 {
-                    _parent.IsExpanded = true;
+                    Parent.IsExpanded = true;
                 }
             }
         }
@@ -186,10 +171,7 @@ namespace Musegician.Library
         #endregion LoadChildren
         #region Parent
 
-        public LibraryViewModel Parent
-        {
-            get { return _parent; }
-        }
+        public LibraryViewModel Parent { get; }
 
         #endregion Parent
         #endregion Presentation Members
