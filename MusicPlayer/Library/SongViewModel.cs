@@ -14,25 +14,29 @@ namespace Musegician.Library
     {
         #region Constructor
 
+        /// <summary>
+        /// SimpleView Constructor
+        /// </summary>
         public SongViewModel(Song song, LibraryViewModel parent)
             : base(
                 data: song,
                 parent: parent,
                 lazyLoadChildren: true)
         {
-            ContextualTrack = null;
+            Track = null;
         }
 
-        public SongViewModel(Track track, LibraryViewModel parent)
+        /// <summary>
+        /// ClassicView & AlbumView Constructor
+        /// </summary>
+        public SongViewModel(Track track, bool isHome, LibraryViewModel parent)
             : base(
                 data: track.Recording.Song,
                 parent: parent,
                 lazyLoadChildren: true)
         {
-            Artist recordingArtist = track.Recording.Artist;
-            Artist contextArtist = parent?.Parent?.Data as Artist ?? recordingArtist;
-            _isHome = (recordingArtist == contextArtist);
-            ContextualTrack = track;
+            _isHome = isHome;
+            Track = track;
         }
 
         #endregion Constructor
@@ -40,9 +44,11 @@ namespace Musegician.Library
 
         public Song _song => Data as Song;
         public string SearchableName => _song.Title;
-        public Track ContextualTrack { get; }
+        public Track Track { get; }
+        public override string Name =>
+            Track == null ? _song.Title : $"{Track.TrackNumber}. {_song.Title}";
 
-        private bool _isHome = true;
+        private readonly bool _isHome = true;
 
         public override bool IsDim => base.IsDim || !_isHome;
 
@@ -52,9 +58,25 @@ namespace Musegician.Library
         public override void LoadChildren(ILibraryRequestHandler dataManager)
         {
             base.LoadChildren(dataManager);
-            foreach (Recording recording in dataManager.GenerateSongRecordingList(_song))
+
+            if (Track == null)
             {
-                Children.Add(new RecordingViewModel(recording, this));
+                //SimpleView
+                Artist artist = Parent.Data as Artist;
+                foreach (Recording recording in dataManager.GenerateSongRecordingList(_song))
+                {
+                    Children.Add(new RecordingViewModel(recording, artist == recording.Artist, this));
+                }
+
+            }
+            else
+            {
+                //ClassicView & AlbumView
+                foreach (Recording recording in dataManager.GenerateSongRecordingList(_song))
+                {
+                    Children.Add(new RecordingViewModel(recording, Track.Recording == recording, this));
+                }
+
             }
         }
 

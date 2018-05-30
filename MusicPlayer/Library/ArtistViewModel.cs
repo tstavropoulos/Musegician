@@ -33,6 +33,7 @@ namespace Musegician.Library
         #region Properties
 
         public Artist _artist => Data as Artist;
+        public override string Name => _artist.Name;
 
         #endregion Properties
         #region LoadChildren

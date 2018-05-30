@@ -27,6 +27,8 @@ namespace Musegician.Library
 
         public Album _album => Data as Album;
 
+        public override string Name => _album.Year == 0 ? _album.Title : $"{_album.Title} ({_album.Year})";
+
         private BitmapImage _image = null;
         public BitmapImage AlbumArt
         {
@@ -47,11 +49,25 @@ namespace Musegician.Library
         public override void LoadChildren(ILibraryRequestHandler dataManager)
         {
             base.LoadChildren(dataManager);
-            foreach (Song song in dataManager.GenerateAlbumSongList(
-                artist: Parent?.Data as Artist,
-                album: _album))
+
+            if (Parent == null)
             {
-                Children.Add(new SongViewModel(song, this));
+                //Album View
+                foreach (Track track in dataManager.GenerateAlbumTrackList(_album))
+                {
+                    Children.Add(new SongViewModel(track, true, this));
+                }
+
+            }
+            else
+            {
+                Artist artist = Parent.Data as Artist;
+                //Classic View
+                foreach (Track track in dataManager.GenerateAlbumTrackList(_album))
+                {
+                    Children.Add(new SongViewModel(track, track.Recording.Artist == artist, this));
+                }
+
             }
         }
 

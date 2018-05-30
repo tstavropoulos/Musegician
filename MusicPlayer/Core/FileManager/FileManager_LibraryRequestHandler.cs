@@ -34,11 +34,11 @@ namespace Musegician
                     select track.Album).Distinct();
         }
 
-        IEnumerable<Song> ILibraryRequestHandler.GenerateAlbumSongList(Artist artist, Album album)
+        IEnumerable<Track> ILibraryRequestHandler.GenerateAlbumTrackList(Album album)
         {
             return (from track in album.Tracks
                     orderby track.DiscNumber ascending, track.TrackNumber ascending
-                    select track.Recording.Song);
+                    select track);
         }
 
         IEnumerable<Recording> ILibraryRequestHandler.GenerateSongRecordingList(Song song)
@@ -78,11 +78,6 @@ namespace Musegician
                     where recording.Filename.StartsWith(path)
                     orderby recording.Filename ascending
                     select recording);
-        }
-
-        string ILibraryRequestHandler.GetRecordingFilepath(long recordingID)
-        {
-            return recordingCommands.GetData(recordingID).filename;
         }
 
         #endregion ILibraryRequestHandler

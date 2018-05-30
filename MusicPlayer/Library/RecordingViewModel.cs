@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Collections.Generic;
-using System.Windows.Input;
-using System.Threading.Tasks;
-using System.Windows.Controls;
+using System.Linq;
 using Musegician.Database;
 
 namespace Musegician.Library
@@ -13,19 +8,28 @@ namespace Musegician.Library
     {
         #region Constructors
 
-        public RecordingViewModel(Recording recording, SongViewModel song)
+        /// <summary>
+        /// SimpleView Constructor
+        /// </summary>
+        public RecordingViewModel(Recording recording, bool isHome, SongViewModel song)
             : base(data: recording,
-                    parent: song,
-                    lazyLoadChildren: false)
+                   parent: song,
+                   lazyLoadChildren: false)
         {
-            _isHome = song.ContextualTrack?.Recording == recording;
+            _isHome = isHome;
+            Track effectiveTrack = recording.Tracks.First();
+            _name = $"{recording.Artist.Name} - {effectiveTrack.Album.Title} - {effectiveTrack.Title}";
         }
 
         public RecordingViewModel(Recording recording, DirectoryViewModel directory)
             : base(data: recording,
-                    parent: directory,
-                    lazyLoadChildren: false)
-        { }
+                   parent: directory,
+                   lazyLoadChildren: false)
+        {
+            _isHome = true;
+            Track effectiveTrack = recording.Tracks.First();
+            _name = $"{recording.Artist.Name} - {effectiveTrack.Album.Title} - {effectiveTrack.Title}";
+        }
 
         #endregion Constructors
         #region Properties
@@ -33,6 +37,9 @@ namespace Musegician.Library
         public Recording _recording => Data as Recording;
         public string LiveString => Live ? "🎤" : "";
         public bool Live => _recording.Live;
+
+        private readonly string _name;
+        public override string Name => _name;
 
         private readonly bool _isHome = true;
         public override bool IsDim => base.IsDim || !_isHome;

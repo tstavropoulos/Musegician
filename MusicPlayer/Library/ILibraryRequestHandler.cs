@@ -13,7 +13,7 @@ namespace Musegician.Library
     {
         IEnumerable<Artist> GenerateArtistList();
         IEnumerable<Album> GenerateArtistAlbumList(Artist artist);
-        IEnumerable<Song> GenerateAlbumSongList(Artist artist, Album album);
+        IEnumerable<Track> GenerateAlbumTrackList(Album album);
         IEnumerable<Recording> GenerateSongRecordingList(Song song);
 
         IEnumerable<Album> GenerateAlbumList();
@@ -23,8 +23,6 @@ namespace Musegician.Library
         IEnumerable<Recording> GetDirectoryRecordings(string path);
 
         void DatabaseUpdated();
-
-        string GetRecordingFilepath(long recordingID);
 
         event EventHandler RebuildNotifier; 
     }

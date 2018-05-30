@@ -412,7 +412,7 @@ namespace Musegician.Library
                         fileName: "explorer",
                         arguments: string.Format(
                             "/select, \"{0}\"",
-                            LibraryRequestHandler.GetRecordingFilepath(model.ID)));
+                            recording._recording.Filename));
                 }
                 else if (model is DirectoryViewModel directory)
                 {
