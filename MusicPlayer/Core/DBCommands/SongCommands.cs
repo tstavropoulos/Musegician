@@ -270,48 +270,6 @@ namespace Musegician.Core.DBCommands
             return artistID;
         }
 
-        public string _GetPlaylistSongName(long songID)
-        {
-            string songName = "";
-            string artistName = "";
-            long artistID = -1;
-
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.CommandText =
-                "SELECT " +
-                    "song.title AS title, " +
-                    "artist.name AS name, " +
-                    "recording.artist_id AS artist_id " +
-                "FROM recording " +
-                "LEFT JOIN song ON recording.song_id=song.id " +
-                "LEFT JOIN artist ON recording.artist_id=artist.id " +
-                "WHERE recording.song_id=@songID;";
-            readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
-
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    songName = (string)reader["title"];
-                    artistName = (string)reader["name"];
-                    artistID = (long)reader["artist_id"];
-
-                    while (reader.Read())
-                    {
-                        //Look for different artists among the return values
-                        if (artistID != (long)reader["artist_id"])
-                        {
-                            artistName = "Various";
-                            break;
-                        }
-                    }
-                }
-            }
-
-            return string.Format("{0} - {1}", artistName, songName);
-        }
-
         private DeredundafierDTO _GetDeredunancyTarget(string songTitle)
         {
             DeredundafierDTO target = new DeredundafierDTO()

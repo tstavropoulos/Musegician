@@ -18,7 +18,6 @@ namespace Musegician.Playlist
         public RecordingDTO recording;
     }
 
-
     public class PlaylistManager : INotifyPropertyChanged
     {
         private Random random = new Random();

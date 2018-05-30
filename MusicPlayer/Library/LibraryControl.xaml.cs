@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Media;
 using Musegician.Core;
 using Musegician.Database;
+using Musegician.DataStructures;
 using IPlaylistTransferRequestHandler = Musegician.Playlist.IPlaylistTransferRequestHandler;
 
 namespace Musegician.Library
@@ -102,8 +103,8 @@ namespace Musegician.Library
         #endregion Inner Enumerations
         #region Context Menu Events
 
-        public delegate void ContextMenuIDRequest(LibraryContext context, long id);
-        public delegate void ContextMenuMultiIDRequest(LibraryContext context, IList<long> ids);
+        public delegate void ContextMenuIDRequest(LibraryContext context, Album album);
+        public delegate void ContextMenuMultiIDRequest(LibraryContext context, IList<BaseData> ids);
 
         public event ContextMenuMultiIDRequest ContextMenu_MultiEdit;
         public event ContextMenuIDRequest ContextMenu_EditArt;
@@ -167,11 +168,11 @@ namespace Musegician.Library
         #endregion Construction
         #region Class Methods
 
-        private void Play(LibraryContext context, IList<long> ids, bool deep)
+        private void Play(LibraryContext context, IList<BaseData> data, bool deep)
         {
-            List<Song> songs = new List<Song>();
+            List<SongDTO> songs = new List<SongDTO>();
 
-            foreach (long id in ids)
+            foreach (BaseData datum in data)
             {
                 switch (context)
                 {
@@ -179,7 +180,7 @@ namespace Musegician.Library
                         {
                             songs.AddRange(
                                 PlaylistTransferRequestHandler.GetArtistData(
-                                    artistID: id,
+                                    artist: datum as Artist,
                                     deep: deep));
                         }
                         break;
@@ -187,14 +188,14 @@ namespace Musegician.Library
                         {
                             songs.AddRange(
                                 PlaylistTransferRequestHandler.GetAlbumData(
-                                albumID: id,
+                                album: datum as Album,
                                 deep: deep));
                         }
                         break;
                     case LibraryContext.Song:
                         {
                             songs.AddRange(
-                                PlaylistTransferRequestHandler.GetSongData(id));
+                                PlaylistTransferRequestHandler.GetSongData(datum as Song));
                         }
                         break;
                     case LibraryContext.Track:
@@ -204,7 +205,7 @@ namespace Musegician.Library
                     case LibraryContext.Recording:
                         {
                             songs.AddRange(
-                                PlaylistTransferRequestHandler.GetSongDataFromRecordingID(id));
+                                PlaylistTransferRequestHandler.GetSongData(datum as Recording));
                         }
                         break;
                     case LibraryContext.MAX:
@@ -214,12 +215,12 @@ namespace Musegician.Library
                 }
             }
 
-            if (ids.Count == 1)
+            if (data.Count == 1)
             {
                 Playlist.PlaylistManager.Instance.PlaylistName =
                     PlaylistTransferRequestHandler.GetDefaultPlaylistName(
                         context: context,
-                        id: ids[0]);
+                        data: data[0]);
             }
             else
             {
@@ -230,31 +231,31 @@ namespace Musegician.Library
             Player.MusicManager.Instance.Next();
         }
 
-        private void Add(LibraryContext context, IEnumerable<long> ids, bool deep, int position = -1)
+        private void Add(LibraryContext context, IEnumerable<BaseData> data, bool deep, int position = -1)
         {
             List<SongDTO> songs = new List<SongDTO>();
 
-            foreach (long id in ids)
+            foreach (BaseData datum in data)
             {
                 switch (context)
                 {
                     case LibraryContext.Artist:
                         {
                             songs.AddRange(PlaylistTransferRequestHandler.GetArtistData(
-                                artistID: id,
+                                artist: datum as Artist,
                                 deep: deep));
                         }
                         break;
                     case LibraryContext.Album:
                         {
                             songs.AddRange(PlaylistTransferRequestHandler.GetAlbumData(
-                                albumID: id,
+                                album: datum as Album,
                                 deep: deep));
                         }
                         break;
                     case LibraryContext.Song:
                         {
-                            songs.AddRange(PlaylistTransferRequestHandler.GetSongData(id));
+                            songs.AddRange(PlaylistTransferRequestHandler.GetSongData(datum as Song));
                         }
                         break;
                     case LibraryContext.Track:
@@ -263,7 +264,7 @@ namespace Musegician.Library
                         }
                     case LibraryContext.Recording:
                         {
-                            songs.AddRange(PlaylistTransferRequestHandler.GetSongDataFromRecordingID(id));
+                            songs.AddRange(PlaylistTransferRequestHandler.GetSongData(datum as Recording));
                         }
                         break;
                     case LibraryContext.MAX:
@@ -310,7 +311,7 @@ namespace Musegician.Library
                     }
 
                     e.Handled = true;
-                    Play(LibraryContext.Song, new BaseData[] { songModel.Data }, false);
+                    Play(LibraryContext.Song, new List<BaseData>() { songModel.Data }, false);
                 }
                 else if (treeItem.Header is RecordingViewModel recordingModel)
                 {
@@ -320,7 +321,7 @@ namespace Musegician.Library
                     }
 
                     e.Handled = true;
-                    Play(LibraryContext.Recording, new BaseData[] { recordingModel.Data }, false);
+                    Play(LibraryContext.Recording, new List<BaseData>() { recordingModel.Data }, false);
                 }
             }
         }
@@ -330,65 +331,65 @@ namespace Musegician.Library
 
         private void Play_Deep(object sender, RoutedEventArgs e)
         {
-            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Play);
+            (LibraryContext context, List<BaseData> data) = ExtractContextAndData(MenuAction.Play);
 
-            if (ids.Count() > 0)
+            if (data.Count() > 0)
             {
                 e.Handled = true;
-                Play(context, ids, true);
+                Play(context, data, true);
             }
         }
 
         private void Play_Shallow(object sender, RoutedEventArgs e)
         {
-            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Play);
+            (LibraryContext context, List<BaseData> data) = ExtractContextAndData(MenuAction.Play);
 
-            if (ids.Count() > 0)
+            if (data.Count() > 0)
             {
                 e.Handled = true;
-                Play(context, ids, false);
+                Play(context, data, false);
             }
         }
 
         private void Add_Deep(object sender, RoutedEventArgs e)
         {
-            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Add);
+            (LibraryContext context, List<BaseData> data) = ExtractContextAndData(MenuAction.Add);
 
-            if (ids.Count() > 0)
+            if (data.Count() > 0)
             {
                 e.Handled = true;
-                Add(context, ids, true);
+                Add(context, data, true);
             }
         }
 
         private void Add_Shallow(object sender, RoutedEventArgs e)
         {
-            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Add);
+            (LibraryContext context, List<BaseData> data) = ExtractContextAndData(MenuAction.Add);
 
-            if (ids.Count() > 0)
+            if (data.Count() > 0)
             {
                 e.Handled = true;
-                Add(context, ids, false);
+                Add(context, data, false);
             }
         }
 
         private void Edit(object sender, RoutedEventArgs e)
         {
-            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Edit);
+            (LibraryContext context, List<BaseData> data) = ExtractContextAndData(MenuAction.Edit);
 
-            if (ids.Count() > 0)
+            if (data.Count() > 0)
             {
                 e.Handled = true;
 
-                ContextMenu_MultiEdit?.Invoke(context, ids);
+                ContextMenu_MultiEdit?.Invoke(context, data);
             }
         }
 
         private void EditArt(object sender, RoutedEventArgs e)
         {
-            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Edit);
+            (LibraryContext context, List<BaseData> data) = ExtractContextAndData(MenuAction.Edit);
 
-            if (ids.Count() != 1)
+            if (data.Count() != 1)
             {
                 MessageBox.Show("Must select exactly one album to edit Album Art", "Selection Error");
                 return;
@@ -396,7 +397,7 @@ namespace Musegician.Library
 
             e.Handled = true;
 
-            ContextMenu_EditArt?.Invoke(context, ids[0]);
+            ContextMenu_EditArt?.Invoke(context, data[0] as Album);
         }
 
         private void Explore(object sender, RoutedEventArgs e)
@@ -584,11 +585,11 @@ namespace Musegician.Library
 
         private void AddSelectedItems(int position)
         {
-            (LibraryContext context, List<long> ids) = ExtractContextAndIDs(MenuAction.Add);
+            (LibraryContext context, List<BaseData> data) = ExtractContextAndData(MenuAction.Add);
 
-            if (ids.Count() > 0)
+            if (data.Count() > 0)
             {
-                Add(context, ids, false, position);
+                Add(context, data, false, position);
             }
         }
 
@@ -644,7 +645,7 @@ namespace Musegician.Library
         #endregion Callbacks
         #region Helper Fuctions
 
-        private (LibraryContext, List<long>) ExtractContextAndIDs(
+        private (LibraryContext, List<BaseData>) ExtractContextAndData(
             MenuAction option,
             ViewMode overrideMode = ViewMode.MAX)
         {
@@ -652,7 +653,7 @@ namespace Musegician.Library
                 GetSelectedItems(overrideMode).OfType<LibraryViewModel>();
 
             LibraryContext context = LibraryContext.MAX;
-            List<long> ids = new List<long>();
+            List<BaseData> data = new List<BaseData>();
 
             if (selectedItems.Count() > 0)
             {
@@ -691,16 +692,16 @@ namespace Musegician.Library
                     //Only on Edit, we return the ContextualTrackID
                     if (option == MenuAction.Edit && model is SongViewModel song)
                     {
-                        ids.Add(song.ContextualTrackID);
+                        data.Add(song.Track);
                     }
                     else
                     {
-                        ids.Add(model.ID);
+                        data.Add(model.Data);
                     }
                 }
             }
 
-            return (context, ids);
+            return (context, data);
         }
 
         /// <summary>

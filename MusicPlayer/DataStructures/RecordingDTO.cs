@@ -3,11 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Musegician.Database;
 
 namespace Musegician.DataStructures
 {
     public class RecordingDTO : DTO
     {
+        public RecordingDTO(Recording recording, string title)
+        {
+            Name = title;
+            ID = recording.ID;
+            Weight = recording.Weight;
+            IsHome = true;
+            TrackID = recording.Tracks.First().ID;
+            Live = recording.Live;
+        }
+
+
         public bool Live { get; set; }
 
         /// <summary>

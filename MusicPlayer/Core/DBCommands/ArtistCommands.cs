@@ -162,34 +162,6 @@ namespace Musegician.Core.DBCommands
             return artistID;
         }
 
-        public string _GetPlaylistSongName(long artistID, long songID)
-        {
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.CommandText =
-                "SELECT " +
-                    "song.title AS title, " +
-                    "artist.name AS name " +
-                "FROM artist " +
-                "LEFT JOIN song ON song.id=@songID " +
-                "WHERE artist.id=@artistID;";
-            readTracks.Parameters.Add(new SQLiteParameter("@songID", songID));
-            readTracks.Parameters.Add(new SQLiteParameter("@artistID", artistID));
-
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    return string.Format(
-                        "{0} - {1}",
-                        (string)reader["name"],
-                        (string)reader["title"]);
-                }
-            }
-
-            return "INVALID";
-        }
-
         private DeredundafierDTO _GetDeredunancyTarget(string name)
         {
             DeredundafierDTO target = new DeredundafierDTO()

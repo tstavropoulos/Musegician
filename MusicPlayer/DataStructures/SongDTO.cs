@@ -1,10 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using Musegician.Database;
 
 namespace Musegician.DataStructures
 {
     public class SongDTO : DTO
     {
+        public SongDTO(Song song, string title)
+        {
+            ID = song.ID;
+            IsHome = true;
+            Name = title;
+            SearchableName = song.Title;
+            TrackID = -1;
+            Weight = song.Weight;
+        }
+
         public SongDTO(long songID, string titlePrefix, string title, long trackID, bool isHome)
         {
             ID = songID;
