@@ -170,7 +170,7 @@ namespace Musegician.Library
 
         private void Play(LibraryContext context, IList<BaseData> data, bool deep)
         {
-            List<SongDTO> songs = new List<SongDTO>();
+            List<PlaylistSong> songs = new List<PlaylistSong>();
 
             foreach (BaseData datum in data)
             {
@@ -233,7 +233,7 @@ namespace Musegician.Library
 
         private void Add(LibraryContext context, IEnumerable<BaseData> data, bool deep, int position = -1)
         {
-            List<SongDTO> songs = new List<SongDTO>();
+            List<PlaylistSong> songs = new List<PlaylistSong>();
 
             foreach (BaseData datum in data)
             {

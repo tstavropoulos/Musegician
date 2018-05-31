@@ -185,31 +185,6 @@ namespace Musegician.Core.DBCommands
             return targets;
         }
 
-        public void UpdateWeights(IList<(long albumID, double weight)> values)
-        {
-            dbConnection.Open();
-
-            SQLiteCommand updateWeight = dbConnection.CreateCommand();
-            updateWeight.CommandType = System.Data.CommandType.Text;
-            updateWeight.CommandText =
-                "UPDATE album " +
-                    "SET weight=@weight " +
-                    "WHERE album.id=@albumID;";
-
-            updateWeight.Parameters.Add("@albumID", DbType.Int64);
-            updateWeight.Parameters.Add("@weight", DbType.Double);
-
-            foreach (var value in values)
-            {
-                updateWeight.Parameters["@albumID"].Value = value.albumID;
-                updateWeight.Parameters["@weight"].Value =
-                    double.IsNaN(value.weight) ? null : (object)value.weight;
-                updateWeight.ExecuteNonQuery();
-            }
-
-            dbConnection.Close();
-        }
-
         public void Merge(IEnumerable<long> ids)
         {
             List<long> albumIDsCopy = new List<long>(ids);

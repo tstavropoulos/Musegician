@@ -162,6 +162,8 @@
     <Compile Include="Core\DBCommands\AlbumCommands.cs" />
     <Compile Include="Core\DBCommands\TrackCommands.cs" />
     <Compile Include="Core\DBCommands\SongCommands.cs" />
+    <Compile Include="Core\Containers\DepletableBag.cs" />
+    <Compile Include="Core\Containers\DepletableList.cs" />
     <Compile Include="Core\DoubleComparisonExtension.cs" />
     <Compile Include="Core\EnumBoolConverter.cs" />
     <Compile Include="Core\FileManager\FileManager_DeredundancyRequestHandler.cs" />
@@ -169,6 +171,7 @@
     <Compile Include="Core\FileManager\FileManager_PlaylistRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_PlaylistTransferRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_TagRequestHandler.cs" />
+    <Compile Include="Core\Containers\IDepletable.cs" />
     <Compile Include="Core\KeyboardHook.cs" />
     <Compile Include="Core\MarqueeControl.xaml.cs">
       <DependentUpon>MarqueeControl.xaml</DependentUpon>

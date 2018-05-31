@@ -205,7 +205,7 @@ namespace Musegician.Deredundafier
 
                     Playlist.PlaylistManager.Instance.PlaylistName = "";
                     Playlist.PlaylistManager.Instance.Rebuild(
-                        PlaylistTransferRequestHandler.GetSongDataFromRecordingID(recordingModel.ID));
+                        PlaylistTransferRequestHandler.GetSongData(recordingModel.ID));
                     Player.MusicManager.Instance.Next();
                 }
             }

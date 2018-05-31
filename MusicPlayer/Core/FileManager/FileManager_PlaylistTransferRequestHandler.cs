@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using Musegician.Database;
-using Musegician.DataStructures;
 using Musegician.Playlist;
 
 using LibraryContext = Musegician.Library.LibraryContext;
@@ -14,11 +13,9 @@ namespace Musegician
 {
     public partial class FileManager : IPlaylistTransferRequestHandler
     {
-        #region IPlaylistTransferRequestHandler
-
         private IPlaylistTransferRequestHandler ThisTransfer => this;
 
-        IEnumerable<SongDTO> IPlaylistTransferRequestHandler.GetSongData(
+        IEnumerable<PlaylistSong> IPlaylistTransferRequestHandler.GetSongData(
             Recording recording)
         {
             return ThisTransfer.GetSongData(
@@ -26,12 +23,12 @@ namespace Musegician
                 exclusiveRecording: recording);
         }
 
-        IEnumerable<SongDTO> IPlaylistTransferRequestHandler.GetSongData(
+        IEnumerable<PlaylistSong> IPlaylistTransferRequestHandler.GetSongData(
             Song song,
             Artist exclusiveArtist,
             Recording exclusiveRecording)
         {
-            List<SongDTO> songData = new List<SongDTO>();
+            List<PlaylistSong> songData = new List<PlaylistSong>();
 
             string playlistName;
 
@@ -59,26 +56,28 @@ namespace Musegician
                 }
             }
 
-            songData.Add(new SongDTO(
+            PlaylistSong newSong = new PlaylistSong(
                 song: song,
-                title: playlistName));
+                title: playlistName);
 
-            foreach (RecordingDTO data in GetRecordingList(
+            foreach (PlaylistRecording recording in GetRecordingList(
                 song: song,
                 exclusiveArtist: exclusiveArtist,
                 exclusiveRecording: exclusiveRecording))
             {
-                songData[0].Children.Add(data);
+                recording.PlaylistSong = newSong;
             }
+
+            songData.Add(newSong);
 
             return songData;
         }
 
-        IEnumerable<SongDTO> IPlaylistTransferRequestHandler.GetAlbumData(
+        IEnumerable<PlaylistSong> IPlaylistTransferRequestHandler.GetAlbumData(
             Album album,
             bool deep)
         {
-            List<SongDTO> songData = new List<SongDTO>();
+            List<PlaylistSong> songData = new List<PlaylistSong>();
 
             if (deep)
             {
@@ -99,24 +98,27 @@ namespace Musegician
 
                 foreach(Track track in tracks)
                 {
-                    SongDTO newSong = new SongDTO(
+                    PlaylistSong newSong = new PlaylistSong(
                         song: track.Recording.Song,
                         title: $"{track.Recording.Artist} - {track.Recording.Song.Title}");
 
-                    newSong.Children.Add(new RecordingDTO(
+                    PlaylistRecording newRecording = new PlaylistRecording(
                         recording: track.Recording,
-                        title: $"{track.Recording.Artist} - {track.Album.Title} - {track.Title}"));
+                        title: $"{track.Recording.Artist} - {track.Album.Title} - {track.Title}");
+                    newRecording.PlaylistSong = newSong;
+
+                    songData.Add(newSong);
                 }
             }
 
             return songData;
         }
 
-        IEnumerable<SongDTO> IPlaylistTransferRequestHandler.GetArtistData(
+        IEnumerable<PlaylistSong> IPlaylistTransferRequestHandler.GetArtistData(
             Artist artist,
             bool deep)
         {
-            List<SongDTO> artistData = new List<SongDTO>();
+            List<PlaylistSong> artistData = new List<PlaylistSong>();
 
             var songs = (from recording in artist.Recordings
                          orderby recording.Song.Title ascending
@@ -146,15 +148,15 @@ namespace Musegician
                     playlistName = $"{artist.Name} - {song.Title}";
                 }
 
-                SongDTO newSong = new SongDTO(
+                PlaylistSong newSong = new PlaylistSong(
                     song: song,
                     title: playlistName);
 
-                foreach (RecordingDTO recording in GetRecordingList(
+                foreach (PlaylistRecording recording in GetRecordingList(
                         song: song,
                         exclusiveArtist: deep ? null : artist))
                 {
-                    newSong.Children.Add(recording);
+                    recording.PlaylistSong = newSong;
                 }
 
                 artistData.Add(newSong);
@@ -185,7 +187,7 @@ namespace Musegician
             }
         }
 
-        IEnumerable<RecordingDTO> GetRecordingList(
+        IEnumerable<PlaylistRecording> GetRecordingList(
             Song song,
             Artist exclusiveArtist = null,
             Recording exclusiveRecording = null)
@@ -193,7 +195,7 @@ namespace Musegician
             if (exclusiveRecording != null)
             {
                 Track track = exclusiveRecording.Tracks.First();
-                return new RecordingDTO[] { new RecordingDTO(
+                return new PlaylistRecording[] { new PlaylistRecording(
                     recording: exclusiveRecording,
                     title: $"{exclusiveRecording.Artist.Name} - {track.Album.Title} - {track.Title}") { Weight = 1.0 } };
             }
@@ -201,17 +203,15 @@ namespace Musegician
             {
                 return (from recording in song.Recordings
                         where recording.Artist == exclusiveArtist
-                        select new RecordingDTO(
+                        select new PlaylistRecording(
                             recording: recording,
                             title: $"{exclusiveArtist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}"));
             }
 
             return (from recording in song.Recordings
-                    select new RecordingDTO(
+                    select new PlaylistRecording(
                         recording: recording,
                         title: $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}"));
         }
-
-        #endregion IPlaylistTransferRequestHandler
     }
 }

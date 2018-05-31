@@ -3,22 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Musegician.Database;
 using Musegician.DataStructures;
 
 namespace Musegician.Playlist
 {
     public interface IPlaylistRequestHandler
     {
-        void SavePlaylist(string title, ICollection<SongDTO> songs);
+        Database.Playlist GetCurrentPlaylist();
 
-        void DeletePlaylist(long playlistID);
+        void PushCurrentTo(string title);
+        void LoadPlaylist(string title);
+        void DeletePlaylist(string title);
 
-        long FindPlaylist(string title);
+        IEnumerable<(string title, int count)> GetPlaylistInfo();
 
-        List<SongDTO> LoadPlaylist(long playlistID);
-
-        List<PlaylistData> GetPlaylistInfo();
-
-        PlayData GetRecordingPlayData(long recordingID);
+        PlayData GetRecordingPlayData(Recording recording);
     }
 }

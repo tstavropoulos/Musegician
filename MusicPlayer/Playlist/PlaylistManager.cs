@@ -7,22 +7,22 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using Musegician.DataStructures;
+using Musegician.Database;
 using Musegician.Core;
 
 namespace Musegician.Playlist
 {
     public struct PlayHistory
     {
-        public SongDTO song;
-        public RecordingDTO recording;
+        public PlaylistSong song;
+        public PlaylistRecording recording;
     }
 
     public class PlaylistManager : INotifyPropertyChanged
     {
         private Random random = new Random();
-        private List<SongDTO> playlist = new List<SongDTO>();
-        private List<SongDTO> shuffleSet = new List<SongDTO>();
+        private Database.Playlist Playlist;
+        private DepletableBag<PlaylistSong> shuffleSet;
 
         /// <summary>
         /// A buffer holding the last 30 songs to play in Shuffle mode
@@ -63,7 +63,7 @@ namespace Musegician.Playlist
                     if (value)
                     {
                         //Reshuffle list
-                        PrepareShuffleList();
+                        RebuildShuffleList();
                     }
 
                     OnPropertyChanged("Shuffle");
@@ -85,7 +85,7 @@ namespace Musegician.Playlist
             }
         }
 
-        public int ItemCount => playlist.Count;
+        public int ItemCount => Playlist.PlaylistSongs.Count();
 
 
         private int _currentIndex = -1;
@@ -140,23 +140,20 @@ namespace Musegician.Playlist
 
         private PlaylistManager()
         {
-
+            shuffleSet = new DepletableBag<PlaylistSong>(random);
         }
 
-        public void PlayIndex(int index)
+        public void PlaySong(PlaylistSong song)
         {
-            if (ItemCount > index)
+            if (Playlist.PlaylistSongs.Contains(song))
             {
                 CurrentIndex = index;
-                long recordingID = SelectRecording(playlist[CurrentIndex]);
+                PlaylistRecording recording = SelectRecording(song);
 
                 //Add the item to the current shuffle buffer, and remove from shuffleList
                 if (Shuffle)
                 {
-                    if (shuffleSet.Contains(playlist[CurrentIndex]))
-                    {
-                        shuffleSet.Remove(playlist[CurrentIndex]);
-                    }
+                    shuffleSet.DepleteValue(song);
 
                     //Pop off history elements in front of it - We have branched our history
                     while (bufferIndex > 0)
@@ -169,18 +166,24 @@ namespace Musegician.Playlist
 
                     ringBuffer.Add(new PlayHistory
                     {
-                        song = playlist[CurrentIndex],
-                        recording = playlist[CurrentIndex].Children[LastRecordingIndex] as RecordingDTO
+                        song = song,
+                        recording = recording
                     });
                 }
 
-                PlayRecording(recordingID);
+                PlayRecording(recording.Recording);
             }
         }
 
-        public void PlayRecording(int songIndex, int recordingIndex)
+        private void PlayRecording(Recording recording)
         {
-            if (ItemCount > songIndex)
+            Player.MusicManager.Instance.PlaySong(
+                playData: RequestHandler.GetRecordingPlayData(recording));
+        }
+
+        public void PlayRecording(PlaylistSong song, PlaylistRecording recording)
+        {
+            if (Playlist.PlaylistSongs.Contains(song))
             {
                 CurrentIndex = songIndex;
                 LastRecordingIndex = recordingIndex;
@@ -188,10 +191,7 @@ namespace Musegician.Playlist
                 //Add the item to the current shuffle buffer, and remove from shuffleList
                 if (Shuffle)
                 {
-                    if (shuffleSet.Contains(playlist[CurrentIndex]))
-                    {
-                        shuffleSet.Remove(playlist[CurrentIndex]);
-                    }
+                    shuffleSet.DepleteValue(song);
 
                     //Pop off history elements in front of it
                     while (bufferIndex > 0)
@@ -204,20 +204,20 @@ namespace Musegician.Playlist
 
                     ringBuffer.Add(new PlayHistory
                     {
-                        song = playlist[CurrentIndex],
-                        recording = playlist[CurrentIndex].Children[LastRecordingIndex] as RecordingDTO
+                        song = song,
+                        recording = recording
                     });
                 }
 
-                PlayRecording(playlist[CurrentIndex].Children[LastRecordingIndex].ID);
+                PlayRecording(recording.Recording);
             }
         }
 
-        public PlayData Next()
+        public DataStructures.PlayData Next()
         {
             if (ItemCount == 0)
             {
-                return new PlayData();
+                return new DataStructures.PlayData();
             }
 
             if (Shuffle)
@@ -230,7 +230,7 @@ namespace Musegician.Playlist
                 {
                     --bufferIndex;
 
-                    if (!playlist.Contains(ringBuffer[bufferIndex].song))
+                    if (!Playlist.PlaylistSongs.Contains(ringBuffer[bufferIndex].song))
                     {
                         //Bad values - Song not found - Probably Deleted
 
@@ -238,9 +238,7 @@ namespace Musegician.Playlist
                         continue;
                     }
 
-                    int index = playlist.IndexOf(ringBuffer[bufferIndex].song);
-
-                    if (!playlist[index].Children.Contains(ringBuffer[bufferIndex].recording))
+                    if (!ringBuffer[bufferIndex].song.PlaylistRecordings.Contains(ringBuffer[bufferIndex].recording))
                     {
                         //Bad Values - Recording not found - Probably Deleted
 
@@ -248,13 +246,13 @@ namespace Musegician.Playlist
                         continue;
                     }
 
-                    int recordingIndex = playlist[index].Children.IndexOf(ringBuffer[bufferIndex].recording);
+                    //int recordingIndex = playlist[index].Children.IndexOf(ringBuffer[bufferIndex].recording);
 
                     //Update vales to select the correct song in the UI
                     CurrentIndex = index;
                     LastRecordingIndex = recordingIndex;
 
-                    return RequestHandler.GetRecordingPlayData(ringBuffer[bufferIndex].recording.ID);
+                    return RequestHandler.GetRecordingPlayData(ringBuffer[bufferIndex].recording.Recording);
                 }
 
                 //Move on to a new song
@@ -268,7 +266,7 @@ namespace Musegician.Playlist
                     //Reshuffle list if Repeat is turned on
                     if (shuffleSet.Count == 0 && Repeat)
                     {
-                        PrepareShuffleList();
+                        shuffleSet.Reset();
 
                         if (++reshuffles >= 3)
                         {
@@ -279,16 +277,13 @@ namespace Musegician.Playlist
                                 button: MessageBoxButton.OK,
                                 icon: MessageBoxImage.Warning);
 
-                            return new PlayData();
+                            return new DataStructures.PlayData();
                         }
-
                     }
 
-                    int nextShuffleIndex = random.Next(0, shuffleSet.Count);
-                    int nextIndex = playlist.IndexOf(shuffleSet[nextShuffleIndex]);
-                    shuffleSet.RemoveAt(nextShuffleIndex);
+                    PlaylistSong nextSong = shuffleSet.PopNext();
 
-                    if (!TestSongWeight(nextIndex))
+                    if (!TestSongWeight(nextSong))
                     {
                         //Skip it if the selected song fails a weight test
                         continue;
@@ -296,16 +291,16 @@ namespace Musegician.Playlist
 
                     //Song passed weight test
                     CurrentIndex = nextIndex;
-                    long recordingID = SelectRecording(playlist[CurrentIndex]);
+                    PlaylistRecording recording = SelectRecording(nextSong);
 
                     //Stash 
                     ringBuffer.Add(new PlayHistory
                     {
-                        song = playlist[CurrentIndex],
-                        recording = playlist[CurrentIndex].Children[LastRecordingIndex] as RecordingDTO
+                        song = nextSong,
+                        recording = recording
                     });
 
-                    return RequestHandler.GetRecordingPlayData(recordingID);
+                    return RequestHandler.GetRecordingPlayData(recording.Recording);
                 }
             }
             else
@@ -338,7 +333,7 @@ namespace Musegician.Playlist
                                 button: MessageBoxButton.OK,
                                 icon: MessageBoxImage.Warning);
 
-                            return new PlayData();
+                            return new DataStructures.PlayData();
                         }
                     }
 
@@ -357,14 +352,14 @@ namespace Musegician.Playlist
                 }
             }
 
-            return new PlayData();
+            return new DataStructures.PlayData();
         }
 
-        public PlayData Previous()
+        public DataStructures.PlayData Previous()
         {
             if (ItemCount == 0)
             {
-                return new PlayData();
+                return new DataStructures.PlayData();
             }
 
             if (Shuffle)
@@ -376,7 +371,7 @@ namespace Musegician.Playlist
                 {
                     ++bufferIndex;
 
-                    if (!playlist.Contains(ringBuffer[bufferIndex].song))
+                    if (!Playlist.PlaylistSongs.Contains(ringBuffer[bufferIndex].song))
                     {
                         //Bad values - Song not found - Probably Deleted
 
@@ -384,9 +379,7 @@ namespace Musegician.Playlist
                         continue;
                     }
 
-                    int index = playlist.IndexOf(ringBuffer[bufferIndex].song);
-
-                    if (!playlist[index].Children.Contains(ringBuffer[bufferIndex].recording))
+                    if (!ringBuffer[bufferIndex].song.PlaylistRecordings.Contains(ringBuffer[bufferIndex].recording))
                     {
                         //Bad Values - Recording not found - Probably Deleted
 
@@ -394,13 +387,11 @@ namespace Musegician.Playlist
                         continue;
                     }
 
-                    int recordingIndex = playlist[index].Children.IndexOf(ringBuffer[bufferIndex].recording);
-
                     //Update vales to select the correct song in the UI
                     CurrentIndex = index;
                     LastRecordingIndex = recordingIndex;
 
-                    return RequestHandler.GetRecordingPlayData(ringBuffer[bufferIndex].recording.ID);
+                    return RequestHandler.GetRecordingPlayData(ringBuffer[bufferIndex].recording.Recording);
                 }
             }
             else
@@ -432,7 +423,7 @@ namespace Musegician.Playlist
                                 button: MessageBoxButton.OK,
                                 icon: MessageBoxImage.Warning);
 
-                            return new PlayData();
+                            return new DataStructures.PlayData();
                         }
                     }
 
@@ -451,14 +442,20 @@ namespace Musegician.Playlist
                 }
             }
 
-            return new PlayData();
+            return new DataStructures.PlayData();
         }
 
-        public void Rebuild(ICollection<SongDTO> songs)
+        public void Rebuild(IEnumerable<PlaylistSong> songs)
         {
             _currentIndex = -1;
-            playlist = new List<SongDTO>(songs);
-            PrepareShuffleList();
+            Playlist.PlaylistSongs.Clear();
+            int index = 0;
+            foreach (PlaylistSong song in songs)
+            {
+                song.Number = index++;
+                Playlist.PlaylistSongs.Add(song);
+            }
+            RebuildShuffleList();
 
             ringBuffer.Clear();
             bufferIndex = 0;
@@ -469,9 +466,13 @@ namespace Musegician.Playlist
             }
         }
 
-        public void AddBack(ICollection<SongDTO> songs)
+        public void AddBack(IEnumerable<PlaylistSong> songs)
         {
-            playlist.AddRange(songs);
+            foreach (PlaylistSong song in songs)
+            {
+                Playlist.PlaylistSongs.Add(song);
+            }
+
             shuffleSet.AddRange(songs);
 
             foreach (IPlaylistUpdateListener listener in GetValidListeners())
@@ -480,7 +481,7 @@ namespace Musegician.Playlist
             }
         }
 
-        public void InsertSongs(int position, ICollection<SongDTO> songs)
+        public void InsertSongs(int position, IEnumerable<PlaylistSong> songs)
         {
             if (position == -1)
             {
@@ -499,7 +500,7 @@ namespace Musegician.Playlist
             }
         }
 
-        public void RemoveIndex(ICollection<int> songIndices)
+        public void RemoveIndex(IEnumerable<int> songIndices)
         {
             List<int> reverseSortedIndices = new List<int>(songIndices);
             reverseSortedIndices.Sort((a, b) => b.CompareTo(a));
@@ -510,7 +511,6 @@ namespace Musegician.Playlist
                 {
                     --_currentIndex;
                 }
-
 
                 if (shuffleSet.Contains(playlist[songIndex]))
                 {
@@ -526,52 +526,51 @@ namespace Musegician.Playlist
             }
         }
 
-        private long SelectRecording(SongDTO song)
+        private PlaylistRecording SelectRecording(PlaylistSong song)
         {
-            if (song.Children.Count == 0)
+            if (song.PlaylistRecordings.Count == 0)
             {
                 LastRecordingIndex = -1;
-                return -1;
+                return null;
             }
 
-            if (song.Children.Count == 1)
+            if (song.PlaylistRecordings.Count == 1)
             {
                 LastRecordingIndex = 0;
-                return song.Children[LastRecordingIndex].ID;
+                return song.PlaylistRecordings.First();
             }
-
 
             double cumulativeWeight = 0.0;
 
-            foreach (RecordingDTO recording in song.Children)
+            foreach (PlaylistRecording recording in song.PlaylistRecordings)
             {
                 cumulativeWeight += GetWeight(recording);
             }
 
             cumulativeWeight *= random.NextDouble();
 
-            for (int i = 0; i < song.Children.Count; i++)
+            for (int i = 0; i < song.PlaylistRecordings.Count; i++)
             {
-                RecordingDTO recording = song.Children[i] as RecordingDTO;
+                PlaylistRecording recording = song.PlaylistRecordings.ElementAt(i);
 
                 cumulativeWeight -= GetWeight(recording);
                 if (cumulativeWeight <= 0.0)
                 {
                     LastRecordingIndex = i;
-                    return recording.ID;
+                    return recording;
                 }
             }
 
             Console.WriteLine("Failed to pick a recording before running out.  Method is broken.");
             LastRecordingIndex = 0;
-            return song.Children[0].ID;
+            return song.PlaylistRecordings.First();
         }
 
-        private double GetWeight(RecordingDTO recording)
+        private double GetWeight(PlaylistRecording recording)
         {
             if (double.IsNaN(recording.Weight))
             {
-                if (recording.Live)
+                if (recording.Recording.Live)
                 {
                     return Settings.Instance.LiveWeight;
                 }
@@ -584,61 +583,36 @@ namespace Musegician.Playlist
             return recording.Weight;
         }
 
-        public void PrepareShuffleList()
+        public void RebuildShuffleList()
         {
             shuffleSet.Clear();
-
-            shuffleSet.AddRange(playlist);
-        }
-
-        private void PlayRecording(long recordingID)
-        {
-            Player.MusicManager.Instance.PlaySong(
-                playData: RequestHandler.GetRecordingPlayData(recordingID));
+            shuffleSet.AddRange(Playlist.PlaylistSongs);
         }
 
         public void ClearPlaylist()
         {
-            Rebuild(new List<SongDTO>());
+            Rebuild(new List<PlaylistSong>());
 
             PlaylistName = "";
         }
 
-        public void LoadPlaylist(long playlistID)
-        {
-            Rebuild(RequestHandler.LoadPlaylist(playlistID));
-        }
-
         public void TryLoadPlaylist(string playlistTitle)
         {
-            long playlistID = RequestHandler.FindPlaylist(playlistTitle);
-
-            if (playlistID == -1)
-            {
-                MessageBox.Show(
-                    "Could not find playlist titled: " + playlistTitle,
-                    "Playlist Not Found",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-            }
-            else
-            {
-                LoadPlaylist(playlistID);
-            }
+            RequestHandler.LoadPlaylist(playlistTitle);
         }
 
         public void SavePlaylistAs(string title)
         {
-            if (playlist.Count != 0)
+            if (Playlist.PlaylistSongs.Count != 0)
             {
-                RequestHandler.SavePlaylist(title, playlist);
+                RequestHandler.PushCurrentTo(title);
             }
         }
 
-        public void DeletePlaylist(long playlistID)
+        public void DeletePlaylist(string playlistTitle)
         {
             RequestHandler.DeletePlaylist(
-                playlistID: playlistID);
+                title: playlistTitle);
         }
 
         public void AppendPlaylist(long playlistID)
@@ -652,19 +626,19 @@ namespace Musegician.Playlist
         /// </summary>
         /// <param name="playlistIndex"></param>
         /// <returns></returns>
-        private bool TestSongWeight(int playlistIndex)
+        private bool TestSongWeight(PlaylistSong song)
         {
-            if (playlist[playlistIndex].Weight.AlmostEqualRelative(1.0))
+            if (song.Weight.AlmostEqualRelative(1.0))
             {
                 return true;
             }
 
-            if (playlist[playlistIndex].Weight.AlmostEqualRelative(0.0))
+            if (song.Weight.AlmostEqualRelative(0.0))
             {
                 return false;
             }
 
-            return random.NextDouble() <= playlist[playlistIndex].Weight;
+            return random.NextDouble() <= song.Weight;
         }
 
         public void BatchRearrangeSongs(IEnumerable<int> sourceIndices, int targetIndex)

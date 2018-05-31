@@ -116,6 +116,13 @@ namespace Musegician.Database
         public virtual Playlist Playlist { get; set; }
         public virtual Song Song { get; set; }
         public virtual ICollection<PlaylistRecording> PlaylistRecordings { get; set; }
+
+        public PlaylistSong() { }
+        public PlaylistSong(Song song, string title)
+        {
+            Song = song;
+            Title = title;
+        }
     }
 
     public class PlaylistRecording : BaseData
@@ -123,8 +130,16 @@ namespace Musegician.Database
         public int PlaylistSongID { get; set; }
         public int RecordingID { get; set; }
         public override double Weight { get; set; }
+        public string Title { get; set; }
 
         public virtual PlaylistSong PlaylistSong { get; set; }
         public virtual Recording Recording { get; set; }
+
+        public PlaylistRecording() { }
+        public PlaylistRecording(Recording recording, string title)
+        {
+            Recording = recording;
+            Title = title;
+        }
     }
 }

@@ -4,27 +4,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Musegician.Database;
-using Musegician.DataStructures;
 using LibraryContext = Musegician.Library.LibraryContext;
 
 namespace Musegician.Playlist
 {
     public interface IPlaylistTransferRequestHandler
     {
-        IEnumerable<SongDTO> GetAlbumData(
+        IEnumerable<PlaylistSong> GetAlbumData(
             Album album,
             bool deep = true);
 
-        IEnumerable<SongDTO> GetArtistData(
+        IEnumerable<PlaylistSong> GetArtistData(
             Artist artist,
             bool deep = true);
 
-        IEnumerable<SongDTO> GetSongData(
+        IEnumerable<PlaylistSong> GetSongData(
             Song song,
             Artist exclusiveArtist = null,
             Recording exclusiveRecording = null);
 
-        IEnumerable<SongDTO> GetSongData(
+        IEnumerable<PlaylistSong> GetSongData(
             Recording recording);
 
         string GetDefaultPlaylistName(

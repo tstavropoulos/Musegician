@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Musegician.DataStructures;
+using Musegician.Database;
 
 namespace Musegician.Playlist
 {
     public interface IPlaylistUpdateListener
     {
-        void AddBack(ICollection<SongDTO> songs);
-        void InsertSongs(int index, ICollection<SongDTO> songs);
-        void Rebuild(ICollection<SongDTO> songs);
-        void RemoveIndices(ICollection<int> indices);
+        void AddBack(IEnumerable<PlaylistSong> songs);
+        void InsertSongs(int index, IEnumerable<PlaylistSong> songs);
+        void Rebuild(IEnumerable<PlaylistSong> songs);
+        void RemoveIndices(IEnumerable<int> indices);
         void MarkIndex(int index);
         void MarkRecordingIndex(int index);
         void UnmarkAll();
