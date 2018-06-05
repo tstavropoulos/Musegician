@@ -8,7 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>Musegician</RootNamespace>
     <AssemblyName>Musegician</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -47,6 +47,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -58,6 +59,7 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>
     </DocumentationFile>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>logoInv.ico</ApplicationIcon>
@@ -184,12 +186,8 @@
       <DependentUpon>WeightBar.xaml</DependentUpon>
     </Compile>
     <Compile Include="DataStructures\DirectoryDTO.cs" />
-    <Compile Include="DataStructures\DTO.cs" />
     <Compile Include="Core\Settings.cs" />
     <Compile Include="Core\TreeViewItemBehavior.cs" />
-    <Compile Include="DataStructures\AlbumDTO.cs" />
-    <Compile Include="DataStructures\ArtistDTO.cs" />
-    <Compile Include="DataStructures\PlaylistStructures.cs" />
     <Compile Include="Deredundafier\DeredundafierDTO.cs" />
     <Compile Include="Deredundafier\DeredundafierMockTree.cs" />
     <Compile Include="Deredundafier\DeredundafierViewModel.cs" />
@@ -241,8 +239,6 @@
     <Compile Include="Library\MockLibraryViewModel.cs" />
     <Compile Include="Library\MusicTreeViewModel.cs" />
     <Compile Include="Library\ArtistViewModel.cs" />
-    <Compile Include="DataStructures\RecordingDTO.cs" />
-    <Compile Include="DataStructures\SongDTO.cs" />
     <Compile Include="Library\RecordingViewModel.cs" />
     <Compile Include="Library\SongViewModel.cs" />
     <Compile Include="DataStructures\DataStructures.cs" />

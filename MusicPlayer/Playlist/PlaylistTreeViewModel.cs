@@ -4,27 +4,22 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Musegician.DataStructures;
+using Musegician.Database;
 
 namespace Musegician.Playlist
 {
     class PlaylistTreeViewModel
     {
-        #region Data
-
-        readonly ObservableCollection<PlaylistSongViewModel> _playlistViewModels;
-
-        #endregion Data
         #region Constructors
 
         public PlaylistTreeViewModel()
         {
-            _playlistViewModels = new ObservableCollection<PlaylistSongViewModel>();
+            PlaylistViewModels = new ObservableCollection<PlaylistSongViewModel>();
         }
 
-        public PlaylistTreeViewModel(ICollection<SongDTO> songs)
+        public PlaylistTreeViewModel(IEnumerable<PlaylistSong> songs)
         {
-            _playlistViewModels = new ObservableCollection<PlaylistSongViewModel>(
+            PlaylistViewModels = new ObservableCollection<PlaylistSongViewModel>(
                 (from song in songs
                  select new PlaylistSongViewModel(song))
                      .ToList());
@@ -33,19 +28,19 @@ namespace Musegician.Playlist
         #endregion Constructors
         #region Data Methods
 
-        public void Add(ICollection<SongDTO> songs)
+        public void Add(IEnumerable<PlaylistSong> songs)
         {
-            foreach (SongDTO song in songs)
+            foreach (PlaylistSong song in songs)
             {
-                _playlistViewModels.Add(new PlaylistSongViewModel(song));
+                PlaylistViewModels.Add(new PlaylistSongViewModel(song));
             }
         }
 
-        public void InsertRange(int index, ICollection<SongDTO> songs)
+        public void InsertRange(int index, IEnumerable<PlaylistSong> songs)
         {
-            foreach (SongDTO song in songs)
+            foreach (PlaylistSong song in songs)
             {
-                _playlistViewModels.Insert(index, new PlaylistSongViewModel(song));
+                PlaylistViewModels.Insert(index, new PlaylistSongViewModel(song));
                 ++index;
             }
         }
@@ -57,10 +52,7 @@ namespace Musegician.Playlist
         /// Returns a read-only collection containing the first person 
         /// in the family tree, to which the TreeView can bind.
         /// </summary>
-        public ObservableCollection<PlaylistSongViewModel> PlaylistViewModels
-        {
-            get { return _playlistViewModels; }
-        }
+        public ObservableCollection<PlaylistSongViewModel> PlaylistViewModels { get; }
 
         #endregion Properties
     }

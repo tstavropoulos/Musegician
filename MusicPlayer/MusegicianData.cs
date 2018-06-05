@@ -32,7 +32,7 @@ namespace Musegician.Database
 
     public abstract class BaseData
     {
-        public int ID { get; set; }
+        public long Id { get; set; }
 
         public abstract double Weight { get; set; }
         public virtual double DefaultWeight => 1.0;
@@ -50,8 +50,8 @@ namespace Musegician.Database
 
     public class Recording : BaseData
     {
-        public int ArtistID { get; set; }
-        public int SongID { get; set; }
+        public long ArtistId { get; set; }
+        public long SongId { get; set; }
         public string Filename { get; set; }
         public bool Live { get; set; }
 
@@ -86,8 +86,8 @@ namespace Musegician.Database
 
     public class Track : BaseData
     {
-        public int AlbumID { get; set; }
-        public int RecordingID { get; set; }
+        public long AlbumId { get; set; }
+        public long RecordingId { get; set; }
         public string Title { get; set; }
         public int TrackNumber { get; set; }
         public int DiscNumber { get; set; }
@@ -99,7 +99,7 @@ namespace Musegician.Database
 
     public class Playlist
     {
-        public int ID { get; set; }
+        public int Id { get; set; }
         public string Title { get; set; }
 
         public virtual ICollection<PlaylistSong> PlaylistSongs { get; set; }
@@ -107,9 +107,9 @@ namespace Musegician.Database
 
     public class PlaylistSong : BaseData
     {
-        public int PlaylistID { get; set; }
+        public long PlaylistId { get; set; }
+        public long SongId { get; set; }
         public string Title { get; set; }
-        public int SongID { get; set; }
         public int Number { get; set; }
         public override double Weight { get; set; }
 
@@ -127,8 +127,8 @@ namespace Musegician.Database
 
     public class PlaylistRecording : BaseData
     {
-        public int PlaylistSongID { get; set; }
-        public int RecordingID { get; set; }
+        public long PlaylistSongId { get; set; }
+        public long RecordingId { get; set; }
         public override double Weight { get; set; }
         public string Title { get; set; }
 

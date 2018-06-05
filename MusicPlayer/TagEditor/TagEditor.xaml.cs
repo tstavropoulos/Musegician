@@ -12,8 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
+using Musegician.Database;
 using Musegician.DataStructures;
-using LibraryContext = Musegician.Library.LibraryContext;
 
 namespace Musegician.TagEditor
 {
@@ -54,41 +54,28 @@ namespace Musegician.TagEditor
     /// </summary>
     public partial class TagEditor : Window
     {
-        private IList<long> ids;
-        private LibraryContext context;
+        private IEnumerable<BaseData> Data { get; }
+        public IEnumerable<TagData> Tags { get; }
 
-        IEnumerable<TagData> tags;
+        private ITagRequestHandler RequestHandler => FileManager.Instance;
 
-        public IEnumerable<TagData> Tags
-        {
-            get { return tags; }
-        }
-
-        private ITagRequestHandler RequestHandler
-        {
-            get { return FileManager.Instance; }
-        }
-
-        public TagEditor(LibraryContext context, long id)
+        public TagEditor(BaseData data)
         {
             InitializeComponent();
+            
+            Data = new List<BaseData>() { data };
 
-            this.context = context;
-            ids = new List<long>(new long[] { id });
-
-            tags = RequestHandler.GetTagData(context, id);
+            Tags = RequestHandler.GetTagData(data);
 
             tagView.ItemsSource = Tags;
         }
 
-        public TagEditor(LibraryContext context, IList<long> ids)
+        public TagEditor(IEnumerable<BaseData> data)
         {
             InitializeComponent();
 
-            this.context = context;
-            this.ids = ids;
-
-            tags = RequestHandler.GetTagData(context, ids[0]);
+            Data = data;
+            Tags = RequestHandler.GetTagData(Data.First());
 
             tagView.ItemsSource = Tags;
         }
@@ -99,7 +86,7 @@ namespace Musegician.TagEditor
             bool ID3Updates = false;
             bool rebuild = false;
 
-            foreach (TagData tag in tags)
+            foreach (TagData tag in Tags)
             {
                 if (tag.ApplyChanges)
                 {
@@ -131,9 +118,9 @@ namespace Musegician.TagEditor
 
             if (ID3Updates)
             {
-                foreach (long id in ids)
+                foreach (BaseData data in Data)
                 {
-                    IEnumerable<string> paths = RequestHandler.GetAffectedFiles(context, id);
+                    IEnumerable<string> paths = RequestHandler.GetAffectedFiles(data);
 
                     foreach (string path in paths)
                     {
@@ -164,7 +151,7 @@ namespace Musegician.TagEditor
                             continue;
                         }
 
-                        UpdateTags(file, tags);
+                        UpdateTags(file, Tags);
 
                         file.Save();
                     }
@@ -183,7 +170,7 @@ namespace Musegician.TagEditor
         {
             e.Handled = true;
 
-            foreach (TagData tag in tags)
+            foreach (TagData tag in Tags)
             {
                 tag.Reset();
             }
@@ -213,7 +200,7 @@ namespace Musegician.TagEditor
                     {
                         if (tag is TagDataString data)
                         {
-                            RequestHandler.UpdateRecord(context, ids, record, data.NewValue);
+                            RequestHandler.UpdateRecord(Data, record, data.NewValue);
                         }
                     }
                     break;
@@ -221,9 +208,9 @@ namespace Musegician.TagEditor
                 case MusicRecord.TrackNumber:
                 case MusicRecord.DiscNumber:
                     {
-                        if (tag is TagDataLong data)
+                        if (tag is TagDataInt data)
                         {
-                            RequestHandler.UpdateRecord(context, ids, record, data.NewLong);
+                            RequestHandler.UpdateRecord(Data, record, data.NewInt);
                         }
                     }
                     break;
@@ -231,7 +218,7 @@ namespace Musegician.TagEditor
                     {
                         if (tag is TagDataBool data)
                         {
-                            RequestHandler.UpdateRecord(context, ids, record, data.NewValue);
+                            RequestHandler.UpdateRecord(Data, record, data.NewValue);
                         }
                     }
                     break;
@@ -283,25 +270,25 @@ namespace Musegician.TagEditor
                             break;
                         case ID3TagType.Year:
                             {
-                                if (tag is TagDataLong data)
+                                if (tag is TagDataInt data)
                                 {
-                                    file.Tag.Year = (uint)data.NewLong;
+                                    file.Tag.Year = (uint)data.NewInt;
                                 }
                             }
                             break;
                         case ID3TagType.Track:
                             {
-                                if (tag is TagDataLong data)
+                                if (tag is TagDataInt data)
                                 {
-                                    file.Tag.Track = (uint)data.NewLong;
+                                    file.Tag.Track = (uint)data.NewInt;
                                 }
                             }
                             break;
                         case ID3TagType.Disc:
                             {
-                                if (tag is TagDataLong data)
+                                if (tag is TagDataInt data)
                                 {
-                                    file.Tag.Disc = (uint)data.NewLong;
+                                    file.Tag.Disc = (uint)data.NewInt;
                                 }
                             }
                             break;

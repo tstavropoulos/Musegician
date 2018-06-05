@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Musegician.Database;
 using Musegician.DataStructures;
 
 namespace Musegician.Library
@@ -12,11 +13,11 @@ namespace Musegician.Library
         #region Constructors
 
         public DirectoryViewModel(
-            DirectoryDTO album,
+            DirectoryDTO directory,
             DirectoryViewModel parent,
             bool lazyLoadChildren = true)
             : base(
-                  data: album,
+                  data: directory,
                   parent: parent,
                   lazyLoadChildren: lazyLoadChildren)
         {
@@ -25,15 +26,9 @@ namespace Musegician.Library
         #endregion Constructors
         #region Properties
 
-        public DirectoryDTO _directory
-        {
-            get { return Data as DirectoryDTO; }
-        }
+        public DirectoryDTO _directory => Data as DirectoryDTO;
 
-        public DirectoryViewModel Up
-        {
-            get { return Parent as DirectoryViewModel; }
-        }
+        public DirectoryViewModel Up => Parent as DirectoryViewModel;
 
         public string Path
         {
@@ -50,13 +45,11 @@ namespace Musegician.Library
             base.LoadChildren(dataManager);
             foreach (DirectoryDTO data in dataManager.GetDirectories(Path))
             {
-                Data.Children.Add(data);
                 Children.Add(new DirectoryViewModel(data, this));
             }
 
-            foreach (RecordingDTO data in dataManager.GetDirectoryRecordings(Path))
+            foreach (Recording data in dataManager.GetDirectoryRecordings(Path))
             {
-                Data.Children.Add(data);
                 Children.Add(new RecordingViewModel(data, this));
             }
         }

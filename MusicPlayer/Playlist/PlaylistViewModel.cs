@@ -5,17 +5,15 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Musegician.DataStructures;
+using Musegician.Database;
 
 namespace Musegician.Playlist
 {
     public abstract class PlaylistViewModel : INotifyPropertyChanged
     {
         #region Data
-
-        protected readonly ObservableCollection<PlaylistViewModel> _children;
-        protected readonly DTO _data;
-        protected readonly PlaylistViewModel _parent;
+        
+        protected readonly BaseData _data;
 
         bool _isExpanded;
         bool _isSelected;
@@ -24,34 +22,20 @@ namespace Musegician.Playlist
         #endregion Data
         #region Constructor
 
-        public PlaylistViewModel(DTO data, PlaylistViewModel parent)
+        public PlaylistViewModel(BaseData data, PlaylistViewModel parent)
         {
             _data = data;
-            _parent = parent;
-
-            _children = new ObservableCollection<PlaylistViewModel>();
+            Parent = parent;
         }
 
         #endregion Constructor
         #region Properties
 
-        public ObservableCollection<PlaylistViewModel> Children
-        {
-            get { return _children; }
-        }
+        public ObservableCollection<PlaylistViewModel> Children { get; } = new ObservableCollection<PlaylistViewModel>();
 
-        public string Title
-        {
-            get { return _data.Name; }
-            set
-            {
-                _data.Name = value;
-                OnPropertyChanged("Title");
-            }
-        }
+        public abstract string Title { get; set; }
 
         private bool _playing = false;
-
         public bool Playing
         {
             get { return _playing; }
@@ -59,16 +43,6 @@ namespace Musegician.Playlist
             {
                 _playing = value;
                 OnPropertyChanged("Playing");
-            }
-        }
-
-        public long ID
-        {
-            get { return _data.ID; }
-            set
-            {
-                _data.ID = value;
-                OnPropertyChanged("ID");
             }
         }
 
@@ -94,10 +68,7 @@ namespace Musegician.Playlist
             }
         }
 
-        public bool IsDim
-        {
-            get { return Weight == 0.0; }
-        }
+        public bool IsDim => (Weight == 0.0);
 
         #endregion Properties
         #region Presentation Members
@@ -117,9 +88,9 @@ namespace Musegician.Playlist
                     OnPropertyChanged("IsExpanded");
                 }
 
-                if (_isExpanded && _parent != null)
+                if (_isExpanded && Parent != null)
                 {
-                    _parent.IsExpanded = true;
+                    Parent.IsExpanded = true;
                 }
             }
         }
@@ -165,10 +136,7 @@ namespace Musegician.Playlist
         #endregion ShowDropLine
         #region Parent
 
-        public PlaylistViewModel Parent
-        {
-            get { return _parent; }
-        }
+        public PlaylistViewModel Parent { get; }
 
         #endregion Parent
         #endregion Presentation Members

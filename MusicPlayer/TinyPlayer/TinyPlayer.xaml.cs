@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Musegician.Core;
+using Musegician.Database;
 
 namespace Musegician.TinyPlayer
 {
@@ -84,9 +85,9 @@ namespace Musegician.TinyPlayer
             }
         }
 
-        private void RecordingStarted(long id)
+        private void RecordingStarted(Recording recording)
         {
-            albumArt.Source = FileManager.Instance.GetAlbumArtForRecording(id);
+            albumArt.Source = FileManager.Instance.GetAlbumArtForRecording(recording);
         }
 
         private void Toolbar_RestoreWindow(object sender, RoutedEventArgs e)

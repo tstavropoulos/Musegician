@@ -14,7 +14,7 @@ namespace Musegician.Playlist
         void Rebuild(IEnumerable<PlaylistSong> songs);
         void RemoveIndices(IEnumerable<int> indices);
         void MarkIndex(int index);
-        void MarkRecordingIndex(int index);
+        void MarkRecording(PlaylistRecording playlistRecording);
         void UnmarkAll();
         void Rearrange(IEnumerable<int> sourceIndices, int targetIndex);
     }

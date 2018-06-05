@@ -12,7 +12,7 @@ namespace Musegician.TagEditor
     {
         public DataTemplate BoolTemplate { get; set; }
         public DataTemplate StringTemplate { get; set; }
-        public DataTemplate LongTemplate { get; set; }
+        public DataTemplate IntTemplate { get; set; }
         public DataTemplate ViewableTemplate { get; set; }
 
         public override DataTemplate SelectTemplate(object obj, DependencyObject c)
@@ -25,9 +25,9 @@ namespace Musegician.TagEditor
             {
                 return StringTemplate;
             }
-            else if (obj is DataStructures.TagDataLong)
+            else if (obj is DataStructures.TagDataInt)
             {
-                return LongTemplate;
+                return IntTemplate;
             }
             else if (obj is DataStructures.TagViewable)
             {

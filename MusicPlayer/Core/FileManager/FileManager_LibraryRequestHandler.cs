@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Musegician.DataStructures;
 using Musegician.Library;
 using Musegician.Database;
+using Musegician.DataStructures;
 
 namespace Musegician
 {
@@ -67,9 +67,85 @@ namespace Musegician
             db.SaveChanges();
         }
 
-        List<DirectoryDTO> ILibraryRequestHandler.GetDirectories(string path)
+        IEnumerable<DirectoryDTO> ILibraryRequestHandler.GetDirectories(string path)
         {
-            return recordingCommands.GetDirectories(path);
+            List<DirectoryDTO> directoryList = new List<DirectoryDTO>();
+            HashSet<string> directorySet = new HashSet<string>();
+
+            var readTracks =
+                (from recording in db.Recordings
+                 where recording.Filename.StartsWith(path)
+                 orderby recording.Filename ascending
+                 select recording.Filename).Distinct();
+
+            string currentChunk = "";
+            int directoryChunkDepth = -1;
+            foreach (string recordingPath in readTracks)
+            {
+                string relativepath;
+
+                if (path == "")
+                {
+                    relativepath = recordingPath;
+                }
+                else
+                {
+                    relativepath = recordingPath.Substring(path.Length);
+                }
+
+                if (relativepath.Contains(System.IO.Path.DirectorySeparatorChar))
+                {
+                    if (directoryChunkDepth < 0)
+                    {
+                        //Initialization
+                        directoryChunkDepth = _CountDirectories(relativepath);
+                        currentChunk = _GrabPathChunk(relativepath, directoryChunkDepth);
+                    }
+
+                    string relativeDirChunk = _GrabPathChunk(relativepath, directoryChunkDepth);
+
+                    while (directoryChunkDepth > 1)
+                    {
+                        //Possible Directory Collapse Condition
+                        if (currentChunk == relativeDirChunk)
+                        {
+                            //Matches the deep comparison, keep going
+                            break;
+                        }
+
+                        //Otherwise I need to decrement directoryChunkDepth
+                        --directoryChunkDepth;
+                        //Update my chunks
+                        currentChunk = _GrabPathChunk(currentChunk, directoryChunkDepth);
+                        relativeDirChunk = _GrabPathChunk(relativepath, directoryChunkDepth);
+                        //And add this old chunk if we've hit one (otherwise it's been skipped)
+                        if (directoryChunkDepth == 1)
+                        {
+                            if (directorySet.Add(currentChunk))
+                            {
+                                directoryList.Add(new DirectoryDTO(currentChunk));
+                            }
+                        }
+                    }
+
+                    if (directoryChunkDepth == 1)
+                    {
+                        //Branching - we will just add every subdir
+                        if (directorySet.Add(relativeDirChunk))
+                        {
+                            directoryList.Add(new DirectoryDTO(relativeDirChunk));
+                        }
+                    }
+                }
+            }
+
+            if (directoryChunkDepth > 1)
+            {
+                //Stash my one, multi-directory chunk
+                directoryList.Add(new DirectoryDTO(currentChunk));
+            }
+
+            return directoryList;
         }
 
         IEnumerable<Recording> ILibraryRequestHandler.GetDirectoryRecordings(string path)
@@ -81,5 +157,34 @@ namespace Musegician
         }
 
         #endregion ILibraryRequestHandler
+
+        private string _GrabPathChunk(string path, int directories)
+        {
+            int index = 0;
+            for (int i = 0; i < directories; i++)
+            {
+                index = path.IndexOf(System.IO.Path.DirectorySeparatorChar, index + 1);
+                if (index == -1)
+                {
+                    return "";
+                }
+            }
+
+            return path.Substring(0, index);
+        }
+
+        private int _CountDirectories(string path)
+        {
+            int index = 0;
+            int count = -1;
+            while (index > -1)
+            {
+                index = path.IndexOf(System.IO.Path.DirectorySeparatorChar, index + 1);
+                ++count;
+            }
+
+            return count;
+
+        }
     }
 }

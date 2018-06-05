@@ -19,7 +19,7 @@ namespace Musegician.Library
         IEnumerable<Album> GenerateAlbumList();
         IEnumerable<Song> GenerateArtistSongList(Artist artist);
 
-        List<DirectoryDTO> GetDirectories(string path);
+        IEnumerable<DirectoryDTO> GetDirectories(string path);
         IEnumerable<Recording> GetDirectoryRecordings(string path);
 
         void DatabaseUpdated();

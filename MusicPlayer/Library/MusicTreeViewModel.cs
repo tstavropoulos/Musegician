@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Threading.Tasks;
 using Musegician.DataStructures;
+using Musegician.Database;
 using System.ComponentModel;
 
 namespace Musegician.Library
@@ -75,7 +76,7 @@ namespace Musegician.Library
                         classicLoaded = true;
                         _classicArtistViewModels.Clear();
 
-                        foreach (ArtistDTO artist in requestHandler.GenerateArtistList())
+                        foreach (Artist artist in requestHandler.GenerateArtistList())
                         {
                             _classicArtistViewModels.Add(new ArtistViewModel(artist, ViewMode.Classic));
                         }
@@ -87,7 +88,7 @@ namespace Musegician.Library
                         simpleLoaded = true;
                         _simpleArtistViewModels.Clear();
 
-                        foreach (ArtistDTO artist in requestHandler.GenerateArtistList())
+                        foreach (Artist artist in requestHandler.GenerateArtistList())
                         {
                             _simpleArtistViewModels.Add(new ArtistViewModel(artist, ViewMode.Simple));
                         }
@@ -100,7 +101,7 @@ namespace Musegician.Library
                         albumLoaded = true;
                         _albumViewModels.Clear();
 
-                        foreach (AlbumDTO album in requestHandler.GenerateAlbumList())
+                        foreach (Album album in requestHandler.GenerateAlbumList())
                         {
                             _albumViewModels.Add(new AlbumViewModel(album, null));
                         }
@@ -471,18 +472,30 @@ namespace Musegician.Library
             Playlist.LookupEventArgs e,
             ICollection<LibraryViewModel> models)
         {
+
+            LibraryContext context = LibraryContext.MAX;
+
+            if (e.data is Song)
+            {
+                context = LibraryContext.Song;
+            }
+            else if (e.data is Recording)
+            {
+                context = LibraryContext.Recording;
+            }
+
             foreach (LibraryViewModel model in models)
             {
-                switch (e.context)
+                switch (context)
                 {
                     case LibraryContext.Song:
-                        if (model is SongViewModel song && song.ID == e.id)
+                        if (model is SongViewModel song && song.Data == e.data)
                         {
                             yield return song;
                         }
                         break;
                     case LibraryContext.Recording:
-                        if (model is RecordingViewModel recording && recording.ID == e.id)
+                        if (model is RecordingViewModel recording && recording.Data == e.data)
                         {
                             yield return recording;
                         }
@@ -492,7 +505,7 @@ namespace Musegician.Library
                     case LibraryContext.Track:
                     case LibraryContext.MAX:
                     default:
-                        throw new ArgumentException("Unexpected LibraryContext: " + e.context);
+                        throw new ArgumentException("Unexpected LibraryContext: " + context);
                 }
                 
                 //Can't lazy-load children if we need to search through them

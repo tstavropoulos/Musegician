@@ -14,7 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Musegician.Core;
-using Musegician.DataStructures;
+using Musegician.Database;
 
 namespace Musegician.Playlist
 {
@@ -104,7 +104,7 @@ namespace Musegician.Playlist
             PlaylistMan.RemoveListener(this);
         }
 
-        private void Rebuild(ICollection<SongDTO> songs)
+        private void Rebuild(IEnumerable<PlaylistSong> songs)
         {
             if (!DesignerProperties.GetIsInDesignMode(this))
             {
@@ -115,7 +115,7 @@ namespace Musegician.Playlist
 
         private void ClearPlaylist()
         {
-            Rebuild(new List<SongDTO>());
+            Rebuild(new List<PlaylistSong>());
         }
 
         private void OnItemMouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -130,7 +130,7 @@ namespace Musegician.Playlist
                         return;
                     }
 
-                    PlaylistMan.PlayIndex(_playlistTree.PlaylistViewModels.IndexOf(song));
+                    PlaylistMan.PlaySong(song.PlaylistSong);
                 }
                 else if (treeItem.Header is PlaylistRecordingViewModel recording)
                 {
@@ -140,10 +140,7 @@ namespace Musegician.Playlist
                         return;
                     }
 
-                    int songIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
-                    int recordingIndex = _playlistTree.PlaylistViewModels[songIndex].Children.IndexOf(recording);
-
-                    PlaylistMan.PlayRecording(songIndex, recordingIndex);
+                    PlaylistMan.PlayRecording(recording.PlaylistSong.PlaylistSong, recording.PlaylistRecording);
                 }
             }
         }
@@ -168,16 +165,11 @@ namespace Musegician.Playlist
         {
             if (model is PlaylistSongViewModel song)
             {
-                int index = _playlistTree.PlaylistViewModels.IndexOf(song);
-
-                PlaylistMan.PlayIndex(index);
+                PlaylistMan.PlaySong(song.PlaylistSong);
             }
             else if (model is PlaylistRecordingViewModel recording)
             {
-                int songIndex = _playlistTree.PlaylistViewModels.IndexOf(recording.Song);
-                int recordingIndex = _playlistTree.PlaylistViewModels[songIndex].Children.IndexOf(recording);
-
-                PlaylistMan.PlayRecording(songIndex, recordingIndex);
+                PlaylistMan.PlayRecording(recording.PlaylistSong.PlaylistSong, recording.PlaylistRecording);
             }
             else
             {
@@ -340,36 +332,6 @@ namespace Musegician.Playlist
                         throw new Exception("Unexpected KeyboardAction: " + action);
                 }
             }
-        }
-
-        private (PlaylistContext context, List<(long id, double weight)> values) ExtractContextIDAndWeights()
-        {
-            IEnumerable<PlaylistViewModel> selectedItems = PlaylistTree.SelectedItems.OfType<PlaylistViewModel>();
-
-            PlaylistContext context = PlaylistContext.MAX;
-            List<(long id, double weight)> weightList = new List<(long id, double weight)>();
-
-
-            if (selectedItems.Count() > 0)
-            {
-                PlaylistViewModel firstSelectedItem = selectedItems.First();
-
-                if (firstSelectedItem is PlaylistSongViewModel song)
-                {
-                    context = PlaylistContext.Song;
-                }
-                else if (firstSelectedItem is PlaylistRecordingViewModel recording)
-                {
-                    context = PlaylistContext.Recording;
-                }
-
-                foreach (PlaylistViewModel model in selectedItems)
-                {
-                    weightList.Add((model.ID, model.Weight));
-                }
-            }
-
-            return (context, weightList);
         }
 
         #region Drag Handling
@@ -582,22 +544,22 @@ namespace Musegician.Playlist
         #endregion Drag Handling
         #region IPlaylistUpdateListener
 
-        void IPlaylistUpdateListener.Rebuild(ICollection<SongDTO> songs)
+        void IPlaylistUpdateListener.Rebuild(IEnumerable<PlaylistSong> songs)
         {
             Rebuild(songs);
         }
 
-        void IPlaylistUpdateListener.AddBack(ICollection<SongDTO> songs)
+        void IPlaylistUpdateListener.AddBack(IEnumerable<PlaylistSong> songs)
         {
             _playlistTree.Add(songs);
         }
 
-        void IPlaylistUpdateListener.InsertSongs(int index, ICollection<SongDTO> songs)
+        void IPlaylistUpdateListener.InsertSongs(int index, IEnumerable<PlaylistSong> songs)
         {
             _playlistTree.InsertRange(index, songs);
         }
 
-        void IPlaylistUpdateListener.RemoveIndices(ICollection<int> indices)
+        void IPlaylistUpdateListener.RemoveIndices(IEnumerable<int> indices)
         {
             List<int> indexCopy = new List<int>(indices);
 
@@ -621,16 +583,12 @@ namespace Musegician.Playlist
             }
         }
 
-        void IPlaylistUpdateListener.MarkRecordingIndex(int index)
+        void IPlaylistUpdateListener.MarkRecording(PlaylistRecording playlistRecording)
         {
-            if (index >= 0 && index < PlayingSong.Children.Count)
-            {
-                PlayingRecording = PlayingSong.Children[index] as PlaylistRecordingViewModel;
-            }
-            else
-            {
-                PlayingRecording = null;
-            }
+            PlayingRecording = (from recording in PlayingSong.Children
+                                where recording is PlaylistRecordingViewModel recordingVM &&
+                                recordingVM.PlaylistRecording == playlistRecording
+                                select recording as PlaylistRecordingViewModel).FirstOrDefault();
         }
 
         void IPlaylistUpdateListener.UnmarkAll()

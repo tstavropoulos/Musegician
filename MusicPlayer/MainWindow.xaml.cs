@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using LibraryContext = Musegician.Library.LibraryContext;
+using Musegician.Database;
 using Microsoft.Win32;
 
 namespace Musegician
@@ -89,28 +89,13 @@ namespace Musegician
             Player.MusicManager.Instance.CleanUp();
         }
 
-        private void Library_Request_Edit(LibraryContext context, IList<long> ids)
+        private void Library_Request_Edit(IEnumerable<BaseData> data)
         {
-            switch (context)
-            {
-                case LibraryContext.Artist:
-                case LibraryContext.Album:
-                case LibraryContext.Song:
-                case LibraryContext.Track:
-                case LibraryContext.Recording:
-                    //Do Nothing
-                    break;
-                case LibraryContext.MAX:
-                default:
-                    Console.WriteLine("Unexpected LibraryContext: " + context + ".  Likey error.");
-                    return;
-            }
-
-            TagEditor.TagEditor tagEditor = new TagEditor.TagEditor(context, ids);
+            TagEditor.TagEditor tagEditor = new TagEditor.TagEditor(data);
             tagEditor.Show();
         }
 
-        private void Library_Request_Edit_Art(LibraryContext context, long id)
+        private void Library_Request_Edit_Art(Album data)
         {
             OpenFileDialog dialog = new OpenFileDialog()
             {
@@ -124,7 +109,7 @@ namespace Musegician
 
             if (val.HasValue && val.Value)
             {
-                FileMan.SetAlbumArt(id, dialog.FileName);
+                FileMan.SetAlbumArt(data as Album, dialog.FileName);
                 libraryControl.Rebuild();
             }
         }

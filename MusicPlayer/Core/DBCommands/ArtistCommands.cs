@@ -37,42 +37,42 @@ namespace Musegician.Core.DBCommands
 
         #region High Level Commands
 
-        public void UpdateArtistName(IEnumerable<long> artistIDs, string newArtistName)
+        public void UpdateArtistName(IEnumerable<Artist> artists, string newArtistName)
         {
-            List<long> artistIDsCopy = new List<long>(artistIDs);
-            
-            //First, find out if the new artist exists
-            long artistID = _FindArtist_ByName(newArtistName);
+            List<Artist> artistsCopy = new List<Artist>(artists);
 
-            if (artistID == -1)
+            //First, find out if the new artist exists
+            Artist matchingArtist = db.Artists
+                .Where(x => x.Name == newArtistName)
+                .FirstOrDefault();
+
+            if (matchingArtist == null)
             {
                 //Update an Artist's name, because it doesn't exist
 
                 //Pop off the front
-                artistID = artistIDsCopy[0];
-                artistIDsCopy.RemoveAt(0);
+                matchingArtist = artistsCopy[0];
+                artistsCopy.RemoveAt(0);
 
-                //Update the artist formerly in the front
-                _UpdateArtistName_ByArtistID(
-                    transaction: updateArtist,
-                    artistID: artistID,
-                    artistName: newArtistName);
+                matchingArtist.Name = newArtistName;
             }
 
-            if (artistIDsCopy.Count > 0)
+            if (artistsCopy.Count > 0)
             {
                 //For the remaining artists, Remap foreign keys
-                _RemapForeignKeys(
-                    transaction: updateArtist,
-                    newArtistID: artistID,
-                    oldArtistIDs: artistIDsCopy);
+                foreach (Recording recording in
+                    (from recording in db.Recordings
+                     where artistsCopy.Contains(recording.Artist)
+                     select recording))
+                {
+                    recording.Artist = matchingArtist;
+                }
 
                 //Now, delete any old artists with no remaining recordings
-                _DeleteAllLeafs(
-                    transaction: updateArtist);
+                db.Artists.RemoveRange(artistsCopy);
             }
 
-            updateArtist.Commit();
+            db.SaveChanges();
         }
 
         public IEnumerable<Artist> GeneratArtistList()
@@ -82,298 +82,77 @@ namespace Musegician.Core.DBCommands
                     select artist);
         }
 
-        public IList<DeredundafierDTO> GetDeredundancyTargets()
+        public IEnumerable<DeredundafierDTO> GetDeredundancyTargets()
         {
             List<DeredundafierDTO> targets = new List<DeredundafierDTO>();
 
-            dbConnection.Open();
+            var artistNameSetsQ = (from artist in db.Artists
+                                   group artist by artist.Name into artistNameSets
+                                   where artistNameSets.Count() > 1
+                                   select artistNameSets);
 
-            SQLiteCommand findTargets = dbConnection.CreateCommand();
-            findTargets.CommandType = System.Data.CommandType.Text;
-            findTargets.CommandText =
-                "SELECT name " +
-                "FROM artist " +
-                "GROUP BY name COLLATE NOCASE " +
-                "HAVING count(*) > 1;";
-
-            using (SQLiteDataReader reader = findTargets.ExecuteReader())
+            foreach (var set in artistNameSetsQ)
             {
-                while (reader.Read())
+                DeredundafierDTO target = new DeredundafierDTO()
                 {
-                    targets.Add(_GetDeredunancyTarget((string)reader["name"]));
-                }
-            }
+                    Name = set.Key
+                };
+                targets.Add(target);
 
-            dbConnection.Close();
-
-            return targets;
-        }
-
-        public void Merge(IEnumerable<long> ids)
-        {
-            List<long> artistIDsCopy = new List<long>(ids);
-
-            long artistID = artistIDsCopy[0];
-            artistIDsCopy.RemoveAt(0);
-
-            dbConnection.Open();
-
-            using (SQLiteTransaction transaction = dbConnection.BeginTransaction())
-            {
-                _RemapForeignKeys(
-                    transaction: transaction,
-                    newArtistID: artistID,
-                    oldArtistIDs: artistIDsCopy);
-
-                _DeleteArtistID(
-                    transaction: transaction,
-                    artistIDs: artistIDsCopy);
-
-                transaction.Commit();
-            }
-
-            dbConnection.Close();
-        }
-
-        #endregion High Level Commands
-        #region Search Commands
-
-        public long _FindArtist_ByName(string artistName)
-        {
-            long artistID = -1;
-
-            SQLiteCommand findArtist = dbConnection.CreateCommand();
-            findArtist.CommandType = System.Data.CommandType.Text;
-            findArtist.Parameters.Add(new SQLiteParameter("@artistName", artistName));
-            findArtist.CommandText =
-                "SELECT id " +
-                "FROM artist " +
-                "WHERE name=@artistName COLLATE NOCASE " +
-                "LIMIT 1;";
-
-            using (SQLiteDataReader reader = findArtist.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    artistID = (long)reader["id"];
-                }
-            }
-
-            return artistID;
-        }
-
-        private DeredundafierDTO _GetDeredunancyTarget(string name)
-        {
-            DeredundafierDTO target = new DeredundafierDTO()
-            {
-                Name = name
-            };
-
-            SQLiteCommand findOptions = dbConnection.CreateCommand();
-            findOptions.CommandType = System.Data.CommandType.Text;
-            findOptions.CommandText =
-                "SELECT id, name " +
-                "FROM artist " +
-                "WHERE name=@artistName COLLATE NOCASE;";
-            findOptions.Parameters.Add(new SQLiteParameter("@artistName", name));
-
-            //Match them all up
-            using (SQLiteDataReader innerReader = findOptions.ExecuteReader())
-            {
-                while (innerReader.Read())
+                foreach (Artist artist in set)
                 {
                     DeredundafierDTO selector = new SelectorDTO()
                     {
-                        Name = (string)innerReader["name"],
-                        ID = (long)innerReader["id"],
+                        Name = artist.Name,
+                        Data = artist,
                         IsChecked = false
                     };
 
                     target.Children.Add(selector);
 
-                    foreach (DeredundafierDTO data in _GetDeredundancyTrackExamples(selector.ID))
+                    foreach (Recording recording in artist.Recordings.Take(10))
                     {
-                        selector.Children.Add(data);
+                        selector.Children.Add(new DeredundafierDTO()
+                        {
+                            Name = $"{recording.Artist} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}",
+                            Data = recording
+                        });
                     }
                 }
             }
 
-            return target;
+            return targets;
         }
 
-        private IList<DeredundafierDTO> _GetDeredundancyTrackExamples(long artistID)
+        public void Merge(IEnumerable<BaseData> data)
         {
-            List<DeredundafierDTO> examples = new List<DeredundafierDTO>();
+            List<Artist> artistsCopy = new List<Artist>(data.Select(x => x as Artist).Distinct());
 
-            SQLiteCommand readRecordings = dbConnection.CreateCommand();
-            readRecordings.CommandType = System.Data.CommandType.Text;
-            readRecordings.CommandText =
-                "SELECT " +
-                    "recording.id AS recording_id, " +
-                    "artist.name || ' - ' || album.title || ' - ' || track.title AS title " +
-                "FROM artist " +
-                "LEFT JOIN recording ON recording.artist_id=artist.id " +
-                "LEFT JOIN track ON recording.id=track.recording_id " +
-                "LEFT JOIN album ON track.album_id=album.id " +
-                "WHERE artist.id=@artistID;";
-            readRecordings.Parameters.Add(new SQLiteParameter("@artistID", artistID));
+            Artist matchingArtist = artistsCopy[0];
+            artistsCopy.RemoveAt(0);
 
-            using (SQLiteDataReader reader = readRecordings.ExecuteReader())
+            //For the remaining artists, Remap foreign keys
+            foreach (Recording recording in
+                (from recording in db.Recordings
+                 where artistsCopy.Contains(recording.Artist)
+                 select recording))
             {
-                while (reader.Read())
-                {
-                    examples.Add(new DeredundafierDTO()
-                    {
-                        Name = (string)reader["title"],
-                        ID = (long)reader["recording_id"]
-                    });
-                }
+                recording.Artist = matchingArtist;
             }
 
-            return examples;
+            //Now, delete any old artists with no remaining recordings
+            db.Artists.RemoveRange(artistsCopy);
+
+            db.SaveChanges();
         }
 
-        #endregion Search Commands
-        //#region Lookup Commands
-
-        //public void _PopulateLookup(
-        //Dictionary<string, long> artistNameDict)
-        //{
-        //    SQLiteCommand loadArtists = dbConnection.CreateCommand();
-        //    loadArtists.CommandType = System.Data.CommandType.Text;
-        //    loadArtists.CommandText =
-        //        "SELECT id, name " +
-        //        "FROM artist;";
-
-        //    using (SQLiteDataReader reader = loadArtists.ExecuteReader())
-        //    {
-        //        while (reader.Read())
-        //        {
-        //            string artistName = (string)reader["name"];
-        //            long artistID = (long)reader["id"];
-
-        //            if (!artistNameDict.ContainsKey(artistName.ToLowerInvariant()))
-        //            {
-        //                artistNameDict.Add(artistName.ToLowerInvariant(), artistID);
-        //            }
-        //        }
-        //    }
-        //}
-
-        //#endregion Lookup Commands
-        #region Update Commands
-
-        public void _UpdateArtistName_ByArtistID(
-            MusegicianData db,
-            long artistID,
-            string artistName)
-        {
-
-            SQLiteCommand updateArtistName_ByArtistID = dbConnection.CreateCommand();
-            updateArtistName_ByArtistID.Transaction = transaction;
-            updateArtistName_ByArtistID.CommandType = System.Data.CommandType.Text;
-            updateArtistName_ByArtistID.Parameters.Add(new SQLiteParameter("@artistName", artistName));
-            updateArtistName_ByArtistID.Parameters.Add(new SQLiteParameter("@artistID", artistID));
-            updateArtistName_ByArtistID.CommandText =
-                "UPDATE artist " +
-                    "SET name=@artistName " +
-                    "WHERE id=@artistID;";
-
-            updateArtistName_ByArtistID.ExecuteNonQuery();
-        }
-
-        public void _RemapForeignKeys(
-            SQLiteTransaction transaction,
-            long newArtistID,
-            ICollection<long> oldArtistIDs)
-        {
-            recordingCommands._RemapArtistID(
-                transaction: transaction,
-                newArtistID: newArtistID,
-                oldArtistIDs: oldArtistIDs);
-        }
-
-        #endregion Update Commands
-        #region Insert Commands
-
-        public long _CreateArtist(
-            SQLiteTransaction transaction,
-            string artistName)
-        {
-            long artistID = -1;
-
-            SQLiteCommand createArtist = dbConnection.CreateCommand();
-            createArtist.Transaction = transaction;
-            createArtist.CommandType = System.Data.CommandType.Text;
-            createArtist.CommandText =
-                "INSERT INTO artist " +
-                    "(id, name) VALUES " +
-                    "(@artistID, @artistName);";
-            createArtist.Parameters.Add(new SQLiteParameter("@artistID", artistID));
-            createArtist.Parameters.Add(new SQLiteParameter("@artistName", artistName));
-            createArtist.ExecuteNonQuery();
-
-            return artistID;
-        }
-
-
-        #endregion Insert Commands
+        #endregion High Level Commands
         #region Delete Commands
 
         public void _DropTable()
         {
             var allArtists = from artist in db.Artists select artist;
             db.Artists.RemoveRange(allArtists);
-        }
-
-        public void _DeleteArtistID(
-            SQLiteTransaction transaction,
-            ICollection<long> artistIDs)
-        {
-            SQLiteCommand deleteArtist_ByArtistID = dbConnection.CreateCommand();
-            deleteArtist_ByArtistID.Transaction = transaction;
-            deleteArtist_ByArtistID.CommandType = System.Data.CommandType.Text;
-            deleteArtist_ByArtistID.Parameters.Add("@artistID", DbType.Int64);
-            deleteArtist_ByArtistID.CommandText =
-                "DELETE FROM artist " +
-                "WHERE id=@artistID;";
-
-            SQLiteCommand deleteArtistWeight_ByArtistID = dbConnection.CreateCommand();
-            deleteArtistWeight_ByArtistID.Transaction = transaction;
-            deleteArtistWeight_ByArtistID.CommandType = System.Data.CommandType.Text;
-            deleteArtistWeight_ByArtistID.Parameters.Add("@artistID", DbType.Int64);
-            deleteArtistWeight_ByArtistID.CommandText =
-                "DELETE FROM artist_weight " +
-                "WHERE artist_id=@artistID;";
-
-            foreach (long id in artistIDs)
-            {
-                deleteArtist_ByArtistID.Parameters["@artistID"].Value = id;
-                deleteArtist_ByArtistID.ExecuteNonQuery();
-
-                deleteArtistWeight_ByArtistID.Parameters["@artistID"].Value = id;
-                deleteArtistWeight_ByArtistID.ExecuteNonQuery();
-            }
-        }
-
-        /// <summary>
-        /// Dekete all artists with no recordings pointing at them
-        /// </summary>
-        /// <param name="transaction"></param>
-        public void _DeleteAllLeafs(
-            SQLiteTransaction transaction)
-        {
-            SQLiteCommand deleteLeafs = dbConnection.CreateCommand();
-            deleteLeafs.Transaction = transaction;
-            deleteLeafs.CommandType = System.Data.CommandType.Text;
-            deleteLeafs.CommandText =
-                "DELETE FROM artist " +
-                "WHERE id IN ( " +
-                    "SELECT artist.id " +
-                    "FROM artist " +
-                    "LEFT JOIN recording ON artist.id=recording.artist_id " +
-                    "WHERE recording.artist_id IS NULL );";
-            deleteLeafs.ExecuteNonQuery();
         }
 
         #endregion Delete Commands

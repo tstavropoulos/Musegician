@@ -1,5 +1,4 @@
-﻿using Musegician.DataStructures;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -7,43 +6,36 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
+using Musegician.Database;
 
 namespace Musegician.Playlist
 {
     public class MockPlaylistViewModel
     {
-        #region Data
-
-        readonly ObservableCollection<PlaylistSongViewModel> _playlistViewModels;
-
-        #endregion Data
         #region Constructor
 
         public MockPlaylistViewModel()
         {
             MockDB db = new MockDB();
 
-            List<SongDTO> songlist = db.GenerateSongList();
+            List<PlaylistSong> songlist = db.GenerateSongList();
 
-            _playlistViewModels = new ObservableCollection<PlaylistSongViewModel>(
+            PlaylistViewModels = new ObservableCollection<PlaylistSongViewModel>(
                 (from song in songlist
                  select new PlaylistSongViewModel(song))
                      .ToList());
 
-            _playlistViewModels[7].IsExpanded = true;
-            _playlistViewModels[7].Playing = true;
-            _playlistViewModels[7].Children[0].IsSelected = true;
-            _playlistViewModels[7].Children[0].Playing = true;
-            _playlistViewModels[10].IsExpanded = true;
+            PlaylistViewModels[7].IsExpanded = true;
+            PlaylistViewModels[7].Playing = true;
+            PlaylistViewModels[7].Children[0].IsSelected = true;
+            PlaylistViewModels[7].Children[0].Playing = true;
+            PlaylistViewModels[10].IsExpanded = true;
         }
 
         #endregion Constructor
         #region ViewModels
 
-        public ObservableCollection<PlaylistSongViewModel> PlaylistViewModels
-        {
-            get { return _playlistViewModels; }
-        }
+        public ObservableCollection<PlaylistSongViewModel> PlaylistViewModels { get; }
 
         #endregion ViewModels
     }
@@ -54,111 +46,163 @@ namespace Musegician.Playlist
     {
         #region Data
 
-        (long id, string name)[] artists;
-        (long id, long artistID, string name, string art)[] albums;
-        (long id, long albumID, string name)[] songs;
-        (long id, long songID, long homeAlbum, bool live, string title)[] recordings;
+        private List<Artist> Artists { get; } = new List<Artist>();
+        private List<Album> Albums { get; } = new List<Album>();
+        private List<Song> Songs { get; } = new List<Song>();
+        private List<Recording> Recordings { get; } = new List<Recording>();
+        private List<Track> Tracks { get; } = new List<Track>();
+
+        private int artistID = 0;
+        private int albumID = 0;
+        private int songID = 0;
+        private int trackID = 0;
+        private int recordingID = 0;
 
         #endregion Data
         #region Constructor
 
         public MockDB()
         {
-            //ID, Name
-            artists = new(long, string)[]
+            //Aerosmith
             {
-                (0, "Aerosmith"),
-                (1, "Billy Joel"),
-                (2, "Steely Dan")
-            };
+                Artist aerosmith = new Artist()
+                {
+                    Id = artistID++,
+                    Name = "Aerosmith",
+                    Weight = 1.0
+                };
+                Artists.Add(aerosmith);
 
-            //ID, ArtistID, Name, ArtFileName
-            albums = new(long, long, string, string)[]
-            {
-                (0, 0, "Permanent Vacation", @"MockDBResources\0.jpg"),
-                (1, 0, "Toys In The Attic",  @"MockDBResources\1.jpg"),
-                (2, 1, "Storm Front",        @"MockDBResources\2.jpg"),
-                (3, 1, "Songs In The Attic", @"MockDBResources\3.jpg"),
-                (4, 2, "Two Against Nature", @"MockDBResources\4.jpg")
-            };
+                Album permanentVacation = new Album()
+                {
+                    Id = albumID++,
+                    Title = "Permanent Vacation",
+                    Image = LoadImage(@"MockDBResources\0.jpg"),
+                    Weight = 1.0,
+                    Year = 1987
+                };
+                Albums.Add(permanentVacation);
 
-            //ID, AlbumID, Name
-            songs = new(long, long, string)[]
-            {
-                ( 0, 0, "Heart's Done Time"),
-                ( 1, 0, "Magic Touch"),
-                ( 2, 0, "Rag Doll"),
-                ( 3, 1, "Toys In The Attic"),
-                ( 4, 1, "Uncle Salty"),
-                ( 5, 1, "Adam's Apple"),
-                ( 6, 2, "Storm Front"),
-                ( 7, 2, "We Didn't Start The Fire"),
-                ( 8, 2, "Leningrad"),
-                ( 9, 2, "State of Grace"),
-                ( 7, 3, "We Didn't Start The Fire"),
-                (10, 3, "A Matter Of Trust"),
-                (11, 4, "Gaslighting Abbie"),
-                (12, 4, "What A Shame"),
-                (13, 4, "Two Against Nature"),
-                (14, 4, "Janie Runaway"),
-                (15, 4, "Almost Gothic"),
-                (16, 4, "Jack of Speed"),
-                (17, 4, "Cousin Dupree"),
-                (18, 4, "Negative Girl"),
-                (19, 4, "West of Hollywood")
-            };
+                AddSimple("Heart's Done Time", 1, aerosmith, permanentVacation);
+                AddSimple("Magic Touch", 2, aerosmith, permanentVacation);
+                AddSimple("Rag Doll", 3, aerosmith, permanentVacation);
 
-            //ID, SongID, homeAlbum, live, title
-            recordings = new(long, long, long, bool, string)[]
+                Album toysInTheAttic = new Album()
+                {
+                    Id = albumID++,
+                    Title = "Toys In The Attic",
+                    Image = LoadImage(@"MockDBResources\1.jpg"),
+                    Weight = 1.0,
+                    Year = 1975
+                };
+                Albums.Add(toysInTheAttic);
+
+                AddSimple("Toys In The Attic", 1, aerosmith, toysInTheAttic);
+                AddSimple("Uncle Salty", 2, aerosmith, toysInTheAttic);
+                AddSimple("Adam's Apple", 3, aerosmith, toysInTheAttic);
+            }
+
+            //Billy Joel
             {
-                ( 0,  0, 0, false, "Heart's Done Time"),
-                ( 1,  1, 0, false, "Magic Touch"),
-                ( 2,  2, 0, false, "Rag Doll"),
-                ( 3,  3, 1, false, "Toys In The Attic"),
-                ( 4,  4, 1, false, "Uncle Salty"),
-                ( 5,  5, 1, false, "Adam's Apple"),
-                ( 6,  6, 2, false, "Storm Front"),
-                ( 7,  7, 2, false, "We Didn't Start The Fire"),
-                ( 8,  8, 2, false, "Leningrad"),
-                ( 9,  9, 2, false, "State of Grace"),
-                (10,  7, 3,  true, "We Didn't Start The Fire"),
-                (11, 10, 3,  true, "A Matter Of Trust"),
-                (12, 11, 4, false, "Gaslighting Abbie"),
-                (13, 12, 4, false, "What A Shame"),
-                (14, 13, 4, false, "Two Against Nature"),
-                (15, 14, 4, false, "Janie Runaway"),
-                (16, 15, 4, false, "Almost Gothic"),
-                (17, 16, 4, false, "Jack of Speed"),
-                (18, 17, 4, false, "Cousin Dupree"),
-                (19, 18, 4, false, "Negative Girl"),
-                (20, 19, 4, false, "West of Hollywood")
-            };
+                Artist billyJoel = new Artist()
+                {
+                    Id = artistID++,
+                    Name = "Billy Joel",
+                    Weight = 1.0
+                };
+                Artists.Add(billyJoel);
+
+                Album stormFront = new Album()
+                {
+                    Id = albumID++,
+                    Title = "Storm Front",
+                    Image = LoadImage(@"MockDBResources\2.jpg"),
+                    Weight = 1.0,
+                    Year = 1989
+                };
+                Albums.Add(stormFront);
+
+                AddSimple("Storm Front", 1, billyJoel, stormFront);
+                Song fireSong = AddSimple("We Didn't Start The Fire", 2, billyJoel, stormFront);
+                AddSimple("Leningrad", 3, billyJoel, stormFront);
+                AddSimple("State of Grace", 4, billyJoel, stormFront);
+
+                Album songsInTheAttic = new Album()
+                {
+                    Id = albumID++,
+                    Title = "Songs In The Attic",
+                    Image = LoadImage(@"MockDBResources\3.jpg"),
+                    Weight = 1.0,
+                    Year = 1981
+                };
+                Albums.Add(stormFront);
+                AddExisting("We Didn't Start The Fire (Live)", 1, fireSong, billyJoel, songsInTheAttic, true);
+                AddSimple("A Matter Of Trust", 2, billyJoel, songsInTheAttic, true);
+            }
+
+            //Steely Dan
+            {
+                Artist steelyDan = new Artist()
+                {
+                    Id = artistID++,
+                    Name = "Steely Dan",
+                    Weight = 1.0
+                };
+                Artists.Add(steelyDan);
+
+                Album twoAgainstNature = new Album()
+                {
+                    Id = albumID++,
+                    Title = "Two Against Nature",
+                    Image = LoadImage(@"MockDBResources\4.jpg"),
+                    Weight = 1.0,
+                    Year = 2000
+                };
+                Albums.Add(twoAgainstNature);
+
+                AddSimple("Gaslighting Abbie", 1, steelyDan, twoAgainstNature);
+                AddSimple("What A Shame", 2, steelyDan, twoAgainstNature);
+                AddSimple("Two Against Nature", 3, steelyDan, twoAgainstNature);
+                AddSimple("Janie Runaway", 4, steelyDan, twoAgainstNature);
+                AddSimple("Almost Gothic", 5, steelyDan, twoAgainstNature);
+                AddSimple("Jack of Speed", 6, steelyDan, twoAgainstNature);
+                AddSimple("Cousin Dupree", 7, steelyDan, twoAgainstNature);
+                AddSimple("Negative Girl", 8, steelyDan, twoAgainstNature);
+                AddSimple("West of Hollywood", 9, steelyDan, twoAgainstNature);
+
+            }
         }
 
         #endregion Constructor
         #region Public Data Interface
 
-        public List<SongDTO> GenerateSongList()
+        public List<PlaylistSong> GenerateSongList()
         {
-            List<SongDTO> songList = new List<SongDTO>();
+            List<PlaylistSong> songList = new List<PlaylistSong>();
 
-            foreach (var song in songs)
+            foreach (var song in Songs)
             {
-                string title = string.Format(
-                    "{0} - {1}",
-                    GetArtistName(GetAlbumArtist(song.albumID)),
-                    song.name);
+                string artistName = "Various";
 
-                SongDTO newSong = new SongDTO(
-                    songID: song.id,
-                    title: title);
-
-                foreach(RecordingDTO recording in GenerateSongRecordingList(song.id))
+                var artistList = song.Recordings.Select(x => x.Artist).Distinct();
+                if (artistList.Count() == 1)
                 {
-                    newSong.Children.Add(recording);
+                    artistName = artistList.First().Name;
                 }
 
-                songList.Add(newSong);
+                PlaylistSong newPlaylistSong = new PlaylistSong(
+                    song: song,
+                    title: $"{artistName} - {song.Title}");
+
+                foreach (Recording recording in song.Recordings)
+                {
+                    newPlaylistSong.PlaylistRecordings.Add(
+                        new PlaylistRecording(
+                            recording,
+                            $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}"));
+                }
+
+                songList.Add(newPlaylistSong);
             }
 
             return songList;
@@ -167,85 +211,88 @@ namespace Musegician.Playlist
         #endregion Public Data Interface
         #region Helper Methods
 
-        List<RecordingDTO> GenerateSongRecordingList(long songID)
+        private Song AddSimple(
+            string title,
+            int trackNum,
+            Artist artist,
+            Album album,
+            bool live = false)
         {
-            List<RecordingDTO> recordingList = new List<RecordingDTO>();
-
-            foreach (var recording in recordings)
+            Song simpleSong = new Song()
             {
-                if (songID == recording.songID)
-                {
-                    recordingList.Add(new RecordingDTO()
-                    {
-                        ID = recording.id,
-                        Name = GetAlbumArtistName(recording.homeAlbum) + " - " +
-                            GetAlbumName(recording.homeAlbum) + " - " + recording.title,
-                        Live = recording.live,
-                        IsHome = true,
-                        Weight = (recording.live ? 0.1 : 1.0)
-                    });
-                }
-            }
+                Id = songID,
+                Title = title,
+                Weight = 1.0
+            };
 
-            return recordingList;
-        }
-        
+            Songs.Add(simpleSong);
 
-        private string GetAlbumName(long albumID)
-        {
-            foreach(var album in albums)
+            Recording simpleRecording = new Recording()
             {
-                if(album.id == albumID)
-                {
-                    return album.name;
-                }
-            }
+                Id = recordingID++,
+                Filename = "",
+                Live = live,
+                Artist = artist,
+                Song = simpleSong
+            };
+            Recordings.Add(simpleRecording);
 
-            return "";
-        }
-
-        private string GetAlbumArtistName(long albumID)
-        {
-            return GetArtistName(GetAlbumArtist(albumID));
-        }
-
-        private long GetAlbumArtist(long albumID)
-        {
-            foreach (var album in albums)
+            Track simpleTrack = new Track()
             {
-                if (album.id == albumID)
-                {
-                    return album.artistID;
-                }
-            }
+                Id = trackID,
+                Title = title,
+                TrackNumber = trackNum,
+                DiscNumber = 1,
+                Album = album,
+                Recording = simpleRecording,
+                Weight = 1.0
+            };
+            Tracks.Add(simpleTrack);
 
-            return -1;
+            return simpleSong;
         }
 
-        private long GetSongAlbum(long songID)
-        {
-            foreach(var song in songs)
-            {
-                if(song.id == songID)
-                {
-                    return song.albumID;
-                }
-            }
 
-            return -1;
+        private void AddExisting(
+            string title,
+            int trackNum,
+            Song song,
+            Artist artist,
+            Album album,
+            bool live = false)
+        {
+            Recording simpleRecording = new Recording()
+            {
+                Id = recordingID++,
+                Filename = "",
+                Live = live,
+                Artist = artist,
+                Song = song
+            };
+            Recordings.Add(simpleRecording);
+
+            Track simpleTrack = new Track()
+            {
+                Id = trackID,
+                Title = title,
+                TrackNumber = trackNum,
+                DiscNumber = 1,
+                Album = album,
+                Recording = simpleRecording,
+                Weight = 1.0
+            };
+            Tracks.Add(simpleTrack);
         }
 
-        private string GetArtistName(long artistID)
+        private static byte[] LoadImage(string path)
         {
-            foreach (var artist in artists)
+            string filePath = Path.Combine(FileUtility.GetDataPath(), path);
+            if (File.Exists(filePath))
             {
-                if (artist.id == artistID)
-                {
-                    return artist.name;
-                }
+                return File.ReadAllBytes(filePath);
             }
 
-            return "";
+            return null;
         }
 
         #endregion Helper Methods

@@ -46,44 +46,49 @@ namespace Musegician.Core.DBCommands
         /// </summary>
         /// <param name="songIDs"></param>
         /// <param name="newTitle"></param>
-        public void UpdateSongTitle(IEnumerable<long> trackIDs, string newTitle)
+        public void UpdateSongTitle(IEnumerable<Track> tracks, string newTitle)
         {
-            List<long> trackIDsCopy = new List<long>(trackIDs);
+            //Are there any songs by the indicated artists with the same name?
+            Song matchingSong = tracks.SelectMany(x => x.Recording.Artist.Recordings)
+                .Select(x => x.Song)
+                .Distinct()
+                .Where(x => x.Title == newTitle)
+                .FirstOrDefault();
 
-            dbConnection.Open();
-
-            //First, grab the current songID:
-            long oldSongID = _FindSongID(
-                trackID: trackIDsCopy[0]);
-
-            //Is there a song currently by the same artist with the same name?
-            long newSongID = songCommands._FindSongID_ByTitle_MatchSongArtist(
-                songTitle: newTitle,
-                oldSongID: oldSongID);
-
-
-            using (SQLiteTransaction updateSongTitles = dbConnection.BeginTransaction())
+            if (matchingSong == null)
             {
-                if (newSongID == -1)
+                //New Song did not exist
+                //  We need to create the new song
+                matchingSong = new Song()
                 {
-                    //New Song did not exist
-                    //  We need to create the new song
-                    newSongID = songCommands._CreateSong(
-                        transaction: updateSongTitles,
-                        songTitle: newTitle);
-                }
+                    Title = newTitle,
+                    Weight = double.NaN
+                };
 
-                //New song did exist, or we passed in more than one track
-                //Update track table to point at new song
-                recordingCommands._ReassignSongIDs_ByTrackID(
-                    transaction: updateSongTitles,
-                    songID: newSongID,
-                    trackIDs: trackIDsCopy);
-
-                updateSongTitles.Commit();
+                db.Songs.Add(matchingSong);
             }
 
-            dbConnection.Close();
+            var recordingSet = tracks.Select(x => x.Recording).Distinct();
+            
+            //Update track table to point at new song
+            foreach (Recording recording in recordingSet)
+            {
+                recording.Song = matchingSong;
+            }
+
+            foreach (PlaylistRecording plRecording in db.PlaylistRecordings
+                .Where(x => recordingSet.Contains(x.Recording)))
+            {
+                plRecording.PlaylistSong.Song = matchingSong;
+            }
+
+            //Delete Leafs
+            db.Songs.RemoveRange(
+                from song in db.Songs
+                where song.Recordings.Count == 0
+                select song);
+
+            db.SaveChanges();
         }
 
         /// <summary>
@@ -91,350 +96,113 @@ namespace Musegician.Core.DBCommands
         /// </summary>
         /// <param name="songIDs"></param>
         /// <param name="newTitle"></param>
-        public void UpdateArtistName(IEnumerable<long> trackIDs, string newArtistName)
+        public void UpdateArtistName(IEnumerable<Track> tracks, string newArtistName)
         {
-            List<long> songIDsCopy = new List<long>(trackIDs);
+            //Moving (or Creating) tracks under a new artist
+            Artist matchingArtist = db.Artists.Where(x => x.Name == newArtistName).FirstOrDefault();
 
-            //Renaming (or Consolidating) a Song
-            dbConnection.Open();
-
-            long artistID = artistCommands._FindArtist_ByName(
-                artistName: newArtistName);
-
-            using (SQLiteTransaction updateArtistName = dbConnection.BeginTransaction())
+            if (matchingArtist == null)
             {
-                if (artistID == -1)
+                matchingArtist = new Artist()
                 {
-                    //New Artist did not exist
-                    //  We need to Create one
+                    Name = newArtistName,
+                    Weight = double.NaN
+                };
 
-                    //Update the song formerly in the front
-                    artistID = artistCommands._CreateArtist(
-                        transaction: updateArtistName,
-                        artistName: newArtistName);
-                }
-
-                //Update the recording ArtistIDs
-                recordingCommands._ReassignArtistIDs_ByTrackID(
-                    transaction: updateArtistName,
-                    artistID: artistID,
-                    trackIDs: trackIDs);
-
-                //Now, delete any old artists with no remaining recordings
-               artistCommands._DeleteAllLeafs(
-                    transaction: updateArtistName);
-
-                updateArtistName.Commit();
+                db.Artists.Add(matchingArtist);
             }
 
-            dbConnection.Close();
-        }
-
-        public void UpdateAlbumTitle(IEnumerable<long> trackIDs, string newAlbumTitle)
-        {
-            dbConnection.Open();
-
-            //Is there a song currently by the same artist with the same name?
-            long newAlbumId = albumCommands._FindAlbum_ByName_MatchArtist(
-                albumTitle: newAlbumTitle,
-                oldAlbumID: _FindAlbumID(trackIDs.First()));
-
-
-            using (SQLiteTransaction updateAlbumTitles = dbConnection.BeginTransaction())
-            {
-                if (newAlbumId == -1)
-                {
-                    //New Album did not exist
-                    //  We need to create the new album
-                    newAlbumId = albumCommands._CreateAlbum(
-                        transaction: updateAlbumTitles,
-                        albumTitle: newAlbumTitle);
-                }
-
-                //New album did exist, or we passed in more than one track
-                //Update track table to point at new album
-                _ReassignAlbumID(
-                    transaction: updateAlbumTitles,
-                    albumID: newAlbumId,
-                    trackIDs: trackIDs);
-
-                updateAlbumTitles.Commit();
-            }
-
-            dbConnection.Close();
+            var recordingSet = tracks.Select(x => x.Recording).Distinct();
             
+            //Update track table to point at new Artist
+            foreach (Recording recording in recordingSet)
+            {
+                recording.Artist = matchingArtist;
+            }
+
+            //Delete Leafs
+            db.Artists.RemoveRange(db.Artists.Where(x => x.Recordings.Count == 0));
+
+            db.SaveChanges();
         }
 
-        public void UpdateTrackTitle(IEnumerable<long> trackIDs, string newTrackTitle)
+        public void UpdateAlbumTitle(IEnumerable<Track> tracks, string newAlbumTitle)
         {
-            dbConnection.Open();
-            
-            using (SQLiteTransaction updateTrackTitles = dbConnection.BeginTransaction())
+            //Is there an album currently by the same artist with the same name?
+            Album matchingAlbum = tracks.SelectMany(x => x.Recording.Artist.Recordings)
+                .Distinct()
+                .SelectMany(x => x.Tracks)
+                .Select(x => x.Album)
+                .Where(x => x.Title == newAlbumTitle).FirstOrDefault();
+
+            if (matchingAlbum == null)
             {
-                foreach (long trackID in trackIDs)
+                //New Album did not exist
+                //  We need to create the new album
+                matchingAlbum = new Album()
                 {
-                    _UpdateTrackTitle(
-                        transaction: updateTrackTitles,
-                        trackID: trackID,
-                        trackTitle: newTrackTitle);
-                }
+                    Title = newAlbumTitle,
+                    Weight = double.NaN,
+                    Year = 0
+                };
 
-                updateTrackTitles.Commit();
+                db.Albums.Add(matchingAlbum);
             }
 
-            dbConnection.Close();
+            //Update tracks to point at new album
+            foreach(Track track in tracks)
+            {
+                track.Album = matchingAlbum;
+            }
+
+            //Delete leafs
+            db.Albums.RemoveRange(db.Albums.Where(x => x.Tracks.Count == 0));
+
+            db.SaveChanges();
+
         }
 
-        public void UpdateTrackNumber(IEnumerable<long> trackIDs, long newTrackNumber)
+        public void UpdateTrackTitle(IEnumerable<Track> tracks, string newTrackTitle)
         {
-            dbConnection.Open();
-            
-            using (SQLiteTransaction updateTrackNumbers = dbConnection.BeginTransaction())
+            foreach (Track track in tracks)
             {
-                foreach (long trackID in trackIDs)
-                {
-                    _UpdateTrackNumber(
-                        transaction: updateTrackNumbers,
-                        trackID: trackID,
-                        trackNumber: newTrackNumber);
-                }
-
-                updateTrackNumbers.Commit();
+                track.Title = newTrackTitle;
             }
 
-            dbConnection.Close();
+            db.SaveChanges();
         }
 
-        public void UpdateDisc(IEnumerable<long> trackIDs, long newDisc)
+        public void UpdateTrackNumber(IEnumerable<Track> tracks, int newTrackNumber)
         {
-            dbConnection.Open();
-
-            using (SQLiteTransaction updateAlbumYears = dbConnection.BeginTransaction())
+            foreach (Track track in tracks)
             {
-                foreach (long trackID in trackIDs)
-                {
-                    _UpdateDisc(
-                        transaction: updateAlbumYears,
-                        trackID: trackID,
-                        newDisc: newDisc);
-                }
-
-                updateAlbumYears.Commit();
+                track.TrackNumber = newTrackNumber;
             }
 
-            dbConnection.Close();
+            db.SaveChanges();
         }
 
-        public void UpdateLive(IEnumerable<long> trackIDs, bool newLiveValue)
+        public void UpdateDisc(IEnumerable<Track> tracks, int newDisc)
         {
-            dbConnection.Open();
-
-            using (SQLiteTransaction updateLive = dbConnection.BeginTransaction())
+            foreach (Track track in tracks)
             {
-                foreach (long trackID in trackIDs)
-                {
-                    _UpdateLiveValue(
-                        transaction: updateLive,
-                        trackID: trackID,
-                        newLiveValue: newLiveValue);
-                }
-
-                updateLive.Commit();
+                track.DiscNumber = newDisc;
             }
 
-            dbConnection.Close();
+            db.SaveChanges();
         }
 
-        public void UpdateWeights(IList<(long trackID, double weight)> values)
+        public void UpdateLive(IEnumerable<Track> tracks, bool newLiveValue)
         {
-            dbConnection.Open();
-
-            SQLiteCommand updateWeight = dbConnection.CreateCommand();
-            updateWeight.CommandType = System.Data.CommandType.Text;
-            updateWeight.CommandText =
-                "INSERT OR REPLACE INTO track_weight " +
-                "(track_id, weight) VALUES " +
-                "(@trackID, @weight);";
-            updateWeight.Parameters.Add("@trackID", DbType.Int64);
-            updateWeight.Parameters.Add("@weight", DbType.Double);
-
-            foreach (var value in values)
+            foreach (Track track in tracks)
             {
-                updateWeight.Parameters["@trackID"].Value = value.trackID;
-                updateWeight.Parameters["@weight"].Value = value.weight;
-                updateWeight.ExecuteNonQuery();
+                track.Recording.Live = newLiveValue;
             }
 
-            dbConnection.Close();
+            db.SaveChanges();
         }
 
         #endregion High Level Commands
-        #region Search Commands
-
-        public long _FindSongID(long trackID)
-        {
-            long songID = -1;
-
-            SQLiteCommand findSongID = dbConnection.CreateCommand();
-            findSongID.CommandType = System.Data.CommandType.Text;
-            findSongID.Parameters.Add(new SQLiteParameter("@trackID", trackID));
-            findSongID.CommandText =
-                "SELECT recording.song_id " +
-                "FROM track " +
-                "LEFT JOIN recording ON track.recording_id=recording.id " +
-                "WHERE track.id=@trackID;";
-
-            using (SQLiteDataReader reader = findSongID.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    songID = (long)reader["song_id"];
-                }
-            }
-
-            return songID;
-        }
-
-        public long _FindAlbumID(long trackID)
-        {
-            long albumID = -1;
-
-            SQLiteCommand findAlbumID = dbConnection.CreateCommand();
-            findAlbumID.CommandType = System.Data.CommandType.Text;
-            findAlbumID.Parameters.Add(new SQLiteParameter("@trackID", trackID));
-            findAlbumID.CommandText =
-                "SELECT album_id " +
-                "FROM track " +
-                "WHERE id=@trackID;";
-
-            using (SQLiteDataReader reader = findAlbumID.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    albumID = (long)reader["album_id"];
-                }
-            }
-
-            return albumID;
-        }
-
-        #endregion Search Commands
-        #region Update Commands
-
-        public void _UpdateTrackTitle(
-            SQLiteTransaction transaction,
-            long trackID,
-            string trackTitle)
-        {
-            SQLiteCommand updateTrackTitle = dbConnection.CreateCommand();
-            updateTrackTitle.Transaction = transaction;
-            updateTrackTitle.CommandType = System.Data.CommandType.Text;
-            updateTrackTitle.Parameters.Add(new SQLiteParameter("@trackID", trackID));
-            updateTrackTitle.Parameters.Add(new SQLiteParameter("@trackTitle", trackTitle));
-            updateTrackTitle.CommandText =
-                "UPDATE track " +
-                    "SET title=@trackTitle " +
-                    "WHERE id=@trackID;";
-            updateTrackTitle.ExecuteNonQuery();
-        }
-
-        public void _UpdateTrackNumber(
-            SQLiteTransaction transaction,
-            long trackID,
-            long trackNumber)
-        {
-            SQLiteCommand updateTrackNumber = dbConnection.CreateCommand();
-            updateTrackNumber.Transaction = transaction;
-            updateTrackNumber.CommandType = System.Data.CommandType.Text;
-            updateTrackNumber.Parameters.Add(new SQLiteParameter("@trackID", trackID));
-            updateTrackNumber.Parameters.Add(new SQLiteParameter("@trackNumber", trackNumber));
-            updateTrackNumber.CommandText =
-                "UPDATE track " +
-                    "SET track_number=@trackNumber " +
-                    "WHERE id=@trackID;";
-            updateTrackNumber.ExecuteNonQuery();
-        }
-
-        public void _UpdateDisc(
-            SQLiteTransaction transaction,
-            long trackID,
-            long newDisc)
-        {
-            SQLiteCommand updateTrackDisc = dbConnection.CreateCommand();
-            updateTrackDisc.Transaction = transaction;
-            updateTrackDisc.CommandType = System.Data.CommandType.Text;
-            updateTrackDisc.Parameters.Add(new SQLiteParameter("@trackID", trackID));
-            updateTrackDisc.Parameters.Add(new SQLiteParameter("@albumDisc", newDisc));
-            updateTrackDisc.CommandText =
-                "UPDATE track " +
-                    "SET disc_number=@albumDisc " +
-                    "WHERE id=@trackID;";
-            updateTrackDisc.ExecuteNonQuery();
-        }
-
-        public void _UpdateLiveValue(
-            SQLiteTransaction transaction,
-            long trackID,
-            bool newLiveValue)
-        {
-            SQLiteCommand updateTrackLive = dbConnection.CreateCommand();
-            updateTrackLive.Transaction = transaction;
-            updateTrackLive.CommandType = System.Data.CommandType.Text;
-            updateTrackLive.Parameters.Add(new SQLiteParameter("@trackID", trackID));
-            updateTrackLive.Parameters.Add(new SQLiteParameter("@live", newLiveValue));
-            updateTrackLive.CommandText =
-                "UPDATE recording " +
-                    "SET live=@live " +
-                    "WHERE id IN ( " +
-                        "SELECT recording_id " +
-                        "FROM track " +
-                        "WHERE id=@trackID);";
-            updateTrackLive.ExecuteNonQuery();
-        }
-
-        public void _ReassignAlbumID(
-            SQLiteTransaction transaction,
-            long albumID,
-            IEnumerable<long> trackIDs)
-        {
-            SQLiteCommand remapSongID = dbConnection.CreateCommand();
-            remapSongID.Transaction = transaction;
-            remapSongID.CommandType = System.Data.CommandType.Text;
-            remapSongID.Parameters.Add(new SQLiteParameter("@albumID", albumID));
-            remapSongID.Parameters.Add("@trackID", DbType.Int64);
-            remapSongID.CommandText =
-                "UPDATE track " +
-                    "SET album_id=@albumID " +
-                    "WHERE id=@trackID;";
-            foreach (long id in trackIDs)
-            {
-                remapSongID.Parameters["@trackID"].Value = id;
-                remapSongID.ExecuteNonQuery();
-            }
-        }
-
-        public void _RemapAlbumID(
-            SQLiteTransaction transaction,
-            long newAlbumID,
-            IEnumerable<long> oldAlbumIDs)
-        {
-            SQLiteCommand remapAlbumID = dbConnection.CreateCommand();
-            remapAlbumID.Transaction = transaction;
-            remapAlbumID.CommandType = System.Data.CommandType.Text;
-            remapAlbumID.Parameters.Add(new SQLiteParameter("@newAlbumID", newAlbumID));
-            remapAlbumID.Parameters.Add("@oldAlbumID", DbType.Int64);
-            remapAlbumID.CommandText =
-                "UPDATE track " +
-                    "SET album_id=@newAlbumID " +
-                    "WHERE album_id=@oldAlbumID;";
-            foreach (long id in oldAlbumIDs)
-            {
-                remapAlbumID.Parameters["@oldAlbumID"].Value = id;
-                remapAlbumID.ExecuteNonQuery();
-            }
-        }
-
-        #endregion Update Commands
         #region Delete Commands
 
         public void _DropTable()

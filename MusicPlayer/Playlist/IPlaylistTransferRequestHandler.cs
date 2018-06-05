@@ -27,7 +27,6 @@ namespace Musegician.Playlist
             Recording recording);
 
         string GetDefaultPlaylistName(
-            LibraryContext context,
             BaseData data);
     }
 }

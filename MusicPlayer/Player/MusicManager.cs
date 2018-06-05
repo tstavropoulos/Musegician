@@ -14,6 +14,7 @@ using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows;
 using Musegician.AudioUtilities;
+using Musegician.Database;
 
 using PlaylistManager = Musegician.Playlist.PlaylistManager;
 using PlayData = Musegician.DataStructures.PlayData;
@@ -178,7 +179,6 @@ namespace Musegician.Player
         #region Data
 
         PlayData lastPlay;
-
         DispatcherTimer playTimer;
 
         bool prepareNext = false;
@@ -462,9 +462,9 @@ namespace Musegician.Player
             }
         }
 
-        public delegate void IDNotifier(long id);
-        private event IDNotifier _RecordingStarted;
-        public event IDNotifier RecordingStarted
+        public delegate void RecordingNotifier(Recording recording);
+        private event RecordingNotifier _RecordingStarted;
+        public event RecordingNotifier RecordingStarted
         {
             add
             {
@@ -472,7 +472,7 @@ namespace Musegician.Player
                 if (State == PlayerState.Playing ||
                     State == PlayerState.Paused)
                 {
-                    value?.Invoke(lastPlay.recordingID);
+                    value?.Invoke(lastPlay.recording);
                 }
             }
 
@@ -629,7 +629,7 @@ namespace Musegician.Player
         {
             lastPlay = playData;
 
-            if (string.IsNullOrEmpty(playData.filename))
+            if (string.IsNullOrEmpty(playData.recording.Filename))
             {
                 return;
             }
@@ -638,7 +638,7 @@ namespace Musegician.Player
 
             CleanUp();
 
-            if (!System.IO.File.Exists(playData.filename))
+            if (!System.IO.File.Exists(playData.recording.Filename))
             {
                 return;
             }
@@ -647,7 +647,7 @@ namespace Musegician.Player
             _spatializer = null;
             _equalizer = null;
 
-            ISampleSource sampleSource = CodecFactory.Instance.GetCodec(playData.filename)
+            ISampleSource sampleSource = CodecFactory.Instance.GetCodec(playData.recording.Filename)
                 .ToSampleSource()
                 .ToStereo()
                 .AppendSource(SpectralPowerStream.CreatePowerStream, out spectralPowerStream);
@@ -690,7 +690,7 @@ namespace Musegician.Player
 
             _soundOut.Play();
 
-            _RecordingStarted?.Invoke(playData.recordingID);
+            _RecordingStarted?.Invoke(playData.recording);
 
             Length = _waveSource.GetLength().TotalSeconds;
             NonFeedbackPosition = 0.0;

@@ -88,13 +88,12 @@ namespace Musegician.Playlist
 
             playlists.Clear();
 
-            foreach (PlaylistData data in RequestHandler.GetPlaylistInfo())
+            foreach (var (title, count) in RequestHandler.GetPlaylistInfo())
             {
                 playlists.Add(new PlaylistModelView()
                 {
-                    Name = data.title,
-                    SongCount = data.count,
-                    ID = data.id
+                    Name = title,
+                    SongCount = count
                 });
             }
         }
@@ -120,7 +119,7 @@ namespace Musegician.Playlist
                     else
                     {
                         //Load
-                        PlaylistManager.Instance.LoadPlaylist(item.ID);
+                        PlaylistManager.Instance.TryLoadPlaylist(item.Name);
                         PlaylistManager.Instance.PlaylistName = item.Name;
                         Close();
                     }
@@ -171,7 +170,7 @@ namespace Musegician.Playlist
             {
                 if (playlistList.SelectedItem is PlaylistModelView item)
                 {
-                    PlaylistManager.Instance.AppendPlaylist(item.ID);
+                    PlaylistManager.Instance.AppendPlaylist(item.Name);
                 }
             }
         }
@@ -182,7 +181,7 @@ namespace Musegician.Playlist
             {
                 if (playlistList.SelectedItem is PlaylistModelView item)
                 {
-                    PlaylistManager.Instance.DeletePlaylist(item.ID);
+                    PlaylistManager.Instance.DeletePlaylist(item.Name);
 
                     playlists.Remove(item);
                 }

@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Musegician.Database;
 
 namespace Musegician.Deredundafier
 {
@@ -25,19 +26,8 @@ namespace Musegician.Deredundafier
         #region Data
 
         DeredundancyMode mode = DeredundancyMode.Song;
-
-        IDeredundancyRequestHandler RequestHandler
-        {
-            get { return FileManager.Instance; }
-        }
-
-        Playlist.IPlaylistTransferRequestHandler PlaylistTransferRequestHandler
-        {
-            get
-            {
-                return FileManager.Instance;
-            }
-        }
+        IDeredundancyRequestHandler RequestHandler => FileManager.Instance;
+        Playlist.IPlaylistTransferRequestHandler PlaylistTransferRequestHandler => FileManager.Instance;
 
         DeredundafierViewTree _viewTree;
 
@@ -106,7 +96,7 @@ namespace Musegician.Deredundafier
 
         private void Deredundafier_Calculate(object sender, RoutedEventArgs e)
         {
-            IList<DeredundafierDTO> newModels = null;
+            IEnumerable<DeredundafierDTO> newModels = null;
 
             switch (mode)
             {
@@ -146,17 +136,17 @@ namespace Musegician.Deredundafier
             {
                 if (!model.ChildrenSelected.HasValue || model.ChildrenSelected.Value)
                 {
-                    List<long> ids = new List<long>();
+                    List<BaseData> data = new List<BaseData>();
 
                     foreach (SelectorViewModel selector in model.Children)
                     {
                         if (selector.IsChecked)
                         {
-                            ids.Add(selector.ID);
+                            data.Add(selector.Data.Data);
                         }
                     }
 
-                    if (ids.Count < 2)
+                    if (data.Count < 2)
                     {
                         Console.WriteLine("Not enough records to merge");
                         continue;
@@ -167,13 +157,13 @@ namespace Musegician.Deredundafier
                     switch (mode)
                     {
                         case DeredundancyMode.Artist:
-                            RequestHandler.MergeArtists(ids);
+                            RequestHandler.MergeArtists(data);
                             break;
                         case DeredundancyMode.Album:
-                            RequestHandler.MergeAlbums(ids);
+                            RequestHandler.MergeAlbums(data);
                             break;
                         case DeredundancyMode.Song:
-                            RequestHandler.MergeSongs(ids);
+                            RequestHandler.MergeSongs(data);
                             break;
                         case DeredundancyMode.MAX:
                         default:
@@ -205,7 +195,7 @@ namespace Musegician.Deredundafier
 
                     Playlist.PlaylistManager.Instance.PlaylistName = "";
                     Playlist.PlaylistManager.Instance.Rebuild(
-                        PlaylistTransferRequestHandler.GetSongData(recordingModel.ID));
+                        PlaylistTransferRequestHandler.GetSongData(recordingModel.Data.Data as Recording));
                     Player.MusicManager.Instance.Next();
                 }
             }

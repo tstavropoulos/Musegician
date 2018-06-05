@@ -5,7 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Musegician.DataStructures;
+using Musegician.Database;
 
 namespace Musegician.Playlist
 {
@@ -13,7 +13,7 @@ namespace Musegician.Playlist
     {
         #region Constructor
 
-        public PlaylistRecordingViewModel(RecordingDTO recording, PlaylistSongViewModel song)
+        public PlaylistRecordingViewModel(PlaylistRecording recording, PlaylistSongViewModel song)
             : base(recording, song)
         {
         }
@@ -21,31 +21,23 @@ namespace Musegician.Playlist
         #endregion Constructor
         #region Properties
 
-        public bool Live
-        {
-            get { return Recording.Live; }
-        }
+        public bool Live => PlaylistRecording.Recording.Live;
+        public string LiveString => Live ? "🎤" : "";
 
-        public string LiveString
+        public PlaylistRecording PlaylistRecording => _data as PlaylistRecording;
+        public PlaylistSongViewModel PlaylistSong => Parent as PlaylistSongViewModel;
+        
+        public override string Title
         {
-            get
+            get => PlaylistRecording.Title;
+            set
             {
-                if (Live)
+                if (Title != value)
                 {
-                    return "🎤";
+                    PlaylistRecording.Title = value;
+                    OnPropertyChanged("Title");
                 }
-                return "";
             }
-        }
-
-        public RecordingDTO Recording
-        {
-            get { return _data as RecordingDTO; }
-        }
-
-        public PlaylistSongViewModel Song
-        {
-            get { return _parent as PlaylistSongViewModel; }
         }
 
         #endregion Properties

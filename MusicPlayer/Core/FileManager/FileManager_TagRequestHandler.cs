@@ -4,6 +4,7 @@ using System.Linq;
 using System.Data.SQLite;
 using System.Text;
 using System.Threading.Tasks;
+using Musegician.Database;
 using Musegician.DataStructures;
 using Musegician.TagEditor;
 
@@ -15,364 +16,285 @@ namespace Musegician
     {
         #region ITagRequestHandler
 
-        IEnumerable<TagData> ITagRequestHandler.GetTagData(LibraryContext context, long id)
+        IEnumerable<TagData> ITagRequestHandler.GetTagData(BaseData data)
         {
             List<TagData> tagList = new List<TagData>();
 
-            dbConnection.Open();
-
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.Parameters.Add(new SQLiteParameter("@ID", id));
-
-            switch (context)
+            if (data is Artist artist)
             {
-                case LibraryContext.Artist:
-                    {
-                        readTracks.CommandText =
-                            "SELECT name AS artist_name " +
-                            "FROM artist " +
-                            "WHERE id=@ID;";
-                    }
-                    break;
-                case LibraryContext.Album:
-                    {
-                        readTracks.CommandText =
-                            "SELECT title AS album_title, year " +
-                            "FROM album " +
-                            "WHERE id=@ID;";
-                    }
-                    break;
-                case LibraryContext.Song:
-                    {
-                        readTracks.CommandText =
-                            "SELECT title AS song_title " +
-                            "FROM song " +
-                            "WHERE id=@ID;";
-                    }
-                    break;
-                case LibraryContext.Track:
-                    {
-                        readTracks.CommandText =
-                            "SELECT " +
-                                "song.title AS song_title, " +
-                                "artist.name AS artist_name, " +
-                                "album.title AS album_title, " +
-                                "album.year AS year, " +
-                                "track.title AS track_title, " +
-                                "track.track_number AS track_number, " +
-                                "track.disc_number AS disc_number," +
-                                "recording.filename AS filename, " +
-                                "recording.live AS live " +
-                            "FROM track " +
-                            "LEFT JOIN recording ON track.recording_id=recording.id " +
-                            "LEFT JOIN song ON recording.song_id=song.id " +
-                            "LEFT JOIN artist ON recording.artist_id=artist.id " +
-                            "LEFT JOIN album ON track.album_id=album.id " +
-                            "WHERE track.id=@ID;";
-                    }
-                    break;
-                case LibraryContext.Recording:
-                    {
-                        readTracks.CommandText =
-                            "SELECT " +
-                                "song.title AS song_title, " +
-                                "artist.name AS artist_name, " +
-                                "recording.filename AS filename, " +
-                                "recording.live AS live " +
-                            "FROM recording " +
-                            "LEFT JOIN song ON recording.song_id=song.id " +
-                            "LEFT JOIN artist ON recording.artist_id=artist.id " +
-                            "WHERE recording.id=@ID;";
-                    }
-                    break;
-                case LibraryContext.MAX:
-                default:
-                    dbConnection.Close();
-                    throw new Exception("Unexpected LibraryContext: " + context);
-            }
-
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
-            {
-                if (reader.Read())
+                tagList.Add(new TagDataString
                 {
-                    if (context == LibraryContext.Track ||
-                        context == LibraryContext.Recording)
-                    {
-                        tagList.Add(new TagViewable()
-                        {
-                            _CurrentValue = (string)reader["filename"],
-                            recordType = MusicRecord.Filename
-                        });
-
-                        tagList.Add(new TagDataBool()
-                        {
-                            _currentValue = (bool)reader["live"],
-                            NewValue = (bool)reader["live"],
-                            recordType = MusicRecord.Live
-                        });
-                    }
-
-                    if (context == LibraryContext.Track)
-                    {
-                        tagList.Add(new TagDataString
-                        {
-                            _currentValue = (string)reader["track_title"],
-                            NewValue = (string)reader["track_title"],
-                            recordType = MusicRecord.TrackTitle,
-                            tagType = ID3TagType.Title
-                        });
-
-                        tagList.Add(new TagDataLong
-                        {
-                            _currentValue = (long)reader["track_number"],
-                            _newValue = (long)reader["track_number"],
-                            recordType = MusicRecord.TrackNumber,
-                            tagType = ID3TagType.Track
-                        });
-
-                        tagList.Add(new TagDataLong
-                        {
-                            _currentValue = (long)reader["disc_number"],
-                            _newValue = (long)reader["disc_number"],
-                            recordType = MusicRecord.DiscNumber,
-                            tagType = ID3TagType.Disc
-                        });
-                    }
-
-                    if (context == LibraryContext.Song ||
-                        context == LibraryContext.Track ||
-                        context == LibraryContext.Recording)
-                    {
-                        tagList.Add(new TagDataString
-                        {
-                            _currentValue = (string)reader["song_title"],
-                            NewValue = (string)reader["song_title"],
-                            recordType = MusicRecord.SongTitle
-                        });
-                    }
-
-                    if (context == LibraryContext.Album ||
-                        context == LibraryContext.Track)
-                    {
-                        tagList.Add(new TagDataString
-                        {
-                            _currentValue = (string)reader["album_title"],
-                            NewValue = (string)reader["album_title"],
-                            recordType = MusicRecord.AlbumTitle,
-                            tagType = ID3TagType.Album
-                        });
-                    }
-
-                    if (context == LibraryContext.Album)
-                    {
-                        tagList.Add(new TagDataLong
-                        {
-                            _currentValue = (long)reader["year"],
-                            _newValue = (long)reader["year"],
-                            recordType = MusicRecord.AlbumYear,
-                            tagType = ID3TagType.Year
-                        });
-                    }
-
-                    if (context == LibraryContext.Artist ||
-                        context == LibraryContext.Track ||
-                        context == LibraryContext.Recording)
-                    {
-                        tagList.Add(new TagDataString
-                        {
-                            _currentValue = (string)reader["artist_name"],
-                            NewValue = (string)reader["artist_name"],
-                            recordType = MusicRecord.ArtistName,
-                            tagType = ID3TagType.Performer,
-                            tagTypeIndex = 0
-                        });
-                    }
-                }
+                    _currentValue = artist.Name,
+                    NewValue = artist.Name,
+                    recordType = MusicRecord.ArtistName,
+                    tagType = ID3TagType.Performer,
+                    tagTypeIndex = 0
+                });
             }
+            else if (data is Album album)
+            {
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = album.Title,
+                    NewValue = album.Title,
+                    recordType = MusicRecord.AlbumTitle,
+                    tagType = ID3TagType.Album
+                });
 
-            dbConnection.Close();
+                tagList.Add(new TagDataInt
+                {
+                    _currentValue = album.Year,
+                    _newValue = album.Year,
+                    recordType = MusicRecord.AlbumYear,
+                    tagType = ID3TagType.Year
+                });
+            }
+            else if (data is Song song)
+            {
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = song.Title,
+                    NewValue = song.Title,
+                    recordType = MusicRecord.SongTitle
+                });
+            }
+            else if (data is Track track)
+            {
+                tagList.Add(new TagViewable()
+                {
+                    _CurrentValue = track.Recording.Filename,
+                    recordType = MusicRecord.Filename
+                });
+
+                tagList.Add(new TagDataBool()
+                {
+                    _currentValue = track.Recording.Live,
+                    NewValue = track.Recording.Live,
+                    recordType = MusicRecord.Live
+                });
+
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = track.Title,
+                    NewValue = track.Title,
+                    recordType = MusicRecord.TrackTitle,
+                    tagType = ID3TagType.Title
+                });
+
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = track.Recording.Song.Title,
+                    NewValue = track.Recording.Song.Title,
+                    recordType = MusicRecord.SongTitle
+                });
+
+                tagList.Add(new TagDataInt
+                {
+                    _currentValue = track.TrackNumber,
+                    _newValue = track.TrackNumber,
+                    recordType = MusicRecord.TrackNumber,
+                    tagType = ID3TagType.Track
+                });
+
+                tagList.Add(new TagDataInt
+                {
+                    _currentValue = track.DiscNumber,
+                    _newValue = track.DiscNumber,
+                    recordType = MusicRecord.DiscNumber,
+                    tagType = ID3TagType.Disc
+                });
+
+                tagList.Add(new TagDataInt
+                {
+                    _currentValue = track.Album.Year,
+                    _newValue = track.Album.Year,
+                    recordType = MusicRecord.AlbumYear,
+                    tagType = ID3TagType.Year
+                });
+
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = track.Recording.Artist.Name,
+                    NewValue = track.Recording.Artist.Name,
+                    recordType = MusicRecord.ArtistName,
+                    tagType = ID3TagType.Performer,
+                    tagTypeIndex = 0
+                });
+            }
+            else if (data is Recording recording)
+            {
+                tagList.Add(new TagViewable()
+                {
+                    _CurrentValue = recording.Filename,
+                    recordType = MusicRecord.Filename
+                });
+
+                tagList.Add(new TagDataBool()
+                {
+                    _currentValue = recording.Live,
+                    NewValue = recording.Live,
+                    recordType = MusicRecord.Live
+                });
+
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = recording.Song.Title,
+                    NewValue = recording.Song.Title,
+                    recordType = MusicRecord.SongTitle
+                });
+
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = recording.Artist.Name,
+                    NewValue = recording.Artist.Name,
+                    recordType = MusicRecord.ArtistName,
+                    tagType = ID3TagType.Performer,
+                    tagTypeIndex = 0
+                });
+            }
 
             return tagList;
         }
 
 
-        IEnumerable<TagData> ITagRequestHandler.GetTagData(
-            LibraryContext context,
-            IEnumerable<long> ids)
+        IEnumerable<TagData> ITagRequestHandler.GetTagData(IEnumerable<BaseData> data)
         {
             List<TagData> tagList = new List<TagData>();
 
-            dbConnection.Open();
+            BaseData firstDatum = data.First();
 
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.Parameters.Add(new SQLiteParameter("@ID", ids.First()));
-
-            switch (context)
+            if (firstDatum is Artist artist)
             {
-                case LibraryContext.Artist:
-                    {
-                        readTracks.CommandText =
-                            "SELECT name AS artist_name " +
-                            "FROM artist " +
-                            "WHERE id=@ID;";
-                    }
-                    break;
-                case LibraryContext.Album:
-                    {
-                        readTracks.CommandText =
-                            "SELECT title AS album_title, year " +
-                            "FROM album " +
-                            "WHERE id=@ID;";
-                    }
-                    break;
-                case LibraryContext.Song:
-                    {
-                        readTracks.CommandText =
-                            "SELECT title AS song_title " +
-                            "FROM song " +
-                            "WHERE id=@ID;";
-                    }
-                    break;
-                case LibraryContext.Track:
-                    {
-                        readTracks.CommandText =
-                            "SELECT " +
-                                "song.title AS song_title, " +
-                                "artist.name AS artist_name, " +
-                                "album.title AS album_title, " +
-                                "album.year AS year, " +
-                                "track.title AS track_title, " +
-                                "track.track_number AS track_number, " +
-                                "track.disc_number AS disc_number," +
-                                "recording.filename AS filename, " +
-                                "recording.live AS live " +
-                            "FROM track " +
-                            "LEFT JOIN recording ON track.recording_id=recording.id " +
-                            "LEFT JOIN song ON recording.song_id=song.id " +
-                            "LEFT JOIN artist ON recording.artist_id=artist.id " +
-                            "LEFT JOIN album ON track.album_id=album.id " +
-                            "WHERE track.id=@ID;";
-                    }
-                    break;
-                case LibraryContext.Recording:
-                    {
-                        readTracks.CommandText =
-                            "SELECT " +
-                                "song.title AS song_title, " +
-                                "artist.name AS artist_name, " +
-                                "recording.filename AS filename, " +
-                                "recording.live AS live " +
-                            "FROM recording " +
-                            "LEFT JOIN song ON recording.song_id=song.id " +
-                            "LEFT JOIN artist ON recording.artist_id=artist.id " +
-                            "WHERE recording.id=@ID;";
-                    }
-                    break;
-                case LibraryContext.MAX:
-                default:
-                    dbConnection.Close();
-                    throw new Exception("Unexpected LibraryContext: " + context);
-            }
-
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
-            {
-                if (reader.Read())
+                tagList.Add(new TagDataString
                 {
-                    if (context == LibraryContext.Track ||
-                        context == LibraryContext.Recording)
-                    {
-                        tagList.Add(new TagViewable()
-                        {
-                            _CurrentValue = (string)reader["filename"],
-                            recordType = MusicRecord.Filename
-                        });
-
-                        tagList.Add(new TagDataBool()
-                        {
-                            _currentValue = (bool)reader["live"],
-                            NewValue = (bool)reader["live"],
-                            recordType = MusicRecord.Live
-                        });
-                    }
-
-                    if (context == LibraryContext.Track)
-                    {
-                        tagList.Add(new TagDataString
-                        {
-                            _currentValue = (string)reader["track_title"],
-                            NewValue = (string)reader["track_title"],
-                            recordType = MusicRecord.TrackTitle,
-                            tagType = ID3TagType.Title
-                        });
-
-                        tagList.Add(new TagDataLong
-                        {
-                            _currentValue = (long)reader["track_number"],
-                            _newValue = (long)reader["track_number"],
-                            recordType = MusicRecord.TrackNumber,
-                            tagType = ID3TagType.Track
-                        });
-
-                        tagList.Add(new TagDataLong
-                        {
-                            _currentValue = (long)reader["disc_number"],
-                            _newValue = (long)reader["disc_number"],
-                            recordType = MusicRecord.DiscNumber,
-                            tagType = ID3TagType.Disc
-                        });
-                    }
-
-                    if (context == LibraryContext.Song ||
-                        context == LibraryContext.Track ||
-                        context == LibraryContext.Recording)
-                    {
-                        tagList.Add(new TagDataString
-                        {
-                            _currentValue = (string)reader["song_title"],
-                            NewValue = (string)reader["song_title"],
-                            recordType = MusicRecord.SongTitle
-                        });
-                    }
-
-                    if (context == LibraryContext.Album ||
-                        context == LibraryContext.Track)
-                    {
-                        tagList.Add(new TagDataString
-                        {
-                            _currentValue = (string)reader["album_title"],
-                            NewValue = (string)reader["album_title"],
-                            recordType = MusicRecord.AlbumTitle,
-                            tagType = ID3TagType.Album
-                        });
-
-                        tagList.Add(new TagDataLong
-                        {
-                            _currentValue = (long)reader["year"],
-                            _newValue = (long)reader["year"],
-                            recordType = MusicRecord.AlbumYear,
-                            tagType = ID3TagType.Year
-                        });
-                    }
-
-                    if (context == LibraryContext.Artist ||
-                        context == LibraryContext.Track ||
-                        context == LibraryContext.Recording)
-                    {
-                        tagList.Add(new TagDataString
-                        {
-                            _currentValue = (string)reader["artist_name"],
-                            NewValue = (string)reader["artist_name"],
-                            recordType = MusicRecord.ArtistName,
-                            tagType = ID3TagType.Performer,
-                            tagTypeIndex = 0
-                        });
-                    }
-                }
+                    _currentValue = artist.Name,
+                    NewValue = artist.Name,
+                    recordType = MusicRecord.ArtistName,
+                    tagType = ID3TagType.Performer,
+                    tagTypeIndex = 0
+                });
             }
+            else if (firstDatum is Album album)
+            {
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = album.Title,
+                    NewValue = album.Title,
+                    recordType = MusicRecord.AlbumTitle,
+                    tagType = ID3TagType.Album
+                });
 
-            dbConnection.Close();
+                tagList.Add(new TagDataInt
+                {
+                    _currentValue = album.Year,
+                    _newValue = album.Year,
+                    recordType = MusicRecord.AlbumYear,
+                    tagType = ID3TagType.Year
+                });
+            }
+            else if (firstDatum is Song song)
+            {
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = song.Title,
+                    NewValue = song.Title,
+                    recordType = MusicRecord.SongTitle
+                });
+            }
+            else if (firstDatum is Track track)
+            {
+                tagList.Add(new TagViewable()
+                {
+                    _CurrentValue = track.Recording.Filename,
+                    recordType = MusicRecord.Filename
+                });
+
+                tagList.Add(new TagDataBool()
+                {
+                    _currentValue = track.Recording.Live,
+                    NewValue = track.Recording.Live,
+                    recordType = MusicRecord.Live
+                });
+
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = track.Title,
+                    NewValue = track.Title,
+                    recordType = MusicRecord.TrackTitle,
+                    tagType = ID3TagType.Title
+                });
+
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = track.Recording.Song.Title,
+                    NewValue = track.Recording.Song.Title,
+                    recordType = MusicRecord.SongTitle
+                });
+
+                tagList.Add(new TagDataInt
+                {
+                    _currentValue = track.TrackNumber,
+                    _newValue = track.TrackNumber,
+                    recordType = MusicRecord.TrackNumber,
+                    tagType = ID3TagType.Track
+                });
+
+                tagList.Add(new TagDataInt
+                {
+                    _currentValue = track.DiscNumber,
+                    _newValue = track.DiscNumber,
+                    recordType = MusicRecord.DiscNumber,
+                    tagType = ID3TagType.Disc
+                });
+
+                tagList.Add(new TagDataInt
+                {
+                    _currentValue = track.Album.Year,
+                    _newValue = track.Album.Year,
+                    recordType = MusicRecord.AlbumYear,
+                    tagType = ID3TagType.Year
+                });
+
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = track.Recording.Artist.Name,
+                    NewValue = track.Recording.Artist.Name,
+                    recordType = MusicRecord.ArtistName,
+                    tagType = ID3TagType.Performer,
+                    tagTypeIndex = 0
+                });
+            }
+            else if (firstDatum is Recording recording)
+            {
+                tagList.Add(new TagViewable()
+                {
+                    _CurrentValue = recording.Filename,
+                    recordType = MusicRecord.Filename
+                });
+
+                tagList.Add(new TagDataBool()
+                {
+                    _currentValue = recording.Live,
+                    NewValue = recording.Live,
+                    recordType = MusicRecord.Live
+                });
+
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = recording.Song.Title,
+                    NewValue = recording.Song.Title,
+                    recordType = MusicRecord.SongTitle
+                });
+
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = recording.Artist.Name,
+                    NewValue = recording.Artist.Name,
+                    recordType = MusicRecord.ArtistName,
+                    tagType = ID3TagType.Performer,
+                    tagTypeIndex = 0
+                });
+            }
 
             return tagList;
         }
@@ -380,141 +302,64 @@ namespace Musegician
         /// <summary>
         /// Identifies all of the files potentially requiring ID3 tag updates
         /// </summary>
-        IEnumerable<string> ITagRequestHandler.GetAffectedFiles(
-            LibraryContext context,
-            long id)
+        IEnumerable<string> ITagRequestHandler.GetAffectedFiles(BaseData data)
         {
-            List<string> affectedFiles = new List<string>();
-
-            dbConnection.Open();
-
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.Parameters.Add(new SQLiteParameter("@ID", id));
-
-            switch (context)
+            if (data is Artist artist)
             {
-                case LibraryContext.Artist:
-                    readTracks.CommandText =
-                        "SELECT filename " +
-                        "FROM recording " +
-                        "WHERE recording.artist_id=@ID;";
-                    break;
-                case LibraryContext.Album:
-                    readTracks.CommandText =
-                        "SELECT recording.filename AS filename " +
-                        "FROM track " +
-                        "LEFT JOIN recording ON track.recording_id=recording.id " +
-                        "WHERE track.album_id=@ID;";
-                    break;
-                case LibraryContext.Song:
-                    readTracks.CommandText =
-                        "SELECT filename " +
-                        "FROM recording " +
-                        "WHERE recording.song_id=@ID;";
-                    break;
-                case LibraryContext.Track:
-                    readTracks.CommandText =
-                        "SELECT recording.filename AS filename " +
-                        "FROM track " +
-                        "LEFT JOIN recording ON track.recording_id=recording.id " +
-                        "WHERE track.id=@ID;";
-                    break;
-                case LibraryContext.Recording:
-                    readTracks.CommandText =
-                        "SELECT filename " +
-                        "FROM recording " +
-                        "WHERE recording.id=@ID;";
-                    break;
-                case LibraryContext.MAX:
-                default:
-                    dbConnection.Close();
-                    throw new Exception("Unexpected LibraryContext: " + context);
+                return artist.Recordings.Distinct().Select(x => x.Filename);
+            }
+            else if (data is Album album)
+            {
+                return album.Tracks.Select(x => x.Recording).Distinct().Select(x => x.Filename);
+            }
+            else if (data is Song song)
+            {
+                return song.Recordings.Distinct().Select(x => x.Filename);
+            }
+            else if (data is Track track)
+            {
+                return new string[] { track.Recording.Filename };
+            }
+            else if (data is Recording recording)
+            {
+                return new string[] { recording.Filename };
             }
 
-            using (SQLiteDataReader reader = readTracks.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    affectedFiles.Add((string)reader["filename"]);
-                }
-            }
+            Console.WriteLine("Unable to identify BaseData Type: " + data);
 
-            dbConnection.Close();
-
-            return affectedFiles;
+            return null;
         }
 
         /// <summary>
         /// Identifies all of the files potentially requiring ID3 tag updates
         /// </summary>
-        IEnumerable<string> ITagRequestHandler.GetAffectedFiles(
-            LibraryContext context,
-            IEnumerable<long> ids)
+        IEnumerable<string> ITagRequestHandler.GetAffectedFiles(IEnumerable<BaseData> data)
         {
-            List<string> affectedFiles = new List<string>();
-
-            dbConnection.Open();
-
-            SQLiteCommand readTracks = dbConnection.CreateCommand();
-            readTracks.CommandType = System.Data.CommandType.Text;
-            readTracks.Parameters.Add("@ID", System.Data.DbType.Int64);
-
-            switch (context)
+            BaseData firstDatum = data.First();
+            if (firstDatum is Artist)
             {
-                case LibraryContext.Artist:
-                    readTracks.CommandText =
-                        "SELECT filename " +
-                        "FROM recording " +
-                        "WHERE recording.artist_id=@ID;";
-                    break;
-                case LibraryContext.Album:
-                    readTracks.CommandText =
-                        "SELECT recording.filename AS filename " +
-                        "FROM track " +
-                        "LEFT JOIN recording ON track.recording_id=recording.id " +
-                        "WHERE track.album_id=@ID;";
-                    break;
-                case LibraryContext.Song:
-                    readTracks.CommandText =
-                        "SELECT filename " +
-                        "FROM recording " +
-                        "WHERE recording.song_id=@ID;";
-                    break;
-                case LibraryContext.Track:
-                    readTracks.CommandText =
-                        "SELECT recording.filename AS filename " +
-                        "FROM track " +
-                        "LEFT JOIN recording ON track.recording_id=recording.id " +
-                        "WHERE track.id=@ID;";
-                    break;
-                case LibraryContext.Recording:
-                    readTracks.CommandText =
-                        "SELECT filename " +
-                        "FROM recording " +
-                        "WHERE recording.id=@ID;";
-                    break;
-                case LibraryContext.MAX:
-                default:
-                    dbConnection.Close();
-                    throw new Exception("Unexpected LibraryContext: " + context);
+                return data.SelectMany(x => (x as Artist).Recordings).Distinct().Select(x => x.Filename);
+            }
+            else if (firstDatum is Album)
+            {
+                return data.SelectMany(x => (x as Album).Tracks).Select(x => x.Recording).Distinct().Select(x => x.Filename);
+            }
+            else if (firstDatum is Song)
+            {
+                return data.SelectMany(x => (x as Song).Recordings).Distinct().Select(x => x.Filename);
+            }
+            else if (firstDatum is Track)
+            {
+                return data.Select(x => (x as Track).Recording).Distinct().Select(x => x.Filename);
+            }
+            else if (firstDatum is Recording)
+            {
+                return data.Select(x => (x as Recording).Filename);
             }
 
-            foreach (long id in ids)
-            {
-                readTracks.Parameters["@ID"].Value = id;
-                using (SQLiteDataReader reader = readTracks.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        affectedFiles.Add((string)reader["filename"]);
-                    }
-                }
-            }
+            Console.WriteLine("Unable to identify BaseData Type: " + firstDatum);
 
-            dbConnection.Close();
-
-            return affectedFiles;
+            return null;
         }
 
         /// <summary>
@@ -526,139 +371,99 @@ namespace Musegician
         /// <param name="newString"></param>
         /// <exception cref="LibraryContextException"/>
         void ITagRequestHandler.UpdateRecord(
-            LibraryContext context,
-            IEnumerable<long> ids,
+            IEnumerable<BaseData> data,
             MusicRecord record,
             string newString)
         {
-            if (ids.Count() == 0)
+            if (data.Count() == 0)
             {
-                throw new InvalidOperationException(string.Format(
-                    "Found 0 records to modify for LibraryContext {0}, MusicRecord {1}",
-                    context.ToString(),
-                    record.ToString()));
+                throw new InvalidOperationException(
+                    $"Found 0 records to modify for MusicRecord {record.ToString()}");
             }
+
+            BaseData firstDatum = data.First();
 
             switch (record)
             {
                 case MusicRecord.SongTitle:
                     {
-                        switch (context)
+                        if (firstDatum is Song)
                         {
-                            case LibraryContext.Song:
-                                {
-                                    //Renaming (or Consolidating) Songs
-                                    songCommands.UpdateSongTitle(
-                                        songIDs: ids,
-                                        newTitle: newString);
-                                }
-                                break;
-                            case LibraryContext.Track:
-                                {
-                                    //Splitting, Renaming, And/Or Consolidating Tracks by Song Title
-                                    trackCommands.UpdateSongTitle(
-                                        trackIDs: ids,
-                                        newTitle: newString);
-                                }
-                                break;
-                            case LibraryContext.Recording:
-                                {
-                                    //Splitting, Renaming, And/Or Consolidating Tracks by Song Title
-                                    recordingCommands.UpdateSongTitle(
-                                        recordingIDs: ids,
-                                        newTitle: newString);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
+                            //Renaming (or Consolidating) Songs
+                            songCommands.UpdateSongTitle(data.Select(x => x as Song), newString);
+                        }
+                        else if (firstDatum is Track)
+                        {
+                            //Splitting, Renaming, And/Or Consolidating Tracks by Song Title
+                            trackCommands.UpdateSongTitle(data.Select(x => x as Track), newString);
+                        }
+                        else if (firstDatum is Recording)
+                        {
+                            //Splitting, Renaming, And/Or Consolidating Tracks by Song Title
+                            recordingCommands.UpdateSongTitle(data.Select(x => x as Recording), newString);
+                        }
+                        else
+                        {
+                            throw new LibraryContextException(
+                                $"Bad Context ({firstDatum}) for RecordUpdate ({record.ToString()})");
                         }
                     }
                     break;
                 case MusicRecord.ArtistName:
                     {
-                        switch (context)
+                        if (firstDatum is Artist)
                         {
-                            case LibraryContext.Artist:
-                                {
-                                    //Renaming and collapsing Artists
-                                    artistCommands.UpdateArtistName(
-                                        artistIDs: ids,
-                                        newArtistName: newString);
-                                }
-                                break;
-                            case LibraryContext.Track:
-                                {
-                                    //Assinging Songs to a different artist
-                                    trackCommands.UpdateArtistName(
-                                        trackIDs: ids,
-                                        newArtistName: newString);
-                                }
-                                break;
-                            case LibraryContext.Recording:
-                                {
-                                    //Assinging Songs to a different artist
-                                    recordingCommands.UpdateArtistName(
-                                        recordingIDs: ids,
-                                        newArtistName: newString);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
+                            //Renaming and collapsing Artists
+                            artistCommands.UpdateArtistName(data.Select(x => x as Artist), newString);
+                        }
+                        else if (firstDatum is Track)
+                        {
+                            //Assinging Songs to a different artist
+                            trackCommands.UpdateArtistName(data.Select(x => x as Track), newString);
+                        }
+                        else if (firstDatum is Recording)
+                        {
+                            //Assinging Songs to a different artist
+                            recordingCommands.UpdateArtistName(data.Select(x => x as Recording), newString);
+                        }
+                        else
+                        {
+                            throw new LibraryContextException(
+                                $"Bad Context ({firstDatum}) for RecordUpdate ({record.ToString()})");
                         }
 
                     }
                     break;
                 case MusicRecord.AlbumTitle:
                     {
-                        switch (context)
+                        if (firstDatum is Album)
                         {
-                            case LibraryContext.Album:
-                                {
-                                    //Renaming and collapsing Albums
-                                    albumCommands.UpdateAlbumTitle(
-                                        albumIDs: ids,
-                                        newAlbumTitle: newString);
-                                }
-                                break;
-                            case LibraryContext.Track:
-                                {
-                                    //Assigning a track to a different album
-                                    trackCommands.UpdateAlbumTitle(
-                                        trackIDs: ids,
-                                        newAlbumTitle: newString);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
+                            //Renaming and collapsing Albums
+                            albumCommands.UpdateAlbumTitle(data.Select(x => x as Album), newString);
+                        }
+                        else if (firstDatum is Track)
+                        {
+                            //Assigning a track to a different album
+                            trackCommands.UpdateAlbumTitle(data.Select(x => x as Track), newString);
+                        }
+                        else
+                        {
+                            throw new LibraryContextException(
+                                $"Bad Context ({firstDatum}) for RecordUpdate ({record.ToString()})");
                         }
                     }
                     break;
                 case MusicRecord.TrackTitle:
                     {
-                        switch (context)
+                        if (firstDatum is Track)
                         {
-                            case LibraryContext.Track:
-                                {
-                                    //Renaming a track
-                                    trackCommands.UpdateTrackTitle(
-                                        trackIDs: ids,
-                                        newTrackTitle: newString);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
+                            //Renaming and collapsing Albums
+                            trackCommands.UpdateTrackTitle(data.Select(x => x as Track), newString);
+                        }
+                        else
+                        {
+                            throw new LibraryContextException(
+                                $"Bad Context ({firstDatum}) for RecordUpdate ({record.ToString()})");
                         }
                     }
                     break;
@@ -671,114 +476,101 @@ namespace Musegician
         }
 
         void ITagRequestHandler.UpdateRecord(
-            LibraryContext context,
-            IEnumerable<long> ids,
+            IEnumerable<BaseData> data,
             MusicRecord record,
-            long newLong)
+            int newInt)
         {
+
+            if (data.Count() == 0)
+            {
+                throw new InvalidOperationException(
+                    $"Found 0 records to modify for MusicRecord {record.ToString()}");
+            }
+
+            BaseData firstDatum = data.First();
             switch (record)
             {
                 case MusicRecord.TrackNumber:
                     {
-                        switch (context)
+                        if (firstDatum is Track)
                         {
-                            case LibraryContext.Track:
-                                {
-                                    //Updating the track number of a track
-                                    trackCommands.UpdateTrackNumber(
-                                        trackIDs: ids,
-                                        newTrackNumber: newLong);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
+                            //Updating the track number of a track
+                            trackCommands.UpdateTrackNumber(data.Select(x => x as Track), newInt);
+                        }
+                        else
+                        {
+                            throw new LibraryContextException(
+                                $"Bad Context ({firstDatum}) for RecordUpdate ({record.ToString()})");
                         }
                     }
                     break;
                 case MusicRecord.AlbumYear:
                     {
-                        switch (context)
+                        if (firstDatum is Album)
                         {
-                            case LibraryContext.Album:
-                                {
-                                    //Updating the year that an album was produced
-                                    albumCommands.UpdateYear(
-                                        albumIDs: ids,
-                                        newYear: newLong);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
+                            //Updating the year that an album was produced
+                            albumCommands.UpdateYear(data.Select(x => x as Album), newInt);
+                        }
+                        else
+                        {
+                            throw new LibraryContextException(
+                                $"Bad Context ({firstDatum}) for RecordUpdate ({record.ToString()})");
                         }
                     }
                     break;
                 case MusicRecord.DiscNumber:
                     {
-                        switch (context)
+                        if (firstDatum is Track)
                         {
-                            case LibraryContext.Track:
-                                {
-                                    //Updating the disc that a track appeared on
-                                    trackCommands.UpdateDisc(
-                                        trackIDs: ids,
-                                        newDisc: newLong);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
+                            //Updating the disc that a track appeared on
+                            trackCommands.UpdateDisc(data.Select(x => x as Track), newInt);
+                        }
+                        else
+                        {
+                            throw new LibraryContextException(
+                                $"Bad Context ({firstDatum}) for RecordUpdate ({record.ToString()})");
                         }
                     }
                     break;
                 default:
                     throw new Exception(string.Format(
                         "Wrong field type submitted. Submitted {0} for field {1}.",
-                        newLong.GetType().ToString(),
+                        newInt.GetType().ToString(),
                         record.ToString()));
             }
         }
 
         void ITagRequestHandler.UpdateRecord(
-            LibraryContext context,
-            IEnumerable<long> ids,
+            IEnumerable<BaseData> data,
             MusicRecord record,
             bool newBool)
         {
+            if (data.Count() == 0)
+            {
+                throw new InvalidOperationException(
+                    $"Found 0 records to modify for MusicRecord {record.ToString()}");
+            }
+
+            BaseData firstDatum = data.First();
+
             switch (record)
             {
                 case MusicRecord.Live:
                     {
-                        switch (context)
+                        if (firstDatum is Track)
                         {
-                            case LibraryContext.Track:
-                                {
-                                    //Update Recording Live Status Weight
-                                    trackCommands.UpdateLive(
-                                        trackIDs: ids,
-                                        newLiveValue: newBool);
-                                }
-                                break;
-                            case LibraryContext.Recording:
-                                {
-                                    //Update Recording Live Status Weight
-                                    recordingCommands.UpdateLive(
-                                        recordingIDs: ids,
-                                        newLiveValue: newBool);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
+                            //Update Recording Live Status
+                            trackCommands.UpdateLive(data.Select(x => x as Track), newBool);
+                        }
+                        else if (firstDatum is Recording)
+                        {
+                            //Update Recording Live Status
+                            recordingCommands.UpdateLive(data.Select(x => x as Recording), newBool);
+                        }
+                        else
+                        {
+                            throw new LibraryContextException(
+                                $"Bad Context ({firstDatum}) for RecordUpdate ({record.ToString()})");
                         }
                     }
                     break;
@@ -791,102 +583,19 @@ namespace Musegician
         }
 
         void ITagRequestHandler.UpdateRecord(
-            LibraryContext context,
-            IEnumerable<long> ids,
+            IEnumerable<BaseData> data,
             MusicRecord record,
             double newDouble)
         {
-            List<(long, double)> valueList = new List<(long, double)>();
-
-            foreach(long id in ids)
+            if (data.Count() == 0)
             {
-                valueList.Add((id, newDouble));
+                throw new InvalidOperationException(
+                    $"Found 0 records to modify for MusicRecord {record.ToString()}");
             }
 
-
-            switch (record)
+            foreach (BaseData datum in data)
             {
-                case MusicRecord.ArtistWeight:
-                    {
-                        switch (context)
-                        {
-                            case LibraryContext.Artist:
-                                {
-                                    //Update Artist Weight
-                                    artistCommands.UpdateWeights(
-                                        values: valueList);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
-                        }
-                    }
-                    break;
-                case MusicRecord.AlbumWeight:
-                    {
-                        switch (context)
-                        {
-                            case LibraryContext.Album:
-                                {
-                                    //Update Album Weight
-                                    albumCommands.UpdateWeights(
-                                        values: valueList);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
-                        }
-                    }
-                    break;
-                case MusicRecord.SongWeight:
-                    {
-                        switch (context)
-                        {
-                            case LibraryContext.Song:
-                                {
-                                    //Update Song Weight
-                                    songCommands.UpdateWeights(
-                                        values: valueList);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
-                        }
-                    }
-                    break;
-                case MusicRecord.TrackWeight:
-                    {
-                        switch (context)
-                        {
-                            case LibraryContext.Track:
-                                {
-                                    //Update Track Weight
-                                    trackCommands.UpdateWeights(
-                                        values: valueList);
-                                }
-                                break;
-                            default:
-                                throw new LibraryContextException(string.Format(
-                                    "Bad Context ({0}) for RecordUpdate ({1})",
-                                    context.ToString(),
-                                    record.ToString()));
-                        }
-                    }
-                    break;
-                default:
-                    throw new Exception(string.Format(
-                        "Wrong field type submitted. Submitted {0} for field {1}.",
-                        newDouble.GetType().ToString(),
-                        record.ToString()));
+                datum.Weight = newDouble;
             }
         }
 

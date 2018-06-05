@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Musegician.Database;
 using Musegician.Deredundafier;
 
 namespace Musegician
@@ -11,40 +12,26 @@ namespace Musegician
     {
         #region IDeredundancyRequestHandler
 
-        IList<DeredundafierDTO> IDeredundancyRequestHandler.GetArtistTargets()
-        {
-            return artistCommands.GetDeredundancyTargets();
-        }
+        IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetArtistTargets() =>
+            artistCommands.GetDeredundancyTargets();
 
-        IList<DeredundafierDTO> IDeredundancyRequestHandler.GetAlbumTargets()
-        {
-            return albumCommands.GetDeredundancyTargets();
-        }
+        IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetAlbumTargets() =>
+            albumCommands.GetDeredundancyTargets();
 
-        IList<DeredundafierDTO> IDeredundancyRequestHandler.GetSongTargets()
-        {
-            return songCommands.GetDeredundancyTargets();
-        }
+        IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetSongTargets() =>
+            songCommands.GetDeredundancyTargets();
 
-        void IDeredundancyRequestHandler.MergeArtists(IEnumerable<long> ids)
-        {
-            artistCommands.Merge(ids);
-        }
+        void IDeredundancyRequestHandler.MergeArtists(IEnumerable<BaseData> data) =>
+            artistCommands.Merge(data);
 
-        void IDeredundancyRequestHandler.MergeAlbums(IEnumerable<long> ids)
-        {
-            albumCommands.Merge(ids);
-        }
+        void IDeredundancyRequestHandler.MergeAlbums(IEnumerable<BaseData> data) =>
+            albumCommands.Merge(data);
 
-        void IDeredundancyRequestHandler.MergeSongs(IEnumerable<long> ids)
-        {
-            songCommands.Merge(ids);
-        }
+        void IDeredundancyRequestHandler.MergeSongs(IEnumerable<BaseData> data) =>
+            songCommands.Merge(data);
 
-        void IDeredundancyRequestHandler.PushChanges()
-        {
+        void IDeredundancyRequestHandler.PushChanges() => 
             _rebuildNotifier?.Invoke(this, EventArgs.Empty);
-        }
 
         #endregion IDeredundancyRequestHandler
     }

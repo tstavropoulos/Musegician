@@ -180,7 +180,7 @@ namespace Musegician
         {
             List<string> newMusic = new List<string>();
             HashSet<string> loadedFilenames = new HashSet<string>();
-            
+
             AddMusicDirectory(path, newMusic, loadedFilenames);
 
             foreach (string songFilename in newMusic)
@@ -231,10 +231,10 @@ namespace Musegician
                 artistName = tag.JoinedPerformers;
             }
 
-            Artist artist = db.Artists.Local
+            Artist artist = db.Artists
                 .Where(x => x.Name == artistName)
                 .FirstOrDefault();
-            
+
             if (artist == null)
             {
                 artist = new Artist()
@@ -242,7 +242,7 @@ namespace Musegician
                     Name = artistName,
                     Weight = double.NaN
                 };
-                
+
                 db.Artists.Add(artist);
             }
 
@@ -281,10 +281,10 @@ namespace Musegician
                 albumTitle = tag.Album;
             }
 
-            long discNumber = 1;
+            int discNumber = 1;
             if (tag.Disc != 0)
             {
-                discNumber = tag.Disc;
+                discNumber = (int)tag.Disc;
             }
 
             //Copy the track title before we gut it
@@ -335,11 +335,11 @@ namespace Musegician
             if (Regex.IsMatch(albumTitle, discNumberPattern))
             {
                 string discString = Regex.Match(albumTitle, discNumberPattern).Captures[0].ToString();
-                discNumber = long.Parse(Regex.Match(discString, numberExtractor).Captures[0].ToString());
+                discNumber = int.Parse(Regex.Match(discString, numberExtractor).Captures[0].ToString());
                 albumTitle = Regex.Replace(albumTitle, discNumberPattern, "");
             }
 
-            Song song = db.Songs.Local
+            Song song = db.Songs
                 .Where(x => x.Title == songTitle)
                 .FirstOrDefault();
 
@@ -350,24 +350,25 @@ namespace Musegician
                     Title = songTitle,
                     Weight = double.NaN
                 };
-                
+
                 db.Songs.Add(song);
             }
 
-            Album album = (from matchingTrack in db.Tracks.Local
-                           where matchingTrack.Album.Title == albumTitle &&
-                           matchingTrack.Recording.Artist == artist
-                           select matchingTrack.Album).FirstOrDefault();
+            Album album = db.Tracks.Where(x => x.Recording.Artist.Id == artist.Id)
+                .Select(x => x.Album)
+                .Distinct()
+                .Where(x => x.Title == albumTitle).FirstOrDefault();
 
-            if(album == null)
+            if (album == null)
             {
                 album = new Album()
                 {
                     Title = albumTitle,
                     Year = (int)tag.Year,
-                    Weight = double.NaN
+                    Weight = double.NaN,
+                    Image = null
                 };
-                
+
                 db.Albums.Add(album);
             }
 
@@ -399,11 +400,13 @@ namespace Musegician
                 Weight = double.NaN
             };
             db.Tracks.Add(track);
+
+            db.SaveChanges();
         }
 
-        public void SetAlbumArt(long albumID, string path)
+        public void SetAlbumArt(Album album, string path)
         {
-            albumCommands.SetAlbumArt(albumID, path);
+            albumCommands.SetAlbumArt(album, path);
         }
 
         public BitmapImage GetAlbumArtForRecording(Recording recording)
@@ -454,7 +457,7 @@ namespace Musegician
                     db?.Dispose();
                     db = null;
                 }
-                
+
                 // TODO: set large fields to null.
 
                 disposedValue = true;

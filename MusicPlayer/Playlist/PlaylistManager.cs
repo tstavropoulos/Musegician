@@ -21,7 +21,7 @@ namespace Musegician.Playlist
     public class PlaylistManager : INotifyPropertyChanged
     {
         private Random random = new Random();
-        private Database.Playlist Playlist;
+        private readonly List<PlaylistSong> PlaylistSongs = new List<PlaylistSong>();
         private DepletableBag<PlaylistSong> shuffleSet;
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Musegician.Playlist
             }
         }
 
-        public int ItemCount => Playlist.PlaylistSongs.Count();
+        public int ItemCount => PlaylistSongs.Count();
 
 
         private int _currentIndex = -1;
@@ -103,17 +103,17 @@ namespace Musegician.Playlist
             }
         }
 
-        private int _lastRecordingIndex = -1;
-        public int LastRecordingIndex
+        private PlaylistRecording _lastRecording = null;
+        public PlaylistRecording LastRecording
         {
-            get { return _lastRecordingIndex; }
+            get { return _lastRecording; }
             set
             {
-                _lastRecordingIndex = value;
+                _lastRecording = value;
 
                 foreach (IPlaylistUpdateListener listener in GetValidListeners())
                 {
-                    listener.MarkRecordingIndex(_lastRecordingIndex);
+                    listener.MarkRecording(_lastRecording);
                 }
             }
         }
@@ -145,9 +145,10 @@ namespace Musegician.Playlist
 
         public void PlaySong(PlaylistSong song)
         {
-            if (Playlist.PlaylistSongs.Contains(song))
+            if (PlaylistSongs.Contains(song))
             {
-                CurrentIndex = index;
+                
+                CurrentIndex = PlaylistSongs.IndexOf(song);
                 PlaylistRecording recording = SelectRecording(song);
 
                 //Add the item to the current shuffle buffer, and remove from shuffleList
@@ -183,10 +184,10 @@ namespace Musegician.Playlist
 
         public void PlayRecording(PlaylistSong song, PlaylistRecording recording)
         {
-            if (Playlist.PlaylistSongs.Contains(song))
+            if (PlaylistSongs.Contains(song))
             {
-                CurrentIndex = songIndex;
-                LastRecordingIndex = recordingIndex;
+                CurrentIndex = PlaylistSongs.IndexOf(song);
+                LastRecording = recording;
 
                 //Add the item to the current shuffle buffer, and remove from shuffleList
                 if (Shuffle)
@@ -230,7 +231,7 @@ namespace Musegician.Playlist
                 {
                     --bufferIndex;
 
-                    if (!Playlist.PlaylistSongs.Contains(ringBuffer[bufferIndex].song))
+                    if (!PlaylistSongs.Contains(ringBuffer[bufferIndex].song))
                     {
                         //Bad values - Song not found - Probably Deleted
 
@@ -249,10 +250,10 @@ namespace Musegician.Playlist
                     //int recordingIndex = playlist[index].Children.IndexOf(ringBuffer[bufferIndex].recording);
 
                     //Update vales to select the correct song in the UI
-                    CurrentIndex = index;
-                    LastRecordingIndex = recordingIndex;
+                    CurrentIndex = PlaylistSongs.IndexOf(ringBuffer[bufferIndex].song);
+                    LastRecording = ringBuffer[bufferIndex].recording;
 
-                    return RequestHandler.GetRecordingPlayData(ringBuffer[bufferIndex].recording.Recording);
+                    return RequestHandler.GetRecordingPlayData(LastRecording.Recording);
                 }
 
                 //Move on to a new song
@@ -290,7 +291,7 @@ namespace Musegician.Playlist
                     }
 
                     //Song passed weight test
-                    CurrentIndex = nextIndex;
+                    CurrentIndex = PlaylistSongs.IndexOf(nextSong);
                     PlaylistRecording recording = SelectRecording(nextSong);
 
                     //Stash 
@@ -337,8 +338,10 @@ namespace Musegician.Playlist
                         }
                     }
 
+                    PlaylistSong nextSong = PlaylistSongs[nextPlaylistIndex];
+
                     //Test the next song to see if its weight passes muster
-                    if (!TestSongWeight(nextPlaylistIndex))
+                    if (!TestSongWeight(nextSong))
                     {
                         //Skip it if the selected song fails a weight test
                         continue;
@@ -348,7 +351,7 @@ namespace Musegician.Playlist
                     CurrentIndex = nextPlaylistIndex;
 
                     return RequestHandler.GetRecordingPlayData(
-                        SelectRecording(playlist[CurrentIndex]));
+                        SelectRecording(nextSong).Recording);
                 }
             }
 
@@ -371,7 +374,7 @@ namespace Musegician.Playlist
                 {
                     ++bufferIndex;
 
-                    if (!Playlist.PlaylistSongs.Contains(ringBuffer[bufferIndex].song))
+                    if (!PlaylistSongs.Contains(ringBuffer[bufferIndex].song))
                     {
                         //Bad values - Song not found - Probably Deleted
 
@@ -388,10 +391,10 @@ namespace Musegician.Playlist
                     }
 
                     //Update vales to select the correct song in the UI
-                    CurrentIndex = index;
-                    LastRecordingIndex = recordingIndex;
+                    CurrentIndex = PlaylistSongs.IndexOf(ringBuffer[bufferIndex].song);
+                    LastRecording = ringBuffer[bufferIndex].recording;
 
-                    return RequestHandler.GetRecordingPlayData(ringBuffer[bufferIndex].recording.Recording);
+                    return RequestHandler.GetRecordingPlayData(LastRecording.Recording);
                 }
             }
             else
@@ -427,8 +430,10 @@ namespace Musegician.Playlist
                         }
                     }
 
+                    PlaylistSong nextSong = PlaylistSongs[nextPlaylistIndex];
+
                     //Test the next song to see if its weight passes muster
-                    if (!TestSongWeight(nextPlaylistIndex))
+                    if (!TestSongWeight(nextSong))
                     {
                         //Skip it if the selected song fails a weight test
                         continue;
@@ -438,7 +443,7 @@ namespace Musegician.Playlist
                     CurrentIndex = nextPlaylistIndex;
 
                     return RequestHandler.GetRecordingPlayData(
-                        SelectRecording(playlist[CurrentIndex]));
+                        SelectRecording(nextSong).Recording);
                 }
             }
 
@@ -448,12 +453,12 @@ namespace Musegician.Playlist
         public void Rebuild(IEnumerable<PlaylistSong> songs)
         {
             _currentIndex = -1;
-            Playlist.PlaylistSongs.Clear();
+            PlaylistSongs.Clear();
             int index = 0;
             foreach (PlaylistSong song in songs)
             {
                 song.Number = index++;
-                Playlist.PlaylistSongs.Add(song);
+                PlaylistSongs.Add(song);
             }
             RebuildShuffleList();
 
@@ -470,7 +475,7 @@ namespace Musegician.Playlist
         {
             foreach (PlaylistSong song in songs)
             {
-                Playlist.PlaylistSongs.Add(song);
+                PlaylistSongs.Add(song);
             }
 
             shuffleSet.AddRange(songs);
@@ -489,8 +494,8 @@ namespace Musegician.Playlist
             }
             else
             {
-                position = Math.Min(position, playlist.Count);
-                playlist.InsertRange(position, songs);
+                position = Math.Min(position, PlaylistSongs.Count);
+                PlaylistSongs.InsertRange(position, songs);
                 shuffleSet.AddRange(songs);
             }
 
@@ -512,12 +517,12 @@ namespace Musegician.Playlist
                     --_currentIndex;
                 }
 
-                if (shuffleSet.Contains(playlist[songIndex]))
+                if (shuffleSet.Contains(PlaylistSongs[songIndex]))
                 {
-                    shuffleSet.Remove(playlist[songIndex]);
+                    shuffleSet.Remove(PlaylistSongs[songIndex]);
                 }
 
-                playlist.RemoveAt(songIndex);
+                PlaylistSongs.RemoveAt(songIndex);
             }
 
             foreach (IPlaylistUpdateListener listener in GetValidListeners())
@@ -530,14 +535,14 @@ namespace Musegician.Playlist
         {
             if (song.PlaylistRecordings.Count == 0)
             {
-                LastRecordingIndex = -1;
+                LastRecording = null;
                 return null;
             }
 
             if (song.PlaylistRecordings.Count == 1)
             {
-                LastRecordingIndex = 0;
-                return song.PlaylistRecordings.First();
+                LastRecording = song.PlaylistRecordings.First();
+                return LastRecording;
             }
 
             double cumulativeWeight = 0.0;
@@ -549,21 +554,19 @@ namespace Musegician.Playlist
 
             cumulativeWeight *= random.NextDouble();
 
-            for (int i = 0; i < song.PlaylistRecordings.Count; i++)
+            foreach (PlaylistRecording recording in song.PlaylistRecordings)
             {
-                PlaylistRecording recording = song.PlaylistRecordings.ElementAt(i);
-
                 cumulativeWeight -= GetWeight(recording);
                 if (cumulativeWeight <= 0.0)
                 {
-                    LastRecordingIndex = i;
+                    LastRecording = recording;
                     return recording;
                 }
             }
 
             Console.WriteLine("Failed to pick a recording before running out.  Method is broken.");
-            LastRecordingIndex = 0;
-            return song.PlaylistRecordings.First();
+            LastRecording = song.PlaylistRecordings.First();
+            return LastRecording;
         }
 
         private double GetWeight(PlaylistRecording recording)
@@ -586,38 +589,38 @@ namespace Musegician.Playlist
         public void RebuildShuffleList()
         {
             shuffleSet.Clear();
-            shuffleSet.AddRange(Playlist.PlaylistSongs);
+            shuffleSet.AddRange(PlaylistSongs);
         }
 
         public void ClearPlaylist()
         {
             Rebuild(new List<PlaylistSong>());
-
             PlaylistName = "";
         }
 
         public void TryLoadPlaylist(string playlistTitle)
         {
-            RequestHandler.LoadPlaylist(playlistTitle);
+            Rebuild(RequestHandler.LoadPlaylist(playlistTitle));
+            PlaylistName = playlistTitle;
         }
 
         public void SavePlaylistAs(string title)
         {
-            if (Playlist.PlaylistSongs.Count != 0)
+            if (PlaylistSongs.Count != 0)
             {
-                RequestHandler.PushCurrentTo(title);
+                RequestHandler.SavePlaylistAs(title, PlaylistSongs);
+                PlaylistName = title;
             }
         }
 
         public void DeletePlaylist(string playlistTitle)
         {
-            RequestHandler.DeletePlaylist(
-                title: playlistTitle);
+            RequestHandler.DeletePlaylist(playlistTitle);
         }
 
-        public void AppendPlaylist(long playlistID)
+        public void AppendPlaylist(string playlistTitle)
         {
-            AddBack(RequestHandler.LoadPlaylist(playlistID));
+            AddBack(RequestHandler.LoadPlaylist(playlistTitle));
         }
 
         /// <summary>
@@ -650,8 +653,8 @@ namespace Musegician.Playlist
             {
                 if (sourceIndex < targetIndex)
                 {
-                    playlist.Insert(targetIndex, playlist[sourceIndex - preTargetMoves]);
-                    playlist.RemoveAt(sourceIndex - preTargetMoves);
+                    PlaylistSongs.Insert(targetIndex, PlaylistSongs[sourceIndex - preTargetMoves]);
+                    PlaylistSongs.RemoveAt(sourceIndex - preTargetMoves);
 
                     ++preTargetMoves;
                 }
@@ -661,8 +664,8 @@ namespace Musegician.Playlist
                 }
                 else // (sourceIndex > targetIndex)
                 {
-                    playlist.Insert(targetIndex + postTargetMoves, playlist[sourceIndex]);
-                    playlist.RemoveAt(sourceIndex + 1);
+                    PlaylistSongs.Insert(targetIndex + postTargetMoves, PlaylistSongs[sourceIndex]);
+                    PlaylistSongs.RemoveAt(sourceIndex + 1);
                     ++postTargetMoves;
                 }
             }
@@ -704,16 +707,16 @@ namespace Musegician.Playlist
             _playlistUpdateListeners.Add(new WeakReference<IPlaylistUpdateListener>(listener));
 
             //Newly added listeners immediately have Rebuild, Mark, and Mark Recording called
-            listener.Rebuild(playlist);
+            listener.Rebuild(PlaylistSongs);
 
             if (CurrentIndex != -1)
             {
                 listener.MarkIndex(CurrentIndex);
             }
 
-            if (LastRecordingIndex != -1)
+            if (LastRecording != null)
             {
-                listener.MarkRecordingIndex(LastRecordingIndex);
+                listener.MarkRecording(LastRecording);
             }
         }
 

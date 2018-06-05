@@ -24,10 +24,7 @@ namespace Musegician.Driller
     /// </summary>
     public partial class LooperPlaybackPanel : UserControl, INotifyPropertyChanged, ILooperUpdater
     {
-        private MusicManager MusicMan
-        {
-            get { return MusicManager.Instance; }
-        }
+        private MusicManager MusicMan => MusicManager.Instance;
 
         private PlayerState _state;
         public PlayerState State
@@ -63,45 +60,16 @@ namespace Musegician.Driller
             MusicMan.RemoveLooperUpdater(this);
         }
 
-        public void OnPlayClick(object sender, RoutedEventArgs e)
-        {
-            MusicMan.PlayPause();
-        }
+        public void OnPlayClick(object sender, RoutedEventArgs e) => MusicMan.PlayPause();
+        public void OnStopClick(object sender, RoutedEventArgs e) => MusicMan.Stop();
+        public void OnNextClick(object sender, RoutedEventArgs e) => MusicMan.Next();
+        public void OnBackClick(object sender, RoutedEventArgs e) => MusicMan.Back();
 
-        public void OnStopClick(object sender, RoutedEventArgs e)
-        {
-            MusicMan.Stop();
-        }
+        private void OnLoopbackClick(object sender, RoutedEventArgs e) => MusicMan.Restart();
+        private void OnSetStartClick(object sender, RoutedEventArgs e) => progressSlider.LowerValue = progressSlider.Value;
+        private void OnSetStopClick(object sender, RoutedEventArgs e) => progressSlider.UpperValue = progressSlider.Value;
 
-        public void OnNextClick(object sender, RoutedEventArgs e)
-        {
-            MusicMan.Next();
-        }
-
-        public void OnBackClick(object sender, RoutedEventArgs e)
-        {
-            MusicMan.Back();
-        }
-
-        private void OnLoopbackClick(object sender, RoutedEventArgs e)
-        {
-            MusicMan.Restart();
-        }
-
-        private void OnSetStartClick(object sender, RoutedEventArgs e)
-        {
-            progressSlider.LowerValue = progressSlider.Value;
-        }
-
-        private void OnSetStopClick(object sender, RoutedEventArgs e)
-        {
-            progressSlider.UpperValue = progressSlider.Value;
-        }
-
-        private void PlayerStateChanged(PlayerState newState)
-        {
-            State = newState;
-        }
+        private void PlayerStateChanged(PlayerState newState) => State = newState;
 
         private void progressSlider_BoundsChanged(object sender, BoundsChangedEventArgs e)
         {
@@ -109,22 +77,12 @@ namespace Musegician.Driller
             MusicMan.EndPosition = e.UpperBound;
         }
 
-        private void progressSlider_BoundsExceeded(object sender, BoundsExceededEventArgs e)
-        {
-            //Do nothing
-        }
+        private void progressSlider_BoundsExceeded(object sender, BoundsExceededEventArgs e) { }
 
         #region ILooperUpdater
 
-        double ILooperUpdater.GetStartPosition()
-        {
-            return progressSlider.LowerValue;
-        }
-
-        double ILooperUpdater.GetEndPosition()
-        {
-            return progressSlider.UpperValue;
-        }
+        double ILooperUpdater.GetStartPosition() => progressSlider.LowerValue;
+        double ILooperUpdater.GetEndPosition() => progressSlider.UpperValue;
 
         void ILooperUpdater.ResetBounds()
         {

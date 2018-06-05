@@ -12,10 +12,6 @@ namespace Musegician.Deredundafier
     {
         #region Data
 
-        readonly ObservableCollection<DeredundafierViewModel> _children;
-        readonly DeredundafierViewModel _parent;
-        readonly DeredundafierDTO _data;
-
         bool _isExpanded;
         bool _isSelected;
 
@@ -24,34 +20,20 @@ namespace Musegician.Deredundafier
 
         public DeredundafierViewModel(DeredundafierDTO data, DeredundafierViewModel parent)
         {
-            _data = data;
-            _parent = parent;
+            Data = data;
+            Parent = parent;
 
-            _children = new ObservableCollection<DeredundafierViewModel>();
+            Children = new ObservableCollection<DeredundafierViewModel>();
         }
 
         #endregion Constructors
         #region Properties
 
-        public ObservableCollection<DeredundafierViewModel> Children
-        {
-            get { return _children; }
-        }
+        public ObservableCollection<DeredundafierViewModel> Children { get; }
 
-        public DeredundafierDTO Data
-        {
-            get { return _data; }
-        }
+        public DeredundafierDTO Data { get; }
 
-        public string Name
-        {
-            get { return _data.Name; }
-        }
-
-        public long ID
-        {
-            get { return _data.ID; }
-        }
+        public string Name => Data.Name;
 
         #endregion Properties
         #region Presentation Members
@@ -81,9 +63,9 @@ namespace Musegician.Deredundafier
                 }
 
                 // Expand all the way up to the root.
-                if (_isExpanded && _parent != null)
+                if (_isExpanded && Parent != null)
                 {
-                    _parent.IsExpanded = true;
+                    Parent.IsExpanded = true;
                 }
             }
         }
@@ -107,9 +89,9 @@ namespace Musegician.Deredundafier
                 }
 
                 //Expand Parent
-                if (_isSelected && _parent != null && !_parent.IsExpanded)
+                if (_isSelected && Parent != null && !Parent.IsExpanded)
                 {
-                    _parent.IsExpanded = true;
+                    Parent.IsExpanded = true;
                 }
             }
         }
@@ -117,10 +99,7 @@ namespace Musegician.Deredundafier
         #endregion IsSelected
         #region Parent
 
-        public DeredundafierViewModel Parent
-        {
-            get { return _parent; }
-        }
+        public DeredundafierViewModel Parent { get; }
 
         #endregion Parent
         #endregion Presentation Members

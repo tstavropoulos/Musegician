@@ -166,25 +166,18 @@ namespace Musegician
             return artistData;
         }
 
-        string IPlaylistTransferRequestHandler.GetDefaultPlaylistName(
-            LibraryContext context,
-            BaseData data)
+        string IPlaylistTransferRequestHandler.GetDefaultPlaylistName(BaseData data)
         {
-            switch (context)
+            if(data is Artist artist)
             {
-                case LibraryContext.Artist:
-                    return ((Artist)data).Name;
-                case LibraryContext.Album:
-                    return ((Album)data).Title;
-                case LibraryContext.Song:
-                case LibraryContext.Track:
-                case LibraryContext.Recording:
-                    //Blank default name for Single songs, tracks, and recordings
-                    return "";
-                case LibraryContext.MAX:
-                default:
-                    throw new Exception("Unexpected LibraryContext: " + context);
+                return artist.Name;
             }
+            else if(data is Album album)
+            {
+                return album.Title;
+            }
+
+            return "";
         }
 
         IEnumerable<PlaylistRecording> GetRecordingList(

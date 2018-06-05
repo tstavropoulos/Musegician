@@ -12,8 +12,8 @@ namespace Musegician.Playlist
     {
         Database.Playlist GetCurrentPlaylist();
 
-        void PushCurrentTo(string title);
-        void LoadPlaylist(string title);
+        void SavePlaylistAs(string title, IEnumerable<PlaylistSong> songs);
+        IEnumerable<PlaylistSong> LoadPlaylist(string title);
         void DeletePlaylist(string title);
 
         IEnumerable<(string title, int count)> GetPlaylistInfo();

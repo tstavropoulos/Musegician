@@ -10,6 +10,5 @@ namespace Musegician.Playlist
     {
         public String Name { get; set; }
         public long SongCount { get; set; }
-        public long ID { get; set; }
     }
 }

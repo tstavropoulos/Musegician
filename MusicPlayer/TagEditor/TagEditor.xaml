@@ -38,7 +38,7 @@
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Center" />
         </DataTemplate>
-        <DataTemplate x:Key="LongGridCellTemplate" DataType="{x:Type data:TagDataLong}">
+        <DataTemplate x:Key="LongGridCellTemplate" DataType="{x:Type data:TagDataInt}">
           <TextBox Text="{Binding NewValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                    PreviewTextInput="NumberValidationTextBox"
                    HorizontalAlignment="Stretch"
@@ -60,7 +60,7 @@
         <local:TagTemplateSelector x:Key="TagEditorSelector"
                                    BoolTemplate="{StaticResource BoolEditorTemplate}"
                                    StringTemplate="{StaticResource StringGridCellTemplate}"
-                                   LongTemplate="{StaticResource LongGridCellTemplate}"
+                                   IntTemplate="{StaticResource LongGridCellTemplate}"
                                    ViewableTemplate="{StaticResource ViewableGridCellTemplate}"/>
       </ListView.Resources>
       <ListView.View>
