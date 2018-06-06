@@ -28,6 +28,14 @@ namespace Musegician.Database
         public DbSet<Playlist> Playlists { get; set; }
         public DbSet<PlaylistSong> PlaylistSongs { get; set; }
         public DbSet<PlaylistRecording> PlaylistRecordings { get; set; }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<PlaylistSong>()
+                .HasRequired(s => s.Song)
+                .WithMany()
+                .WillCascadeOnDelete(false);
+        }
     }
 
     public abstract class BaseData
@@ -55,10 +63,17 @@ namespace Musegician.Database
         public string Filename { get; set; }
         public bool Live { get; set; }
 
+        //public override double Weight
+        //{
+        //    get => Tracks.First().Weight;
+        //    set => Tracks.First().Weight = value;
+        //}
+
+        [NotMapped]
         public override double Weight
         {
-            get => Tracks.First().Weight;
-            set => Tracks.First().Weight = value;
+            get => throw new Exception("Recordings Have No Weight:Get");
+            set => throw new Exception("Recordings Have No Weight:Set");
         }
 
         public virtual Artist Artist { get; set; }

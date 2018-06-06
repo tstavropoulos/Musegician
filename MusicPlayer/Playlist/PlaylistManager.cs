@@ -571,7 +571,7 @@ namespace Musegician.Playlist
 
         private double GetWeight(PlaylistRecording recording)
         {
-            if (double.IsNaN(recording.Weight))
+            if (recording.Weight == -1.0)
             {
                 if (recording.Recording.Live)
                 {
@@ -631,17 +631,19 @@ namespace Musegician.Playlist
         /// <returns></returns>
         private bool TestSongWeight(PlaylistSong song)
         {
-            if (song.Weight.AlmostEqualRelative(1.0))
+            double weight = (song.Weight != -1.0) ? song.Weight : song.DefaultWeight;
+
+            if (weight.AlmostEqualRelative(1.0))
             {
                 return true;
             }
 
-            if (song.Weight.AlmostEqualRelative(0.0))
+            if (weight.AlmostEqualRelative(0.0))
             {
                 return false;
             }
 
-            return random.NextDouble() <= song.Weight;
+            return random.NextDouble() <= weight;
         }
 
         public void BatchRearrangeSongs(IEnumerable<int> sourceIndices, int targetIndex)

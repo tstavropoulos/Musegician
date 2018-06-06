@@ -44,6 +44,12 @@ namespace Musegician.Library
         private readonly bool _isHome = true;
         public override bool IsDim => base.IsDim || !_isHome;
 
+        protected override double WeightValue
+        {
+            get => _recording.Tracks.First().Weight;
+            set => _recording.Tracks.First().Weight = value;
+        }
+
         #endregion Properties
     }
 }

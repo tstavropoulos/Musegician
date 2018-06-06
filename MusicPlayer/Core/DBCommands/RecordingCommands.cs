@@ -55,7 +55,7 @@ namespace Musegician.Core.DBCommands
                 matchingSong = new Song()
                 {
                     Title = newTitle,
-                    Weight = double.NaN
+                    Weight = -1.0
                 };
 
                 db.Songs.Add(matchingSong);
@@ -103,7 +103,7 @@ namespace Musegician.Core.DBCommands
                 matchingArtist = new Artist()
                 {
                     Name = newArtistName,
-                    Weight = double.NaN
+                    Weight = -1.0
                 };
 
                 db.Artists.Add(matchingArtist);

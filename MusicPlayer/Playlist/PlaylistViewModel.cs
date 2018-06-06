@@ -48,7 +48,7 @@ namespace Musegician.Playlist
 
         public double Weight
         {
-            get { return _data.Weight; }
+            get { return (_data.Weight != -1.0) ? _data.Weight : _data.DefaultWeight; }
             set
             {
                 bool dimUpdate = false;

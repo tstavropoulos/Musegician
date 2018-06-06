@@ -13,7 +13,7 @@ namespace Musegician.DataStructures
         
         public string Name { get; set; }
         public override double Weight {
-            get => double.NaN;
+            get => -1.0;
             set => throw new NotImplementedException();
         }
 

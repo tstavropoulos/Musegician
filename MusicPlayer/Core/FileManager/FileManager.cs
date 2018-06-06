@@ -240,7 +240,7 @@ namespace Musegician
                 artist = new Artist()
                 {
                     Name = artistName,
-                    Weight = double.NaN
+                    Weight = -1.0
                 };
 
                 db.Artists.Add(artist);
@@ -348,7 +348,7 @@ namespace Musegician
                 song = new Song()
                 {
                     Title = songTitle,
-                    Weight = double.NaN
+                    Weight = -1.0
                 };
 
                 db.Songs.Add(song);
@@ -365,7 +365,7 @@ namespace Musegician
                 {
                     Title = albumTitle,
                     Year = (int)tag.Year,
-                    Weight = double.NaN,
+                    Weight = -1.0,
                     Image = null
                 };
 
@@ -397,7 +397,7 @@ namespace Musegician
                 Title = trackTitle,
                 TrackNumber = (int)tag.Track,
                 DiscNumber = (int)discNumber,
-                Weight = double.NaN
+                Weight = -1.0
             };
             db.Tracks.Add(track);
 

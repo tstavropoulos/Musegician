@@ -59,15 +59,17 @@ namespace Musegician.Library
 
         public virtual string Name => "";
 
+        protected virtual double WeightValue
+        {
+            get => Data.Weight;
+            set => Data.Weight = value;
+        }
+
         public double Weight
         {
             get
             {
-                if (double.IsNaN(Data.Weight))
-                {
-                    return Data.DefaultWeight;
-                }
-                return Data.Weight;
+                return (WeightValue != -1.0) ? WeightValue : Data.DefaultWeight;
             }
             set
             {
@@ -78,7 +80,7 @@ namespace Musegician.Library
                     dimUpdate = true;
                 }
 
-                Data.Weight = value;
+                WeightValue = value;
                 OnPropertyChanged("Weight");
 
                 if (dimUpdate)
