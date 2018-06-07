@@ -594,12 +594,14 @@ namespace Musegician.Playlist
 
         public void ClearPlaylist()
         {
+            RequestHandler.ClearPlaylist();
             Rebuild(new List<PlaylistSong>());
             PlaylistName = "";
         }
 
         public void TryLoadPlaylist(string playlistTitle)
         {
+            RequestHandler.ClearPlaylist();
             Rebuild(RequestHandler.LoadPlaylist(playlistTitle));
             PlaylistName = playlistTitle;
         }

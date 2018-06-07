@@ -7,13 +7,13 @@ namespace Musegician.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.2.0-61023")]
-    public sealed partial class RemovingWeightFromRec : IMigrationMetadata
+    public sealed partial class Initial : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(RemovingWeightFromRec));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(Initial));
         
         string IMigrationMetadata.Id
         {
-            get { return "201806052041358_RemovingWeightFromRec"; }
+            get { return "201806062016535_Initial"; }
         }
         
         string IMigrationMetadata.Source

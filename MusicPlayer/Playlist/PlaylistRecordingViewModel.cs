@@ -24,6 +24,8 @@ namespace Musegician.Playlist
         public bool Live => PlaylistRecording.Recording.Live;
         public string LiveString => Live ? "🎤" : "";
 
+        public override double DefaultWeight => Live ? Settings.Instance.LiveWeight : Settings.Instance.StudioWeight;
+
         public PlaylistRecording PlaylistRecording => _data as PlaylistRecording;
         public PlaylistSongViewModel PlaylistSong => Parent as PlaylistSongViewModel;
         

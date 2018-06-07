@@ -30,6 +30,8 @@ namespace Musegician
         {
             List<PlaylistSong> songData = new List<PlaylistSong>();
 
+            Database.Playlist currentPlaylist = GetCurrentPlaylist();
+
             string playlistName;
 
             if (exclusiveRecording != null)
@@ -58,7 +60,12 @@ namespace Musegician
 
             PlaylistSong newSong = new PlaylistSong(
                 song: song,
-                title: playlistName);
+                title: playlistName)
+            {
+                Playlist = currentPlaylist,
+                Weight = song.Weight
+            };
+            db.PlaylistSongs.Add(newSong);
 
             foreach (PlaylistRecording recording in GetRecordingList(
                 song: song,
@@ -66,9 +73,12 @@ namespace Musegician
                 exclusiveRecording: exclusiveRecording))
             {
                 recording.PlaylistSong = newSong;
+                db.PlaylistRecordings.Add(recording);
             }
 
             songData.Add(newSong);
+
+            db.SaveChanges();
 
             return songData;
         }
@@ -82,8 +92,8 @@ namespace Musegician
             if (deep)
             {
                 var songs = (from track in album.Tracks
-                              orderby track.DiscNumber, track.TrackNumber
-                              select track.Recording.Song).Distinct();
+                             orderby track.DiscNumber, track.TrackNumber
+                             select track.Recording.Song).Distinct();
 
                 foreach (Song song in songs)
                 {
@@ -92,23 +102,35 @@ namespace Musegician
             }
             else
             {
+                Database.Playlist currentPlaylist = GetCurrentPlaylist();
+
                 var tracks = from track in album.Tracks
                              orderby track.DiscNumber, track.TrackNumber
                              select track;
 
-                foreach(Track track in tracks)
+                foreach (Track track in tracks)
                 {
                     PlaylistSong newSong = new PlaylistSong(
                         song: track.Recording.Song,
-                        title: $"{track.Recording.Artist} - {track.Recording.Song.Title}");
+                        title: $"{track.Recording.Artist.Name} - {track.Recording.Song.Title}")
+                    {
+                        Playlist = currentPlaylist,
+                        Weight = track.Weight
+                    };
+                    db.PlaylistSongs.Add(newSong);
 
                     PlaylistRecording newRecording = new PlaylistRecording(
                         recording: track.Recording,
-                        title: $"{track.Recording.Artist} - {track.Album.Title} - {track.Title}");
+                        title: $"{track.Recording.Artist.Name} - {track.Album.Title} - {track.Title}")
+                    { Weight = 1.0 };
+
                     newRecording.PlaylistSong = newSong;
+                    db.PlaylistRecordings.Add(newRecording);
 
                     songData.Add(newSong);
                 }
+
+                db.SaveChanges();
             }
 
             return songData;
@@ -119,6 +141,8 @@ namespace Musegician
             bool deep)
         {
             List<PlaylistSong> artistData = new List<PlaylistSong>();
+
+            Database.Playlist currentPlaylist = GetCurrentPlaylist();
 
             var songs = (from recording in artist.Recordings
                          orderby recording.Song.Title ascending
@@ -150,17 +174,25 @@ namespace Musegician
 
                 PlaylistSong newSong = new PlaylistSong(
                     song: song,
-                    title: playlistName);
+                    title: playlistName)
+                {
+                    Playlist = currentPlaylist,
+                    Weight = song.Weight
+                };
+                db.PlaylistSongs.Add(newSong);
 
                 foreach (PlaylistRecording recording in GetRecordingList(
                         song: song,
                         exclusiveArtist: deep ? null : artist))
                 {
                     recording.PlaylistSong = newSong;
+                    db.PlaylistRecordings.Add(recording);
                 }
 
                 artistData.Add(newSong);
             }
+
+            db.SaveChanges();
 
 
             return artistData;
@@ -168,11 +200,11 @@ namespace Musegician
 
         string IPlaylistTransferRequestHandler.GetDefaultPlaylistName(BaseData data)
         {
-            if(data is Artist artist)
+            if (data is Artist artist)
             {
                 return artist.Name;
             }
-            else if(data is Album album)
+            else if (data is Album album)
             {
                 return album.Title;
             }
@@ -188,9 +220,11 @@ namespace Musegician
             if (exclusiveRecording != null)
             {
                 Track track = exclusiveRecording.Tracks.First();
-                return new PlaylistRecording[] { new PlaylistRecording(
-                    recording: exclusiveRecording,
-                    title: $"{exclusiveRecording.Artist.Name} - {track.Album.Title} - {track.Title}") { Weight = 1.0 } };
+                return new PlaylistRecording[] {
+                    new PlaylistRecording(
+                        recording: exclusiveRecording,
+                        title: $"{exclusiveRecording.Artist.Name} - {track.Album.Title} - {track.Title}")
+                    { Weight = 1.0 } };
             }
             else if (exclusiveArtist != null)
             {
@@ -198,13 +232,15 @@ namespace Musegician
                         where recording.Artist == exclusiveArtist
                         select new PlaylistRecording(
                             recording: recording,
-                            title: $"{exclusiveArtist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}"));
+                            title: $"{exclusiveArtist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}")
+                        { Weight = recording.Tracks.First().Weight });
             }
 
             return (from recording in song.Recordings
                     select new PlaylistRecording(
                         recording: recording,
-                        title: $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}"));
+                        title: $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}")
+                    { Weight = recording.Tracks.First().Weight });
         }
     }
 }

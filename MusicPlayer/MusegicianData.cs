@@ -114,7 +114,7 @@ namespace Musegician.Database
 
     public class Playlist
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         public string Title { get; set; }
 
         public virtual ICollection<PlaylistSong> PlaylistSongs { get; set; }

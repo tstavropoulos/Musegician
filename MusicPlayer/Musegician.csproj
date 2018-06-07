@@ -243,13 +243,9 @@
     <Compile Include="Library\SongViewModel.cs" />
     <Compile Include="DataStructures\DataStructures.cs" />
     <Compile Include="Core\FileUtility.cs" />
-    <Compile Include="Migrations\201806051939428_Initial.cs" />
-    <Compile Include="Migrations\201806051939428_Initial.Designer.cs">
-      <DependentUpon>201806051939428_Initial.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\201806052041358_RemovingWeightFromRec.cs" />
-    <Compile Include="Migrations\201806052041358_RemovingWeightFromRec.Designer.cs">
-      <DependentUpon>201806052041358_RemovingWeightFromRec.cs</DependentUpon>
+    <Compile Include="Migrations\201806062016535_Initial.cs" />
+    <Compile Include="Migrations\201806062016535_Initial.Designer.cs">
+      <DependentUpon>201806062016535_Initial.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="MusegicianData.cs" />
@@ -558,11 +554,8 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\201806051939428_Initial.resx">
-      <DependentUpon>201806051939428_Initial.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201806052041358_RemovingWeightFromRec.resx">
-      <DependentUpon>201806052041358_RemovingWeightFromRec.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201806062016535_Initial.resx">
+      <DependentUpon>201806062016535_Initial.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

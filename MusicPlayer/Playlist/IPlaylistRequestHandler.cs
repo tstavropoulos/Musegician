@@ -12,11 +12,12 @@ namespace Musegician.Playlist
     {
         Database.Playlist GetCurrentPlaylist();
 
+        void ClearPlaylist();
         void SavePlaylistAs(string title, IEnumerable<PlaylistSong> songs);
         IEnumerable<PlaylistSong> LoadPlaylist(string title);
         void DeletePlaylist(string title);
 
-        IEnumerable<(string title, int count)> GetPlaylistInfo();
+        IEnumerable<PlaylistTuple> GetPlaylistInfo();
 
         PlayData GetRecordingPlayData(Recording recording);
     }

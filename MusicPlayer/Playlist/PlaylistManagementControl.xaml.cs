@@ -88,12 +88,12 @@ namespace Musegician.Playlist
 
             playlists.Clear();
 
-            foreach (var (title, count) in RequestHandler.GetPlaylistInfo())
+            foreach (PlaylistTuple playlist in RequestHandler.GetPlaylistInfo())
             {
                 playlists.Add(new PlaylistModelView()
                 {
-                    Name = title,
-                    SongCount = count
+                    Name = playlist.title,
+                    SongCount = playlist.count
                 });
             }
         }

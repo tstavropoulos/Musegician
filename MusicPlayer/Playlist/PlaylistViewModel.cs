@@ -46,9 +46,11 @@ namespace Musegician.Playlist
             }
         }
 
+        public virtual double DefaultWeight => _data.DefaultWeight;
+
         public double Weight
         {
-            get { return (_data.Weight != -1.0) ? _data.Weight : _data.DefaultWeight; }
+            get { return (_data.Weight != -1.0) ? _data.Weight : DefaultWeight; }
             set
             {
                 bool dimUpdate = false;

@@ -11,6 +11,12 @@ using IPlaylistRequestHandler = Musegician.Playlist.IPlaylistRequestHandler;
 
 namespace Musegician
 {
+    public class PlaylistTuple
+    {
+        public string title;
+        public int count;
+    }
+
     public partial class FileManager : IPlaylistRequestHandler
     {
         #region IPlaylistRequestHandler
@@ -82,36 +88,49 @@ namespace Musegician
             int index = 0;
             foreach (PlaylistSong song in songs)
             {
-                PlaylistSong copy = new PlaylistSong()
+                PlaylistSong songCopy = new PlaylistSong()
                 {
                     Number = index++,
                     Song = song.Song,
                     Weight = song.Weight,
-                    Title = song.Title
+                    Title = song.Title,
+                    Playlist = savePlaylist
                 };
+                db.PlaylistSongs.Add(songCopy);
 
                 foreach (PlaylistRecording recording in song.PlaylistRecordings)
                 {
-                    copy.PlaylistRecordings.Add( new PlaylistRecording()
+                    PlaylistRecording recordingCopy = new PlaylistRecording()
                     {
                         Title = recording.Title,
                         Recording = recording.Recording,
-                        Weight = recording.Weight
-                    });
-                }
+                        Weight = recording.Weight,
+                        PlaylistSong = songCopy
+                    };
 
-                savePlaylist.PlaylistSongs.Add(copy);
+                    db.PlaylistRecordings.Add(recordingCopy);
+                }
+                
             }
 
             db.Playlists.Add(savePlaylist);
             db.SaveChanges();
         }
 
-        IEnumerable<(string title, int count)> IPlaylistRequestHandler.GetPlaylistInfo()
+        IEnumerable<PlaylistTuple> IPlaylistRequestHandler.GetPlaylistInfo()
         {
-            return (from playlist in db.Playlists
-                    where playlist.Title != "Default"
-                    select new ValueTuple<string, int>(playlist.Title, playlist.PlaylistSongs.Count()));
+            return db.Playlists
+                .Select(x => new PlaylistTuple {
+                    title = x.Title,
+                    count = x.PlaylistSongs.Count()});
+
+
+
+            //IEnumerable<ValueTuple<string, int>> query =
+            //    (from playlist in db.Playlists
+            //     where playlist.Title != "Default"
+            //     select ValueTuple<string, int>(playlist.Title, playlist.PlaylistSongs.Count()));
+            //return query;
         }
 
         //void IPlaylistRequestHandler.LoadPlaylist(string title)
@@ -139,6 +158,17 @@ namespace Musegician
         //    db.SaveChanges();
         //}
 
+        void IPlaylistRequestHandler.ClearPlaylist()
+        {
+            if (_currentPlaylist == null)
+            {
+                GetCurrentPlaylist();
+            }
+
+            db.PlaylistSongs.RemoveRange(from plsong in _currentPlaylist.PlaylistSongs
+                                         select plsong);
+        }
+
         IEnumerable<PlaylistSong> IPlaylistRequestHandler.LoadPlaylist(string title)
         {
             Database.Playlist loadingPlaylist = GetPlaylistClone(title);
@@ -153,15 +183,13 @@ namespace Musegician
             {
                 GetCurrentPlaylist();
             }
-
-            _currentPlaylist.PlaylistSongs.Clear();
-
+            
             foreach (PlaylistSong song in loadingPlaylist.PlaylistSongs)
             {
-                _currentPlaylist.PlaylistSongs.Add(song);
+                song.Playlist = _currentPlaylist;
             }
-
             db.SaveChanges();
+
 
             return _currentPlaylist.PlaylistSongs;
         }

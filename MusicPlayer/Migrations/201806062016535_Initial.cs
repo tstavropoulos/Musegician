@@ -46,7 +46,6 @@ namespace Musegician.Migrations
                         SongId = c.Long(nullable: false),
                         Filename = c.String(),
                         Live = c.Boolean(nullable: false),
-                        Weight = c.Double(nullable: false),
                     })
                 .PrimaryKey(t => t.Id)
                 .ForeignKey("dbo.Artists", t => t.ArtistId, cascadeDelete: true)
@@ -100,19 +99,18 @@ namespace Musegician.Migrations
                         Title = c.String(),
                         Number = c.Int(nullable: false),
                         Weight = c.Double(nullable: false),
-                        Playlist_Id = c.Int(),
                     })
                 .PrimaryKey(t => t.Id)
-                .ForeignKey("dbo.Playlists", t => t.Playlist_Id)
+                .ForeignKey("dbo.Playlists", t => t.PlaylistId, cascadeDelete: true)
                 .ForeignKey("dbo.Songs", t => t.SongId)
-                .Index(t => t.SongId)
-                .Index(t => t.Playlist_Id);
+                .Index(t => t.PlaylistId)
+                .Index(t => t.SongId);
             
             CreateTable(
                 "dbo.Playlists",
                 c => new
                     {
-                        Id = c.Int(nullable: false, identity: true),
+                        Id = c.Long(nullable: false, identity: true),
                         Title = c.String(),
                     })
                 .PrimaryKey(t => t.Id);
@@ -124,13 +122,13 @@ namespace Musegician.Migrations
             DropForeignKey("dbo.PlaylistRecordings", "RecordingId", "dbo.Recordings");
             DropForeignKey("dbo.PlaylistSongs", "SongId", "dbo.Songs");
             DropForeignKey("dbo.PlaylistRecordings", "PlaylistSongId", "dbo.PlaylistSongs");
-            DropForeignKey("dbo.PlaylistSongs", "Playlist_Id", "dbo.Playlists");
+            DropForeignKey("dbo.PlaylistSongs", "PlaylistId", "dbo.Playlists");
             DropForeignKey("dbo.Tracks", "RecordingId", "dbo.Recordings");
             DropForeignKey("dbo.Recordings", "SongId", "dbo.Songs");
             DropForeignKey("dbo.Recordings", "ArtistId", "dbo.Artists");
             DropForeignKey("dbo.Tracks", "AlbumId", "dbo.Albums");
-            DropIndex("dbo.PlaylistSongs", new[] { "Playlist_Id" });
             DropIndex("dbo.PlaylistSongs", new[] { "SongId" });
+            DropIndex("dbo.PlaylistSongs", new[] { "PlaylistId" });
             DropIndex("dbo.PlaylistRecordings", new[] { "RecordingId" });
             DropIndex("dbo.PlaylistRecordings", new[] { "PlaylistSongId" });
             DropIndex("dbo.Recordings", new[] { "SongId" });
