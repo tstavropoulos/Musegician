@@ -51,7 +51,7 @@ public class DepletableList<T> : IDepletable<T>
     #region IDepletable<T>
 
     public bool AutoRefill { get; set; }
-    public int TotalCount { get { return values.Count; } }
+    public int TotalCount => values.Count;
 
     private void AdvanceCurrentIndexPastDepleted(bool allowRefill = true)
     {
@@ -157,10 +157,7 @@ public class DepletableList<T> : IDepletable<T>
         return success;
     }
 
-    public bool ContainsAnywhere(T value)
-    {
-        return values.Contains(value);
-    }
+    public bool ContainsAnywhere(T value) => values.Contains(value);
 
     public IList<T> GetAvailable()
     {
@@ -200,9 +197,9 @@ public class DepletableList<T> : IDepletable<T>
     #endregion IDepletable<T>
     #region ICollection<T>
 
-    public int Count { get { return GetRemainingCount(); } }
+    public int Count => GetRemainingCount();
 
-    bool ICollection<T>.IsReadOnly { get { return false; } }
+    bool ICollection<T>.IsReadOnly => false;
 
     public void Add(T value)
     {
@@ -268,15 +265,8 @@ public class DepletableList<T> : IDepletable<T>
     #endregion ICollection<T>
     #region IEnumerable<T>
 
-    public IEnumerator<T> GetEnumerator()
-    {
-        return ((IEnumerable<T>)values).GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return ((IEnumerable<T>)values).GetEnumerator();
-    }
+    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)values).GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)values).GetEnumerator();
 
     #endregion IEnumerable<T>
 }

@@ -20,21 +20,12 @@ namespace Musegician.Playlist
     /// </summary>
     public partial class PlaylistToolBar : UserControl
     {
-        PlaylistManager PlaylistMan
-        {
-            get { return PlaylistManager.Instance; }
-        }
+        PlaylistManager PlaylistMan => PlaylistManager.Instance;
 
         public event RoutedEventHandler TinyViewerPressed
         {
-            add
-            {
-                tinyViewerButton.Click += value;
-            }
-            remove
-            {
-                tinyViewerButton.Click -= value;
-            }
+            add => tinyViewerButton.Click += value;
+            remove => tinyViewerButton.Click -= value;
         }
 
         #region Constructor

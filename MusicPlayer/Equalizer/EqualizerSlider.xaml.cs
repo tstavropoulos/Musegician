@@ -32,8 +32,8 @@ namespace Musegician.Equalizer
 
         public string Label
         {
-            get { return (string)GetValue(LabelProperty); }
-            set { SetValue(LabelProperty, value); }
+            get => (string)GetValue(LabelProperty);
+            set => SetValue(LabelProperty, value);
         }
 
         #endregion Label
@@ -53,13 +53,7 @@ namespace Musegician.Equalizer
             }
         }
 
-        public string ValueString
-        {
-            get
-            {
-                return Value.ToString("+0.00;-0.00;0.00");
-            }
-        }
+        public string ValueString => Value.ToString("+0.00;-0.00;0.00");
 
         #endregion Value
         #region Power
@@ -118,10 +112,8 @@ namespace Musegician.Equalizer
         #endregion Callbacks
         #region Helper Methods
 
-        private static float RoundOff(double value)
-        {
-            return (float)(Math.Round(value * 4.0, MidpointRounding.ToEven)) / 4f;
-        }
+        private static float RoundOff(double value) => 
+            (float)(Math.Round(value * 4.0, MidpointRounding.ToEven)) / 4f;
 
         #endregion
         #region INotifyPropertyChanged

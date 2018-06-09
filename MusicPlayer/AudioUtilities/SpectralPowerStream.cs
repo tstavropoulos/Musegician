@@ -53,8 +53,8 @@ namespace Musegician.AudioUtilities
 
         public int Interval
         {
-            get { return (int)(_blocksToProcess / (WaveFormat.SampleRate / (SAMPLE_STRIDE * 1000.0))); }
-            set { _blocksToProcess = (int)(value * (WaveFormat.SampleRate / (SAMPLE_STRIDE * 1000.0))); }
+            get => (int)(_blocksToProcess / (WaveFormat.SampleRate / (SAMPLE_STRIDE * 1000.0)));
+            set => _blocksToProcess = (int)(value * (WaveFormat.SampleRate / (SAMPLE_STRIDE * 1000.0)));
         }
 
         #endregion Properties
@@ -119,17 +119,11 @@ namespace Musegician.AudioUtilities
             Interval = 50;
         }
 
-        public static SpectralPowerStream CreatePowerStream(ISampleSource source)
-        {
-            return CreatePowerStream(source, defaultFrequencies);
-        }
+        public static SpectralPowerStream CreatePowerStream(ISampleSource source) => CreatePowerStream(source, defaultFrequencies);
 
         public static SpectralPowerStream CreatePowerStream(
             ISampleSource source,
-            ICollection<float> frequencies)
-        {
-            return new SpectralPowerStream(source, frequencies);
-        }
+            ICollection<float> frequencies) => new SpectralPowerStream(source, frequencies);
 
         #endregion Constructor
         #region SampleAggregatorBase Overrides
@@ -188,10 +182,7 @@ namespace Musegician.AudioUtilities
             }
         }
 
-        private void Reset()
-        {
-            _blocksProcessed = samplesToProcess - _blocksToProcess;
-        }
+        private void Reset() => _blocksProcessed = samplesToProcess - _blocksToProcess;
 
         private (float, float) GetPowers(int index)
         {
@@ -213,15 +204,12 @@ namespace Musegician.AudioUtilities
         #endregion Helper Methods
         #region Utility Methods
 
-        private static int ToNextExponentOf2(int x)
-        {
-            return (int)Math.Ceiling(Math.Log(x) / Math.Log(2));
-        }
+        private static int ToNextExponentOf2(int x) => (int)Math.Ceiling(Math.Log(x) / Math.Log(2));
 
         public delegate float WindowFunction(int index, int width);
 
-        public static readonly WindowFunction Hamming = (index, width)
-            => (float)(0.54 - 0.46 * Math.Cos((2 * Math.PI * index) / (width - 1)));
+        public static readonly WindowFunction Hamming = 
+            (index, width) => (float)(0.54 - 0.46 * Math.Cos((2 * Math.PI * index) / (width - 1)));
 
         public static int GetFrequencySample(float frequency, int fftSize, int sampleRate)
         {
@@ -230,15 +218,9 @@ namespace Musegician.AudioUtilities
             return Math.Min(value, fftSize / 2);
         }
 
-        public static double GetFrequency(int index, int fftSize, int sampleRate)
-        {
-            return index * ((double)sampleRate / SAMPLE_STRIDE) / fftSize;
-        }
+        public static double GetFrequency(int index, int fftSize, int sampleRate) => index * ((double)sampleRate / SAMPLE_STRIDE) / fftSize;
 
-        public static float UnitaryClamp(float value)
-        {
-            return Math.Max(0, Math.Min(1, value));
-        }
+        public static float UnitaryClamp(float value) => Math.Max(0, Math.Min(1, value));
 
         #endregion Utility Methods
     }

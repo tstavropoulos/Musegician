@@ -24,10 +24,7 @@ namespace Musegician.Driller
     /// </summary>
     public partial class DrillerWindow : Window
     {
-        PlaylistManager PlaylistMan
-        {
-            get { return PlaylistManager.Instance; }
-        }
+        PlaylistManager PlaylistMan => PlaylistManager.Instance;
 
         public DrillerWindow()
         {
@@ -56,20 +53,14 @@ namespace Musegician.Driller
             LoadPlaylistPopup.Closed -= PlaylistManControl.Popup_Closed;
         }
 
-        private void CloseClick(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
+        private void CloseClick(object sender, RoutedEventArgs e) => Close();
 
         private void MinimizeClick(object sender, RoutedEventArgs e)
         {
             WindowState = WindowState.Minimized;
         }
 
-        private void Toolbar_RestoreWindow(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
+        private void Toolbar_RestoreWindow(object sender, RoutedEventArgs e) => Close();
 
         private void PlayerStateChanged(PlayerState newState)
         {

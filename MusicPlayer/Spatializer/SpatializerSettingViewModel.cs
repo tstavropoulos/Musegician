@@ -28,8 +28,8 @@ namespace Musegician.Spatializer
         #endregion Constructor
         #region Properties
 
-        public string Name { get { return data.name; } }
-        public IR_Position[,] Position { get { return data.position; } }
+        public string Name => data.name;
+        public IR_Position[,] Position => data.position;
         public bool Hidden { get; set; }
 
         #endregion Properties

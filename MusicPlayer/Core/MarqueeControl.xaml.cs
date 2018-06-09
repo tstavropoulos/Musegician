@@ -93,8 +93,8 @@ namespace Musegician.Core
 
         public double Rate
         {
-            get { return (double)GetValue(RateProperty); }
-            set { SetValue(RateProperty, value); }
+            get => (double)GetValue(RateProperty);
+            set => SetValue(RateProperty, value);
         }
 
         public static readonly DependencyProperty RateProperty =
@@ -106,8 +106,8 @@ namespace Musegician.Core
 
         public TickerDirection Direction
         {
-            get { return (TickerDirection)GetValue(DirectionProperty); }
-            set { SetValue(DirectionProperty, value); }
+            get => (TickerDirection)GetValue(DirectionProperty);
+            set => SetValue(DirectionProperty, value);
         }
 
         public static readonly DependencyProperty DirectionProperty =

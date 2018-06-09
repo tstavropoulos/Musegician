@@ -38,7 +38,7 @@ public class DepletableBag<T> : IDepletable<T>
     #region IDepletable<T>
 
     public bool AutoRefill { get; set; }
-    public int TotalCount { get { return values.Count; } }
+    public int TotalCount => values.Count;
 
     public T PopNext()
     {
@@ -149,15 +149,8 @@ public class DepletableBag<T> : IDepletable<T>
         return success;
     }
 
-    public bool ContainsAnywhere(T value)
-    {
-        return values.Contains(value);
-    }
-
-    public IList<T> GetAvailable()
-    {
-        return values.GetRange(0, availableCount);
-    }
+    public bool ContainsAnywhere(T value) => values.Contains(value);
+    public IList<T> GetAvailable() => values.GetRange(0, availableCount);
 
     public void CopyAllTo(T[] array, int arrayIndex)
     {
@@ -179,7 +172,7 @@ public class DepletableBag<T> : IDepletable<T>
     #endregion IDepletable<T>
     #region ICollection<T>
 
-    public int Count { get { return availableCount; } }
+    public int Count => availableCount;
 
     bool ICollection<T>.IsReadOnly { get { return false; } }
 
@@ -246,15 +239,8 @@ public class DepletableBag<T> : IDepletable<T>
     #endregion ICollection<T>
     #region IEnumerable<T>
 
-    public IEnumerator<T> GetEnumerator()
-    {
-        return ((IEnumerable<T>)values).GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return ((IEnumerable<T>)values).GetEnumerator();
-    }
+    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)values).GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)values).GetEnumerator();
 
     #endregion IEnumerable<T>
 }

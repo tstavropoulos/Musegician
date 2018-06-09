@@ -20,16 +20,9 @@ namespace Musegician.Library
         MusicTreeViewModel _musicTree;
 
         ILibraryRequestHandler LibraryRequestHandler => FileManager.Instance;
-
         IPlaylistTransferRequestHandler PlaylistTransferRequestHandler => FileManager.Instance;
 
         #endregion Data
-        //#region Context Menu Events
-
-        //public delegate void ContextMenuIDRequest(Album album);
-        //public delegate void ContextMenuMultiIDRequest(IEnumerable<BaseData> data);
-
-        //#endregion Context Menu Events
         #region Constructor
 
         public TightLibraryControl()

@@ -12,31 +12,11 @@ namespace Musegician.Core.DBCommands
 {
     public class TrackCommands
     {
-        ArtistCommands artistCommands = null;
-        SongCommands songCommands = null;
-        AlbumCommands albumCommands = null;
-        RecordingCommands recordingCommands = null;
-
         MusegicianData db = null;
 
-        public TrackCommands()
-        {
-
-        }
-
-        public void Initialize(
-            MusegicianData db,
-            ArtistCommands artistCommands,
-            SongCommands songCommands,
-            AlbumCommands albumCommands,
-            RecordingCommands recordingCommands)
+        public TrackCommands(MusegicianData db)
         {
             this.db = db;
-
-            this.artistCommands = artistCommands;
-            this.songCommands = songCommands;
-            this.albumCommands = albumCommands;
-            this.recordingCommands = recordingCommands;
         }
 
         #region High Level Commands
@@ -69,17 +49,19 @@ namespace Musegician.Core.DBCommands
             }
 
             var recordingSet = tracks.Select(x => x.Recording).Distinct();
-            
+
             //Update track table to point at new song
             foreach (Recording recording in recordingSet)
             {
                 recording.Song = matchingSong;
             }
 
-            foreach (PlaylistRecording plRecording in db.PlaylistRecordings
-                .Where(x => recordingSet.Contains(x.Recording)))
+            foreach (PlaylistSong plSong in 
+                (from recording in recordingSet
+                 join plRecording in db.PlaylistRecordings on recording.Id equals plRecording.Id
+                 select plRecording.PlaylistSong).Distinct())
             {
-                plRecording.PlaylistSong.Song = matchingSong;
+                plSong.Song = matchingSong;
             }
 
             //Delete Leafs
@@ -113,7 +95,7 @@ namespace Musegician.Core.DBCommands
             }
 
             var recordingSet = tracks.Select(x => x.Recording).Distinct();
-            
+
             //Update track table to point at new Artist
             foreach (Recording recording in recordingSet)
             {
@@ -150,7 +132,7 @@ namespace Musegician.Core.DBCommands
             }
 
             //Update tracks to point at new album
-            foreach(Track track in tracks)
+            foreach (Track track in tracks)
             {
                 track.Album = matchingAlbum;
             }

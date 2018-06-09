@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SQLite;
-using DbType = System.Data.DbType;
-using Musegician.DataStructures;
 using Musegician.Deredundafier;
 using Musegician.Database;
 
@@ -13,30 +8,11 @@ namespace Musegician.Core.DBCommands
 {
     public class SongCommands
     {
-        ArtistCommands artistCommands = null;
-        TrackCommands trackCommands = null;
-        RecordingCommands recordingCommands = null;
-        PlaylistCommands playlistCommands = null;
-
         MusegicianData db = null;
 
-        public SongCommands()
-        {
-        }
-
-        public void Initialize(
-            MusegicianData db,
-            ArtistCommands artistCommands,
-            TrackCommands trackCommands,
-            RecordingCommands recordingCommands,
-            PlaylistCommands playlistCommands)
+        public SongCommands(MusegicianData db)
         {
             this.db = db;
-
-            this.artistCommands = artistCommands;
-            this.trackCommands = trackCommands;
-            this.recordingCommands = recordingCommands;
-            this.playlistCommands = playlistCommands;
         }
 
         #region High Level Commands
@@ -72,16 +48,16 @@ namespace Musegician.Core.DBCommands
 
                 //Update track table to point at new song
                 foreach (Recording recording in
-                    (from recording in db.Recordings
-                     where songsCopy.Contains(recording.Song)
+                    (from song in songsCopy
+                     join recording in db.Recordings on song.Id equals recording.SongId
                      select recording))
                 {
                     recording.Song = matchingSong;
                 }
 
                 foreach (PlaylistSong playlistSong in
-                    (from plsong in db.PlaylistSongs
-                     where songsCopy.Contains(plsong.Song)
+                    (from song in songsCopy
+                     join plsong in db.PlaylistSongs on song.Id equals plsong.SongId
                      select plsong))
                 {
                     playlistSong.Song = matchingSong;
@@ -154,17 +130,17 @@ namespace Musegician.Core.DBCommands
 
             //For the remaining artists, Remap foreign keys
             foreach (Recording recording in
-                (from recording in db.Recordings
-                 where songsCopy.Contains(recording.Song)
+                (from song in songsCopy
+                 join recording in db.Recordings on song.Id equals recording.SongId 
                  select recording))
             {
                 recording.Song = matchingSong;
             }
 
             foreach (PlaylistSong playlistSong in
-                (from playlistSong in db.PlaylistSongs
-                 where songsCopy.Contains(playlistSong.Song)
-                 select playlistSong))
+                (from song in songsCopy
+                 join plsong in db.PlaylistSongs on song.Id equals plsong.SongId
+                 select plsong))
             {
                 playlistSong.Song = matchingSong;
             }

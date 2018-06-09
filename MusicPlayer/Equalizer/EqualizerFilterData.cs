@@ -20,7 +20,7 @@ namespace Musegician.Equalizer
 
         public float Gain
         {
-            get { return _gain; }
+            get => _gain;
             set
             {
                 if (_gain != value)
@@ -33,7 +33,7 @@ namespace Musegician.Equalizer
 
         public string Name
         {
-            get { return _name; }
+            get => _name;
             set
             {
                 if (_name != value)
@@ -44,22 +44,13 @@ namespace Musegician.Equalizer
             }
         }
 
-        public float PowerL
-        {
-            get { return _power.L; }
-        }
-        public float PowerR
-        {
-            get { return _power.R; }
-        }
-        public float PowerAvg
-        {
-            get { return (_power.L + _power.R) / 2f; }
-        }
+        public float PowerL => _power.L;
+        public float PowerR => _power.R;
+        public float PowerAvg => (_power.L + _power.R) / 2f;
 
         public (float L, float R) Power
         {
-            get { return _power; }
+            get => _power;
             set
             {
                 if (PowerL != value.L ||
@@ -76,10 +67,7 @@ namespace Musegician.Equalizer
         #endregion Properties
         #region Constructor
 
-        public EqualizerFilterData(string name)
-        {
-            Name = name;
-        }
+        public EqualizerFilterData(string name) => Name = name;
 
         #endregion Constructor
         #region INotifyPropertyChanged

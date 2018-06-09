@@ -33,8 +33,6 @@ namespace Musegician.Equalizer
         #region Data
 
         private string presetName;
-        private ReadOnlyCollection<EqualizerSettingDTO> presets;
-        private ReadOnlyCollection<EqualizerFilterData> eqFilterData;
         private bool blockUpdate = false;
 
         #endregion Data
@@ -84,7 +82,7 @@ namespace Musegician.Equalizer
         {
             presetName = "Flat";
 
-            presets = new ReadOnlyCollection<EqualizerSettingDTO>(
+            Presets = new ReadOnlyCollection<EqualizerSettingDTO>(
                 new EqualizerSettingDTO[]
                 {
                     new EqualizerSettingDTO()
@@ -129,14 +127,14 @@ namespace Musegician.Equalizer
                 "16k"
             };
 
-            eqFilterData = new ReadOnlyCollection<EqualizerFilterData>(
+            EqualizerFilterData = new ReadOnlyCollection<EqualizerFilterData>(
                 (from name in channelNames
                  select new EqualizerFilterData(name)).ToArray());
 
-            for (int i = 0; i < eqFilterData.Count; i++)
+            for (int i = 0; i < EqualizerFilterData.Count; i++)
             {
                 int index = i;
-                eqFilterData[i].PropertyChanged += (s, e) =>
+                EqualizerFilterData[i].PropertyChanged += (s, e) =>
                 {
                     if (!blockUpdate && e.PropertyName == "Gain")
                     {
@@ -147,7 +145,7 @@ namespace Musegician.Equalizer
 
             Player.MusicManager.Instance.MeterUpdate += (s, e) =>
             {
-                eqFilterData[e.Index].Power = e.Power;
+                EqualizerFilterData[e.Index].Power = e.Power;
             };
 
             EqualizerChanged += Player.MusicManager.Instance.EqualizerUpdated;
@@ -158,14 +156,14 @@ namespace Musegician.Equalizer
         #region Properties
         #region Properties FilterData
 
-        public ReadOnlyCollection<EqualizerFilterData> EqualizerFilterData { get { return eqFilterData; } }
+        public ReadOnlyCollection<EqualizerFilterData> EqualizerFilterData { get; }
 
         #endregion Properties FilterData
         #region Properties Presets
 
         public string PresetName
         {
-            get { return presetName; }
+            get => presetName;
             private set
             {
                 if (presetName != value)
@@ -176,7 +174,7 @@ namespace Musegician.Equalizer
             }
         }
 
-        public ReadOnlyCollection<EqualizerSettingDTO> Presets { get { return presets; } }
+        public ReadOnlyCollection<EqualizerSettingDTO> Presets { get; }
 
         #endregion Properties Presets
         #endregion Properties
@@ -184,12 +182,12 @@ namespace Musegician.Equalizer
 
         public float GetGain(int index)
         {
-            if (index < 0 || index > eqFilterData.Count)
+            if (index < 0 || index > EqualizerFilterData.Count)
             {
                 throw new ArgumentException("Invalid requested Channel: " + index);
             }
 
-            return eqFilterData[index].Gain;
+            return EqualizerFilterData[index].Gain;
         }
 
         public void SetGain(float[] gain)
@@ -199,7 +197,7 @@ namespace Musegician.Equalizer
                 throw new ArgumentException("Invalid submitted gain array: Null");
             }
 
-            if (gain.Length != eqFilterData.Count)
+            if (gain.Length != EqualizerFilterData.Count)
             {
                 throw new ArgumentException("Invalid submitted gain array length: " + gain.Length);
             }
@@ -208,9 +206,9 @@ namespace Musegician.Equalizer
 
             for (int i = 0; i < gain.Length; i++)
             {
-                if (eqFilterData[i].Gain != gain[i])
+                if (EqualizerFilterData[i].Gain != gain[i])
                 {
-                    eqFilterData[i].Gain = gain[i];
+                    EqualizerFilterData[i].Gain = gain[i];
                 }
             }
 
@@ -226,9 +224,9 @@ namespace Musegician.Equalizer
         {
             blockUpdate = true;
 
-            for (int i = 0; i < eqFilterData.Count; i++)
+            for (int i = 0; i < EqualizerFilterData.Count; i++)
             {
-                eqFilterData[i].Gain = 0f;
+                EqualizerFilterData[i].Gain = 0f;
             }
 
             blockUpdate = false;
@@ -255,9 +253,9 @@ namespace Musegician.Equalizer
 
         private bool CompareToPreset(EqualizerSettingDTO data)
         {
-            for (int i = 0; i < eqFilterData.Count; i++)
+            for (int i = 0; i < EqualizerFilterData.Count; i++)
             {
-                if (data.gain[i] != eqFilterData[i].Gain)
+                if (data.gain[i] != EqualizerFilterData[i].Gain)
                 {
                     return false;
                 }
@@ -268,20 +266,20 @@ namespace Musegician.Equalizer
 
         private void UpdateGain(int index, float value)
         {
-            if (index < 0 || index >= eqFilterData.Count)
+            if (index < 0 || index >= EqualizerFilterData.Count)
             {
                 throw new ArgumentException("Unexpected Gain Index: " + index);
             }
 
-            if (eqFilterData[index].Gain != value)
+            if (EqualizerFilterData[index].Gain != value)
             {
-                eqFilterData[index].Gain = value;
+                EqualizerFilterData[index].Gain = value;
             }
         }
 
         private void BroadcastEqUpdate(int index)
         {
-            if (index < 0 || index >= eqFilterData.Count)
+            if (index < 0 || index >= EqualizerFilterData.Count)
             {
                 throw new ArgumentException("Unexpected Gain Index: " + index);
             }

@@ -11,9 +11,6 @@ namespace Musegician.Spatializer
     {
         #region Data
 
-        private float _left;
-        private float _top;
-
         private bool _showLL = false;
         private bool _showLR = false;
         private bool _showRL = false;
@@ -24,19 +21,19 @@ namespace Musegician.Spatializer
 
         public SpatializerLocationsViewModel(float left, float top)
         {
-            _left = left;
-            _top = top;
+            Left = left;
+            Top = top;
         }
 
         #endregion Constructor
         #region Properties
 
-        public float Left => _left;
-        public float Top => _top;
+        public float Left { get; }
+        public float Top { get; }
 
         public bool ShowLL
         {
-            get { return _showLL; }
+            get => _showLL;
             set
             {
                 if (_showLL != value)
@@ -49,7 +46,7 @@ namespace Musegician.Spatializer
 
         public bool ShowLR
         {
-            get { return _showLR; }
+            get => _showLR;
             set
             {
                 if (_showLR != value)
@@ -62,7 +59,7 @@ namespace Musegician.Spatializer
 
         public bool ShowRL
         {
-            get { return _showRL; }
+            get => _showRL;
             set
             {
                 if (_showRL != value)
@@ -75,7 +72,7 @@ namespace Musegician.Spatializer
 
         public bool ShowRR
         {
-            get { return _showRR; }
+            get => _showRR;
             set
             {
                 if (_showRR != value)

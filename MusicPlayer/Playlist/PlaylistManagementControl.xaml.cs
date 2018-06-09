@@ -24,10 +24,7 @@ namespace Musegician.Playlist
     /// </summary>
     public partial class PlaylistManagementControl : UserControl
     {
-        IPlaylistRequestHandler RequestHandler
-        {
-            get { return FileManager.Instance; }
-        }
+        IPlaylistRequestHandler RequestHandler => FileManager.Instance;
 
         ObservableCollection<PlaylistModelView> playlists = new ObservableCollection<PlaylistModelView>();
 

@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 using CSCore;
 using CSCore.Codecs;
 using CSCore.CoreAudioAPI;
 using CSCore.SoundOut;
-using CSCore.Streams;
-using CSCore.Streams.Effects;
 using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows;
@@ -128,7 +123,7 @@ namespace Musegician.Player
         private string _deviceIdentifier = "";
         public string DeviceIdentifier
         {
-            get { return _deviceIdentifier; }
+            get => _deviceIdentifier;
             set
             {
                 if (_deviceIdentifier != value)
@@ -224,7 +219,7 @@ namespace Musegician.Player
         private double _length = 1.0;
         public double Length
         {
-            get { return _length; }
+            get => _length;
             private set
             {
                 if (_length != value)
@@ -232,7 +227,7 @@ namespace Musegician.Player
                     _length = value;
                     EndPosition = value;
 
-                    _songLengthLabel = TimestampToLabel((int)Math.Floor(Length));
+                    SongLengthLabel = TimestampToLabel((int)Math.Floor(Length));
 
                     OnPropertyChanged("Length");
                     OnPropertyChanged("SongLengthLabel");
@@ -244,7 +239,7 @@ namespace Musegician.Player
         private double _endPosition = 1.0;
         public double EndPosition
         {
-            get { return _endPosition; }
+            get => _endPosition;
             set
             {
                 if (_endPosition != value)
@@ -267,13 +262,13 @@ namespace Musegician.Player
             }
         }
 
-        public double ClickJump { get { return 10.0; } }
-        public double KBJump { get { return 0.5; } }
+        public double ClickJump => 10.0;
+        public double KBJump => 0.5;
 
         private string _songLabel = "";
         public string SongLabel
         {
-            get { return _songLabel; }
+            get => _songLabel;
             private set
             {
                 if (_songLabel != value)
@@ -303,12 +298,7 @@ namespace Musegician.Player
                 return $"{SongLabel}  [{TimestampToLabel(PositionSeconds)} / {SongLengthLabel}]";
             }
         }
-
-        private string _songLengthLabel = "";
-        public string SongLengthLabel
-        {
-            get { return _songLengthLabel; }
-        }
+        public string SongLengthLabel { get; private set; } = "";
 
         public string WindowTitle
         {
@@ -326,7 +316,7 @@ namespace Musegician.Player
         private bool _muted = false;
         public bool Muted
         {
-            get { return _muted || (_volume == 0.0); }
+            get => _muted || (_volume == 0.0);
             set
             {
                 if (_muted != value)
@@ -353,7 +343,7 @@ namespace Musegician.Player
         private float _volume = 1.0f;
         public float Volume
         {
-            get { return _volume; }
+            get => _volume;
             set
             {
                 value = MathExt.Clamp(value, 0.0f, 1.0f);
@@ -383,7 +373,7 @@ namespace Musegician.Player
         private double _position = 0.0;
         public double Position
         {
-            get { return _position; }
+            get => _position;
             set
             {
                 if (_position != value)
@@ -412,7 +402,7 @@ namespace Musegician.Player
         private int _positionSeconds = 0;
         private int PositionSeconds
         {
-            get { return _positionSeconds; }
+            get => _positionSeconds;
             set
             {
                 if (_positionSeconds != value)
@@ -428,7 +418,7 @@ namespace Musegician.Player
         private PlayerState _state = PlayerState.NotLoaded;
         public PlayerState State
         {
-            get { return _state; }
+            get => _state;
             private set
             {
                 if (_state != value)
@@ -476,10 +466,7 @@ namespace Musegician.Player
                 }
             }
 
-            remove
-            {
-                _RecordingStarted -= value;
-            }
+            remove => _RecordingStarted -= value;
         }
 
         #region Constructor
@@ -749,10 +736,7 @@ namespace Musegician.Player
         #endregion Helper Methods
         #region Playback Control Methods
 
-        public void Next()
-        {
-            PlaySong(PlaylistManager.Instance.Next());
-        }
+        public void Next() => PlaySong(PlaylistManager.Instance.Next());
 
         public void Back()
         {
@@ -862,30 +846,12 @@ namespace Musegician.Player
             }
         }
 
-        public void MutePlayer()
-        {
-            Muted = true;
-        }
+        public void MutePlayer() => Muted = true;
+        public void UnMutePlayer() => Muted = false;
+        public void MuteUnMutePlayer() => Muted = !Muted;
 
-        public void UnMutePlayer()
-        {
-            Muted = false;
-        }
-
-        public void MuteUnMutePlayer()
-        {
-            Muted = !Muted;
-        }
-
-        public void VolumeUp()
-        {
-            Volume += 0.1f;
-        }
-
-        public void VolumeDown()
-        {
-            Volume -= 0.1f;
-        }
+        public void VolumeUp() => Volume += 0.1f;
+        public void VolumeDown() => Volume -= 0.1f;
 
         public void SetPositionRequest(double time)
         {

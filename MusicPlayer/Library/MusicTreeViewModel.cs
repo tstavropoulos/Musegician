@@ -15,20 +15,6 @@ namespace Musegician.Library
     {
         #region Data
 
-        readonly ObservableCollection<LibraryViewModel> _classicArtistViewModels =
-            new ObservableCollection<LibraryViewModel>();
-
-        readonly ObservableCollection<LibraryViewModel> _simpleArtistViewModels =
-            new ObservableCollection<LibraryViewModel>();
-
-        readonly ObservableCollection<LibraryViewModel> _albumViewModels =
-            new ObservableCollection<LibraryViewModel>();
-
-        readonly ObservableCollection<LibraryViewModel> _directoryViewModels =
-            new ObservableCollection<LibraryViewModel>();
-
-        readonly ICommand _searchCommand = new SearchMusicTreeCommand(null);
-
         IEnumerator<LibraryViewModel> _matchingRecordEnumerator;
         string _searchText = String.Empty;
 
@@ -42,7 +28,7 @@ namespace Musegician.Library
         #endregion Data
         #region Engine References
 
-        ILibraryRequestHandler requestHandler;
+        private readonly ILibraryRequestHandler requestHandler;
 
         #endregion Engine References
         #region Constructor
@@ -54,7 +40,7 @@ namespace Musegician.Library
         {
             this.requestHandler = requestHandler;
 
-            _searchCommand = new SearchMusicTreeCommand(this);
+            SearchCommand = new SearchMusicTreeCommand(this);
         }
 
         #endregion Constructor
@@ -74,11 +60,11 @@ namespace Musegician.Library
                     if (!classicLoaded)
                     {
                         classicLoaded = true;
-                        _classicArtistViewModels.Clear();
+                        ClassicArtistViewModels.Clear();
 
                         foreach (Artist artist in requestHandler.GenerateArtistList())
                         {
-                            _classicArtistViewModels.Add(new ArtistViewModel(artist, ViewMode.Classic));
+                            ClassicArtistViewModels.Add(new ArtistViewModel(artist, ViewMode.Classic));
                         }
                     }
                     break;
@@ -86,11 +72,11 @@ namespace Musegician.Library
                     if (!simpleLoaded)
                     {
                         simpleLoaded = true;
-                        _simpleArtistViewModels.Clear();
+                        SimpleViewModels.Clear();
 
                         foreach (Artist artist in requestHandler.GenerateArtistList())
                         {
-                            _simpleArtistViewModels.Add(new ArtistViewModel(artist, ViewMode.Simple));
+                            SimpleViewModels.Add(new ArtistViewModel(artist, ViewMode.Simple));
                         }
 
                     }
@@ -99,11 +85,11 @@ namespace Musegician.Library
                     if (!albumLoaded)
                     {
                         albumLoaded = true;
-                        _albumViewModels.Clear();
+                        AlbumViewModels.Clear();
 
                         foreach (Album album in requestHandler.GenerateAlbumList())
                         {
-                            _albumViewModels.Add(new AlbumViewModel(album, null));
+                            AlbumViewModels.Add(new AlbumViewModel(album, null));
                         }
 
                     }
@@ -112,11 +98,11 @@ namespace Musegician.Library
                     if (!directoryLoaded)
                     {
                         directoryLoaded = true;
-                        _directoryViewModels.Clear();
+                        DirectoryViewModels.Clear();
 
                         foreach (DirectoryDTO directory in requestHandler.GetDirectories(""))
                         {
-                            _directoryViewModels.Add(new DirectoryViewModel(directory, null));
+                            DirectoryViewModels.Add(new DirectoryViewModel(directory, null));
                         }
                     }
                     break;
@@ -134,25 +120,11 @@ namespace Musegician.Library
         /// Returns a read-only collection containing the first person 
         /// in the family tree, to which the TreeView can bind.
         /// </summary>
-        public ObservableCollection<LibraryViewModel> ClassicArtistViewModels
-        {
-            get { return _classicArtistViewModels; }
-        }
+        public ObservableCollection<LibraryViewModel> ClassicArtistViewModels { get; } = new ObservableCollection<LibraryViewModel>();
+        public ObservableCollection<LibraryViewModel> AlbumViewModels { get; } = new ObservableCollection<LibraryViewModel>();
 
-        public ObservableCollection<LibraryViewModel> AlbumViewModels
-        {
-            get { return _albumViewModels; }
-        }
-
-        public ObservableCollection<LibraryViewModel> SimpleViewModels
-        {
-            get { return _simpleArtistViewModels; }
-        }
-
-        public ObservableCollection<LibraryViewModel> DirectoryViewModels
-        {
-            get { return _directoryViewModels; }
-        }
+        public ObservableCollection<LibraryViewModel> SimpleViewModels { get; } = new ObservableCollection<LibraryViewModel>();
+        public ObservableCollection<LibraryViewModel> DirectoryViewModels { get; } = new ObservableCollection<LibraryViewModel>();
 
         #endregion ArtistViewModels
         #region SearchCommand
@@ -227,10 +199,7 @@ namespace Musegician.Library
         /// <summary>
         /// Returns the command used to execute a search in the family tree.
         /// </summary>
-        public ICommand SearchCommand
-        {
-            get { return _searchCommand; }
-        }
+        public ICommand SearchCommand { get; } = new SearchMusicTreeCommand(null);
 
         private class SearchMusicTreeCommand : ICommand
         {

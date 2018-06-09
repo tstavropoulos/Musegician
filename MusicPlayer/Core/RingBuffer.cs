@@ -11,18 +11,18 @@ namespace Musegician.Core
     public class RingBuffer<T> : ICollection<T>
     {
         private T[] values = null;
-        private int availableCount = 0;
         private int headIndex = -1;
 
-        public int Size { get { return values.Length; } }
-        public int Count { get { return availableCount; } }
-        bool ICollection<T>.IsReadOnly { get { return false; } }
+        public int Size => values.Length;
+        public int Count { get; private set; } = 0;
+
+        bool ICollection<T>.IsReadOnly => false;
 
         public T this[int index]
         {
             get
             {
-                if (index < 0 || index >= availableCount)
+                if (index < 0 || index >= Count)
                 {
                     throw new IndexOutOfRangeException();
                 }
@@ -32,7 +32,7 @@ namespace Musegician.Core
 
             set
             {
-                if (index < 0 || index >= availableCount)
+                if (index < 0 || index >= Count)
                 {
                     throw new IndexOutOfRangeException();
                 }
@@ -44,7 +44,7 @@ namespace Musegician.Core
         /// <summary>
         /// Returns the head (the most recent) element.
         /// </summary>
-        public T Top { get { return this[0]; } }
+        public T Top => this[0];
 
         /// <summary>
         /// Construct an empty ring buffer supporting bufferSize elements
@@ -58,7 +58,7 @@ namespace Musegician.Core
             }
 
             values = new T[bufferSize];
-            availableCount = 0;
+            Count = 0;
             headIndex = -1;
         }
 
@@ -82,8 +82,8 @@ namespace Musegician.Core
 
             this.values = new T[bufferSize];
 
-            availableCount = Math.Min(bufferSize, values.Count);
-            headIndex = availableCount - 1;
+            Count = Math.Min(bufferSize, values.Count);
+            headIndex = Count - 1;
 
             //Iterate over collection, up to availableCount, and add items
             //We add back to front because newer items go to higher indices in our buffer
@@ -91,7 +91,7 @@ namespace Musegician.Core
             int i = -1;
             using (var e = values.GetEnumerator())
             {
-                while (e.MoveNext() && ++i < availableCount)
+                while (e.MoveNext() && ++i < Count)
                 {
                     this.values[headIndex - i] = e.Current;
                 }
@@ -115,7 +115,7 @@ namespace Musegician.Core
         /// <param name="newValue"></param>
         public void Add(T newValue)
         {
-            availableCount = Math.Min(availableCount + 1, Size);
+            Count = Math.Min(Count + 1, Size);
             headIndex = (headIndex + 1) % Size;
             values[headIndex] = newValue;
         }
@@ -127,7 +127,7 @@ namespace Musegician.Core
         /// </summary>
         public void Clear()
         {
-            availableCount = 0;
+            Count = 0;
             headIndex = -1;
 
             for (int i = 0; i < Size; i++)
@@ -153,7 +153,7 @@ namespace Musegician.Core
         /// <returns></returns>
         public int GetIndex(T value)
         {
-            for (int i = 0; i < availableCount; i++)
+            for (int i = 0; i < Count; i++)
             {
                 if (Comparer<T>.Default.Compare(this[i], value) == 0)
                 {
@@ -192,12 +192,12 @@ namespace Musegician.Core
         /// </exception>
         public void RemoveAt(int index)
         {
-            if (index >= availableCount)
+            if (index >= Count)
             {
                 throw new IndexOutOfRangeException();
             }
 
-            if (index < (availableCount + 1) / 2)
+            if (index < (Count + 1) / 2)
             {
                 //If the item we're removing is closer to the front, move items forward
                 for (int i = index; i > 0; i--)
@@ -209,15 +209,15 @@ namespace Musegician.Core
             }
             else
             {
-                for (int i = index; i < availableCount - 1; i++)
+                for (int i = index; i < Count - 1; i++)
                 {
                     this[i] = this[i + 1];
                 }
             }
 
-            --availableCount;
+            --Count;
 
-            if (availableCount == 0)
+            if (Count == 0)
             {
                 headIndex = -1;
             }
@@ -240,8 +240,8 @@ namespace Musegician.Core
         /// <returns></returns>
         public T PopBack()
         {
-            T temp = this[availableCount - 1];
-            RemoveAt(availableCount - 1);
+            T temp = this[Count - 1];
+            RemoveAt(Count - 1);
             return temp;
         }
 
@@ -254,7 +254,7 @@ namespace Musegician.Core
         {
             int count = 0;
 
-            for (int i = 0; i < availableCount; i++)
+            for (int i = 0; i < Count; i++)
             {
                 if (Comparer<T>.Default.Compare(this[i], value) == 0)
                 {
@@ -295,7 +295,7 @@ namespace Musegician.Core
                 return;
             }
 
-            int newItemCount = Math.Min(availableCount, bufferSize);
+            int newItemCount = Math.Min(Count, bufferSize);
             int newHeadIndex = newItemCount - 1;
 
             T[] newValues = new T[bufferSize];
@@ -307,12 +307,12 @@ namespace Musegician.Core
 
             values = newValues;
             headIndex = newHeadIndex;
-            availableCount = newItemCount;
+            Count = newItemCount;
         }
 
         public RingBufferEnum<T> GetRingEnumerator()
         {
-            return new RingBufferEnum<T>(values, availableCount, headIndex);
+            return new RingBufferEnum<T>(values, Count, headIndex);
         }
 
         public IEnumerator<T> GetEnumerator()
@@ -338,7 +338,7 @@ namespace Musegician.Core
 
         private int index = -1;
 
-        public int Size { get { return values.Length; } }
+        public int Size => values.Length;
 
 
         public RingBufferEnum(T[] values, int availableCount, int headIndex)
@@ -369,14 +369,8 @@ namespace Musegician.Core
         {
             index = -1;
         }
-        
-        object IEnumerator.Current
-        {
-            get
-            {
-                return Current;
-            }
-        }
+
+        object IEnumerator.Current => Current;
 
         void IDisposable.Dispose() { }
 

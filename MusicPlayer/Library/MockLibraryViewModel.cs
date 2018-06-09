@@ -48,8 +48,12 @@ namespace Musegician.Library
                  select new DirectoryViewModel(data, null, false))
                      .ToList());
 
+            ClassicArtistViewModels[0].LoadChildren(db);
+            ClassicArtistViewModels[0].IsExpanded = true;
+
             ClassicArtistViewModels[1].LoadChildren(db);
             ClassicArtistViewModels[1].IsExpanded = true;
+            ClassicArtistViewModels[1].IsSelected = true;
             ClassicArtistViewModels[1].Children[0].LoadChildren(db);
             ClassicArtistViewModels[1].Children[0].IsExpanded = true;
             ClassicArtistViewModels[1].Children[0].Children[1].LoadChildren(db);
@@ -97,7 +101,8 @@ namespace Musegician.Library
                 {
                     Id = artistID++,
                     Name = "Aerosmith",
-                    Weight = 1.0
+                    Weight = -1.0,
+                    Recordings = new List<Recording>()
                 };
                 Artists.Add(aerosmith);
 
@@ -106,8 +111,9 @@ namespace Musegician.Library
                     Id = albumID++,
                     Title = "Permanent Vacation",
                     Image = LoadImage(@"MockDBResources\0.jpg"),
-                    Weight = 1.0,
-                    Year = 1987
+                    Weight = -1.0,
+                    Year = 1987,
+                    Tracks = new List<Track>()
                 };
                 Albums.Add(permanentVacation);
 
@@ -120,8 +126,9 @@ namespace Musegician.Library
                     Id = albumID++,
                     Title = "Toys In The Attic",
                     Image = LoadImage(@"MockDBResources\1.jpg"),
-                    Weight = 1.0,
-                    Year = 1975
+                    Weight = -1.0,
+                    Year = 1975,
+                    Tracks = new List<Track>()
                 };
                 Albums.Add(toysInTheAttic);
 
@@ -136,7 +143,8 @@ namespace Musegician.Library
                 {
                     Id = artistID++,
                     Name = "Billy Joel",
-                    Weight = 1.0
+                    Weight = -1.0,
+                    Recordings = new List<Recording>()
                 };
                 Artists.Add(billyJoel);
 
@@ -145,8 +153,9 @@ namespace Musegician.Library
                     Id = albumID++,
                     Title = "Storm Front",
                     Image = LoadImage(@"MockDBResources\2.jpg"),
-                    Weight = 1.0,
-                    Year = 1989
+                    Weight = -1.0,
+                    Year = 1989,
+                    Tracks = new List<Track>()
                 };
                 Albums.Add(stormFront);
 
@@ -160,8 +169,9 @@ namespace Musegician.Library
                     Id = albumID++,
                     Title = "Songs In The Attic",
                     Image = LoadImage(@"MockDBResources\3.jpg"),
-                    Weight = 1.0,
-                    Year = 1981
+                    Weight = -1.0,
+                    Year = 1981,
+                    Tracks = new List<Track>()
                 };
                 Albums.Add(stormFront);
                 AddExisting("We Didn't Start The Fire (Live)", 1, fireSong, billyJoel, songsInTheAttic, true);
@@ -174,7 +184,8 @@ namespace Musegician.Library
                 {
                     Id = artistID++,
                     Name = "Steely Dan",
-                    Weight = 1.0
+                    Weight = -1.0,
+                    Recordings = new List<Recording>()
                 };
                 Artists.Add(steelyDan);
 
@@ -183,8 +194,9 @@ namespace Musegician.Library
                     Id = albumID++,
                     Title = "Two Against Nature",
                     Image = LoadImage(@"MockDBResources\4.jpg"),
-                    Weight = 1.0,
-                    Year = 2000
+                    Weight = -1.0,
+                    Year = 2000,
+                    Tracks = new List<Track>()
                 };
                 Albums.Add(twoAgainstNature);
 
@@ -317,7 +329,8 @@ namespace Musegician.Library
             {
                 Id = songID,
                 Title = title,
-                Weight = 1.0
+                Weight = -1.0,
+                Recordings = new List<Recording>()
             };
 
             Songs.Add(simpleSong);
@@ -328,8 +341,11 @@ namespace Musegician.Library
                 Filename = "",
                 Live = live,
                 Artist = artist,
-                Song = simpleSong
+                Song = simpleSong,
+                Tracks = new List<Track>()
             };
+            simpleSong.Recordings.Add(simpleRecording);
+            artist.Recordings.Add(simpleRecording);
 
             Recordings.Add(simpleRecording);
 
@@ -341,8 +357,10 @@ namespace Musegician.Library
                 DiscNumber = 1,
                 Album = album,
                 Recording = simpleRecording,
-                Weight = 1.0
+                Weight = -1.0
             };
+            simpleRecording.Tracks.Add(simpleTrack);
+            album.Tracks.Add(simpleTrack);
 
             Tracks.Add(simpleTrack);
 
@@ -364,8 +382,11 @@ namespace Musegician.Library
                 Filename = "",
                 Live = live,
                 Artist = artist,
-                Song = song
+                Song = song,
+                Tracks = new List<Track>()
             };
+            song.Recordings.Add(simpleRecording);
+            artist.Recordings.Add(simpleRecording);
 
             Recordings.Add(simpleRecording);
 
@@ -377,8 +398,10 @@ namespace Musegician.Library
                 DiscNumber = 1,
                 Album = album,
                 Recording = simpleRecording,
-                Weight = 1.0
+                Weight = -1.0
             };
+            simpleRecording.Tracks.Add(simpleTrack);
+            album.Tracks.Add(simpleTrack);
 
             Tracks.Add(simpleTrack);
         }

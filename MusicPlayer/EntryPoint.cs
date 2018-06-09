@@ -17,6 +17,8 @@ namespace Musegician
             using (Player.MusicManager.Instance = new Player.MusicManager())
             using (KeyboardHook hook = new KeyboardHook(Player.MusicManager.GetHookKeys()))
             {
+                Playlist.PlaylistManager.Instance.Initialize();
+
                 hook.RegisteredKeyPressed += Player.MusicManager.Instance.RegisteredKeyPressed;
 
                 App app = new App();

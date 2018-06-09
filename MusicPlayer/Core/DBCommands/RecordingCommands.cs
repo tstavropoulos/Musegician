@@ -1,35 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SQLite;
-using DbType = System.Data.DbType;
-using Musegician.DataStructures;
 using Musegician.Database;
 
 namespace Musegician.Core.DBCommands
 {
     public class RecordingCommands
     {
-        ArtistCommands artistCommands = null;
-        SongCommands songCommands = null;
-
         MusegicianData db = null;
 
-        public RecordingCommands()
-        {
-        }
-
-        public void Initialize(
-            MusegicianData db,
-            ArtistCommands artistCommands,
-            SongCommands songCommands)
+        public RecordingCommands(MusegicianData db)
         {
             this.db = db;
-
-            this.artistCommands = artistCommands;
-            this.songCommands = songCommands;
         }
 
         #region High Level Commands
@@ -68,10 +50,11 @@ namespace Musegician.Core.DBCommands
             }
 
             //Update playlists
-            foreach(PlaylistSong playlistSong in (db.PlaylistRecordings
-                .Where(x => recordings.Contains(x.Recording))
-                .Select(x=>x.PlaylistSong)
-                .Distinct()))
+            foreach(PlaylistSong playlistSong in 
+                (from recording in recordings
+                 join plRec in db.PlaylistRecordings on recording.Id equals plRec.RecordingId
+                 select plRec.PlaylistSong)
+                .Distinct())
             {
                 playlistSong.Song = matchingSong;
             }

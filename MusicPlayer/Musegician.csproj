@@ -179,6 +179,7 @@
       <DependentUpon>MarqueeControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Core\MathExtension.cs" />
+    <Compile Include="Core\MusegicianTag.cs" />
     <Compile Include="Core\OSInterop.cs" />
     <Compile Include="Core\RingBuffer.cs" />
     <Compile Include="Core\TwoValueVisualizerSlider.cs" />
@@ -246,6 +247,10 @@
     <Compile Include="Migrations\201806062016535_Initial.cs" />
     <Compile Include="Migrations\201806062016535_Initial.Designer.cs">
       <DependentUpon>201806062016535_Initial.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201806081720219_AddingGuids.cs" />
+    <Compile Include="Migrations\201806081720219_AddingGuids.Designer.cs">
+      <DependentUpon>201806081720219_AddingGuids.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="MusegicianData.cs" />
@@ -556,6 +561,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\201806062016535_Initial.resx">
       <DependentUpon>201806062016535_Initial.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201806081720219_AddingGuids.resx">
+      <DependentUpon>201806081720219_AddingGuids.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

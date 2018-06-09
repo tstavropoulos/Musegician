@@ -76,10 +76,6 @@ namespace Musegician.Spatializer
         Dictionary<IR_Position, float[]> rightIRFs = new Dictionary<IR_Position, float[]>();
 
         private string presetName;
-        private ReadOnlyCollection<SpatializerSettingDTO> presets;
-
-        private IR_Position[,] _positions = new IR_Position[2, 2];
-
         private float[] zeroIRF = null;
 
         #endregion Data
@@ -128,7 +124,7 @@ namespace Musegician.Spatializer
         private bool _enableSpatializer = false;
         public bool EnableSpatializer
         {
-            get { return _enableSpatializer; }
+            get => _enableSpatializer;
             set
             {
                 if (_enableSpatializer != value)
@@ -143,7 +139,7 @@ namespace Musegician.Spatializer
         private bool _isolateChannels = false;
         public bool IsolateChannels
         {
-            get { return _isolateChannels; }
+            get => _isolateChannels;
             set
             {
                 if (_isolateChannels != value)
@@ -155,11 +151,11 @@ namespace Musegician.Spatializer
             }
         }
 
-        public ReadOnlyCollection<SpatializerSettingDTO> Presets { get { return presets; } }
+        public ReadOnlyCollection<SpatializerSettingDTO> Presets { get; }
 
         public string PresetName
         {
-            get { return presetName; }
+            get => presetName;
             private set
             {
                 if (presetName != value)
@@ -170,10 +166,7 @@ namespace Musegician.Spatializer
             }
         }
 
-        public IR_Position[,] Positions
-        {
-            get { return _positions; }
-        }
+        public IR_Position[,] Positions { get; } = new IR_Position[2, 2];
 
         #endregion Properties
         #region Constructor
@@ -182,7 +175,7 @@ namespace Musegician.Spatializer
         {
             presetName = "Offset";
 
-            presets = new ReadOnlyCollection<SpatializerSettingDTO>(
+            Presets = new ReadOnlyCollection<SpatializerSettingDTO>(
                 new SpatializerSettingDTO[]
                 {
                     new SpatializerSettingDTO()
@@ -265,9 +258,9 @@ namespace Musegician.Spatializer
             {
                 for (int j = 0; j < 2; j++)
                 {
-                    if (positions[i, j] != _positions[i, j])
+                    if (positions[i, j] != Positions[i, j])
                     {
-                        _positions[i, j] = positions[i, j];
+                        Positions[i, j] = positions[i, j];
                         changed = true;
                     }
                 }
@@ -280,11 +273,7 @@ namespace Musegician.Spatializer
             }
         }
 
-        string GetFilename(IR_Position position)
-        {
-            return $"Resources\\IRFiles\\{position.ToString()}.txt";
-
-        }
+        string GetFilename(IR_Position position) => $"Resources\\IRFiles\\{position.ToString()}.txt";
 
         void LoadCheck(IR_Position position)
         {
@@ -343,7 +332,7 @@ namespace Musegician.Spatializer
             {
                 for (int j = 0; j < 2; j++)
                 {
-                    if (_positions[i, j] != data.position[i, j])
+                    if (Positions[i, j] != data.position[i, j])
                     {
                         return false;
                     }

@@ -21,19 +21,13 @@ namespace Musegician.Spatializer
     /// </summary>
     public partial class SpatializerControl : UserControl
     {
-        #region Data
-
-        private readonly ReadOnlyCollection<SpatializerSettingViewModel> _presets;
-        private readonly ReadOnlyCollection<SpatializerLocationsViewModel> _interfacePositions;
-
-        #endregion Data
         #region Constructor
 
         public SpatializerControl()
         {
             InitializeComponent();
 
-            _presets = new ReadOnlyCollection<SpatializerSettingViewModel>(
+            Presets = new ReadOnlyCollection<SpatializerSettingViewModel>(
                 (from data in SpatializationManager.Instance.Presets
                  select new SpatializerSettingViewModel(data))
                 .ToArray());
@@ -47,7 +41,7 @@ namespace Musegician.Spatializer
                 locationViewModels[(int)pos] = new SpatializerLocationsViewModel(left, top);
             }
 
-            _interfacePositions = new ReadOnlyCollection<SpatializerLocationsViewModel>(locationViewModels);
+            InterfacePositions = new ReadOnlyCollection<SpatializerLocationsViewModel>(locationViewModels);
 
             DataContext = this;
 
@@ -70,8 +64,8 @@ namespace Musegician.Spatializer
         #endregion Constructor
         #region Properties
 
-        public ReadOnlyCollection<SpatializerSettingViewModel> Presets { get => _presets; }
-        public ReadOnlyCollection<SpatializerLocationsViewModel> InterfacePositions { get => _interfacePositions; }
+        public ReadOnlyCollection<SpatializerSettingViewModel> Presets { get; }
+        public ReadOnlyCollection<SpatializerLocationsViewModel> InterfacePositions { get; }
 
         #endregion Properties
         #region Callbacks

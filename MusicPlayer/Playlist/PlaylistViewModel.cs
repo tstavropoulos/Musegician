@@ -31,14 +31,15 @@ namespace Musegician.Playlist
         #endregion Constructor
         #region Properties
 
-        public ObservableCollection<PlaylistViewModel> Children { get; } = new ObservableCollection<PlaylistViewModel>();
+        public ObservableCollection<PlaylistViewModel> Children { get; } =
+            new ObservableCollection<PlaylistViewModel>();
 
         public abstract string Title { get; set; }
 
         private bool _playing = false;
         public bool Playing
         {
-            get { return _playing; }
+            get => _playing;
             set
             {
                 _playing = value;
@@ -50,7 +51,7 @@ namespace Musegician.Playlist
 
         public double Weight
         {
-            get { return (_data.Weight != -1.0) ? _data.Weight : DefaultWeight; }
+            get => (_data.Weight != -1.0) ? _data.Weight : DefaultWeight;
             set
             {
                 bool dimUpdate = false;
@@ -81,7 +82,7 @@ namespace Musegician.Playlist
         /// </summary>
         public bool IsExpanded
         {
-            get { return _isExpanded; }
+            get => _isExpanded;
             set
             {
                 if (value != _isExpanded)
@@ -105,7 +106,7 @@ namespace Musegician.Playlist
         /// </summary>
         public bool IsSelected
         {
-            get { return _isSelected; }
+            get => _isSelected;
             set
             {
                 if (value != _isSelected)
@@ -124,7 +125,7 @@ namespace Musegician.Playlist
         /// </summary>
         public bool ShowDropLine
         {
-            get { return _showDropLine; }
+            get => _showDropLine;
             set
             {
                 if (value != _showDropLine)

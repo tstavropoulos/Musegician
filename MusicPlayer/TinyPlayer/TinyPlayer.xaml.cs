@@ -85,34 +85,13 @@ namespace Musegician.TinyPlayer
             }
         }
 
-        private void RecordingStarted(Recording recording)
-        {
-            albumArt.Source = FileManager.Instance.GetAlbumArtForRecording(recording);
-        }
+        private void RecordingStarted(Recording recording) => albumArt.Source = FileManager.Instance.GetAlbumArtForRecording(recording);
 
-        private void Toolbar_RestoreWindow(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
+        private void Toolbar_RestoreWindow(object sender, RoutedEventArgs e) => Close();
+        private void Window_Deactivated(object sender, EventArgs e) => Topmost = true;
+        private void TinyPlayer_Closing(object sender, CancelEventArgs e) => Application.Current.MainWindow.Show();
 
-        private void Window_Deactivated(object sender, EventArgs e)
-        {
-            Topmost = true;
-        }
-
-        private void TinyPlayer_Closing(object sender, CancelEventArgs e)
-        {
-            Application.Current.MainWindow.Show();
-        }
-
-        private void CloseClick(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
-
-        private void MinimizeClick(object sender, RoutedEventArgs e)
-        {
-            WindowState = WindowState.Minimized;
-        }
+        private void CloseClick(object sender, RoutedEventArgs e) => Close();
+        private void MinimizeClick(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     }
 }

@@ -22,18 +22,13 @@ namespace Musegician.Equalizer
     /// </summary>
     public partial class EqualizerControl : UserControl, INotifyPropertyChanged
     {
-        #region Data
-
-        private readonly ReadOnlyCollection<EqualizerSettingViewModel> presets;
-
-        #endregion Data
         #region Constructor
 
         public EqualizerControl()
         {
             InitializeComponent();
 
-            presets = new ReadOnlyCollection<EqualizerSettingViewModel>(
+            Presets = new ReadOnlyCollection<EqualizerSettingViewModel>(
                 (from data in EqualizerManager.Instance.Presets
                  select new EqualizerSettingViewModel(data))
                 .ToArray());
@@ -44,7 +39,7 @@ namespace Musegician.Equalizer
         #endregion Constructor
         #region Properties
 
-        public ReadOnlyCollection<EqualizerSettingViewModel> Presets { get { return presets; } }
+        public ReadOnlyCollection<EqualizerSettingViewModel> Presets { get; }
 
         #endregion Properties
         #region Callbacks

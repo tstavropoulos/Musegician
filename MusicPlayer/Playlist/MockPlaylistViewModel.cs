@@ -69,7 +69,8 @@ namespace Musegician.Playlist
                 {
                     Id = artistID++,
                     Name = "Aerosmith",
-                    Weight = 1.0
+                    Weight = -1.0,
+                    Recordings = new List<Recording>()
                 };
                 Artists.Add(aerosmith);
 
@@ -78,8 +79,9 @@ namespace Musegician.Playlist
                     Id = albumID++,
                     Title = "Permanent Vacation",
                     Image = LoadImage(@"MockDBResources\0.jpg"),
-                    Weight = 1.0,
-                    Year = 1987
+                    Weight = -1.0,
+                    Year = 1987,
+                    Tracks = new List<Track>()
                 };
                 Albums.Add(permanentVacation);
 
@@ -92,8 +94,9 @@ namespace Musegician.Playlist
                     Id = albumID++,
                     Title = "Toys In The Attic",
                     Image = LoadImage(@"MockDBResources\1.jpg"),
-                    Weight = 1.0,
-                    Year = 1975
+                    Weight = -1.0,
+                    Year = 1975,
+                    Tracks = new List<Track>()
                 };
                 Albums.Add(toysInTheAttic);
 
@@ -108,7 +111,8 @@ namespace Musegician.Playlist
                 {
                     Id = artistID++,
                     Name = "Billy Joel",
-                    Weight = 1.0
+                    Weight = -1.0,
+                    Recordings = new List<Recording>()
                 };
                 Artists.Add(billyJoel);
 
@@ -117,8 +121,9 @@ namespace Musegician.Playlist
                     Id = albumID++,
                     Title = "Storm Front",
                     Image = LoadImage(@"MockDBResources\2.jpg"),
-                    Weight = 1.0,
-                    Year = 1989
+                    Weight = -1.0,
+                    Year = 1989,
+                    Tracks = new List<Track>()
                 };
                 Albums.Add(stormFront);
 
@@ -132,8 +137,9 @@ namespace Musegician.Playlist
                     Id = albumID++,
                     Title = "Songs In The Attic",
                     Image = LoadImage(@"MockDBResources\3.jpg"),
-                    Weight = 1.0,
-                    Year = 1981
+                    Weight = -1.0,
+                    Year = 1981,
+                    Tracks = new List<Track>()
                 };
                 Albums.Add(stormFront);
                 AddExisting("We Didn't Start The Fire (Live)", 1, fireSong, billyJoel, songsInTheAttic, true);
@@ -146,7 +152,8 @@ namespace Musegician.Playlist
                 {
                     Id = artistID++,
                     Name = "Steely Dan",
-                    Weight = 1.0
+                    Weight = -1.0,
+                    Recordings = new List<Recording>()
                 };
                 Artists.Add(steelyDan);
 
@@ -155,8 +162,9 @@ namespace Musegician.Playlist
                     Id = albumID++,
                     Title = "Two Against Nature",
                     Image = LoadImage(@"MockDBResources\4.jpg"),
-                    Weight = 1.0,
-                    Year = 2000
+                    Weight = -1.0,
+                    Year = 2000,
+                    Tracks = new List<Track>()
                 };
                 Albums.Add(twoAgainstNature);
 
@@ -192,14 +200,21 @@ namespace Musegician.Playlist
 
                 PlaylistSong newPlaylistSong = new PlaylistSong(
                     song: song,
-                    title: $"{artistName} - {song.Title}");
+                    title: $"{artistName} - {song.Title}")
+                {
+                    PlaylistRecordings = new List<PlaylistRecording>(),
+                    Weight = song.Weight
+                };
 
                 foreach (Recording recording in song.Recordings)
                 {
                     newPlaylistSong.PlaylistRecordings.Add(
                         new PlaylistRecording(
                             recording,
-                            $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}"));
+                            $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}")
+                        {
+                            Weight = recording.Tracks.First().Weight
+                        });
                 }
 
                 songList.Add(newPlaylistSong);
@@ -222,7 +237,8 @@ namespace Musegician.Playlist
             {
                 Id = songID,
                 Title = title,
-                Weight = 1.0
+                Weight = -1.0,
+                Recordings = new List<Recording>()
             };
 
             Songs.Add(simpleSong);
@@ -233,8 +249,12 @@ namespace Musegician.Playlist
                 Filename = "",
                 Live = live,
                 Artist = artist,
-                Song = simpleSong
+                Song = simpleSong,
+                Tracks = new List<Track>()
             };
+            simpleSong.Recordings.Add(simpleRecording);
+            artist.Recordings.Add(simpleRecording);
+
             Recordings.Add(simpleRecording);
 
             Track simpleTrack = new Track()
@@ -245,8 +265,11 @@ namespace Musegician.Playlist
                 DiscNumber = 1,
                 Album = album,
                 Recording = simpleRecording,
-                Weight = 1.0
+                Weight = -1.0
             };
+            simpleRecording.Tracks.Add(simpleTrack);
+            album.Tracks.Add(simpleTrack);
+
             Tracks.Add(simpleTrack);
 
             return simpleSong;
@@ -267,8 +290,12 @@ namespace Musegician.Playlist
                 Filename = "",
                 Live = live,
                 Artist = artist,
-                Song = song
+                Song = song,
+                Tracks = new List<Track>()
             };
+            song.Recordings.Add(simpleRecording);
+            artist.Recordings.Add(simpleRecording);
+
             Recordings.Add(simpleRecording);
 
             Track simpleTrack = new Track()
@@ -279,8 +306,11 @@ namespace Musegician.Playlist
                 DiscNumber = 1,
                 Album = album,
                 Recording = simpleRecording,
-                Weight = 1.0
+                Weight = -1.0
             };
+            simpleRecording.Tracks.Add(simpleTrack);
+            album.Tracks.Add(simpleTrack);
+
             Tracks.Add(simpleTrack);
         }
 

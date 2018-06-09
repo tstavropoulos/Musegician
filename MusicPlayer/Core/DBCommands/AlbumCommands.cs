@@ -1,14 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SQLite;
-using DbType = System.Data.DbType;
-using System.Drawing;
-using System.Windows.Media.Imaging;
 using System.IO;
-using Musegician.DataStructures;
 using TagLib;
 using Musegician.Deredundafier;
 using Musegician.Database;
@@ -17,30 +10,11 @@ namespace Musegician.Core.DBCommands
 {
     public class AlbumCommands
     {
-        ArtistCommands artistCommands = null;
-        SongCommands songCommands = null;
-        TrackCommands trackCommands = null;
-        RecordingCommands recordingCommands = null;
-
         MusegicianData db = null;
 
-        public AlbumCommands()
-        {
-        }
-
-        public void Initialize(
-            MusegicianData db,
-            ArtistCommands artistCommands,
-            SongCommands songCommands,
-            TrackCommands trackCommands,
-            RecordingCommands recordingCommands)
+        public AlbumCommands(MusegicianData db)
         {
             this.db = db;
-
-            this.artistCommands = artistCommands;
-            this.songCommands = songCommands;
-            this.trackCommands = trackCommands;
-            this.recordingCommands = recordingCommands;
         }
 
         #region High Level Commands
@@ -133,8 +107,8 @@ namespace Musegician.Core.DBCommands
             if (albumsCopy.Count > 0)
             {
                 foreach (Track track in
-                    (from track in db.Tracks
-                     where albumsCopy.Contains(track.Album)
+                    (from album in albumsCopy
+                     join track in db.Tracks on album.Id equals track.AlbumId
                      select track))
                 {
                     track.Album = matchingAlbum;
@@ -167,8 +141,8 @@ namespace Musegician.Core.DBCommands
 
             //For the remaining artists, Remap foreign keys
             foreach (Track track in
-                (from track in db.Tracks
-                 where albumsCopy.Contains(track.Album)
+                (from album in albumsCopy
+                 join track in db.Tracks on album.Id equals track.AlbumId
                  select track))
             {
                 track.Album = matchingAlbum;

@@ -20,5 +20,8 @@ namespace Musegician.Playlist
         IEnumerable<PlaylistTuple> GetPlaylistInfo();
 
         PlayData GetRecordingPlayData(Recording recording);
+
+        void NotifyDBChanged();
+        IEnumerable<PlaylistSong> GetDefaultSongList();
     }
 }

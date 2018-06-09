@@ -52,6 +52,7 @@ namespace Musegician.Database
         public int Year { get; set; }
         public override double Weight { get; set; }
         public byte[] Image { get; set; }
+        public Guid AlbumGuid { get; set; }
 
         public virtual ICollection<Track> Tracks { get; set; }
     }
@@ -87,6 +88,7 @@ namespace Musegician.Database
     {
         public string Name { get; set; }
         public override double Weight { get; set; }
+        public Guid ArtistGuid { get; set; }
 
         public virtual ICollection<Recording> Recordings { get; set; }
     }
@@ -95,6 +97,7 @@ namespace Musegician.Database
     {
         public string Title { get; set; }
         public override double Weight { get; set; }
+        public Guid SongGuid { get; set; }
 
         public virtual ICollection<Recording> Recordings { get; set; }
     }

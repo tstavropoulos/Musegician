@@ -50,10 +50,7 @@ namespace Musegician.Library
         /// <summary>
         /// Returns true if this object's Children have not yet been populated.
         /// </summary>
-        public bool HasDummyChild
-        {
-            get { return Children.Count == 1 && Children[0] == DummyChild; }
-        }
+        public bool HasDummyChild => Children.Count == 1 && Children[0] == DummyChild;
 
         public BaseData Data { get; }
 
@@ -67,10 +64,7 @@ namespace Musegician.Library
 
         public double Weight
         {
-            get
-            {
-                return (WeightValue != -1.0) ? WeightValue : Data.DefaultWeight;
-            }
+            get => (WeightValue != -1.0) ? WeightValue : Data.DefaultWeight;
             set
             {
                 bool dimUpdate = false;
@@ -102,7 +96,7 @@ namespace Musegician.Library
         /// </summary>
         public bool IsExpanded
         {
-            get { return _isExpanded; }
+            get => _isExpanded;
             set
             {
                 if (value != _isExpanded)
@@ -128,7 +122,7 @@ namespace Musegician.Library
         /// </summary>
         public bool IsSelected
         {
-            get { return _isSelected; }
+            get => _isSelected;
             set
             {
                 if (value != _isSelected)

@@ -74,20 +74,9 @@ namespace Musegician
             Playlist.PlaylistManager.Instance.ClearPlaylist();
         }
 
-        private void Menu_LoadPlaylist(object sender, RoutedEventArgs e)
-        {
-            playlistToolbar.Toolbar_LoadPlaylist(sender, e);
-        }
-
-        private void Menu_SavePlaylist(object sender, RoutedEventArgs e)
-        {
-            playlistToolbar.Toolbar_SavePlaylist(sender, e);
-        }
-
-        private void Quitting()
-        {
-            Player.MusicManager.Instance.CleanUp();
-        }
+        private void Menu_LoadPlaylist(object sender, RoutedEventArgs e) => playlistToolbar.Toolbar_LoadPlaylist(sender, e);
+        private void Menu_SavePlaylist(object sender, RoutedEventArgs e) => playlistToolbar.Toolbar_SavePlaylist(sender, e);
+        private void Quitting() => Player.MusicManager.Instance.CleanUp();
 
         private void Library_Request_Edit(IEnumerable<BaseData> data)
         {
@@ -172,31 +161,15 @@ namespace Musegician
             window.WindowState = System.Windows.WindowState.Minimized;
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Hello!");
-        }
-
         private void Menu_Deredundafier(object sender, RoutedEventArgs e)
         {
             Window deredundafier = new Deredundafier.DeredundafierWindow();
             deredundafier.Show();
         }
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
-        {
-            PlaylistControl.LookupRequest += libraryControl.LookupRequest;
-        }
-
-        private void MainWindow_Unloaded(object sender, RoutedEventArgs e)
-        {
-            PlaylistControl.LookupRequest -= libraryControl.LookupRequest;
-        }
-
-        private void Menu_OpenSpatializer(object sender, RoutedEventArgs e)
-        {
-            SpatializerPopup.IsOpen = true;
-        }
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e) => PlaylistControl.LookupRequest += libraryControl.LookupRequest;
+        private void MainWindow_Unloaded(object sender, RoutedEventArgs e) => PlaylistControl.LookupRequest -= libraryControl.LookupRequest;
+        private void Menu_OpenSpatializer(object sender, RoutedEventArgs e) => SpatializerPopup.IsOpen = true;
 
         private void Menu_MusicDriller(object sender, RoutedEventArgs e)
         {
@@ -204,6 +177,11 @@ namespace Musegician
 
             musicDriller.Show();
             Hide();
+        }
+
+        private void MenuPushMusegicianTags(object sender, RoutedEventArgs e)
+        {
+            FileMan.PushMusegicianTagsToFiles();
         }
     }
 }

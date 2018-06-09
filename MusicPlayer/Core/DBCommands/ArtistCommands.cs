@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SQLite;
-using DbType = System.Data.DbType;
 using Musegician.Deredundafier;
 using Musegician.Database;
 
@@ -12,27 +8,11 @@ namespace Musegician.Core.DBCommands
 {
     public class ArtistCommands
     {
-        AlbumCommands albumCommands = null;
-        SongCommands songCommands = null;
-        RecordingCommands recordingCommands = null;
-
         MusegicianData db = null;
 
-        public ArtistCommands()
-        {
-        }
-
-        public void Initialize(
-            MusegicianData db,
-            AlbumCommands albumCommands,
-            SongCommands songCommands,
-            RecordingCommands recordingCommands)
+        public ArtistCommands(MusegicianData db)
         {
             this.db = db;
-
-            this.albumCommands = albumCommands;
-            this.songCommands = songCommands;
-            this.recordingCommands = recordingCommands;
         }
 
         #region High Level Commands
@@ -61,9 +41,9 @@ namespace Musegician.Core.DBCommands
             {
                 //For the remaining artists, Remap foreign keys
                 foreach (Recording recording in
-                    (from recording in db.Recordings
-                     where artistsCopy.Contains(recording.Artist)
-                     select recording))
+                    (from artist in artistsCopy
+                     join recording in db.Recordings on artist.Id equals recording.ArtistId
+                     select recording).Distinct())
                 {
                     recording.Artist = matchingArtist;
                 }
@@ -133,9 +113,9 @@ namespace Musegician.Core.DBCommands
 
             //For the remaining artists, Remap foreign keys
             foreach (Recording recording in
-                (from recording in db.Recordings
-                 where artistsCopy.Contains(recording.Artist)
-                 select recording))
+                (from artist in artistsCopy
+                 join recording in db.Recordings on artist.Id equals recording.ArtistId
+                 select recording).Distinct())
             {
                 recording.Artist = matchingArtist;
             }

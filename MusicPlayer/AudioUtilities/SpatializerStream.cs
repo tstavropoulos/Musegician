@@ -66,10 +66,7 @@ namespace Musegician.AudioUtilities
             PrepareNewIRFs();
         }
 
-        public static SpatializerStream CreateSpatializerStream(ISampleSource source)
-        {
-            return new SpatializerStream(source);
-        }
+        public static SpatializerStream CreateSpatializerStream(ISampleSource source) => new SpatializerStream(source);
 
 
         #endregion Constructor
@@ -151,7 +148,7 @@ namespace Musegician.AudioUtilities
 
         public void PrepareNewIRFs()
         {
-            lock(_bufferLock)
+            lock (_bufferLock)
             {
                 float[] leftIRF = SpatializationManager.Instance.GetIRF(
                     speaker: AudioChannel.Left,
@@ -217,10 +214,7 @@ namespace Musegician.AudioUtilities
             }
         }
 
-        void FlushBuffers()
-        {
-            PrepareNewIRFs();
-        }
+        void FlushBuffers() => PrepareNewIRFs();
 
         void Convolve()
         {
@@ -315,20 +309,14 @@ namespace Musegician.AudioUtilities
         #endregion Helper Methods
         #region Utility Methods
 
-        private static int ToNextExponentOf2(int x)
-        {
-            return (int)Math.Ceiling(Math.Log(x) / Math.Log(2));
-        }
+        private static int ToNextExponentOf2(int x) => (int)Math.Ceiling(Math.Log(x) / Math.Log(2));
 
         public delegate float WindowFunction(int index, int width);
 
-        public static readonly WindowFunction Hamming = (index, width)
-            => (float)(0.54 - 0.46 * Math.Cos((2 * Math.PI * index) / (width - 1)));
+        public static readonly WindowFunction Hamming =
+            (index, width) => (float)(0.54 - 0.46 * Math.Cos((2 * Math.PI * index) / (width - 1)));
 
-        public static float UnitaryClamp(float value)
-        {
-            return Math.Max(0, Math.Min(1, value));
-        }
+        public static float UnitaryClamp(float value) => Math.Max(0, Math.Min(1, value));
 
         #endregion Utility Methods
     }

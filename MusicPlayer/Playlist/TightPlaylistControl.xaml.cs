@@ -25,10 +25,7 @@ namespace Musegician.Playlist
     {
         PlaylistTreeViewModel _playlistTree;
 
-        PlaylistManager PlaylistMan
-        {
-            get { return PlaylistManager.Instance; }
-        }
+        PlaylistManager PlaylistMan => PlaylistManager.Instance;
 
         private PlaylistSongViewModel _playingSong;
         private PlaylistSongViewModel PlayingSong
@@ -76,10 +73,7 @@ namespace Musegician.Playlist
             }
         }
 
-        public int ItemCount
-        {
-            get { return _playlistTree.PlaylistViewModels.Count; }
-        }
+        public int ItemCount => _playlistTree.PlaylistViewModels.Count;
 
         public TightPlaylistControl()
         {

@@ -45,6 +45,8 @@
           <MenuItem Header="_Deredundafier" Click="Menu_Deredundafier"/>
           <Separator />
           <MenuItem Header="_Clear Library" Click="MenuClearLibraryClick"/>
+          <Separator />
+          <MenuItem Header="_Push Tags" Click="MenuPushMusegicianTags"/>
         </MenuItem>
         <MenuItem Header="_Playlist">
           <MenuItem Header="_Save Playlist" Click="Menu_SavePlaylist"/>

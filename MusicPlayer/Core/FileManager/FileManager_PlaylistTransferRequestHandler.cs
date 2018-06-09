@@ -229,7 +229,7 @@ namespace Musegician
             else if (exclusiveArtist != null)
             {
                 return (from recording in song.Recordings
-                        where recording.Artist == exclusiveArtist
+                        where recording.Artist.Id == exclusiveArtist.Id
                         select new PlaylistRecording(
                             recording: recording,
                             title: $"{exclusiveArtist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}")

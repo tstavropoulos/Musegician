@@ -78,15 +78,9 @@ namespace Musegician.Library
 
         MusicTreeViewModel _musicTree;
 
-        ILibraryRequestHandler LibraryRequestHandler
-        {
-            get { return FileManager.Instance; }
-        }
+        ILibraryRequestHandler LibraryRequestHandler => FileManager.Instance;
 
-        IPlaylistTransferRequestHandler PlaylistTransferRequestHandler
-        {
-            get { return FileManager.Instance; }
-        }
+        IPlaylistTransferRequestHandler PlaylistTransferRequestHandler => FileManager.Instance;
 
         #endregion Data
         #region Inner Enumerations
@@ -170,6 +164,8 @@ namespace Musegician.Library
 
         private void Play(IEnumerable<BaseData> data, bool deep)
         {
+            Playlist.PlaylistManager.Instance.ClearPlaylist();
+
             List<PlaylistSong> songs = new List<PlaylistSong>();
 
             foreach (BaseData datum in data)
@@ -205,7 +201,7 @@ namespace Musegician.Library
                 }
             }
 
-            if (songs.Count == 1)
+            if (data.Count() == 1)
             {
                 Playlist.PlaylistManager.Instance.PlaylistName =
                     PlaylistTransferRequestHandler.GetDefaultPlaylistName(
@@ -226,7 +222,7 @@ namespace Musegician.Library
 
             foreach (BaseData datum in data)
             {
-                if(datum is Artist artist)
+                if (datum is Artist artist)
                 {
                     songs.AddRange(PlaylistTransferRequestHandler.GetArtistData(
                         artist: artist,

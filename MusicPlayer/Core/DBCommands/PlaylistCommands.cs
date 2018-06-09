@@ -14,21 +14,18 @@ namespace Musegician.Core.DBCommands
     {
         MusegicianData db = null;
 
-        public PlaylistCommands()
-        {
-        }
-
-        public void Initialize(
-            MusegicianData db)
+        public PlaylistCommands(MusegicianData db)
         {
             this.db = db;
         }
-        
+
         #region Delete Commands
 
         public void _DropTable()
         {
-            var allPlaylists = from playlist in db.Playlists select playlist;
+            var allPlaylists = from playlist in db.Playlists
+                               where playlist.Title != "Default"
+                               select playlist;
             db.Playlists.RemoveRange(allPlaylists);
 
             var allPlaylistSongs = from playlistSong in db.PlaylistSongs select playlistSong;

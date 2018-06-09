@@ -10,7 +10,7 @@ namespace Musegician.Equalizer
     {
         #region Data
 
-        EqualizerSettingDTO data;
+        readonly EqualizerSettingDTO data;
 
         #endregion Data
         #region Constructor
@@ -28,8 +28,8 @@ namespace Musegician.Equalizer
         #endregion Constructor
         #region Properties
 
-        public string Name { get { return data.name; } }
-        public float[] Gain { get { return data.gain; } }
+        public string Name => data.name;
+        public float[] Gain => data.gain;
         public bool Hidden { get; set; }
 
         #endregion Properties

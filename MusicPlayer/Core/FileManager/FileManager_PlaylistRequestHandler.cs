@@ -59,20 +59,6 @@ namespace Musegician
 
         Database.Playlist IPlaylistRequestHandler.GetCurrentPlaylist() => GetCurrentPlaylist();
 
-        //void IPlaylistRequestHandler.SavePlaylistAs(string title)
-        //{
-        //    //Let's just do the easy thing - kill the whole record and start over
-        //    db.Playlists.RemoveRange(from playlist in db.Playlists
-        //                             where playlist.Title == title
-        //                             select playlist);
-
-        //    Database.Playlist savePlaylist = GetPlaylistClone("Default");
-        //    savePlaylist.Title = title;
-
-        //    db.Playlists.Add(savePlaylist);
-        //    db.SaveChanges();
-        //}
-
         void IPlaylistRequestHandler.SavePlaylistAs(string title, IEnumerable<PlaylistSong> songs)
         {
             //Let's just do the easy thing - kill the whole record and start over
@@ -110,7 +96,7 @@ namespace Musegician
 
                     db.PlaylistRecordings.Add(recordingCopy);
                 }
-                
+
             }
 
             db.Playlists.Add(savePlaylist);
@@ -119,44 +105,13 @@ namespace Musegician
 
         IEnumerable<PlaylistTuple> IPlaylistRequestHandler.GetPlaylistInfo()
         {
-            return db.Playlists
-                .Select(x => new PlaylistTuple {
+            return db.Playlists.Where(x => x.Title != "Default")
+                .Select(x => new PlaylistTuple
+                {
                     title = x.Title,
-                    count = x.PlaylistSongs.Count()});
-
-
-
-            //IEnumerable<ValueTuple<string, int>> query =
-            //    (from playlist in db.Playlists
-            //     where playlist.Title != "Default"
-            //     select ValueTuple<string, int>(playlist.Title, playlist.PlaylistSongs.Count()));
-            //return query;
+                    count = x.PlaylistSongs.Count()
+                });
         }
-
-        //void IPlaylistRequestHandler.LoadPlaylist(string title)
-        //{
-        //    Database.Playlist loadingPlaylist = GetPlaylistClone(title);
-
-        //    if (loadingPlaylist == null)
-        //    {
-        //        Console.WriteLine($"Tried to load Playlist \"{title}\"... Not found!");
-        //        return;
-        //    }
-
-        //    if (_currentPlaylist == null)
-        //    {
-        //        GetCurrentPlaylist();
-        //    }
-
-        //    _currentPlaylist.PlaylistSongs.Clear();
-
-        //    foreach (PlaylistSong song in loadingPlaylist.PlaylistSongs)
-        //    {
-        //        _currentPlaylist.PlaylistSongs.Add(song);
-        //    }
-
-        //    db.SaveChanges();
-        //}
 
         void IPlaylistRequestHandler.ClearPlaylist()
         {
@@ -169,29 +124,47 @@ namespace Musegician
                                          select plsong);
         }
 
+        IEnumerable<PlaylistSong> IPlaylistRequestHandler.GetDefaultSongList()
+        {
+            if (_currentPlaylist == null)
+            {
+                GetCurrentPlaylist();
+            }
+
+            return (from playlistSong in _currentPlaylist.PlaylistSongs
+                    orderby playlistSong.Number
+                    select playlistSong);
+        }
+
         IEnumerable<PlaylistSong> IPlaylistRequestHandler.LoadPlaylist(string title)
         {
+            List<PlaylistSong> newSongList = new List<PlaylistSong>();
+
             Database.Playlist loadingPlaylist = GetPlaylistClone(title);
 
             if (loadingPlaylist == null)
             {
                 Console.WriteLine($"Tried to load Playlist \"{title}\"... Not found!");
-                return new List<PlaylistSong>();
+                return newSongList;
             }
 
             if (_currentPlaylist == null)
             {
                 GetCurrentPlaylist();
             }
-            
+
             foreach (PlaylistSong song in loadingPlaylist.PlaylistSongs)
             {
                 song.Playlist = _currentPlaylist;
+                db.PlaylistSongs.Add(song);
+                newSongList.Add(song);
             }
+
             db.SaveChanges();
 
+            newSongList.Sort((a, b) => b.Number.CompareTo(a.Number));
 
-            return _currentPlaylist.PlaylistSongs;
+            return newSongList;
         }
 
         void IPlaylistRequestHandler.DeletePlaylist(string title)
@@ -218,6 +191,11 @@ namespace Musegician
                 songTitle = recording.Tracks.First().Title,
                 recording = recording
             };
+        }
+
+        void IPlaylistRequestHandler.NotifyDBChanged()
+        {
+            db.SaveChanges();
         }
 
         #endregion IPlaylistRequestHandler

@@ -31,15 +31,8 @@ namespace Musegician.Core
             DependencyProperty.RegisterAttached("IsItemSelected", typeof(bool),
                 typeof(MultiSelectTreeView));
 
-        public static void SetIsItemSelected(UIElement element, bool value)
-        {
-            element.SetValue(IsItemSelectedProperty, value);
-        }
-
-        public static bool GetIsItemSelected(UIElement element)
-        {
-            return (bool)element.GetValue(IsItemSelectedProperty);
-        }
+        public static void SetIsItemSelected(UIElement element, bool value) => element.SetValue(IsItemSelectedProperty, value);
+        public static bool GetIsItemSelected(UIElement element) => (bool)element.GetValue(IsItemSelectedProperty);
 
         #endregion Dependency Properties
         #region Constructors
@@ -53,14 +46,8 @@ namespace Musegician.Core
         #endregion Constructors
         #region Properties
 
-        private static bool IsCtrlPressed
-        {
-            get { return Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl); }
-        }
-        private static bool IsShiftPressed
-        {
-            get { return Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift); }
-        }
+        private static bool IsCtrlPressed => Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
+        private static bool IsShiftPressed => Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
 
         public IList SelectedItems
         {
@@ -76,13 +63,7 @@ namespace Musegician.Core
         }
 
 
-        public MultiSelectTreeViewItem OneSelectedItem
-        {
-            get
-            {
-                return GetTreeViewItems(this, true).FirstOrDefault(GetIsItemSelected);
-            }
-        }
+        public MultiSelectTreeViewItem OneSelectedItem => GetTreeViewItems(this, true).FirstOrDefault(GetIsItemSelected);
 
         #endregion Properties
         #region Event Handlers
@@ -334,20 +315,9 @@ namespace Musegician.Core
         #endregion Utility Methods
         #region Overrides
 
-        protected override DependencyObject GetContainerForItemOverride()
-        {
-            return new MultiSelectTreeViewItem();
-        }
-
-        protected override bool IsItemItsOwnContainerOverride(object item)
-        {
-            return item is MultiSelectTreeViewItem;
-        }
-
-        protected override void OnSelectedItemChanged(RoutedPropertyChangedEventArgs<object> e)
-        {
-            base.OnSelectedItemChanged(e);
-        }
+        protected override DependencyObject GetContainerForItemOverride() => new MultiSelectTreeViewItem();
+        protected override bool IsItemItsOwnContainerOverride(object item) => item is MultiSelectTreeViewItem;
+        protected override void OnSelectedItemChanged(RoutedPropertyChangedEventArgs<object> e) => base.OnSelectedItemChanged(e);
 
         #endregion Overrides
     }
@@ -363,28 +333,18 @@ namespace Musegician.Core
 
         public bool IsAltState
         {
-            get { return (bool)GetValue(IsAltStateProperty); }
-            set { SetValue(IsAltStateProperty, value); }
+            get => (bool)GetValue(IsAltStateProperty);
+            set => SetValue(IsAltStateProperty, value);
         }
 
-        public bool IsItemSelected
-        {
-            get { return MultiSelectTreeView.GetIsItemSelected(this); }
-        }
+        public bool IsItemSelected => MultiSelectTreeView.GetIsItemSelected(this);
 
         public static readonly DependencyProperty IsAltStateProperty =
             DependencyProperty.RegisterAttached("IsAltState", typeof(bool),
             typeof(MultiSelectTreeViewItem), new UIPropertyMetadata(false));
 
 
-        protected override DependencyObject GetContainerForItemOverride()
-        {
-            return new MultiSelectTreeViewItem();
-        }
-
-        protected override bool IsItemItsOwnContainerOverride(object item)
-        {
-            return item is MultiSelectTreeViewItem;
-        }
+        protected override DependencyObject GetContainerForItemOverride() => new MultiSelectTreeViewItem();
+        protected override bool IsItemItsOwnContainerOverride(object item) => item is MultiSelectTreeViewItem;
     }
 }

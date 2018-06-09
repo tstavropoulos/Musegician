@@ -21,15 +21,12 @@ namespace Musegician.Player
     /// </summary>
     public partial class PlaybackPanel : UserControl, INotifyPropertyChanged
     {
-        private MusicManager MusicMan
-        {
-            get { return MusicManager.Instance; }
-        }
+        private MusicManager MusicMan => MusicManager.Instance;
 
         private PlayerState _state;
         public PlayerState State
         {
-            get { return _state; }
+            get => _state;
             set
             {
                 if (_state != value)
@@ -48,40 +45,15 @@ namespace Musegician.Player
             Unloaded += PlaybackPanel_Unloaded;
         }
 
-        private void PlaybackPanel_Loaded(object sender, RoutedEventArgs e)
-        {
-            MusicMan.PlayerStateChanged += PlayerStateChanged;
-        }
+        private void PlaybackPanel_Loaded(object sender, RoutedEventArgs e) => MusicMan.PlayerStateChanged += PlayerStateChanged;
+        private void PlaybackPanel_Unloaded(object sender, RoutedEventArgs e) => MusicMan.PlayerStateChanged -= PlayerStateChanged;
 
-        private void PlaybackPanel_Unloaded(object sender, RoutedEventArgs e)
-        {
-            MusicMan.PlayerStateChanged -= PlayerStateChanged;
-        }
+        public void OnPlayClick(object sender, RoutedEventArgs e) => MusicMan.PlayPause();
+        public void OnStopClick(object sender, RoutedEventArgs e) => MusicMan.Stop();
+        public void OnNextClick(object sender, RoutedEventArgs e) => MusicMan.Next();
+        public void OnBackClick(object sender, RoutedEventArgs e) => MusicMan.Back();
 
-        public void OnPlayClick(object sender, RoutedEventArgs e)
-        {
-            MusicMan.PlayPause();
-        }
-
-        public void OnStopClick(object sender, RoutedEventArgs e)
-        {
-            MusicMan.Stop();
-        }
-
-        public void OnNextClick(object sender, RoutedEventArgs e)
-        {
-            MusicMan.Next();
-        }
-
-        public void OnBackClick(object sender, RoutedEventArgs e)
-        {
-            MusicMan.Back();
-        }
-
-        private void PlayerStateChanged(PlayerState newState)
-        {
-            State = newState;
-        }
+        private void PlayerStateChanged(PlayerState newState) => State = newState;
 
         #region INotifyPropertyChanged
 

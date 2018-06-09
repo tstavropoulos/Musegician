@@ -39,7 +39,7 @@ namespace Musegician.Playlist
         private string _playlistName = "";
         public string PlaylistName
         {
-            get { return _playlistName; }
+            get => _playlistName;
             set
             {
                 if (_playlistName != value)
@@ -53,7 +53,7 @@ namespace Musegician.Playlist
         private static bool _shuffle = true;
         public bool Shuffle
         {
-            get { return _shuffle; }
+            get => _shuffle;
             set
             {
                 if (_shuffle != value)
@@ -74,7 +74,7 @@ namespace Musegician.Playlist
         private static bool _repeat = true;
         public bool Repeat
         {
-            get { return _repeat; }
+            get => _repeat;
             set
             {
                 if (_repeat != value)
@@ -91,7 +91,7 @@ namespace Musegician.Playlist
         private int _currentIndex = -1;
         public int CurrentIndex
         {
-            get { return _currentIndex; }
+            get => _currentIndex;
             set
             {
                 _currentIndex = value;
@@ -106,7 +106,7 @@ namespace Musegician.Playlist
         private PlaylistRecording _lastRecording = null;
         public PlaylistRecording LastRecording
         {
-            get { return _lastRecording; }
+            get => _lastRecording;
             set
             {
                 _lastRecording = value;
@@ -143,11 +143,16 @@ namespace Musegician.Playlist
             shuffleSet = new DepletableBag<PlaylistSong>(random);
         }
 
+        public void Initialize()
+        {
+            AddBack(RequestHandler.GetDefaultSongList());
+        }
+
         public void PlaySong(PlaylistSong song)
         {
             if (PlaylistSongs.Contains(song))
             {
-                
+
                 CurrentIndex = PlaylistSongs.IndexOf(song);
                 PlaylistRecording recording = SelectRecording(song);
 
@@ -465,6 +470,8 @@ namespace Musegician.Playlist
             ringBuffer.Clear();
             bufferIndex = 0;
 
+            SaveDBChanges();
+
             foreach (IPlaylistUpdateListener listener in GetValidListeners())
             {
                 listener.Rebuild(songs);
@@ -473,10 +480,14 @@ namespace Musegician.Playlist
 
         public void AddBack(IEnumerable<PlaylistSong> songs)
         {
+            int i = ItemCount;
             foreach (PlaylistSong song in songs)
             {
+                song.Number = i++;
                 PlaylistSongs.Add(song);
             }
+
+            SaveDBChanges();
 
             shuffleSet.AddRange(songs);
 
@@ -485,6 +496,16 @@ namespace Musegician.Playlist
                 listener.AddBack(songs);
             }
         }
+
+        private void ForceRenumbering()
+        {
+            for (int i = 0; i < ItemCount; i++)
+            {
+                PlaylistSongs[i].Number = i;
+            }
+        }
+
+        private void SaveDBChanges() => RequestHandler.NotifyDBChanged();
 
         public void InsertSongs(int position, IEnumerable<PlaylistSong> songs)
         {
@@ -497,6 +518,9 @@ namespace Musegician.Playlist
                 position = Math.Min(position, PlaylistSongs.Count);
                 PlaylistSongs.InsertRange(position, songs);
                 shuffleSet.AddRange(songs);
+
+                ForceRenumbering();
+                SaveDBChanges();
             }
 
             foreach (IPlaylistUpdateListener listener in GetValidListeners())
@@ -524,6 +548,9 @@ namespace Musegician.Playlist
 
                 PlaylistSongs.RemoveAt(songIndex);
             }
+
+            ForceRenumbering();
+            SaveDBChanges();
 
             foreach (IPlaylistUpdateListener listener in GetValidListeners())
             {
@@ -615,15 +642,8 @@ namespace Musegician.Playlist
             }
         }
 
-        public void DeletePlaylist(string playlistTitle)
-        {
-            RequestHandler.DeletePlaylist(playlistTitle);
-        }
-
-        public void AppendPlaylist(string playlistTitle)
-        {
-            AddBack(RequestHandler.LoadPlaylist(playlistTitle));
-        }
+        public void DeletePlaylist(string playlistTitle) => RequestHandler.DeletePlaylist(playlistTitle);
+        public void AppendPlaylist(string playlistTitle) => AddBack(RequestHandler.LoadPlaylist(playlistTitle));
 
         /// <summary>
         /// Use the weight of a song (at playlistIndex) to determine if it should play.
