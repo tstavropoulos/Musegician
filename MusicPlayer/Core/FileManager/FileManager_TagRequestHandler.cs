@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Data.SQLite;
-using System.Text;
-using System.Threading.Tasks;
 using Musegician.Database;
 using Musegician.DataStructures;
 using Musegician.TagEditor;
-
-using LibraryContext = Musegician.Library.LibraryContext;
 
 namespace Musegician
 {

@@ -110,7 +110,7 @@ namespace Musegician.Core.DBCommands
                     {
                         selector.Children.Add(new DeredundafierDTO()
                         {
-                            Name = $"{recording.Artist} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}",
+                            Name = $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}",
                             Data = recording
                         });
                     }

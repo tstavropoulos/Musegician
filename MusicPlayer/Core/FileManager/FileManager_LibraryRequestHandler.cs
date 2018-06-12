@@ -59,7 +59,7 @@ namespace Musegician
         {
             return (from recording in artist.Recordings
                     orderby (recording.Song.Title.StartsWith("The ") ? recording.Song.Title.Substring(4) : recording.Song.Title)
-                    select recording.Song);
+                    select recording.Song).Distinct();
         }
 
         void ILibraryRequestHandler.DatabaseUpdated()
@@ -151,7 +151,7 @@ namespace Musegician
         IEnumerable<Recording> ILibraryRequestHandler.GetDirectoryRecordings(string path)
         {
             return (from recording in db.Recordings
-                    where recording.Filename.StartsWith(path)
+                    where recording.Filename.StartsWith(path) && !recording.Filename.Substring(path.Length + 1).Contains("\\")
                     orderby recording.Filename ascending
                     select recording);
         }

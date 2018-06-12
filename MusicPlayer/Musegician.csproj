@@ -119,15 +119,6 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.SQLite, Version=1.0.108.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Data.SQLite.Core.1.0.108.0\lib\net46\System.Data.SQLite.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SQLite.EF6, Version=1.0.108.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Data.SQLite.EF6.1.0.108.0\lib\net46\System.Data.SQLite.EF6.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Data.SQLite.Linq, Version=1.0.108.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Data.SQLite.Linq.1.0.108.0\lib\net46\System.Data.SQLite.Linq.dll</HintPath>
-    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
@@ -170,6 +161,7 @@
     <Compile Include="Core\EnumBoolConverter.cs" />
     <Compile Include="Core\FileManager\FileManager_DeredundancyRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_LibraryRequestHandler.cs" />
+    <Compile Include="Core\FileManager\FileManager_LyricsHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_PlaylistRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_PlaylistTransferRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_TagRequestHandler.cs" />
@@ -244,6 +236,10 @@
     <Compile Include="Library\SongViewModel.cs" />
     <Compile Include="DataStructures\DataStructures.cs" />
     <Compile Include="Core\FileUtility.cs" />
+    <Compile Include="LyricViewer\ILyricsRequestHandler.cs" />
+    <Compile Include="LyricViewer\LyricViewer.xaml.cs">
+      <DependentUpon>LyricViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\201806062016535_Initial.cs" />
     <Compile Include="Migrations\201806062016535_Initial.Designer.cs">
       <DependentUpon>201806062016535_Initial.cs</DependentUpon>
@@ -359,6 +355,10 @@
     <Page Include="Library\LibraryControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="LyricViewer\LyricViewer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Playlist\TightPlaylistControl.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -567,11 +567,4 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\System.Data.SQLite.Core.1.0.108.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.108.0\build\net46\System.Data.SQLite.Core.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.108.0\build\net46\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.108.0\build\net46\System.Data.SQLite.Core.targets'))" />
-  </Target>
 </Project>

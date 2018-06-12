@@ -46,7 +46,7 @@ namespace Musegician.Library
         public string SearchableName => _song.Title;
         public Track Track { get; }
         public override string Name =>
-            Track == null ? _song.Title : $"{Track.TrackNumber}. {_song.Title}";
+            Track == null ? _song.Title : $"{Track.TrackNumber}. {Track.Title}";
 
         private readonly bool _isHome = true;
 

@@ -66,6 +66,8 @@
       <MenuItem Header="Play Recording" Click="Play_Shallow"/>
       <MenuItem Header="Edit Recording Information" Click="Edit"/>
       <Separator/>
+      <MenuItem Header="View Lyrics" Click="OpenLyrics"/>
+      <Separator/>
       <MenuItem Header="Open Explorer To File" Click="Explore"/>
     </ContextMenu>
 

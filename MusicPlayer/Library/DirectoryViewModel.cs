@@ -37,6 +37,8 @@ namespace Musegician.Library
                 _directory.Name + System.IO.Path.DirectorySeparatorChar); }
         }
 
+        public override string Name => _directory.Name;
+
         #endregion Properties
         #region LoadChildren
 

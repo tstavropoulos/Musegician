@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SQLite;
-using DbType = System.Data.DbType;
-using Musegician.DataStructures;
 using Musegician.Database;
 
 namespace Musegician.Core.DBCommands
@@ -42,7 +37,8 @@ namespace Musegician.Core.DBCommands
                 matchingSong = new Song()
                 {
                     Title = newTitle,
-                    Weight = -1.0
+                    Weight = -1.0,
+                    SongGuid = Guid.NewGuid()
                 };
 
                 db.Songs.Add(matchingSong);
@@ -58,7 +54,7 @@ namespace Musegician.Core.DBCommands
 
             foreach (PlaylistSong plSong in 
                 (from recording in recordingSet
-                 join plRecording in db.PlaylistRecordings on recording.Id equals plRecording.Id
+                 join plRecording in db.PlaylistRecordings on recording.Id equals plRecording.RecordingId
                  select plRecording.PlaylistSong).Distinct())
             {
                 plSong.Song = matchingSong;
@@ -88,7 +84,8 @@ namespace Musegician.Core.DBCommands
                 matchingArtist = new Artist()
                 {
                     Name = newArtistName,
-                    Weight = -1.0
+                    Weight = -1.0,
+                    ArtistGuid = Guid.NewGuid()
                 };
 
                 db.Artists.Add(matchingArtist);
@@ -125,7 +122,8 @@ namespace Musegician.Core.DBCommands
                 {
                     Title = newAlbumTitle,
                     Weight = -1.0,
-                    Year = 0
+                    Year = 0,
+                    AlbumGuid = Guid.NewGuid()
                 };
 
                 db.Albums.Add(matchingAlbum);

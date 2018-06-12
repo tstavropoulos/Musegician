@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data.SQLite;
-using DbType = System.Data.DbType;
-using Musegician.DataStructures;
 using Musegician.Database;
 
 namespace Musegician.Core.DBCommands

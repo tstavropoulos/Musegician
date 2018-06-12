@@ -364,6 +364,23 @@ namespace Musegician.Library
             }
         }
 
+        private void OpenLyrics(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            BaseData data = ExtractContextAndData(MenuAction.Edit).FirstOrDefault();
+
+            if (data is Recording recording)
+            {
+                //Handle
+                Window viewer = new LyricViewer.LyricViewer(recording);
+                viewer.Show();
+            }
+            else
+            {
+                Console.WriteLine($"Unexpected LibraryContext: {data}.  Likey error.");
+            }
+        }
+
         private void EditArt(object sender, RoutedEventArgs e)
         {
             var data = ExtractContextAndData(MenuAction.Edit);

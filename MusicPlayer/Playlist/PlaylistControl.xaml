@@ -24,6 +24,8 @@
       <MenuItem Header="Edit Recording Information" Click="Edit"/>
       <MenuItem Header="Find In Library" Click="Find"/>
       <Separator/>
+      <MenuItem Header="View Lyrics" Click="OpenLyrics"/>
+      <Separator/>
       <MenuItem Header="Remove Recording" Click="Remove"/>
     </ContextMenu>
     

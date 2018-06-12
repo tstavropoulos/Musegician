@@ -1,16 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Musegician.Database;
 using Microsoft.Win32;
@@ -138,27 +128,27 @@ namespace Musegician
 
         private void CloseClick(object sender, RoutedEventArgs e)
         {
-            var window = (Window)((FrameworkElement)sender).TemplatedParent;
+            Window window = ((FrameworkElement)sender).TemplatedParent as Window;
             window.Close();
         }
 
         private void MaximizeRestoreClick(object sender, RoutedEventArgs e)
         {
-            var window = (Window)((FrameworkElement)sender).TemplatedParent;
-            if (window.WindowState == System.Windows.WindowState.Normal)
+            Window window = ((FrameworkElement)sender).TemplatedParent as Window;
+            if (window.WindowState == WindowState.Normal)
             {
-                window.WindowState = System.Windows.WindowState.Maximized;
+                window.WindowState = WindowState.Maximized;
             }
             else
             {
-                window.WindowState = System.Windows.WindowState.Normal;
+                window.WindowState = WindowState.Normal;
             }
         }
 
         private void MinimizeClick(object sender, RoutedEventArgs e)
         {
-            var window = (Window)((FrameworkElement)sender).TemplatedParent;
-            window.WindowState = System.Windows.WindowState.Minimized;
+            Window window = ((FrameworkElement)sender).TemplatedParent as Window;
+            window.WindowState = WindowState.Minimized;
         }
 
         private void Menu_Deredundafier(object sender, RoutedEventArgs e)

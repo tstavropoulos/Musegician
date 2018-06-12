@@ -11,7 +11,7 @@ using Musegician.Database;
 
 namespace Musegician.Library
 {
-    public class MockLibraryViewModel
+    public sealed class MockLibraryViewModel
     {
         #region Data
 

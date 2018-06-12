@@ -11,7 +11,7 @@
         LogoFile="$(var.ProjectDir)..\IconResources\LogoSmall.png"/>
     </BootstrapperApplicationRef>
     <Chain>
-      <PackageGroupRef Id="NetFx471Web"/>
+      <PackageGroupRef Id="NetFx472Web"/>
       <MsiPackage Id="MusegicianMSI" SourceFile="$(var.MusegicianInstallerv2.TargetPath)" Vital="yes"/>
     </Chain>
   </Bundle>

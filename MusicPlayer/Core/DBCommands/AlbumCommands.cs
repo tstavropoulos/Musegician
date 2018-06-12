@@ -180,8 +180,9 @@ namespace Musegician.Core.DBCommands
                 TagLib.File audioFile = TagLib.File.Create(recording.Filename);
 
                 string tagName = audioFile.Tag.Album.ToLowerInvariant();
+                string lowerAlbumTitle = album.Title.ToLowerInvariant();
 
-                if (tagName != album.Title && !tagName.Contains(album.Title))
+                if (tagName != lowerAlbumTitle && !tagName.Contains(lowerAlbumTitle))
                 {
                     Console.WriteLine($"Album Title doesn't match. Skipping : {album.Title} / {tagName}");
                     continue;

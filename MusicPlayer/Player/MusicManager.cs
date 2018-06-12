@@ -630,14 +630,13 @@ namespace Musegician.Player
                 return;
             }
 
-            SpectralPowerStream spectralPowerStream;
             _spatializer = null;
             _equalizer = null;
 
             ISampleSource sampleSource = CodecFactory.Instance.GetCodec(playData.recording.Filename)
                 .ToSampleSource()
                 .ToStereo()
-                .AppendSource(SpectralPowerStream.CreatePowerStream, out spectralPowerStream);
+                .AppendSource(SpectralPowerStream.CreatePowerStream, out SpectralPowerStream spectralPowerStream);
 
             if (sampleSource.WaveFormat.SampleRate >= 32_000)
             {

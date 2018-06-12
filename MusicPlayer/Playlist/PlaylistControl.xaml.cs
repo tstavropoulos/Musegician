@@ -208,6 +208,29 @@ namespace Musegician.Playlist
             }
         }
 
+        private void OpenLyrics(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem)
+            {
+                if (menuItem.DataContext is PlaylistSongViewModel song)
+                {
+                    e.Handled = true;
+                    MessageBox.Show("Not Yet Implemented.");
+                }
+                else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
+                {
+                    e.Handled = true;
+                    Window window = new LyricViewer.LyricViewer(recording.PlaylistRecording.Recording);
+                    window.Show();
+                }
+                else
+                {
+                    Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                }
+            }
+
+        }
+
         private void Edit(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem menuItem)

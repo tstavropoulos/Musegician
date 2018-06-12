@@ -37,20 +37,21 @@ namespace Musegician.Core.DBCommands
                 matchingSong = new Song()
                 {
                     Title = newTitle,
-                    Weight = -1.0
+                    Weight = -1.0,
+                    SongGuid = Guid.NewGuid()
                 };
 
                 db.Songs.Add(matchingSong);
             }
 
             //Update recordings
-            foreach(Recording recording in recordings)
+            foreach (Recording recording in recordings)
             {
                 recording.Song = matchingSong;
             }
 
             //Update playlists
-            foreach(PlaylistSong playlistSong in 
+            foreach (PlaylistSong playlistSong in
                 (from recording in recordings
                  join plRec in db.PlaylistRecordings on recording.Id equals plRec.RecordingId
                  select plRec.PlaylistSong)
@@ -86,14 +87,15 @@ namespace Musegician.Core.DBCommands
                 matchingArtist = new Artist()
                 {
                     Name = newArtistName,
-                    Weight = -1.0
+                    Weight = -1.0,
+                    ArtistGuid = Guid.NewGuid()
                 };
 
                 db.Artists.Add(matchingArtist);
             }
 
             //Update recordings
-            foreach(Recording recording in recordings)
+            foreach (Recording recording in recordings)
             {
                 recording.Artist = matchingArtist;
             }
@@ -106,11 +108,11 @@ namespace Musegician.Core.DBCommands
 
             db.SaveChanges();
         }
-        
+
 
         public void UpdateLive(IEnumerable<Recording> recordings, bool newLiveValue)
         {
-            foreach(Recording recording in recordings)
+            foreach (Recording recording in recordings)
             {
                 recording.Live = newLiveValue;
             }

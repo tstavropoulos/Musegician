@@ -9,8 +9,6 @@
     <MediaTemplate/>
     <Feature Id="Complete" Title="Musegician Installer" Level="1">
       <ComponentGroupRef Id="ProductComponents"/>
-      <ComponentRef Id="SQLiteInteropLibx86"/>
-      <ComponentRef Id="SQLiteInteropLibx64"/>
       <ComponentGroupRef Id="IRFs"/>
     </Feature>
     <Icon Id="Musegician.exe" SourceFile="$(var.Musegician.TargetDir)Musegician.exe" />
@@ -22,8 +20,6 @@
       <Directory Id="ProgramFilesFolder">
         <Directory Id="TASAgency" Name="TASAgency">
           <Directory Id="INSTALLFOLDER" Name="Musegician">
-            <Directory Id="x86DLLDir" Name="x86"/>
-            <Directory Id="x64DLLDir" Name="x64"/>
             <Directory Id="ResourcesDir" Name="Resources">
               <Directory Id="IRFilesDir" Name="IRFiles"/>
             </Directory>
@@ -74,21 +70,22 @@
         <File Id="RibbonControlsDLL" Name="RibbonControlsLibrary.dll" Source="$(var.Musegician.TargetDir)RibbonControlsLibrary.dll" KeyPath="yes"/>
       </Component>
 
-      <!--System.Data.SQLite-->
-      <Component Id="SystemDataSQLiteLib" Guid="BCA8CF6F-4644-43CB-BFCF-77BCEA5A3B64">
-        <File Id="SystemDataSQLiteDLL" Name="System.Data.SQLite.dll" Source="$(var.Musegician.TargetDir)System.Data.SQLite.dll" KeyPath="yes"/>
+      <!--EntityFrameowrk-->
+      <Component Id="EntityFrameworkLib" Guid="259CC6AE-4A55-4F9E-904E-C43F939494EA">
+        <File Id="EntityFrameworkDLL" Name="EntityFramework.dll" Source="$(var.Musegician.TargetDir)EntityFramework.dll" KeyPath="yes"/>
+      </Component>
+      
+      <!--EntityFramework.SqlServer-->
+      <Component Id="EFSqlServer" Guid="152D41AA-3E7B-485C-BDAF-1051322A2EC3">
+        <File Id="EFSqlServer" Name="EntityFramework.SqlServer.dll" Source="$(var.Musegician.TargetDir)EntityFramework.SqlServer.dll" KeyPath="yes"/>
+      </Component>
+
+      <!--exe Config-->
+      <Component Id="ExeConfig" Guid="9DCA0686-339E-44C6-BF91-FF793CA3BC5C">
+        <File Id="ExeConfigFile" Name="Musegician.exe.config" Source="$(var.Musegician.TargetDir)Musegician.exe.config" KeyPath="yes"/>
       </Component>
     </ComponentGroup>
 
-    <!--x86 SQLite.Interop-->
-    <Component Id="SQLiteInteropLibx86" Guid="30DB25DB-FEEC-41D2-B3B6-146D087C84D7" Directory="x86DLLDir">
-      <File Id="SQLiteInteropDLLx86" Name="SQLite.Interop.dll" Source="$(var.Musegician.TargetDir)x86\SQLite.Interop.dll" KeyPath="yes"/>
-    </Component>
-
-    <!--x64 SQLite.Interop-->
-    <Component Id="SQLiteInteropLibx64" Guid="5C609059-3BF2-4F70-9295-16AB742BCBA5" Directory="x64DLLDir">
-      <File Id="SQLiteInteropDLLx64" Name="SQLite.Interop.dll" Source="$(var.Musegician.TargetDir)x64\SQLite.Interop.dll" KeyPath="yes"/>
-    </Component>
 
     <!--Impulse Response Functions-->
     <ComponentGroup Id="IRFs" Directory="IRFilesDir">

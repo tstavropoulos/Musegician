@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.IO;
-using System.Runtime.Serialization;
 using System.Xml.Serialization;
 using System.Windows.Media.Imaging;
 using Musegician.Core.DBCommands;
@@ -387,7 +386,7 @@ namespace Musegician
 
                 db.Songs.Add(song);
                 lookups.SongGuidLookup.Add(musegicianTag.SongGuid, song);
-                if(!lookups.SongNameLookup.ContainsKey((artist, songTitle.ToLowerInvariant())))
+                if (!lookups.SongNameLookup.ContainsKey((artist, songTitle.ToLowerInvariant())))
                 {
                     lookups.SongNameLookup.Add((artist, songTitle.ToLowerInvariant()), song);
                 }
