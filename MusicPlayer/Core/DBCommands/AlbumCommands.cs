@@ -115,8 +115,7 @@ namespace Musegician.Core.DBCommands
                 }
 
                 //Delete orphans
-                db.Albums.RemoveRange(db.Albums.Where(x => x.Tracks.Count == 0));
-
+                db.Albums.RemoveRange(albumsCopy);
             }
 
             db.SaveChanges();

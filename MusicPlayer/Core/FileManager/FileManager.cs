@@ -145,7 +145,7 @@ namespace Musegician
             db.SaveChanges();
         }
 
-        public void AddMusicDirectory(string path, List<string> newMusic, HashSet<string> loadedFilenames)
+        private void AddMusicDirectory(string path, List<string> newMusic, HashSet<string> loadedFilenames)
         {
             foreach (string extension in supportedFileTypes)
             {
@@ -162,38 +162,92 @@ namespace Musegician
             }
         }
 
+        private void PopulateFilenameHashtable(HashSet<string> loadedFilenames)
+        {
+            foreach (string filename in db.Recordings.Select(x => x.Filename))
+            {
+                loadedFilenames.Add(filename);
+            }
+        }
+
+        private void PopulateLookups(Lookups lookups)
+        {
+            foreach (Artist artist in db.Artists)
+            {
+                lookups.ArtistGuidLookup.Add(artist.ArtistGuid, artist);
+                lookups.ArtistNameLookup.Add(artist.Name.ToLowerInvariant(), artist);
+            }
+
+            foreach (Song song in db.Songs)
+            {
+                lookups.SongGuidLookup.Add(song.SongGuid, song);
+            }
+
+            foreach (Album album in db.Albums)
+            {
+                lookups.AlbumGuidLookup.Add(album.AlbumGuid, album);
+            }
+
+            foreach (var set in (from recording in db.Recordings
+                                 select new { recording.Artist, recording.Song }).Distinct())
+            {
+                if (!lookups.SongNameLookup.ContainsKey((set.Artist, set.Song.Title.ToLowerInvariant())))
+                {
+                    lookups.SongNameLookup.Add((set.Artist, set.Song.Title.ToLowerInvariant()), set.Song);
+                }
+            }
+
+            foreach (var set in (from album in db.Albums
+                                 join track in db.Tracks on album.Id equals track.AlbumId
+                                 select new { track.Recording.Artist, Album = album }).Distinct())
+            {
+                if (!lookups.AlbumNameLookup.ContainsKey((set.Artist, set.Album.Title.ToLowerInvariant())))
+                {
+                    lookups.AlbumNameLookup.Add((set.Artist, set.Album.Title.ToLowerInvariant()), set.Album);
+                }
+            }
+        }
+
         public void AddDirectoryToLibrary(string path)
         {
             List<string> newMusic = new List<string>();
             HashSet<string> loadedFilenames = new HashSet<string>();
-
-            AddMusicDirectory(path, newMusic, loadedFilenames);
-
             Lookups lookups = new Lookups();
             try
             {
                 db.Configuration.AutoDetectChangesEnabled = false;
+
+                PopulateFilenameHashtable(loadedFilenames);
+                AddMusicDirectory(path, newMusic, loadedFilenames);
+
+                //Lookup loading is FAST - skipDB threshold is therefore low
+                bool skipDB = newMusic.Count >= 10;
+
+                if (skipDB)
+                {
+                    PopulateLookups(lookups);
+                }
 
                 foreach (string songFilename in newMusic)
                 {
                     LoadFileData(
                         path: songFilename,
                         lookups: lookups,
-                        db: db);
+                        skipDB: skipDB);
                 }
+
+                db.SaveChanges();
             }
             finally
             {
                 db.Configuration.AutoDetectChangesEnabled = true;
             }
-
-            db.SaveChanges();
         }
 
         private void LoadFileData(
             string path,
             Lookups lookups,
-            MusegicianData db)
+            bool skipDB)
         {
             TagLib.File file = null;
 
@@ -203,7 +257,15 @@ namespace Musegician
             }
             catch (TagLib.UnsupportedFormatException)
             {
-                Console.WriteLine("UNSUPPORTED FILE: " + path);
+                Console.WriteLine("Skipping UNSUPPORTED FILE: " + path);
+                Console.WriteLine(String.Empty);
+                Console.WriteLine("---------------------------------------");
+                Console.WriteLine(String.Empty);
+                return;
+            }
+            catch (TagLib.CorruptFileException)
+            {
+                Console.WriteLine("Skipping CORRUPT FILE: " + path);
                 Console.WriteLine(String.Empty);
                 Console.WriteLine("---------------------------------------");
                 Console.WriteLine(String.Empty);
@@ -252,31 +314,47 @@ namespace Musegician
             if (!newMusegicianTag)
             {
                 //Tag was loaded
-                //Find in DB by Guid
-                artist = db.Artists
-                    .Where(x => x.ArtistGuid == musegicianTag.ArtistGuid)
-                    .FirstOrDefault();
-
                 //Find in lookups by Guid
-                if (artist == null &&
-                    lookups.ArtistGuidLookup.ContainsKey(musegicianTag.ArtistGuid))
+                if (lookups.ArtistGuidLookup.ContainsKey(musegicianTag.ArtistGuid))
                 {
                     artist = lookups.ArtistGuidLookup[musegicianTag.ArtistGuid];
+                }
+
+                //Find in DB by Guid
+                if (artist == null && !skipDB)
+                {
+                    artist = db.Artists
+                        .Where(x => x.ArtistGuid == musegicianTag.ArtistGuid)
+                        .FirstOrDefault();
+
+                    if (artist != null)
+                    {
+                        //If we found it, add it to the lookup
+                        lookups.ArtistGuidLookup.Add(musegicianTag.ArtistGuid, artist);
+                    }
                 }
             }
             else
             {
                 //Tag is new
-                //Find in DB by name
-                artist = db.Artists
-                    .Where(x => x.Name == artistName)
-                    .FirstOrDefault();
-
                 //Find in lookups by name
-                if (artist == null &&
-                    lookups.ArtistNameLookup.ContainsKey(artistName.ToLowerInvariant()))
+                if (lookups.ArtistNameLookup.ContainsKey(artistName.ToLowerInvariant()))
                 {
                     artist = lookups.ArtistNameLookup[artistName.ToLowerInvariant()];
+                }
+
+                //Find in DB by name
+                if (artist == null && !skipDB)
+                {
+                    artist = db.Artists
+                        .Where(x => x.Name == artistName)
+                        .FirstOrDefault();
+
+                    if (artist != null)
+                    {
+                        //If we found it, add it to the lookup
+                        lookups.ArtistNameLookup.Add(artistName.ToLowerInvariant(), artist);
+                    }
                 }
 
                 //If artist was found, populate ArtistGuid into tag
@@ -333,21 +411,29 @@ namespace Musegician
             if (!newMusegicianTag)
             {
                 //Tag was loaded
-                //Find in DB by Guid
-                song = db.Songs
-                    .Where(x => x.SongGuid == musegicianTag.SongGuid)
-                    .FirstOrDefault();
-
                 //Find in lookups by Guid
-                if (song == null &&
-                    lookups.SongGuidLookup.ContainsKey(musegicianTag.SongGuid))
+                if (lookups.SongGuidLookup.ContainsKey(musegicianTag.SongGuid))
                 {
                     song = lookups.SongGuidLookup[musegicianTag.SongGuid];
                 }
 
+                //Find in DB by Guid
+                if (song == null && !skipDB)
+                {
+                    song = db.Songs
+                        .Where(x => x.SongGuid == musegicianTag.SongGuid)
+                        .FirstOrDefault();
+
+                    if (song != null)
+                    {
+                        //If we found it, add it to the lookup
+                        lookups.SongGuidLookup.Add(song.SongGuid, song);
+                    }
+                }
+
                 if (song == null)
                 {
-                    //Clean up title
+                    //Clean up title for record creation
                     CleanUpSongTitle(trackTitle, out songTitle);
                 }
             }
@@ -357,19 +443,28 @@ namespace Musegician
                 //we must search clean up name and search
                 musegicianTag.Live |= CleanUpSongTitle(trackTitle, out songTitle);
 
-                //Find in db by name, matching artist
-                song = db.Recordings.Where(x => x.ArtistId == artist.Id)
-                    .Select(x => x.Song)
-                    .Distinct()
-                    .Where(x => x.Title == songTitle)
-                    .FirstOrDefault();
-
                 //find in lookups by (artist, name)
-                if (song == null &&
-                    lookups.SongNameLookup.ContainsKey((artist, songTitle.ToLowerInvariant())))
+                if (lookups.SongNameLookup.ContainsKey((artist, songTitle.ToLowerInvariant())))
                 {
                     song = lookups.SongNameLookup[(artist, songTitle.ToLowerInvariant())];
                 }
+
+                if (song == null && !skipDB)
+                {
+                    //Find in db by name, matching artist
+                    song = db.Recordings.Where(x => x.ArtistId == artist.Id)
+                        .Select(x => x.Song)
+                        .Distinct()
+                        .Where(x => x.Title == songTitle)
+                        .FirstOrDefault();
+
+                    if (song != null)
+                    {
+                        //If we found it, add it to the lookup
+                        lookups.SongNameLookup.Add((artist, songTitle), song);
+                    }
+                }
+
 
                 musegicianTag.SongGuid = song?.SongGuid ?? Guid.NewGuid();
             }
@@ -410,21 +505,29 @@ namespace Musegician
             if (!newMusegicianTag)
             {
                 //Tag was loaded
-                //Find in DB by Guid
-                album = db.Albums
-                    .Where(x => x.AlbumGuid == musegicianTag.AlbumGuid)
-                    .FirstOrDefault();
-
                 //Find in lookups by Guid
-                if (album == null &&
-                    lookups.AlbumGuidLookup.ContainsKey(musegicianTag.AlbumGuid))
+                if (lookups.AlbumGuidLookup.ContainsKey(musegicianTag.AlbumGuid))
                 {
                     album = lookups.AlbumGuidLookup[musegicianTag.AlbumGuid];
                 }
 
+                if (album == null && !skipDB)
+                {
+                    //Find in DB by Guid
+                    album = db.Albums
+                        .Where(x => x.AlbumGuid == musegicianTag.AlbumGuid)
+                        .FirstOrDefault();
+
+                    if (album != null)
+                    {
+                        //If we found it, add it to the lookup
+                        lookups.AlbumGuidLookup.Add(album.AlbumGuid, album);
+                    }
+                }
+
                 if (album == null)
                 {
-                    //Clean up title
+                    //Clean up title for record creation
                     CleanUpAlbumTitle(albumTitle, out cleanAlbumTitle, ref discNumber);
                 }
             }
@@ -434,18 +537,27 @@ namespace Musegician
                 //We must search and clean up the name
                 musegicianTag.Live |= CleanUpAlbumTitle(albumTitle, out cleanAlbumTitle, ref discNumber);
 
-                //Search in db for albums featuring artist, with matching name
-                album = db.Tracks.Where(x => x.Recording.ArtistId == artist.Id)
-                    .Select(x => x.Album)
-                    .Distinct()
-                    .Where(x => x.Title == cleanAlbumTitle).FirstOrDefault();
-
                 //search in lookups for (artist,albumname)
-                if (album == null &&
-                    lookups.AlbumNameLookup.ContainsKey((artist, cleanAlbumTitle.ToLowerInvariant())))
+                if (lookups.AlbumNameLookup.ContainsKey((artist, cleanAlbumTitle.ToLowerInvariant())))
                 {
                     album = lookups.AlbumNameLookup[(artist, cleanAlbumTitle.ToLowerInvariant())];
                 }
+
+                if (album == null && !skipDB)
+                {
+                    //Search in db for albums featuring artist, with matching name
+                    album = db.Tracks.Where(x => x.Recording.ArtistId == artist.Id)
+                        .Select(x => x.Album)
+                        .Distinct()
+                        .Where(x => x.Title == cleanAlbumTitle).FirstOrDefault();
+
+                    if (album != null)
+                    {
+                        //If we found it, add it to the lookup
+                        lookups.AlbumNameLookup.Add((artist, cleanAlbumTitle.ToLowerInvariant()), album);
+                    }
+                }
+
 
                 musegicianTag.AlbumGuid = album?.AlbumGuid ?? Guid.NewGuid();
             }

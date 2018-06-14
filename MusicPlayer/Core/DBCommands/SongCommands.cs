@@ -145,7 +145,7 @@ namespace Musegician.Core.DBCommands
                 playlistSong.Song = matchingSong;
             }
 
-            //Now, delete any old artists with no remaining recordings
+            //Now, delete any old songs with no remaining recordings
             db.Songs.RemoveRange(songsCopy);
 
             db.SaveChanges();

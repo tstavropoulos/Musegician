@@ -135,6 +135,8 @@ namespace Musegician.Core.DBCommands
                 track.Album = matchingAlbum;
             }
 
+            db.SaveChanges();
+
             //Delete leafs
             db.Albums.RemoveRange(db.Albums.Where(x => x.Tracks.Count == 0));
 
