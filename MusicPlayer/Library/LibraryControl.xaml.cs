@@ -79,7 +79,6 @@ namespace Musegician.Library
         MusicTreeViewModel _musicTree;
 
         ILibraryRequestHandler LibraryRequestHandler => FileManager.Instance;
-
         IPlaylistTransferRequestHandler PlaylistTransferRequestHandler => FileManager.Instance;
 
         #endregion Data
@@ -148,6 +147,15 @@ namespace Musegician.Library
         public void Rebuild()
         {
             ViewMode tempViewMode = _musicTree.CurrentViewMode;
+            Stack<long> idStack = new Stack<long>();
+            if (tempViewMode != ViewMode.MAX && CurrentTreeView.SelectedItem is LibraryViewModel model)
+            {
+                while (model != null)
+                {
+                    idStack.Push(model.Data.Id);
+                    model = model.Parent;
+                }
+            }
 
             _musicTree = new MusicTreeViewModel(LibraryRequestHandler);
             DataContext = _musicTree;
@@ -156,6 +164,8 @@ namespace Musegician.Library
             {
                 //Trigger the loading of the current view mode
                 _musicTree.CurrentViewMode = tempViewMode;
+
+                _musicTree.RestoreHierarchy(tempViewMode, idStack);
             }
         }
 
@@ -615,8 +625,7 @@ namespace Musegician.Library
             {
                 return true;
             }
-
-
+            
             return false;
         }
 
@@ -671,7 +680,14 @@ namespace Musegician.Library
                             context = LibraryContext.Song;
                             break;
                         case MenuAction.Edit:
-                            context = LibraryContext.Track;
+                            if (song.Track != null)
+                            {
+                                context = LibraryContext.Track;
+                            }
+                            else
+                            {
+                                context = LibraryContext.Song;
+                            }
                             break;
                         default:
                             throw new ArgumentException("Unexpected MenuAction: " + option);

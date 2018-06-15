@@ -52,7 +52,7 @@ namespace Musegician.Core.DBCommands
                 recording.Song = matchingSong;
             }
 
-            foreach (PlaylistSong plSong in 
+            foreach (PlaylistSong plSong in
                 (from recording in recordingSet
                  join plRecording in db.PlaylistRecordings on recording.Id equals plRecording.RecordingId
                  select plRecording.PlaylistSong).Distinct())
@@ -149,6 +149,16 @@ namespace Musegician.Core.DBCommands
             foreach (Track track in tracks)
             {
                 track.Title = newTrackTitle;
+            }
+
+            db.SaveChanges();
+        }
+
+        public void UpdateYear(IEnumerable<Track> tracks, int newYear)
+        {
+            foreach (Album album in tracks.Select(x => x.Album).Distinct())
+            {
+                album.Year = newYear;
             }
 
             db.SaveChanges();

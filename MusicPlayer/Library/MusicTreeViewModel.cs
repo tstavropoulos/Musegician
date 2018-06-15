@@ -122,7 +122,6 @@ namespace Musegician.Library
         /// </summary>
         public ObservableCollection<LibraryViewModel> ClassicArtistViewModels { get; } = new ObservableCollection<LibraryViewModel>();
         public ObservableCollection<LibraryViewModel> AlbumViewModels { get; } = new ObservableCollection<LibraryViewModel>();
-
         public ObservableCollection<LibraryViewModel> SimpleViewModels { get; } = new ObservableCollection<LibraryViewModel>();
         public ObservableCollection<LibraryViewModel> DirectoryViewModels { get; } = new ObservableCollection<LibraryViewModel>();
 
@@ -132,10 +131,7 @@ namespace Musegician.Library
         private SearchChoices _searchChoice = SearchChoices.All;
         public SearchChoices SearchChoice
         {
-            get
-            {
-                return _searchChoice;
-            }
+            get => _searchChoice;
             set
             {
                 if (_searchChoice != value)
@@ -153,7 +149,7 @@ namespace Musegician.Library
         private ViewMode _currentViewMode = ViewMode.MAX;
         public ViewMode CurrentViewMode
         {
-            get { return _currentViewMode; }
+            get => _currentViewMode;
             set
             {
                 if (_currentViewMode != value)
@@ -210,10 +206,7 @@ namespace Musegician.Library
                 _musicTree = musicTree;
             }
 
-            public bool CanExecute(object parameter)
-            {
-                return true;
-            }
+            public bool CanExecute(object parameter) => true;
 
             event EventHandler ICommand.CanExecuteChanged
             {
@@ -224,10 +217,7 @@ namespace Musegician.Library
                 remove { }
             }
 
-            public void Execute(object parameter)
-            {
-                _musicTree.PerformSearch();
-            }
+            public void Execute(object parameter) => _musicTree.PerformSearch();
         }
 
         #endregion SearchCommand
@@ -238,7 +228,7 @@ namespace Musegician.Library
         /// </summary>
         public string SearchText
         {
-            get { return _searchText; }
+            get => _searchText;
             set
             {
                 if (_searchText != value)
@@ -290,11 +280,10 @@ namespace Musegician.Library
             if (!_matchingRecordEnumerator.MoveNext())
             {
                 MessageBox.Show(
-                    "No matching records were found.",
-                    "Try Again",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                    );
+                    messageBoxText: "No matching records were found.",
+                    caption: "Try Again",
+                    button: MessageBoxButton.OK,
+                    icon: MessageBoxImage.Information);
             }
         }
 
@@ -420,7 +409,6 @@ namespace Musegician.Library
         #endregion Search Logic
         #region Search ID Logic
 
-
         public void PerformLookup(Playlist.LookupEventArgs e)
         {
             SearchText = "{Playlist Item Search}";
@@ -441,7 +429,6 @@ namespace Musegician.Library
             Playlist.LookupEventArgs e,
             ICollection<LibraryViewModel> models)
         {
-
             LibraryContext context = LibraryContext.MAX;
 
             if (e.data is Song)
@@ -476,7 +463,7 @@ namespace Musegician.Library
                     default:
                         throw new ArgumentException("Unexpected LibraryContext: " + context);
                 }
-                
+
                 //Can't lazy-load children if we need to search through them
                 if (model.HasDummyChild)
                 {
@@ -491,6 +478,76 @@ namespace Musegician.Library
         }
 
         #endregion
+        #region Selection
+
+        public void RestoreHierarchy(ViewMode mode, Stack<long> ids)
+        {
+            if (ids.Count == 0)
+            {
+                //Nothing to restore
+                return;
+            }
+
+            ObservableCollection<LibraryViewModel> models = null;
+
+            switch (mode)
+            {
+                case ViewMode.Classic:
+                    models = ClassicArtistViewModels;
+                    break;
+                case ViewMode.Simple:
+                    models = SimpleViewModels;
+                    break;
+                case ViewMode.Album:
+                    models = AlbumViewModels;
+                    break;
+                case ViewMode.Directory:
+                    models = DirectoryViewModels;
+                    break;
+                case ViewMode.MAX:
+                default:
+                    Console.WriteLine($"Invalid ViewMode: {mode}");
+                    return;
+            }
+
+            LibraryViewModel model = null;
+            do
+            {
+                //Travel down hierarchy selecting, expanding, and loading
+                long nextId = ids.Pop();
+                
+                LibraryViewModel nextmodel = models.Where(x => x.Data.Id == nextId).FirstOrDefault();
+                if (nextmodel != null)
+                {
+                    //Expand parent
+                    if (model != null)
+                    {
+                        model.IsExpanded = true;
+                    }
+                    //Move pointer to child
+                    model = nextmodel;
+                }
+                else
+                {
+                    //Abort when the next isn't found
+                    break;
+                }
+
+                //Load the children so they can be searched
+                model.LoadChildren(requestHandler);
+                //Update list pointer to children
+                models = model.Children;
+            }
+            while (model != null && ids.Count > 0);
+
+            //Select the last model we were able to match
+            if (model != null)
+            {
+                model.IsSelected = true;
+            }
+        }
+
+        #endregion Selection
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -501,6 +558,5 @@ namespace Musegician.Library
         }
 
         #endregion INotifyPropertyChanged
-
     }
 }

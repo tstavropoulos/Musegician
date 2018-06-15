@@ -51,13 +51,24 @@
   </UserControl.Resources>
   <DockPanel>
     <DockPanel DockPanel.Dock="Top" Margin="5">
-      <Button DockPanel.Dock="Left" Padding="4,2,4,2"
-              Content="Find Possible Matches" Click="Deredundafier_Calculate"/>
-      <Button DockPanel.Dock="Right" Padding="4,2,4,2"
-              Content="Merge Selected" Click="Deredundafier_Apply"/>
+      <Button DockPanel.Dock="Left" Padding="2"
+              Content="Find Matches" Click="Deredundafier_Calculate"/>
+      <CheckBox DockPanel.Dock="Right" Padding="2"
+                IsChecked="{Binding DeepSearch}" VerticalAlignment="Center"
+                Content="Deep Search"/>
       <StackPanel/>
     </DockPanel>
-    <TabControl SelectionChanged="Deredundafier_SelectionChanged">
+    <Grid DockPanel.Dock="Bottom" Margin="2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
+      <Button Grid.Column="0"
+              Content="Merge Selected" Click="Deredundafier_Apply"/>
+
+    </Grid>
+    <TabControl SelectionChanged="Deredundafier_SelectionChanged" Margin="2">
       <TabItem Header="Artist" FontSize="14">
         <TreeView x:Name="ArtistRedundancyList"
                   ItemsSource="{Binding ViewModels}"

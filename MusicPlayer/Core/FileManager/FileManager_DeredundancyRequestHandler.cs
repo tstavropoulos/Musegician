@@ -9,14 +9,14 @@ namespace Musegician
     {
         #region IDeredundancyRequestHandler
 
-        IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetArtistTargets() =>
-            artistCommands.GetDeredundancyTargets();
+        IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetArtistTargets(bool deep) =>
+            deep ? artistCommands.GetDeepDeredundancyTargets() : artistCommands.GetDeredundancyTargets();
 
-        IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetAlbumTargets() =>
-            albumCommands.GetDeredundancyTargets();
+        IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetAlbumTargets(bool deep) =>
+            deep ? albumCommands.GetDeepDeredundancyTargets() : albumCommands.GetDeredundancyTargets();
 
-        IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetSongTargets() =>
-            songCommands.GetDeredundancyTargets();
+        IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetSongTargets(bool deep) =>
+            deep ? songCommands.GetDeepDeredundancyTargets() : songCommands.GetDeredundancyTargets();
 
         void IDeredundancyRequestHandler.MergeArtists(IEnumerable<BaseData> data) =>
             artistCommands.Merge(data);

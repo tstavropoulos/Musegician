@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Globalization;
 using System.IO;
 using TagLib;
 using Musegician.Deredundafier;
@@ -17,9 +19,99 @@ namespace Musegician.Core.DBCommands
             this.db = db;
         }
 
+        private const string greedyParenPattern = @"(\s*?[\(\[].*[\)\]])";
+
         #region High Level Commands
 
-        public IList<DeredundafierDTO> GetDeredundancyTargets()
+        public IEnumerable<DeredundafierDTO> GetDeepDeredundancyTargets()
+        {
+            Dictionary<string, List<Album>> map = new Dictionary<string, List<Album>>();
+
+            foreach (Album album in db.Albums)
+            {
+                string title = album.Title.ToLowerInvariant();
+                title.Trim();
+
+                if (Regex.IsMatch(title, greedyParenPattern))
+                {
+                    title = Regex.Replace(title, greedyParenPattern, "");
+                }
+
+                //Reset name if this fully deletes it.
+                if (title == "")
+                {
+                    title = album.Title.ToLowerInvariant();
+                }
+
+                //Add base name
+                if (!map.ContainsKey(title))
+                {
+                    map.Add(title, new List<Album>());
+                }
+                map[title].Add(album);
+            }
+
+            TextInfo titleFormatter = new CultureInfo("en-US", false).TextInfo;
+
+
+            List<DeredundafierDTO> targets = new List<DeredundafierDTO>();
+            foreach (var albumSet in map)
+            {
+                if (albumSet.Value.Count < 2)
+                {
+                    continue;
+                }
+
+                DeredundafierDTO target = new DeredundafierDTO()
+                {
+                    Name = titleFormatter.ToTitleCase(albumSet.Key)
+                };
+                targets.Add(target);
+
+                foreach (Album album in albumSet.Value)
+                {
+                    List<Artist> artists = album.Tracks.Select(t => t.Recording.Artist).Distinct().ToList();
+
+                    string artistName;
+
+                    if (artists.Count == 0)
+                    {
+                        Console.WriteLine($"Failed to find artist for album: ({album.Id},{album.Title}).  Skipping.");
+                        continue;
+                    }
+                    else if (artists.Count == 1)
+                    {
+                        artistName = artists[0].Name;
+                    }
+                    else
+                    {
+                        artistName = "Various";
+                    }
+
+                    DeredundafierDTO selector = new SelectorDTO()
+                    {
+                        Name = $"{artistName} - {album.Title}",
+                        Data = album,
+                        IsChecked = false
+                    };
+
+                    target.Children.Add(selector);
+
+                    foreach (Track track in album.Tracks)
+                    {
+                        selector.Children.Add(new DeredundafierDTO()
+                        {
+                            Name = $"{track.Recording.Artist.Name} - {track.Title}",
+                            Data = track.Recording
+                        });
+                    }
+                }
+            }
+
+            return targets;
+        }
+
+        public IEnumerable<DeredundafierDTO> GetDeredundancyTargets()
         {
             List<DeredundafierDTO> targets = new List<DeredundafierDTO>();
 

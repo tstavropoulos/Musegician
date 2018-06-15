@@ -54,7 +54,6 @@ namespace Musegician.Deredundafier
                 _viewTree = new DeredundafierViewTree();
                 DataContext = _viewTree;
             }
-
         }
 
         #endregion Constructor
@@ -102,17 +101,17 @@ namespace Musegician.Deredundafier
             {
                 case DeredundancyMode.Artist:
                     {
-                        newModels = RequestHandler.GetArtistTargets();
+                        newModels = RequestHandler.GetArtistTargets(_viewTree.DeepSearch);
                     }
                     break;
                 case DeredundancyMode.Album:
                     {
-                        newModels = RequestHandler.GetAlbumTargets();
+                        newModels = RequestHandler.GetAlbumTargets(_viewTree.DeepSearch);
                     }
                     break;
                 case DeredundancyMode.Song:
                     {
-                        newModels = RequestHandler.GetSongTargets();
+                        newModels = RequestHandler.GetSongTargets(_viewTree.DeepSearch);
                     }
                     break;
                 case DeredundancyMode.MAX:

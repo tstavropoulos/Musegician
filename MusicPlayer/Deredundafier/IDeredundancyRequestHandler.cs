@@ -9,9 +9,9 @@ namespace Musegician.Deredundafier
 {
     public interface IDeredundancyRequestHandler
     {
-        IEnumerable<DeredundafierDTO> GetArtistTargets();
-        IEnumerable<DeredundafierDTO> GetAlbumTargets();
-        IEnumerable<DeredundafierDTO> GetSongTargets();
+        IEnumerable<DeredundafierDTO> GetArtistTargets(bool deep);
+        IEnumerable<DeredundafierDTO> GetAlbumTargets(bool deep);
+        IEnumerable<DeredundafierDTO> GetSongTargets(bool deep);
 
         void MergeArtists(IEnumerable<BaseData> data);
         void MergeAlbums(IEnumerable<BaseData> data);

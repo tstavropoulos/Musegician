@@ -83,6 +83,14 @@ namespace Musegician
                     recordType = MusicRecord.SongTitle
                 });
 
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = track.Album.Title,
+                    NewValue = track.Album.Title,
+                    recordType = MusicRecord.AlbumTitle,
+                    tagType = ID3TagType.Album
+                });
+
                 tagList.Add(new TagDataInt
                 {
                     _currentValue = track.TrackNumber,
@@ -224,6 +232,14 @@ namespace Musegician
                     _currentValue = track.Recording.Song.Title,
                     NewValue = track.Recording.Song.Title,
                     recordType = MusicRecord.SongTitle
+                });
+
+                tagList.Add(new TagDataString
+                {
+                    _currentValue = track.Album.Title,
+                    NewValue = track.Album.Title,
+                    recordType = MusicRecord.AlbumTitle,
+                    tagType = ID3TagType.Album
                 });
 
                 tagList.Add(new TagDataInt
@@ -505,6 +521,11 @@ namespace Musegician
                         {
                             //Updating the year that an album was produced
                             albumCommands.UpdateYear(data.Select(x => x as Album), newInt);
+                        }
+                        else if (firstDatum is Track)
+                        {
+                            //Updating the year that an album was produced
+                            trackCommands.UpdateYear(data.Select(x => x as Track), newInt);
                         }
                         else
                         {

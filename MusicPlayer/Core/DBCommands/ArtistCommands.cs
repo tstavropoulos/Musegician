@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Globalization;
 using Musegician.Deredundafier;
 using Musegician.Database;
 
@@ -60,6 +62,77 @@ namespace Musegician.Core.DBCommands
             return (from artist in db.Artists
                     orderby (artist.Name.StartsWith("The ") ? artist.Name.Substring(4) : artist.Name)
                     select artist);
+        }
+
+        private const string greedyParenPattern = @"(\s*?[\(\[].*[\)\]])";
+
+        public IEnumerable<DeredundafierDTO> GetDeepDeredundancyTargets()
+        {
+            Dictionary<string, List<Artist>> map = new Dictionary<string, List<Artist>>();
+
+            foreach (Artist artist in db.Artists)
+            {
+                string name = artist.Name.ToLowerInvariant();
+                name.Trim();
+
+                if (Regex.IsMatch(name, greedyParenPattern))
+                {
+                    name = Regex.Replace(name, greedyParenPattern, "");
+                }
+
+                //Reset name if this fully deletes it.
+                if (name == "")
+                {
+                    name = artist.Name.ToLowerInvariant();
+                }
+
+                //Add base name
+                if (!map.ContainsKey(name))
+                {
+                    map.Add(name, new List<Artist>());
+                }
+                map[name].Add(artist);
+            }
+
+            TextInfo titleFormatter = new CultureInfo("en-US", false).TextInfo;
+
+            List<DeredundafierDTO> targets = new List<DeredundafierDTO>();
+            foreach (var set in map)
+            {
+                if (set.Value.Count < 2)
+                {
+                    continue;
+                }
+
+                DeredundafierDTO target = new DeredundafierDTO()
+                {
+                    Name = titleFormatter.ToTitleCase(set.Key)
+                };
+                targets.Add(target);
+
+                foreach (Artist artist in set.Value)
+                {
+                    DeredundafierDTO selector = new SelectorDTO()
+                    {
+                        Name = artist.Name,
+                        Data = artist,
+                        IsChecked = false
+                    };
+
+                    target.Children.Add(selector);
+
+                    foreach (Recording recording in artist.Recordings.Take(10))
+                    {
+                        selector.Children.Add(new DeredundafierDTO()
+                        {
+                            Name = $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}",
+                            Data = recording
+                        });
+                    }
+                }
+            }
+
+            return targets;
         }
 
         public IEnumerable<DeredundafierDTO> GetDeredundancyTargets()

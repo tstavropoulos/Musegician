@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Globalization;
 using Musegician.Deredundafier;
 using Musegician.Database;
 
@@ -67,6 +69,86 @@ namespace Musegician.Core.DBCommands
             }
 
             db.SaveChanges();
+        }
+
+        private const string greedyParenPattern = @"(\s*?[\(\[].*[\)\]])";
+
+        public IList<DeredundafierDTO> GetDeepDeredundancyTargets()
+        {
+            Dictionary<string, List<Song>> map = new Dictionary<string, List<Song>>();
+
+            foreach (Song song in db.Songs)
+            {
+                string name = song.Title.ToLowerInvariant();
+                name.Trim();
+
+                if (Regex.IsMatch(name, greedyParenPattern))
+                {
+                    name = Regex.Replace(name, greedyParenPattern, "");
+                }
+
+                //Reset name if this fully deletes it.
+                if (name == "")
+                {
+                    name = song.Title.ToLowerInvariant();
+                }
+
+                //Add base name
+                if (!map.ContainsKey(name))
+                {
+                    map.Add(name, new List<Song>());
+                }
+                map[name].Add(song);
+            }
+
+            TextInfo titleFormatter = new CultureInfo("en-US", false).TextInfo;
+
+            List<DeredundafierDTO> targets = new List<DeredundafierDTO>();
+            foreach (var set in map)
+            {
+                if (set.Value.Count < 2)
+                {
+                    continue;
+                }
+
+                DeredundafierDTO target = new DeredundafierDTO()
+                {
+                    Name = titleFormatter.ToTitleCase(set.Key)
+                };
+                targets.Add(target);
+
+                foreach (Song song in set.Value)
+                {
+                    var artists = song.Recordings.Select(x => x.Artist).Distinct();
+
+                    string artistName = "Various";
+                    if (artists.Count() == 1)
+                    {
+                        artistName = artists.First().Name;
+                    }
+
+                    DeredundafierDTO selector = new SelectorDTO()
+                    {
+                        Name = $"{artistName} - {song.Title}",
+                        Data = song,
+                        IsChecked = false
+                    };
+
+                    target.Children.Add(selector);
+
+                    foreach (Recording recording in song.Recordings)
+                    {
+                        selector.Children.Add(new DeredundafierDTO()
+                        {
+                            Name = $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}",
+                            Data = recording
+                        });
+                    }
+
+                }
+            }
+
+            return targets;
         }
 
         public IList<DeredundafierDTO> GetDeredundancyTargets()

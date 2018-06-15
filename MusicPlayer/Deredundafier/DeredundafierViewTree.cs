@@ -9,12 +9,6 @@ namespace Musegician.Deredundafier
 {
     public class DeredundafierViewTree
     {
-        #region Data
-
-        ObservableCollection<DeredundafierViewModel> _viewModels =
-            new ObservableCollection<DeredundafierViewModel>();
-
-        #endregion Data
         #region Constructor
 
         public DeredundafierViewTree()
@@ -25,10 +19,10 @@ namespace Musegician.Deredundafier
         #endregion Constructor
         #region View Properties
 
-        public ObservableCollection<DeredundafierViewModel> ViewModels
-        {
-            get { return _viewModels; }
-        }
+        public bool DeepSearch { get; set; } = false;
+
+        public ObservableCollection<DeredundafierViewModel> ViewModels { get; } =
+            new ObservableCollection<DeredundafierViewModel>();
 
         #endregion View Properties
         #region Data Methods
