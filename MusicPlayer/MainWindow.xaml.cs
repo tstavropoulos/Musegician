@@ -157,6 +157,12 @@ namespace Musegician
             deredundafier.Show();
         }
 
+        private void Menu_AlbumArtPicker(object sender, RoutedEventArgs e)
+        {
+            Window albumArtPicker = new AlbumArtPicker.AlbumArtPickerWindow();
+            albumArtPicker.Show();
+        }
+
         private void MainWindow_Loaded(object sender, RoutedEventArgs e) => PlaylistControl.LookupRequest += libraryControl.LookupRequest;
         private void MainWindow_Unloaded(object sender, RoutedEventArgs e) => PlaylistControl.LookupRequest -= libraryControl.LookupRequest;
         private void Menu_OpenSpatializer(object sender, RoutedEventArgs e) => SpatializerPopup.IsOpen = true;
@@ -173,5 +179,6 @@ namespace Musegician
         {
             FileMan.PushMusegicianTagsToFiles();
         }
+
     }
 }

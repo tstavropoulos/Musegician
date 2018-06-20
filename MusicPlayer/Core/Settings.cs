@@ -12,7 +12,7 @@ namespace Musegician
         private double _weightParameter = 0.05;
         public double WeightParameter
         {
-            get { return _weightParameter; }
+            get => _weightParameter;
             set
             {
                 if (_weightParameter != value)
@@ -26,8 +26,8 @@ namespace Musegician
             }
         }
 
-        public double LiveWeight { get { return Math.Min(2.0 * WeightParameter, 1.0); } }
-        public double StudioWeight { get { return Math.Min(2.0 * (1.0 - WeightParameter), 1.0); } }
+        public double LiveWeight => Math.Min(2.0 * WeightParameter, 1.0);
+        public double StudioWeight => Math.Min(2.0 * (1.0 - WeightParameter), 1.0);
 
         private static object m_lock = new object();
         private static volatile Settings _instance;
@@ -54,7 +54,7 @@ namespace Musegician
         private int _fontSize = 14;
         public int FontSize
         {
-            get { return _fontSize; }
+            get => _fontSize;
             set
             {
                 if (_fontSize != value)

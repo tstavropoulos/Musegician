@@ -15,8 +15,8 @@ namespace Musegician
 
         event EventHandler ILibraryRequestHandler.RebuildNotifier
         {
-            add { _rebuildNotifier += value; }
-            remove { _rebuildNotifier -= value; }
+            add => _rebuildNotifier += value;
+            remove => _rebuildNotifier -= value;
         }
 
         IEnumerable<Artist> ILibraryRequestHandler.GenerateArtistList()
@@ -185,6 +185,20 @@ namespace Musegician
 
             return count;
 
+        }
+
+
+        void ILibraryRequestHandler.Delete(IEnumerable<Recording> recordings)
+        {
+            var targetPlaylistRecordings =
+                (from recording in recordings
+                 join plRec in db.PlaylistRecordings on recording.Id equals plRec.RecordingId
+                 select plRec).Distinct();
+
+            db.PlaylistRecordings.RemoveRange(targetPlaylistRecordings);
+
+            db.Recordings.RemoveRange(recordings);
+            db.SaveChanges();
         }
     }
 }

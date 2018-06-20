@@ -96,7 +96,7 @@ namespace Musegician.DataStructures
         private bool _push = false;
         public bool Push
         {
-            get { return TagModified && _push; }
+            get => TagModified && _push;
             set
             {
                 if (tagType == TagEditor.ID3TagType.NotEditable)
@@ -111,7 +111,7 @@ namespace Musegician.DataStructures
         private bool _ApplyChanges = true;
         public bool ApplyChanges
         {
-            get { return TagModified && _ApplyChanges; }
+            get => TagModified && _ApplyChanges;
             set
             {
                 if (_ApplyChanges != value)
@@ -130,10 +130,8 @@ namespace Musegician.DataStructures
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
+        protected virtual void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         #endregion INotifyPropertyChanged
     }
@@ -147,7 +145,7 @@ namespace Musegician.DataStructures
         private bool _newValue;
         public bool NewValue
         {
-            get { return _newValue; }
+            get => _newValue;
             set
             {
                 if (_newValue != value)
@@ -174,7 +172,7 @@ namespace Musegician.DataStructures
         private string _newValue;
         public string NewValue
         {
-            get { return _newValue; }
+            get => _newValue;
             set
             {
                 if (_newValue != value)
@@ -202,7 +200,7 @@ namespace Musegician.DataStructures
         public int _newValue;
         public int NewInt
         {
-            get { return _newValue; }
+            get => _newValue;
             set
             {
                 if (_newValue != value)
@@ -218,7 +216,7 @@ namespace Musegician.DataStructures
 
         public string NewValue
         {
-            get { return _newValue.ToString(); }
+            get => _newValue.ToString();
             set
             {
                 int temp;

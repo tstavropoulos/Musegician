@@ -22,6 +22,8 @@ namespace Musegician.Library
         IEnumerable<DirectoryDTO> GetDirectories(string path);
         IEnumerable<Recording> GetDirectoryRecordings(string path);
 
+        void Delete(IEnumerable<Recording> recordings);
+
         void DatabaseUpdated();
 
         event EventHandler RebuildNotifier; 

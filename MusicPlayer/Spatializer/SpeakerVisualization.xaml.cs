@@ -29,8 +29,8 @@ namespace Musegician.Spatializer
 
         public string ShowLL
         {
-            get { return (string)GetValue(ShowLLProperty); }
-            set { SetValue(ShowLLProperty, value); }
+            get => (string)GetValue(ShowLLProperty);
+            set => SetValue(ShowLLProperty, value);
         }
         #endregion ShowLL
         #region ShowLR
@@ -41,8 +41,8 @@ namespace Musegician.Spatializer
 
         public string ShowLR
         {
-            get { return (string)GetValue(ShowLRProperty); }
-            set { SetValue(ShowLRProperty, value); }
+            get => (string)GetValue(ShowLRProperty);
+            set => SetValue(ShowLRProperty, value);
         }
 
         #endregion ShowLR
@@ -54,8 +54,8 @@ namespace Musegician.Spatializer
 
         public string ShowRL
         {
-            get { return (string)GetValue(ShowRLProperty); }
-            set { SetValue(ShowRLProperty, value); }
+            get => (string)GetValue(ShowRLProperty);
+            set => SetValue(ShowRLProperty, value);
         }
         #endregion ShowRL
         #region ShowRR
@@ -66,8 +66,8 @@ namespace Musegician.Spatializer
 
         public string ShowRR
         {
-            get { return (string)GetValue(ShowRRProperty); }
-            set { SetValue(ShowRRProperty, value); }
+            get => (string)GetValue(ShowRRProperty);
+            set => SetValue(ShowRRProperty, value);
         }
 
         #endregion ShowRR

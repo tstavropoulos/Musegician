@@ -54,7 +54,7 @@ namespace Musegician.Core
         {
             if (bufferSize <= 0)
             {
-                throw new ArgumentException(string.Format("Initialized a RingBuffer with size {0}.", bufferSize));
+                throw new ArgumentException($"Initialized a RingBuffer with size {bufferSize}.");
             }
 
             values = new T[bufferSize];
@@ -76,8 +76,7 @@ namespace Musegician.Core
             
             if (bufferSize <= 0)
             {
-                throw new ArgumentException(string.Format(
-                    "Attempted to initialize RingBuffer with size {0}.", bufferSize));
+                throw new ArgumentException($"Attempted to initialize RingBuffer with size {bufferSize}.");
             }
 
             this.values = new T[bufferSize];
@@ -287,7 +286,7 @@ namespace Musegician.Core
         {
             if (bufferSize <= 0)
             {
-                throw new ArgumentException(string.Format("Initialized a RingBuffer with size {0}.", bufferSize));
+                throw new ArgumentException($"Initialized a RingBuffer with size {bufferSize}.");
             }
 
             if (bufferSize == Size)

@@ -10,15 +10,11 @@ namespace Musegician.Commands
 {
     public static class TreeViewItemBehavior
     {
-        public static bool GetBringIntoViewWhenSelected(TreeViewItem treeViewItem)
-        {
-            return (bool)treeViewItem.GetValue(BringIntoViewWhenSelectedProperty);
-        }
+        public static bool GetBringIntoViewWhenSelected(TreeViewItem treeViewItem) =>
+            (bool)treeViewItem.GetValue(BringIntoViewWhenSelectedProperty);
 
-        public static void SetBringIntoViewWhenSelected(TreeViewItem treeViewItem, bool value)
-        {
+        public static void SetBringIntoViewWhenSelected(TreeViewItem treeViewItem, bool value) =>
             treeViewItem.SetValue(BringIntoViewWhenSelectedProperty, value);
-        }
 
         public static readonly DependencyProperty BringIntoViewWhenSelectedProperty =
             DependencyProperty.RegisterAttached("BringIntoViewWhenSelected", typeof(bool),

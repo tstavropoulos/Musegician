@@ -147,6 +147,19 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AlbumArtPicker\AlbumArtPicker.xaml.cs">
+      <DependentUpon>AlbumArtPicker.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AlbumArtPicker\AlbumArtPickerMockTree.cs" />
+    <Compile Include="AlbumArtPicker\AlbumArtPickerViewModel.cs" />
+    <Compile Include="AlbumArtPicker\AlbumArtPickerViewTree.cs" />
+    <Compile Include="AlbumArtPicker\AlbumPartPickerDTO.cs" />
+    <Compile Include="AlbumArtPicker\AlbumArtPickerWindow.xaml.cs">
+      <DependentUpon>AlbumArtPickerWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AlbumArtPicker\AlbumViewModel.cs" />
+    <Compile Include="AlbumArtPicker\IAlbumArtPickerRequestHandler.cs" />
+    <Compile Include="AlbumArtPicker\SelectorViewModel.cs" />
     <Compile Include="AudioUtilities\SpatializerStream.cs" />
     <Compile Include="AudioUtilities\SpectralPowerStream.cs" />
     <Compile Include="Core\DBCommands\PlaylistCommands.cs" />
@@ -162,6 +175,7 @@
     <Compile Include="Core\FileManager\FileManager_DeredundancyRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_LibraryRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_LyricsHandler.cs" />
+    <Compile Include="Core\FileManager\FileManager_AlbumArtPickerRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_PlaylistRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_PlaylistTransferRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_TagRequestHandler.cs" />
@@ -304,6 +318,14 @@
     <Compile Include="TinyPlayer\TinyPlayer.xaml.cs">
       <DependentUpon>TinyPlayer.xaml</DependentUpon>
     </Compile>
+    <Page Include="AlbumArtPicker\AlbumArtPicker.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="AlbumArtPicker\AlbumArtPickerWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Core\MarqueeControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -174,7 +174,7 @@ public class DepletableBag<T> : IDepletable<T>
 
     public int Count => availableCount;
 
-    bool ICollection<T>.IsReadOnly { get { return false; } }
+    bool ICollection<T>.IsReadOnly => false;
 
     public void Add(T value)
     {

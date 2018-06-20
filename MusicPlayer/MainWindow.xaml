@@ -43,6 +43,7 @@
         <MenuItem Header="_Library">
           <MenuItem Header="_Add Music Directory" Click="MenuOpenClick"/>
           <MenuItem Header="_Deredundafier" Click="Menu_Deredundafier"/>
+          <MenuItem Header="Album Ar_t Finder" Click="Menu_AlbumArtPicker"/>
           <Separator />
           <MenuItem Header="_Clear Library" Click="MenuClearLibraryClick"/>
           <Separator />

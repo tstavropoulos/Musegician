@@ -45,7 +45,7 @@ namespace Musegician.Equalizer
 
         public float Value
         {
-            get { return (float)GetValue(ValueProperty); }
+            get => (float)GetValue(ValueProperty);
             set
             {
                 SetValue(ValueProperty, value);
@@ -64,8 +64,8 @@ namespace Musegician.Equalizer
 
         public float PowerL
         {
-            get { return (float)GetValue(PowerLProperty); }
-            set { SetValue(PowerLProperty, value); }
+            get => (float)GetValue(PowerLProperty);
+            set => SetValue(PowerLProperty, value);
         }
 
         public static readonly DependencyProperty PowerRProperty =
@@ -74,8 +74,8 @@ namespace Musegician.Equalizer
 
         public float PowerR
         {
-            get { return (float)GetValue(PowerRProperty); }
-            set { SetValue(PowerRProperty, value); }
+            get => (float)GetValue(PowerRProperty);
+            set => SetValue(PowerRProperty, value);
         }
 
         #endregion Power
@@ -120,10 +120,8 @@ namespace Musegician.Equalizer
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
+        protected virtual void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         #endregion INotifyPropertyChanged
     }
@@ -162,9 +160,7 @@ namespace Musegician.Equalizer
             return new Point(0, 1 / val);
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) =>
             throw new System.NotImplementedException();
-        }
     }
 }

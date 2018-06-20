@@ -479,10 +479,9 @@ namespace Musegician
                     }
                     break;
                 default:
-                    throw new Exception(string.Format(
-                        "Wrong field type submitted. Submitted {0} for field {1}.",
-                        newString.GetType().ToString(),
-                        record.ToString()));
+                    throw new Exception(
+                        $"Wrong field type submitted. Submitted {newString.GetType().ToString()} for " +
+                        $"field {record.ToString()}.");
             }
         }
 
@@ -549,10 +548,9 @@ namespace Musegician
                     }
                     break;
                 default:
-                    throw new Exception(string.Format(
-                        "Wrong field type submitted. Submitted {0} for field {1}.",
-                        newInt.GetType().ToString(),
-                        record.ToString()));
+                    throw new Exception(
+                        $"Wrong field type submitted. Submitted {newInt.GetType().ToString()} for " +
+                        $"field {record.ToString()}.");
             }
         }
 
@@ -591,10 +589,9 @@ namespace Musegician
                     }
                     break;
                 default:
-                    throw new Exception(string.Format(
-                        "Wrong field type submitted. Submitted {0} for field {1}.",
-                        newBool.GetType().ToString(),
-                        record.ToString()));
+                    throw new Exception(
+                        $"Wrong field type submitted. Submitted {newBool.GetType().ToString()} for " +
+                        $"field {record.ToString()}.");
             }
         }
 

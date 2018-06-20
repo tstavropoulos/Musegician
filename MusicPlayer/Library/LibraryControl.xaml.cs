@@ -374,6 +374,20 @@ namespace Musegician.Library
             }
         }
 
+        private void Delete(object sender, RoutedEventArgs e)
+        {
+            var data = ExtractContextAndData(MenuAction.Edit);
+
+            if (data.Count() > 0)
+            {
+                e.Handled = true;
+
+                LibraryRequestHandler.Delete(data.Select(x => x as Recording));
+
+                Rebuild();
+            }
+        }
+
         private void OpenLyrics(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
@@ -417,9 +431,7 @@ namespace Musegician.Library
                 {
                     System.Diagnostics.Process.Start(
                         fileName: "explorer",
-                        arguments: string.Format(
-                            "/select, \"{0}\"",
-                            recording._recording.Filename));
+                        arguments: $"/select, \"{recording._recording.Filename}\"");
                 }
                 else if (model is DirectoryViewModel directory)
                 {

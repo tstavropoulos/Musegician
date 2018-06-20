@@ -18,7 +18,6 @@ using ILooperUpdater = Musegician.Driller.ILooperUpdater;
 
 namespace Musegician.Player
 {
-
     #region Enumerations
 
     public enum PlayerState
@@ -115,10 +114,7 @@ namespace Musegician.Player
             }
         }
 
-        private MMDevice Device
-        {
-            get { return MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia); }
-        }
+        private MMDevice Device => MMDeviceEnumerator.DefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
 
         private string _deviceIdentifier = "";
         public string DeviceIdentifier
@@ -588,10 +584,8 @@ namespace Musegician.Player
             }
             else
             {
-                throw new ArgumentException(string.Format(
-                    "Bad Filter Index: {0}.  MaxValue: {1}",
-                    e.Index,
-                    _equalizer.SampleFilters.Count));
+                throw new ArgumentException(
+                    $"Bad Filter Index: {e.Index}.  MaxValue: {_equalizer.SampleFilters.Count}");
             }
         }
 
@@ -621,7 +615,7 @@ namespace Musegician.Player
                 return;
             }
 
-            SongLabel = String.Format("{0} - {1}", playData.artistName, playData.songTitle);
+            SongLabel = $"{playData.artistName} - {playData.songTitle}";
 
             CleanUp();
 
@@ -635,21 +629,36 @@ namespace Musegician.Player
 
             ISampleSource sampleSource = CodecFactory.Instance.GetCodec(playData.recording.Filename)
                 .ToSampleSource()
-                .ToStereo()
-                .AppendSource(SpectralPowerStream.CreatePowerStream, out SpectralPowerStream spectralPowerStream);
+                .ToStereo();
+
+            SpectralPowerStream spectralPowerStream = null;
+
+            if (sampleSource.WaveFormat.SampleRate >= 16_000)
+            {
+                sampleSource = sampleSource.AppendSource(SpectralPowerStream.CreatePowerStream, out spectralPowerStream);
+            }
 
             if (sampleSource.WaveFormat.SampleRate >= 32_000)
             {
                 sampleSource = sampleSource.AppendSource(CSCoreEq.Create10BandEqualizer, out _equalizer);
             }
 
-            sampleSource = sampleSource.AppendSource(
-                SpatializerStream.CreateSpatializerStream,
-                out _spatializer);
+
+            if (sampleSource.WaveFormat.SampleRate >= 16_000)
+            {
+                sampleSource = sampleSource.AppendSource(
+                    SpatializerStream.CreateSpatializerStream,
+                    out _spatializer);
+            }
+
 
             _waveSource = sampleSource.ToWaveSource();
 
-            spectralPowerStream.PowerUpdate += (s, e) => MeterUpdate?.Invoke(s, e);
+            if (spectralPowerStream != null)
+            {
+                spectralPowerStream.PowerUpdate += (s, e) => MeterUpdate?.Invoke(s, e);
+            }
+
 
             if (_equalizer != null)
             {
@@ -1027,10 +1036,8 @@ namespace Musegician.Player
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
+        protected virtual void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         #endregion INotifyPropertyChanged
         #region IDisposable

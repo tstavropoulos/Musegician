@@ -39,8 +39,8 @@ namespace Musegician.Driller
 
         public double Minimum
         {
-            get { return (double)GetValue(MinimumProperty); }
-            set { SetValue(MinimumProperty, value); }
+            get => (double)GetValue(MinimumProperty);
+            set => SetValue(MinimumProperty, value);
         }
 
         public static readonly DependencyProperty MinimumProperty = DependencyProperty.Register(
@@ -48,8 +48,8 @@ namespace Musegician.Driller
 
         public double LowerValue
         {
-            get { return (double)GetValue(LowerValueProperty); }
-            set { SetValue(LowerValueProperty, value); }
+            get => (double)GetValue(LowerValueProperty);
+            set => SetValue(LowerValueProperty, value);
         }
 
         public static readonly DependencyProperty LowerValueProperty = DependencyProperty.Register(
@@ -58,8 +58,8 @@ namespace Musegician.Driller
 
         public double UpperValue
         {
-            get { return (double)GetValue(UpperValueProperty); }
-            set { SetValue(UpperValueProperty, value); }
+            get => (double)GetValue(UpperValueProperty);
+            set => SetValue(UpperValueProperty, value);
         }
 
         public static readonly DependencyProperty UpperValueProperty = DependencyProperty.Register(
@@ -68,8 +68,8 @@ namespace Musegician.Driller
 
         public double Value
         {
-            get { return (double)GetValue(ValueProperty); }
-            set { SetValue(ValueProperty, value); }
+            get => (double)GetValue(ValueProperty);
+            set => SetValue(ValueProperty, value);
         }
 
         public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
@@ -78,8 +78,8 @@ namespace Musegician.Driller
 
         public double Maximum
         {
-            get { return (double)GetValue(MaximumProperty); }
-            set { SetValue(MaximumProperty, value); }
+            get => (double)GetValue(MaximumProperty);
+            set => SetValue(MaximumProperty, value);
         }
 
         public static readonly DependencyProperty MaximumProperty = DependencyProperty.Register(
@@ -93,8 +93,8 @@ namespace Musegician.Driller
 
         public event EventHandler<BoundsChangedEventArgs> BoundsChanged
         {
-            add { _boundsChanged += value; }
-            remove { _boundsChanged -= value; }
+            add => _boundsChanged += value;
+            remove => _boundsChanged -= value;
         }
 
         #endregion Events BoundsChanged
@@ -104,8 +104,8 @@ namespace Musegician.Driller
 
         public event EventHandler<BoundsExceededEventArgs> BoundsExceeded
         {
-            add { _boundsExceeded += value; }
-            remove { _boundsExceeded -= value; }
+            add => _boundsExceeded += value;
+            remove => _boundsExceeded -= value;
         }
 
         #endregion Events BoundsExceeded

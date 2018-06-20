@@ -10,10 +10,7 @@ namespace Musegician.Deredundafier
     public class DeredundafierDTO
     {
         readonly List<DeredundafierDTO> _children = new List<DeredundafierDTO>();
-        public IList<DeredundafierDTO> Children
-        {
-            get { return _children; }
-        }
+        public IList<DeredundafierDTO> Children => _children;
 
         public string Name { get; set; }
         public BaseData Data { get; set; }

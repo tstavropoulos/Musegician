@@ -22,19 +22,12 @@ namespace Musegician.Deredundafier
         #endregion Constructor
         #region Properties
 
-        public new SelectorDTO Data
-        {
-            get { return base.Data as SelectorDTO; }
-        }
-
-        public new PotentialMatchViewModel Parent
-        {
-            get { return base.Parent as PotentialMatchViewModel; }
-        }
+        public new SelectorDTO Data => base.Data as SelectorDTO;
+        public new PotentialMatchViewModel Parent => base.Parent as PotentialMatchViewModel;
 
         public bool IsChecked
         {
-            get { return Data.IsChecked; }
+            get => Data.IsChecked;
             set
             {
                 if (IsChecked != value)
@@ -49,10 +42,7 @@ namespace Musegician.Deredundafier
         #endregion Properties
         #region Presentation Members
 
-        public override bool IsGrayedOut
-        {
-            get { return false; }
-        }
+        public override bool IsGrayedOut => false;
 
         #endregion Presentation Members
     }

@@ -18,8 +18,8 @@ namespace Musegician.Core
 
         public float LeftValue
         {
-            get { return (float)GetValue(LeftValueProperty); }
-            set { SetValue(LeftValueProperty, value); }
+            get => (float)GetValue(LeftValueProperty);
+            set => SetValue(LeftValueProperty, value);
         }
 
         public static readonly DependencyProperty RightValueProperty =
@@ -28,8 +28,8 @@ namespace Musegician.Core
 
         public float RightValue
         {
-            get { return (float)GetValue(RightValueProperty); }
-            set { SetValue(RightValueProperty, value); }
+            get => (float)GetValue(RightValueProperty);
+            set => SetValue(RightValueProperty, value);
         }
 
         #endregion Dependency Properties

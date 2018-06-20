@@ -33,7 +33,7 @@ namespace Musegician.Playlist
     /// <summary>
     /// Interaction logic for PlaylistControl.xaml
     /// </summary>
-    public partial class PlaylistControl : UserControl, IPlaylistUpdateListener
+    public sealed partial class PlaylistControl : UserControl, IPlaylistUpdateListener
     {
         PlaylistTreeViewModel _playlistTree;
 
@@ -42,7 +42,7 @@ namespace Musegician.Playlist
         private PlaylistSongViewModel _playingSong;
         private PlaylistSongViewModel PlayingSong
         {
-            get { return _playingSong; }
+            get => _playingSong;
             set
             {
                 if (_playingSong == value)
@@ -65,7 +65,7 @@ namespace Musegician.Playlist
         private PlaylistRecordingViewModel _playingRecording;
         private PlaylistRecordingViewModel PlayingRecording
         {
-            get { return _playingRecording; }
+            get => _playingRecording;
             set
             {
                 if (_playingRecording == value)

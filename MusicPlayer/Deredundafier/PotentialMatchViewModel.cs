@@ -31,7 +31,7 @@ namespace Musegician.Deredundafier
 
         public bool? ChildrenSelected
         {
-            get { return _checked; }
+            get => _checked;
             set
             {
                 if (_checked != value && !_reentryBlock)
@@ -48,7 +48,7 @@ namespace Musegician.Deredundafier
 
         public bool IsThreeState
         {
-            get { return _isThreeState; }
+            get => _isThreeState;
             private set
             {
                 if (_isThreeState != value)
@@ -59,10 +59,7 @@ namespace Musegician.Deredundafier
             }
         }
 
-        public override bool IsGrayedOut
-        {
-            get { return false; }
-        }
+        public override bool IsGrayedOut => false;
 
         #endregion Presentation Members
         #region Data Methods

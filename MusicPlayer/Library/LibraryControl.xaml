@@ -65,6 +65,7 @@
       <MenuItem Header="Add Recording To Playlist" Click="Add_Shallow"/>
       <MenuItem Header="Play Recording" Click="Play_Shallow"/>
       <MenuItem Header="Edit Recording Information" Click="Edit"/>
+      <MenuItem Header="Delete Recording Information" Click="Delete"/>
       <Separator/>
       <MenuItem Header="View Lyrics" Click="OpenLyrics"/>
       <Separator/>

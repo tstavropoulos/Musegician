@@ -73,7 +73,7 @@ namespace Musegician.Library
 
     #region MockDB
 
-    public class MockDB : ILibraryRequestHandler
+    public sealed class MockDB : ILibraryRequestHandler
     {
         #region Data
 
@@ -83,17 +83,16 @@ namespace Musegician.Library
         private List<Recording> Recordings { get; } = new List<Recording>();
         private List<Track> Tracks { get; } = new List<Track>();
 
-        private int artistID = 0;
-        private int albumID = 0;
-        private int songID = 0;
-        private int trackID = 0;
-        private int recordingID = 0;
-
         #endregion Data
         #region Constructor
 
         public MockDB()
         {
+            int artistID = 0;
+            int albumID = 0;
+            int songID = 0;
+            int trackID = 0;
+            int recordingID = 0;
 
             //Aerosmith
             {
@@ -117,9 +116,9 @@ namespace Musegician.Library
                 };
                 Albums.Add(permanentVacation);
 
-                AddSimple("Heart's Done Time", 1, aerosmith, permanentVacation);
-                AddSimple("Magic Touch", 2, aerosmith, permanentVacation);
-                AddSimple("Rag Doll", 3, aerosmith, permanentVacation);
+                AddSimple("Heart's Done Time", 1, aerosmith, permanentVacation, songID++, recordingID++, trackID++);
+                AddSimple("Magic Touch", 2, aerosmith, permanentVacation, songID++, recordingID++, trackID++);
+                AddSimple("Rag Doll", 3, aerosmith, permanentVacation, songID++, recordingID++, trackID++);
 
                 Album toysInTheAttic = new Album()
                 {
@@ -132,9 +131,9 @@ namespace Musegician.Library
                 };
                 Albums.Add(toysInTheAttic);
 
-                AddSimple("Toys In The Attic", 1, aerosmith, toysInTheAttic);
-                AddSimple("Uncle Salty", 2, aerosmith, toysInTheAttic);
-                AddSimple("Adam's Apple", 3, aerosmith, toysInTheAttic);
+                AddSimple("Toys In The Attic", 1, aerosmith, toysInTheAttic, songID++, recordingID++, trackID++);
+                AddSimple("Uncle Salty", 2, aerosmith, toysInTheAttic, songID++, recordingID++, trackID++);
+                AddSimple("Adam's Apple", 3, aerosmith, toysInTheAttic, songID++, recordingID++, trackID++);
             }
 
             //Billy Joel
@@ -159,10 +158,10 @@ namespace Musegician.Library
                 };
                 Albums.Add(stormFront);
 
-                AddSimple("Storm Front", 1, billyJoel, stormFront);
-                Song fireSong = AddSimple("We Didn't Start The Fire", 2, billyJoel, stormFront);
-                AddSimple("Leningrad", 3, billyJoel, stormFront);
-                AddSimple("State of Grace", 4, billyJoel, stormFront);
+                AddSimple("Storm Front", 1, billyJoel, stormFront, songID++, recordingID++, trackID++);
+                Song fireSong = AddSimple("We Didn't Start The Fire", 2, billyJoel, stormFront, songID++, recordingID++, trackID++);
+                AddSimple("Leningrad", 3, billyJoel, stormFront, songID++, recordingID++, trackID++);
+                AddSimple("State of Grace", 4, billyJoel, stormFront, songID++, recordingID++, trackID++);
 
                 Album songsInTheAttic = new Album()
                 {
@@ -174,8 +173,8 @@ namespace Musegician.Library
                     Tracks = new List<Track>()
                 };
                 Albums.Add(stormFront);
-                AddExisting("We Didn't Start The Fire (Live)", 1, fireSong, billyJoel, songsInTheAttic, true);
-                AddSimple("A Matter Of Trust", 2, billyJoel, songsInTheAttic, true);
+                AddExisting("We Didn't Start The Fire (Live)", 1, fireSong, billyJoel, songsInTheAttic, recordingID++, trackID++, true);
+                AddSimple("A Matter Of Trust", 2, billyJoel, songsInTheAttic, songID++, recordingID++, trackID++, true);
             }
 
             //Steely Dan
@@ -200,15 +199,15 @@ namespace Musegician.Library
                 };
                 Albums.Add(twoAgainstNature);
 
-                AddSimple("Gaslighting Abbie", 1, steelyDan, twoAgainstNature);
-                AddSimple("What A Shame", 2, steelyDan, twoAgainstNature);
-                AddSimple("Two Against Nature", 3, steelyDan, twoAgainstNature);
-                AddSimple("Janie Runaway", 4, steelyDan, twoAgainstNature);
-                AddSimple("Almost Gothic", 5, steelyDan, twoAgainstNature);
-                AddSimple("Jack of Speed", 6, steelyDan, twoAgainstNature);
-                AddSimple("Cousin Dupree", 7, steelyDan, twoAgainstNature);
-                AddSimple("Negative Girl", 8, steelyDan, twoAgainstNature);
-                AddSimple("West of Hollywood", 9, steelyDan, twoAgainstNature);
+                AddSimple("Gaslighting Abbie", 1, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
+                AddSimple("What A Shame", 2, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
+                AddSimple("Two Against Nature", 3, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
+                AddSimple("Janie Runaway", 4, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
+                AddSimple("Almost Gothic", 5, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
+                AddSimple("Jack of Speed", 6, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
+                AddSimple("Cousin Dupree", 7, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
+                AddSimple("Negative Girl", 8, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
+                AddSimple("West of Hollywood", 9, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
 
             }
 
@@ -300,11 +299,53 @@ namespace Musegician.Library
 
         event EventHandler ILibraryRequestHandler.RebuildNotifier
         {
-            add { throw new NotImplementedException(); }
-            remove { throw new NotImplementedException(); }
+            add => throw new NotImplementedException();
+            remove => throw new NotImplementedException();
         }
 
         #endregion ILibraryRequestHandler
+        #region Playlist Methods
+
+        public List<PlaylistSong> GenerateSongList()
+        {
+            List<PlaylistSong> songList = new List<PlaylistSong>();
+
+            foreach (var song in Songs)
+            {
+                string artistName = "Various";
+
+                var artistList = song.Recordings.Select(x => x.Artist).Distinct();
+                if (artistList.Count() == 1)
+                {
+                    artistName = artistList.First().Name;
+                }
+
+                PlaylistSong newPlaylistSong = new PlaylistSong(
+                    song: song,
+                    title: $"{artistName} - {song.Title}")
+                {
+                    PlaylistRecordings = new List<PlaylistRecording>(),
+                    Weight = song.Weight
+                };
+
+                foreach (Recording recording in song.Recordings)
+                {
+                    newPlaylistSong.PlaylistRecordings.Add(
+                        new PlaylistRecording(
+                            recording,
+                            $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}")
+                        {
+                            Weight = recording.Tracks.First().Weight
+                        });
+                }
+
+                songList.Add(newPlaylistSong);
+            }
+
+            return songList;
+        }
+
+        #endregion Playlist Methods
         #region Helper Methods
 
         private static byte[] LoadImage(string path)
@@ -323,6 +364,9 @@ namespace Musegician.Library
             int trackNum,
             Artist artist,
             Album album,
+            int songID,
+            int recordingID,
+            int trackID,
             bool live = false)
         {
             Song simpleSong = new Song()
@@ -337,7 +381,7 @@ namespace Musegician.Library
 
             Recording simpleRecording = new Recording()
             {
-                Id = recordingID++,
+                Id = recordingID,
                 Filename = "",
                 Live = live,
                 Artist = artist,
@@ -374,11 +418,13 @@ namespace Musegician.Library
             Song song,
             Artist artist,
             Album album,
+            int recordingID,
+            int trackID,
             bool live = false)
         {
             Recording simpleRecording = new Recording()
             {
-                Id = recordingID++,
+                Id = recordingID,
                 Filename = "",
                 Live = live,
                 Artist = artist,
@@ -407,6 +453,8 @@ namespace Musegician.Library
         }
 
         void ILibraryRequestHandler.DatabaseUpdated() => throw new NotImplementedException();
+
+        void ILibraryRequestHandler.Delete(IEnumerable<Recording> recordings) => throw new NotImplementedException();
 
         #endregion Helper Methods
     }

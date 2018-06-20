@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Musegician.Core
 {
     [Serializable]
-    public class MusegicianTag : ISerializable
+    public sealed class MusegicianTag : ISerializable
     {
         public bool Live { get; set; }
         public Guid ArtistGuid { get; set; }

@@ -6,9 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Musegician.Deredundafier
+namespace Musegician.AlbumArtPicker
 {
-    public abstract class DeredundafierViewModel : INotifyPropertyChanged
+    public abstract class AlbumArtPickerViewModel : INotifyPropertyChanged
     {
         #region Data
 
@@ -18,21 +18,18 @@ namespace Musegician.Deredundafier
         #endregion Data
         #region Constructors
 
-        public DeredundafierViewModel(DeredundafierDTO data, DeredundafierViewModel parent)
+        public AlbumArtPickerViewModel(AlbumArtPickerViewModel parent)
         {
-            Data = data;
             Parent = parent;
-
-            Children = new ObservableCollection<DeredundafierViewModel>();
         }
 
         #endregion Constructors
         #region Properties
 
-        public ObservableCollection<DeredundafierViewModel> Children { get; }
-        public DeredundafierDTO Data { get; }
+        public ObservableCollection<AlbumArtPickerViewModel> Children { get; } =
+            new ObservableCollection<AlbumArtPickerViewModel>();
 
-        public string Name => Data.Name;
+        public abstract string Name { get; }
 
         #endregion Properties
         #region Presentation Members
@@ -95,7 +92,7 @@ namespace Musegician.Deredundafier
         #endregion IsSelected
         #region Parent
 
-        public DeredundafierViewModel Parent { get; }
+        public AlbumArtPickerViewModel Parent { get; }
 
         #endregion Parent
         #endregion Presentation Members

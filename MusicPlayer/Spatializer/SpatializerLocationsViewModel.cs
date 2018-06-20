@@ -88,10 +88,8 @@ namespace Musegician.Spatializer
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
+        protected virtual void OnPropertyChanged(string propertyName) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
 
         #endregion INotifyPropertyChanged
     }

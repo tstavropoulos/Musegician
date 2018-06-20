@@ -21,7 +21,7 @@ namespace Musegician
 
     #endregion Exceptions
 
-    public partial class FileManager : IDisposable
+    public sealed partial class FileManager : IDisposable
     {
         #region Data
 
@@ -832,7 +832,7 @@ namespace Musegician
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 
-        protected virtual void Dispose(bool disposing)
+        void Dispose(bool disposing)
         {
             if (!disposedValue)
             {

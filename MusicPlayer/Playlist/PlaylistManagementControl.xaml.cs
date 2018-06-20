@@ -34,7 +34,7 @@ namespace Musegician.Playlist
 
         public bool SaveMode
         {
-            get { return saveMode; }
+            get => saveMode;
             set
             {
                 saveMode = value;

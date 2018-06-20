@@ -9,12 +9,6 @@ namespace Musegician.Deredundafier
 {
     public class DeredundafierMockTree
     {
-        #region Data
-
-        ObservableCollection<DeredundafierViewModel> _viewModels =
-            new ObservableCollection<DeredundafierViewModel>();
-
-        #endregion Data
         #region Constructor
 
         public DeredundafierMockTree()
@@ -49,10 +43,8 @@ namespace Musegician.Deredundafier
         #endregion Constructor
         #region View Properties
 
-        public ObservableCollection<DeredundafierViewModel> ViewModels
-        {
-            get { return _viewModels; }
-        }
+        public ObservableCollection<DeredundafierViewModel> ViewModels { get; } =
+            new ObservableCollection<DeredundafierViewModel>();
 
         #endregion View Properties
     }

@@ -1,0 +1,77 @@
+﻿<UserControl x:Class="Musegician.AlbumArtPicker.AlbumArtPicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Musegician.AlbumArtPicker"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="600"
+             d:DataContext="{d:DesignInstance Type=local:AlbumArtPickerMockTree, IsDesignTimeCreatable=True}">
+  <UserControl.Resources>
+    <Style x:Key="AlbumArtPickerItemContainerStyle" 
+           TargetType="{x:Type TreeViewItem}" 
+           BasedOn="{StaticResource {x:Type TreeViewItem}}">
+      <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+      <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+      <Setter Property="FontWeight" Value="Normal" />
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="FontWeight" Value="Bold" />
+        </Trigger>
+        <DataTrigger Binding="{Binding IsGrayedOut}" Value="True">
+          <Setter Property="TextBlock.Foreground" Value="DimGray"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+    
+    <HierarchicalDataTemplate DataType="{x:Type local:SelectorViewModel}" ItemsSource="{Binding Children}">
+      <StackPanel Orientation="Horizontal" Background="Transparent">
+        <CheckBox VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="{Binding IsChecked}"/>
+        <Image Width="128" Height="128" Margin="0,0,5,0" Source="{Binding AlbumArt}"/>
+        <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
+      </StackPanel>
+    </HierarchicalDataTemplate>
+
+    <HierarchicalDataTemplate DataType="{x:Type local:AlbumViewModel}" ItemsSource="{Binding Children}">
+      <StackPanel Orientation="Horizontal" Background="Transparent">
+        <CheckBox VerticalAlignment="Center" Margin="0,0,5,0"
+                  IsChecked="{Binding ChildrenSelected}" IsEnabled="False"/>
+        <Image Width="64" Height="64" Margin="0,0,5,0">
+          <Image.Style>
+            <Style TargetType="{x:Type Image}">
+              <Setter Property="Source" Value="{Binding AlbumArt}" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding AlbumArt}" Value="{x:Null}">
+                  <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Image.Style>
+        </Image>
+        <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
+      </StackPanel>
+    </HierarchicalDataTemplate>
+  </UserControl.Resources>
+  <DockPanel>
+    <DockPanel DockPanel.Dock="Top" Margin="5">
+      <Button DockPanel.Dock="Left" Padding="2"
+              Content="Find Matches" Click="ArtPicker_FindMatches"/>
+      <CheckBox DockPanel.Dock="Right" Padding="2"
+                IsChecked="{Binding IncludeAll}" VerticalAlignment="Center"
+                Content="Search All"/>
+      <StackPanel/>
+    </DockPanel>
+    <Grid DockPanel.Dock="Bottom" Margin="2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
+      <Button Grid.Column="0" Content="Merge Selected" Click="ArtPicker_Apply"/>
+    </Grid>
+    <TreeView ItemsSource="{Binding ViewModels}"
+              ItemContainerStyle="{StaticResource AlbumArtPickerItemContainerStyle}"/>
+  </DockPanel>
+</UserControl>

@@ -30,12 +30,10 @@ namespace Musegician.Library
 
         public DirectoryViewModel Up => Parent as DirectoryViewModel;
 
-        public string Path
-        {
-            get { return System.IO.Path.Combine(
+        public string Path =>
+            System.IO.Path.Combine(
                 Up?.Path ?? "",
-                _directory.Name + System.IO.Path.DirectorySeparatorChar); }
-        }
+                _directory.Name + System.IO.Path.DirectorySeparatorChar);
 
         public override string Name => _directory.Name;
 
