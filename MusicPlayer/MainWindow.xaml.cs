@@ -4,6 +4,7 @@ using System.Windows;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using Musegician.Database;
 using Microsoft.Win32;
+using System.Threading.Tasks;
 
 namespace Musegician
 {
@@ -22,7 +23,7 @@ namespace Musegician
             Unloaded += MainWindow_Unloaded;
         }
         
-        private void MenuOpenClick(object sender, RoutedEventArgs e)
+        private async void MenuOpenClick(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
 
@@ -44,10 +45,9 @@ namespace Musegician
 
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                FileMan.AddDirectoryToLibrary(dialog.FileName);
+                await LoadingDialog.LoadingDialog.AddDirectoryLoading(dialog.FileName);
                 libraryControl.Rebuild();
             }
-
         }
 
         private void MenuQuitClick(object sender, RoutedEventArgs e)
@@ -175,9 +175,9 @@ namespace Musegician
             Hide();
         }
 
-        private void MenuPushMusegicianTags(object sender, RoutedEventArgs e)
+        private async void MenuPushMusegicianTags(object sender, RoutedEventArgs e)
         {
-            FileMan.PushMusegicianTagsToFiles();
+            await LoadingDialog.LoadingDialog.PushMusegicianTags();
         }
 
     }

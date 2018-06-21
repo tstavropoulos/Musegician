@@ -250,6 +250,9 @@
     <Compile Include="Library\SongViewModel.cs" />
     <Compile Include="DataStructures\DataStructures.cs" />
     <Compile Include="Core\FileUtility.cs" />
+    <Compile Include="LoadingDialog\LoadingDialog.xaml.cs">
+      <DependentUpon>LoadingDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="LyricViewer\ILyricsRequestHandler.cs" />
     <Compile Include="LyricViewer\LyricViewer.xaml.cs">
       <DependentUpon>LyricViewer.xaml</DependentUpon>
@@ -377,6 +380,10 @@
     <Page Include="Library\LibraryControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="LoadingDialog\LoadingDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="LyricViewer\LyricViewer.xaml">
       <Generator>MSBuild:Compile</Generator>

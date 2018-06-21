@@ -9,6 +9,7 @@ using Musegician.Core.DBCommands;
 using Musegician.Database;
 using MusegicianTag = Musegician.Core.MusegicianTag;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Musegician
 {
@@ -145,19 +146,24 @@ namespace Musegician
             db.SaveChanges();
         }
 
-        private void AddMusicDirectory(string path, List<string> newMusic, HashSet<string> loadedFilenames)
+        private void AddMusicDirectory(
+            string path,
+            List<string> newMusic,
+            HashSet<string> loadedFilenames,
+            IProgress<string> textProgress = null)
         {
             foreach (string extension in supportedFileTypes)
             {
                 newMusic.AddRange(
                      from filename
-                     in Directory.GetFiles(path, extension)
+                     in Directory.GetFiles(path, extension, SearchOption.TopDirectoryOnly)
                      where !loadedFilenames.Contains(filename)
                      select filename);
             }
 
             foreach (string subDirectory in Directory.GetDirectories(path))
             {
+                textProgress?.Report($"Reading Directory: {subDirectory}");
                 AddMusicDirectory(subDirectory, newMusic, loadedFilenames);
             }
         }
@@ -208,7 +214,11 @@ namespace Musegician
             }
         }
 
-        public void AddDirectoryToLibrary(string path)
+        public void AddDirectoryToLibrary(
+            string path,
+            IProgress<string> textSetter,
+            IProgress<int> limitSetter,
+            IProgress<int> progressSetter)
         {
             List<string> newMusic = new List<string>();
             HashSet<string> loadedFilenames = new HashSet<string>();
@@ -218,23 +228,32 @@ namespace Musegician
                 db.Configuration.AutoDetectChangesEnabled = false;
 
                 PopulateFilenameHashtable(loadedFilenames);
-                AddMusicDirectory(path, newMusic, loadedFilenames);
+                AddMusicDirectory(path, newMusic, loadedFilenames, textSetter);
+
+                limitSetter.Report(newMusic.Count);
 
                 //Lookup loading is FAST - skipDB threshold is therefore low
                 bool skipDB = newMusic.Count >= 10;
 
                 if (skipDB)
                 {
+                    textSetter.Report("Reading Database...");
                     PopulateLookups(lookups);
                 }
 
-                foreach (string songFilename in newMusic)
+                textSetter.Report("Loading New Files...");
+
+                for (int i = 0; i < newMusic.Count; i++)
                 {
+                    string songFilename = newMusic[i];
+                    progressSetter.Report(i);
+
                     LoadFileData(
                         path: songFilename,
                         lookups: lookups,
                         skipDB: skipDB);
                 }
+                
 
                 db.SaveChanges();
             }
@@ -752,10 +771,18 @@ namespace Musegician
             return live;
         }
 
-        public void PushMusegicianTagsToFiles()
+        public void PushMusegicianTagsToFiles(
+            IProgress<string> textSetter,
+            IProgress<int> limitSetter,
+            IProgress<int> progressSetter)
         {
+            limitSetter.Report(db.Recordings.Count());
+            textSetter.Report("Loading Recordings...");
+
+            int i = 0;
             foreach (Recording recording in db.Recordings)
             {
+                progressSetter.Report(i++);
                 MusegicianTag musegicianTag = null;
                 using (TagLib.File file = TagLib.File.Create(recording.Filename))
                 {
