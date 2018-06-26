@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Musegician.Deredundafier"
              mc:Ignorable="d"
-             d:DesignHeight="300" d:DesignWidth="300"
+             d:DesignHeight="300" d:DesignWidth="400"
              d:DataContext="{d:DesignInstance Type=local:DeredundafierMockTree, IsDesignTimeCreatable=True}">
   <UserControl.Resources>
     <Style x:Key="DeredundafierItemContainerStyle" 
@@ -70,19 +70,19 @@
     </Grid>
     <TabControl SelectionChanged="Deredundafier_SelectionChanged" Margin="2">
       <TabItem Header="Artist" FontSize="14">
-        <TreeView x:Name="ArtistRedundancyList"
-                  ItemsSource="{Binding ViewModels}"
-                  ItemContainerStyle="{StaticResource DeredundafierItemContainerStyle}"
-                  />
+        <TreeView ItemsSource="{Binding ViewModels}"
+                  ItemContainerStyle="{StaticResource DeredundafierItemContainerStyle}"/>
       </TabItem>
       <TabItem Header="Album" FontSize="14">
-        <TreeView x:Name="AlbumRedundancyList"
-                  ItemsSource="{Binding ViewModels}"
+        <TreeView ItemsSource="{Binding ViewModels}"
                   ItemContainerStyle="{StaticResource DeredundafierItemContainerStyle}"/>
       </TabItem>
       <TabItem Header="Song" FontSize="14">
-        <TreeView x:Name="SongRedundancyList"
-                  ItemsSource="{Binding ViewModels}"
+        <TreeView ItemsSource="{Binding ViewModels}"
+                  ItemContainerStyle="{StaticResource DeredundafierItemContainerStyle}"/>
+      </TabItem>
+      <TabItem Header="Composite Artists" FontSize="14">
+        <TreeView ItemsSource="{Binding ViewModels}"
                   ItemContainerStyle="{StaticResource DeredundafierItemContainerStyle}"/>
       </TabItem>
     </TabControl>

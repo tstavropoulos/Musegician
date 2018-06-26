@@ -25,9 +25,9 @@ namespace Musegician.Playlist
         private DepletableBag<PlaylistSong> shuffleSet;
 
         /// <summary>
-        /// A buffer holding the last 30 songs to play in Shuffle mode
+        /// A buffer holding the last 100 songs to play in Shuffle mode
         /// </summary>
-        private RingBuffer<PlayHistory> ringBuffer = new RingBuffer<PlayHistory>(30);
+        private RingBuffer<PlayHistory> ringBuffer = new RingBuffer<PlayHistory>(100);
 
         private int bufferIndex = 0;
 
@@ -152,9 +152,8 @@ namespace Musegician.Playlist
         {
             if (PlaylistSongs.Contains(song))
             {
-
                 CurrentIndex = PlaylistSongs.IndexOf(song);
-                PlaylistRecording recording = SelectRecording(song);
+                LastRecording = SelectRecording(song);
 
                 //Add the item to the current shuffle buffer, and remove from shuffleList
                 if (Shuffle)
@@ -173,11 +172,11 @@ namespace Musegician.Playlist
                     ringBuffer.Add(new PlayHistory
                     {
                         song = song,
-                        recording = recording
+                        recording = LastRecording
                     });
                 }
 
-                PlayRecording(recording.Recording);
+                PlayRecording(LastRecording.Recording);
             }
         }
 
@@ -216,6 +215,72 @@ namespace Musegician.Playlist
                 }
 
                 PlayRecording(recording.Recording);
+            }
+        }
+
+        public void EnqueueSong(PlaylistSong song)
+        {
+            if (PlaylistSongs.Contains(song))
+            {
+                if (Shuffle)
+                {
+                    PlaylistRecording recording = SelectRecording(song);
+
+                    //Add the item to the current shuffle buffer, and remove from shuffleList
+                    if (Shuffle)
+                    {
+                        shuffleSet.DepleteValue(song);
+
+                        //We've moved our current song back one.
+                        bufferIndex = Math.Min(bufferIndex + 1, ringBuffer.Size - 1);
+
+                        ringBuffer.Add(new PlayHistory
+                        {
+                            song = song,
+                            recording = recording
+                        });
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("This feature is meant for Shuffle Mode.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error.  PlaylistSong not in playlist: {song}");
+            }
+        }
+
+        public void EnqueueRecording(PlaylistRecording recording)
+        {
+            if (PlaylistSongs.Contains(recording.PlaylistSong))
+            {
+                if (Shuffle)
+                {
+                    //Add the item to the current shuffle buffer, and remove from shuffleList
+                    if (Shuffle)
+                    {
+                        shuffleSet.DepleteValue(recording.PlaylistSong);
+
+                        //We've moved our current song back one.
+                        bufferIndex = Math.Min(bufferIndex + 1, ringBuffer.Size - 1);
+
+                        ringBuffer.Add(new PlayHistory
+                        {
+                            song = recording.PlaylistSong,
+                            recording = recording
+                        });
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("This feature is meant for Shuffle Mode.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error.  PlaylistSong not in playlist: {recording.PlaylistSong}");
             }
         }
 
@@ -297,16 +362,16 @@ namespace Musegician.Playlist
 
                     //Song passed weight test
                     CurrentIndex = PlaylistSongs.IndexOf(nextSong);
-                    PlaylistRecording recording = SelectRecording(nextSong);
+                    LastRecording = SelectRecording(nextSong);
 
                     //Stash 
                     ringBuffer.Add(new PlayHistory
                     {
                         song = nextSong,
-                        recording = recording
+                        recording = LastRecording
                     });
 
-                    return RequestHandler.GetRecordingPlayData(recording.Recording);
+                    return RequestHandler.GetRecordingPlayData(LastRecording.Recording);
                 }
             }
             else
@@ -354,9 +419,9 @@ namespace Musegician.Playlist
 
                     //Song passed weight test
                     CurrentIndex = nextPlaylistIndex;
+                    LastRecording = SelectRecording(nextSong);
 
-                    return RequestHandler.GetRecordingPlayData(
-                        SelectRecording(nextSong).Recording);
+                    return RequestHandler.GetRecordingPlayData(LastRecording.Recording);
                 }
             }
 
@@ -446,9 +511,9 @@ namespace Musegician.Playlist
 
                     //Song passed weight test
                     CurrentIndex = nextPlaylistIndex;
+                    LastRecording = SelectRecording(nextSong);
 
-                    return RequestHandler.GetRecordingPlayData(
-                        SelectRecording(nextSong).Recording);
+                    return RequestHandler.GetRecordingPlayData(LastRecording.Recording);
                 }
             }
 
@@ -562,14 +627,12 @@ namespace Musegician.Playlist
         {
             if (song.PlaylistRecordings.Count == 0)
             {
-                LastRecording = null;
                 return null;
             }
 
             if (song.PlaylistRecordings.Count == 1)
             {
-                LastRecording = song.PlaylistRecordings.First();
-                return LastRecording;
+                return song.PlaylistRecordings.First();
             }
 
             double cumulativeWeight = 0.0;
@@ -586,14 +649,12 @@ namespace Musegician.Playlist
                 cumulativeWeight -= GetWeight(recording);
                 if (cumulativeWeight <= 0.0)
                 {
-                    LastRecording = recording;
                     return recording;
                 }
             }
 
             Console.WriteLine("Failed to pick a recording before running out.  Method is broken.");
-            LastRecording = song.PlaylistRecordings.First();
-            return LastRecording;
+            return song.PlaylistRecordings.First();
         }
 
         private double GetWeight(PlaylistRecording recording)

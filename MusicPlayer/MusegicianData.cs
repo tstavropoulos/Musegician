@@ -9,12 +9,6 @@ namespace Musegician.Database
 
     public class MusegicianData : DbContext
     {
-        // Your context has been configured to use a 'MusegicianData' connection string from your application's 
-        // configuration file (App.config or Web.config). By default, this connection string targets the 
-        // 'Musegician.MusegicianData' database on your LocalDb instance. 
-        // 
-        // If you wish to target a different database and/or database provider, modify the 'MusegicianData' 
-        // connection string in the application configuration file.
         public MusegicianData()
             : base("name=MusegicianData")
         {
@@ -25,6 +19,9 @@ namespace Musegician.Database
         public DbSet<Artist> Artists { get; set; }
         public DbSet<Song> Songs { get; set; }
         public DbSet<Track> Tracks { get; set; }
+        
+        public DbSet<CompositeArtist> CompositeArtists { get; set; }
+
         public DbSet<Playlist> Playlists { get; set; }
         public DbSet<PlaylistSong> PlaylistSongs { get; set; }
         public DbSet<PlaylistRecording> PlaylistRecordings { get; set; }
@@ -34,6 +31,19 @@ namespace Musegician.Database
             modelBuilder.Entity<PlaylistSong>()
                 .HasRequired(s => s.Song)
                 .WithMany()
+                .WillCascadeOnDelete(false);
+
+            //Map Artist.GroupOf through to CompositeArtist.Group
+            modelBuilder.Entity<Artist>()
+                .HasMany(a => a.GroupOf)
+                .WithRequired(c => c.Group)
+                .HasForeignKey(c => c.GroupId);
+
+            //Map Artist.MemberOf through to CompositeArtist.Member
+            modelBuilder.Entity<Artist>()
+                .HasMany(a => a.MemberOf)
+                .WithRequired(c => c.Member)
+                .HasForeignKey(c => c.MemberId)
                 .WillCascadeOnDelete(false);
         }
     }
@@ -54,6 +64,11 @@ namespace Musegician.Database
         public byte[] Image { get; set; }
         public Guid AlbumGuid { get; set; }
 
+        public Album()
+        {
+            Tracks = new HashSet<Track>();
+        }
+
         public virtual ICollection<Track> Tracks { get; set; }
     }
 
@@ -64,22 +79,21 @@ namespace Musegician.Database
         public string Filename { get; set; }
         public bool Live { get; set; }
 
-        //public override double Weight
-        //{
-        //    get => Tracks.First().Weight;
-        //    set => Tracks.First().Weight = value;
-        //}
+        public Recording()
+        {
+            Tracks = new HashSet<Track>();
+        }
 
+        public virtual Artist Artist { get; set; }
+        public virtual Song Song { get; set; }
+        public override double DefaultWeight => Live ? Settings.Instance.LiveWeight : Settings.Instance.StudioWeight;
+        
         [NotMapped]
         public override double Weight
         {
             get => throw new Exception("Recordings Have No Weight:Get");
             set => throw new Exception("Recordings Have No Weight:Set");
         }
-
-        public virtual Artist Artist { get; set; }
-        public virtual Song Song { get; set; }
-        public override double DefaultWeight => Live ? Settings.Instance.LiveWeight : Settings.Instance.StudioWeight;
 
         public virtual ICollection<Track> Tracks { get; set; }
     }
@@ -90,7 +104,18 @@ namespace Musegician.Database
         public override double Weight { get; set; }
         public Guid ArtistGuid { get; set; }
 
+        public Artist()
+        {
+            Recordings = new HashSet<Recording>();
+
+            GroupOf = new HashSet<CompositeArtist>();
+            MemberOf = new HashSet<CompositeArtist>();
+        }
+
         public virtual ICollection<Recording> Recordings { get; set; }
+
+        public virtual ICollection<CompositeArtist> GroupOf { get; set; }
+        public virtual ICollection<CompositeArtist> MemberOf { get; set; }
     }
 
     public class Song : BaseData
@@ -98,6 +123,11 @@ namespace Musegician.Database
         public string Title { get; set; }
         public override double Weight { get; set; }
         public Guid SongGuid { get; set; }
+
+        public Song()
+        {
+            Recordings = new HashSet<Recording>();
+        }
 
         public virtual ICollection<Recording> Recordings { get; set; }
     }
@@ -115,10 +145,26 @@ namespace Musegician.Database
         public virtual Recording Recording { get; set; }
     }
 
+    public class CompositeArtist
+    {
+        public long Id { get; set; }
+
+        public long GroupId { get; set; }
+        public long MemberId { get; set; }
+
+        public virtual Artist Group { get; set; }
+        public virtual Artist Member { get; set; }
+    }
+
     public class Playlist
     {
         public long Id { get; set; }
         public string Title { get; set; }
+
+        public Playlist()
+        {
+            PlaylistSongs = new HashSet<PlaylistSong>();
+        }
 
         public virtual ICollection<PlaylistSong> PlaylistSongs { get; set; }
     }
@@ -131,16 +177,21 @@ namespace Musegician.Database
         public int Number { get; set; }
         public override double Weight { get; set; }
 
-        public virtual Playlist Playlist { get; set; }
-        public virtual Song Song { get; set; }
-        public virtual ICollection<PlaylistRecording> PlaylistRecordings { get; set; }
+        public PlaylistSong()
+        {
+            PlaylistRecordings = new HashSet<PlaylistRecording>();
+        }
 
-        public PlaylistSong() { }
         public PlaylistSong(Song song, string title)
         {
             Song = song;
             Title = title;
+            PlaylistRecordings = new HashSet<PlaylistRecording>();
         }
+
+        public virtual Playlist Playlist { get; set; }
+        public virtual Song Song { get; set; }
+        public virtual ICollection<PlaylistRecording> PlaylistRecordings { get; set; }
     }
 
     public class PlaylistRecording : BaseData
@@ -150,14 +201,15 @@ namespace Musegician.Database
         public override double Weight { get; set; }
         public string Title { get; set; }
 
-        public virtual PlaylistSong PlaylistSong { get; set; }
-        public virtual Recording Recording { get; set; }
-
         public PlaylistRecording() { }
+
         public PlaylistRecording(Recording recording, string title)
         {
             Recording = recording;
             Title = title;
         }
+
+        public virtual PlaylistSong PlaylistSong { get; set; }
+        public virtual Recording Recording { get; set; }
     }
 }

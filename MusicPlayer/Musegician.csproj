@@ -265,6 +265,10 @@
     <Compile Include="Migrations\201806081720219_AddingGuids.Designer.cs">
       <DependentUpon>201806081720219_AddingGuids.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201806211614405_CompositeArtists.cs" />
+    <Compile Include="Migrations\201806211614405_CompositeArtists.Designer.cs">
+      <DependentUpon>201806211614405_CompositeArtists.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="MusegicianData.cs" />
     <Compile Include="Player\MusicManager.cs" />
@@ -593,6 +597,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201806081720219_AddingGuids.resx">
       <DependentUpon>201806081720219_AddingGuids.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201806211614405_CompositeArtists.resx">
+      <DependentUpon>201806211614405_CompositeArtists.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

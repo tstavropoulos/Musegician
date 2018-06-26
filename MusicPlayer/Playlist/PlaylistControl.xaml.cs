@@ -182,6 +182,38 @@ namespace Musegician.Playlist
             }
         }
 
+        private void Enqueue(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem)
+            {
+                if (menuItem.DataContext is PlaylistViewModel model)
+                {
+                    e.Handled = true;
+                    _Enqueue(model);
+                }
+                else
+                {
+                    Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                }
+            }
+        }
+
+        private void _Enqueue(PlaylistViewModel model)
+        {
+            if (model is PlaylistSongViewModel song)
+            {
+                PlaylistMan.EnqueueSong(song.PlaylistSong);
+            }
+            else if (model is PlaylistRecordingViewModel recording)
+            {
+                PlaylistMan.EnqueueRecording(recording.PlaylistRecording);
+            }
+            else
+            {
+                Console.WriteLine("Unhandled PlaylistViewModel.  Likely Error.");
+            }
+        }
+
         private void Remove(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem menuItem)

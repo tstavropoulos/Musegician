@@ -13,6 +13,7 @@
   <UserControl.Resources>
     <ContextMenu x:Key="PlaylistSongCM">
       <MenuItem Header="Play Song" Click="Play"/>
+      <MenuItem Header="Enqueue Song" Click="Enqueue"/>
       <MenuItem Header="Edit Song Information" Click="Edit"/>
       <Separator/>
       <MenuItem Header="Remove Song" Click="Remove"/>
@@ -20,7 +21,10 @@
 
     <ContextMenu x:Key="PlaylistRecordingCM">
       <MenuItem Header="Play Recording" Click="Play"/>
+      <MenuItem Header="Enqueue Recording" Click="Enqueue"/>
       <MenuItem Header="Edit Recording Information" Click="Edit"/>
+      <Separator/>
+      <MenuItem Header="View Lyrics" Click="OpenLyrics"/>
       <Separator/>
       <MenuItem Header="Remove Recording" Click="Remove"/>
     </ContextMenu>

@@ -171,6 +171,38 @@ namespace Musegician.Playlist
             }
         }
 
+        private void Enqueue(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem)
+            {
+                if (menuItem.DataContext is PlaylistViewModel model)
+                {
+                    e.Handled = true;
+                    _Enqueue(model);
+                }
+                else
+                {
+                    Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                }
+            }
+        }
+
+        private void _Enqueue(PlaylistViewModel model)
+        {
+            if (model is PlaylistSongViewModel song)
+            {
+                PlaylistMan.EnqueueSong(song.PlaylistSong);
+            }
+            else if (model is PlaylistRecordingViewModel recording)
+            {
+                PlaylistMan.EnqueueRecording(recording.PlaylistRecording);
+            }
+            else
+            {
+                Console.WriteLine("Unhandled PlaylistViewModel.  Likely Error.");
+            }
+        }
+
         private void Remove(object sender, RoutedEventArgs e)
         {
             if (sender is MenuItem menuItem)
@@ -195,6 +227,29 @@ namespace Musegician.Playlist
                     Console.WriteLine("Unhandled ViewModel.  Likely Error.");
                 }
             }
+        }
+
+        private void OpenLyrics(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuItem menuItem)
+            {
+                if (menuItem.DataContext is PlaylistSongViewModel song)
+                {
+                    e.Handled = true;
+                    MessageBox.Show("Not Yet Implemented.");
+                }
+                else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
+                {
+                    e.Handled = true;
+                    Window window = new LyricViewer.LyricViewer(recording.PlaylistRecording.Recording);
+                    window.Show();
+                }
+                else
+                {
+                    Console.WriteLine("Unhandled ViewModel.  Likely Error.");
+                }
+            }
+
         }
 
         private void Edit(object sender, RoutedEventArgs e)

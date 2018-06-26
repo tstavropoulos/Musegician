@@ -7,8 +7,6 @@ namespace Musegician
 {
     public partial class FileManager : IDeredundancyRequestHandler
     {
-        #region IDeredundancyRequestHandler
-
         IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetArtistTargets(bool deep) =>
             deep ? artistCommands.GetDeepDeredundancyTargets() : artistCommands.GetDeredundancyTargets();
 
@@ -17,6 +15,9 @@ namespace Musegician
 
         IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetSongTargets(bool deep) =>
             deep ? songCommands.GetDeepDeredundancyTargets() : songCommands.GetDeredundancyTargets();
+
+        IEnumerable<DeredundafierDTO> IDeredundancyRequestHandler.GetCompositeArtistTargets() =>
+            artistCommands.GetCompositeArtistTargets();
 
         void IDeredundancyRequestHandler.MergeArtists(IEnumerable<BaseData> data) =>
             artistCommands.Merge(data);
@@ -30,6 +31,7 @@ namespace Musegician
         void IDeredundancyRequestHandler.PushChanges() => 
             _rebuildNotifier?.Invoke(this, EventArgs.Empty);
 
-        #endregion IDeredundancyRequestHandler
+        void IDeredundancyRequestHandler.CreateCompositeArtist(IEnumerable<BaseData> data) =>
+            artistCommands.CreateCompositeArtist(data);
     }
 }

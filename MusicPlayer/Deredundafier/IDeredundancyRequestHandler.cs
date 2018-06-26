@@ -12,10 +12,12 @@ namespace Musegician.Deredundafier
         IEnumerable<DeredundafierDTO> GetArtistTargets(bool deep);
         IEnumerable<DeredundafierDTO> GetAlbumTargets(bool deep);
         IEnumerable<DeredundafierDTO> GetSongTargets(bool deep);
+        IEnumerable<DeredundafierDTO> GetCompositeArtistTargets();
 
         void MergeArtists(IEnumerable<BaseData> data);
         void MergeAlbums(IEnumerable<BaseData> data);
         void MergeSongs(IEnumerable<BaseData> data);
+        void CreateCompositeArtist(IEnumerable<BaseData> data);
 
         void PushChanges();
     }

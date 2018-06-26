@@ -100,8 +100,7 @@ namespace Musegician.Library
                 {
                     Id = artistID++,
                     Name = "Aerosmith",
-                    Weight = -1.0,
-                    Recordings = new List<Recording>()
+                    Weight = -1.0
                 };
                 Artists.Add(aerosmith);
 
@@ -111,8 +110,7 @@ namespace Musegician.Library
                     Title = "Permanent Vacation",
                     Image = LoadImage(@"MockDBResources\0.jpg"),
                     Weight = -1.0,
-                    Year = 1987,
-                    Tracks = new List<Track>()
+                    Year = 1987
                 };
                 Albums.Add(permanentVacation);
 
@@ -126,8 +124,7 @@ namespace Musegician.Library
                     Title = "Toys In The Attic",
                     Image = LoadImage(@"MockDBResources\1.jpg"),
                     Weight = -1.0,
-                    Year = 1975,
-                    Tracks = new List<Track>()
+                    Year = 1975
                 };
                 Albums.Add(toysInTheAttic);
 
@@ -142,8 +139,7 @@ namespace Musegician.Library
                 {
                     Id = artistID++,
                     Name = "Billy Joel",
-                    Weight = -1.0,
-                    Recordings = new List<Recording>()
+                    Weight = -1.0
                 };
                 Artists.Add(billyJoel);
 
@@ -153,8 +149,7 @@ namespace Musegician.Library
                     Title = "Storm Front",
                     Image = LoadImage(@"MockDBResources\2.jpg"),
                     Weight = -1.0,
-                    Year = 1989,
-                    Tracks = new List<Track>()
+                    Year = 1989
                 };
                 Albums.Add(stormFront);
 
@@ -169,8 +164,7 @@ namespace Musegician.Library
                     Title = "Songs In The Attic",
                     Image = LoadImage(@"MockDBResources\3.jpg"),
                     Weight = -1.0,
-                    Year = 1981,
-                    Tracks = new List<Track>()
+                    Year = 1981
                 };
                 Albums.Add(stormFront);
                 AddExisting("We Didn't Start The Fire (Live)", 1, fireSong, billyJoel, songsInTheAttic, recordingID++, trackID++, true);
@@ -183,8 +177,7 @@ namespace Musegician.Library
                 {
                     Id = artistID++,
                     Name = "Steely Dan",
-                    Weight = -1.0,
-                    Recordings = new List<Recording>()
+                    Weight = -1.0
                 };
                 Artists.Add(steelyDan);
 
@@ -194,8 +187,7 @@ namespace Musegician.Library
                     Title = "Two Against Nature",
                     Image = LoadImage(@"MockDBResources\4.jpg"),
                     Weight = -1.0,
-                    Year = 2000,
-                    Tracks = new List<Track>()
+                    Year = 2000
                 };
                 Albums.Add(twoAgainstNature);
 
@@ -324,7 +316,6 @@ namespace Musegician.Library
                     song: song,
                     title: $"{artistName} - {song.Title}")
                 {
-                    PlaylistRecordings = new List<PlaylistRecording>(),
                     Weight = song.Weight
                 };
 
@@ -373,8 +364,7 @@ namespace Musegician.Library
             {
                 Id = songID,
                 Title = title,
-                Weight = -1.0,
-                Recordings = new List<Recording>()
+                Weight = -1.0
             };
 
             Songs.Add(simpleSong);
@@ -385,8 +375,7 @@ namespace Musegician.Library
                 Filename = "",
                 Live = live,
                 Artist = artist,
-                Song = simpleSong,
-                Tracks = new List<Track>()
+                Song = simpleSong
             };
             simpleSong.Recordings.Add(simpleRecording);
             artist.Recordings.Add(simpleRecording);
@@ -428,8 +417,7 @@ namespace Musegician.Library
                 Filename = "",
                 Live = live,
                 Artist = artist,
-                Song = song,
-                Tracks = new List<Track>()
+                Song = song
             };
             song.Recordings.Add(simpleRecording);
             artist.Recordings.Add(simpleRecording);

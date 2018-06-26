@@ -39,6 +39,7 @@ namespace Musegician.Deredundafier
             Artist = 0,
             Album,
             Song,
+            CompositeArtist,
             MAX
         }
 
@@ -78,6 +79,9 @@ namespace Musegician.Deredundafier
                     case "Song":
                         newMode = DeredundancyMode.Song;
                         break;
+                    case "Composite Artists":
+                        newMode = DeredundancyMode.CompositeArtist;
+                        break;
                     default:
                         throw new Exception("Unexpected tabItem.Header: " + tabItem.Header);
                 }
@@ -112,6 +116,11 @@ namespace Musegician.Deredundafier
                 case DeredundancyMode.Song:
                     {
                         newModels = RequestHandler.GetSongTargets(_viewTree.DeepSearch);
+                    }
+                    break;
+                case DeredundancyMode.CompositeArtist:
+                    {
+                        newModels = RequestHandler.GetCompositeArtistTargets();
                     }
                     break;
                 case DeredundancyMode.MAX:

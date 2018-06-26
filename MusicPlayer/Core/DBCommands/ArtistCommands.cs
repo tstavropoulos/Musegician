@@ -177,6 +177,81 @@ namespace Musegician.Core.DBCommands
             return targets;
         }
 
+        public IEnumerable<DeredundafierDTO> GetCompositeArtistTargets()
+        {
+            List<DeredundafierDTO> targets = new List<DeredundafierDTO>();
+
+            Dictionary<string, List<Artist>> artistsByName = new Dictionary<string, List<Artist>>();
+            Dictionary<Artist, List<string>> splitArtistsByName = new Dictionary<Artist, List<string>>();
+
+            foreach (Artist artist in db.Artists)
+            {
+                string name = artist.Name.Trim().ToLowerInvariant();
+
+                //Add base name
+                if (!artistsByName.ContainsKey(name))
+                {
+                    artistsByName.Add(name, new List<Artist>());
+                }
+                artistsByName[name].Add(artist);
+
+                var subNames = name
+                    .Split(new string[] { "&", ",", ";", " with ", "feat. ", " featuring " }, options: StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim())
+                    .Where(x => !string.IsNullOrEmpty(x));
+
+                if (subNames.Count() > 1)
+                {
+                    splitArtistsByName.Add(artist, subNames.ToList());
+                }
+            }
+
+            foreach (var kvp in splitArtistsByName)
+            {
+                List<Artist> matchingArtists = new List<Artist>();
+
+                foreach (string subName in kvp.Value)
+                {
+                    if (artistsByName.ContainsKey(subName))
+                    {
+                        matchingArtists.AddRange(artistsByName[subName]);
+                    }
+                }
+
+                foreach(Artist artist in kvp.Key.GroupOf.Select(x=>x.Member).Distinct())
+                {
+                    matchingArtists.Add(artist);
+                }
+
+                var reducedSet = matchingArtists.Distinct();
+
+                if (reducedSet.Count() == 0)
+                {
+                    continue;
+                }
+
+                DeredundafierDTO target = new DeredundafierDTO()
+                {
+                    Name = kvp.Key.Name,
+                    Data = kvp.Key
+                };
+
+                foreach (Artist artist in reducedSet)
+                {
+                    target.Children.Add(new SelectorDTO()
+                    {
+                        Name = artist.Name,
+                        Data = artist,
+                        IsChecked = kvp.Key.GroupOf.Select(x => x.Member).Contains(artist)
+                    });
+                }
+
+                targets.Add(target);
+            }
+
+            return targets;
+        }
+
         public void Merge(IEnumerable<BaseData> data)
         {
             List<Artist> artistsCopy = new List<Artist>(data.Select(x => x as Artist).Distinct());
@@ -197,6 +272,11 @@ namespace Musegician.Core.DBCommands
             db.Artists.RemoveRange(artistsCopy);
 
             db.SaveChanges();
+        }
+
+        public void CreateCompositeArtist(IEnumerable<BaseData> data)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion High Level Commands
