@@ -289,12 +289,6 @@ namespace Musegician.Library
             return new List<Recording>();
         }
 
-        event EventHandler ILibraryRequestHandler.RebuildNotifier
-        {
-            add => throw new NotImplementedException();
-            remove => throw new NotImplementedException();
-        }
-
         #endregion ILibraryRequestHandler
         #region Playlist Methods
 
@@ -440,8 +434,14 @@ namespace Musegician.Library
             Tracks.Add(simpleTrack);
         }
 
-        void ILibraryRequestHandler.DatabaseUpdated() => throw new NotImplementedException();
 
+        event EventHandler ILibraryRequestHandler.RebuildNotifier
+        {
+            add => throw new NotImplementedException();
+            remove => throw new NotImplementedException();
+        }
+
+        void ILibraryRequestHandler.DatabaseUpdated() => throw new NotImplementedException();
         void ILibraryRequestHandler.Delete(IEnumerable<Recording> recordings) => throw new NotImplementedException();
 
         #endregion Helper Methods

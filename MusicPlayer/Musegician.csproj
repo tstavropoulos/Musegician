@@ -174,6 +174,7 @@
     <Compile Include="Core\EnumBoolConverter.cs" />
     <Compile Include="Core\FileManager\FileManager_DeredundancyRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_LibraryRequestHandler.cs" />
+    <Compile Include="Core\FileManager\FileManager_PrivateTagCleanupRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_LyricsHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_AlbumArtPickerRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_PlaylistRequestHandler.cs" />
@@ -290,6 +291,17 @@
       <DependentUpon>PlaylistToolBar.xaml</DependentUpon>
     </Compile>
     <Compile Include="Playlist\PlaylistViewModel.cs" />
+    <Compile Include="PrivateTagCleanup\PrivateTagCleanup.xaml.cs">
+      <DependentUpon>PrivateTagCleanup.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PrivateTagCleanup\PrivateTagMockTree.cs" />
+    <Compile Include="PrivateTagCleanup\PrivateTagViewModel.cs" />
+    <Compile Include="PrivateTagCleanup\PrivateTagViewTree.cs" />
+    <Compile Include="PrivateTagCleanup\PrivateTagCleanupWindow.xaml.cs">
+      <DependentUpon>PrivateTagCleanupWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PrivateTagCleanup\PrivateTagDTO.cs" />
+    <Compile Include="PrivateTagCleanup\IPrivateTagCleanupRequestHandler.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -404,6 +416,14 @@
     <Page Include="Playlist\PlaylistToolBar.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PrivateTagCleanup\PrivateTagCleanup.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="PrivateTagCleanup\PrivateTagCleanupWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Resources\WindowStyle.xaml">
       <SubType>Designer</SubType>

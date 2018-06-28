@@ -34,20 +34,30 @@
       </DockPanel>
       <Menu>
         <MenuItem Header="_File">
-          <MenuItem Header="E_xit" Click="MenuQuitClick"/>
+          <MenuItem Header="E_xit" Click="Menu_QuitClick"/>
         </MenuItem>
         <MenuItem Header="_View">
           <MenuItem Header="_Condensed View" Click="Menu_CondensedView"/>
           <MenuItem Header="Music _Driller" Click="Menu_MusicDriller"/>
         </MenuItem>
         <MenuItem Header="_Library">
-          <MenuItem Header="_Add Music Directory" Click="MenuOpenClick"/>
-          <MenuItem Header="_Deredundafier" Click="Menu_Deredundafier"/>
-          <MenuItem Header="Album Ar_t Finder" Click="Menu_AlbumArtPicker"/>
+          <MenuItem Header="_Add Music Directory" Click="Menu_OpenClick"/>
           <Separator />
-          <MenuItem Header="_Clear Library" Click="MenuClearLibraryClick"/>
-          <Separator />
-          <MenuItem Header="_Push Tags" Click="MenuPushMusegicianTags"/>
+            <MenuItem Header="_Deredundafier" Click="Menu_Deredundafier"/>
+            <MenuItem Header="Album Ar_t Finder" Click="Menu_AlbumArtPicker"/>
+
+          <MenuItem Header="_Other Clean Up">
+            <MenuItem Header="Push _Album Art To Files" Click="Menu_PushAlbumArt"/>
+            <MenuItem Header="Push _ID3 Tags To Files" Click="Menu_PushID3Tags"/>
+            <MenuItem Header="Push _Custom Tags To Files" Click="Menu_PushMusegicianTags"/>
+            <Separator />
+            <MenuItem Header="C_ull Unwanted Private Tags" Click="Menu_PrivateTagCleanup"/>
+            <MenuItem Header="Remove _Missing Files" Click="Menu_CleanupMissingFiles"/>
+            <MenuItem Header="Remove C_hildless DB Records" Click="Menu_CleanupChildlessDBRecords"/>
+            <Separator />
+            <MenuItem Header="_Clear Library" Click="Menu_ClearLibraryClick"/>
+          </MenuItem>
+          
         </MenuItem>
         <MenuItem Header="_Playlist">
           <MenuItem Header="_Save Playlist" Click="Menu_SavePlaylist"/>
@@ -94,6 +104,7 @@
       </DockPanel>
       <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
       <library:LibraryControl x:Name="libraryControl" Grid.Column="2"
+                              ContextMenu_MultiPushTags="Library_Request_PushTags"
                               ContextMenu_MultiEdit="Library_Request_Edit"
                               ContextMenu_EditArt="Library_Request_Edit_Art"
                               d:DataContext="{d:DesignInstance Type=library:MockLibraryViewModel,

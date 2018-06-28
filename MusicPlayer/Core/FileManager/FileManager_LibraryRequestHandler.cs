@@ -156,6 +156,19 @@ namespace Musegician
                     select recording);
         }
 
+        void ILibraryRequestHandler.Delete(IEnumerable<Recording> recordings)
+        {
+            db.PlaylistRecordings.RemoveRange(
+                (from recording in recordings
+                 join plRec in db.PlaylistRecordings on recording.Id equals plRec.RecordingId
+                 select plRec).Distinct());
+
+            db.Recordings.RemoveRange(recordings);
+            db.SaveChanges();
+
+            CleanChildlessRecords();
+        }
+
         #endregion ILibraryRequestHandler
 
         private string _GrabPathChunk(string path, int directories)
@@ -185,20 +198,6 @@ namespace Musegician
 
             return count;
 
-        }
-
-
-        void ILibraryRequestHandler.Delete(IEnumerable<Recording> recordings)
-        {
-            var targetPlaylistRecordings =
-                (from recording in recordings
-                 join plRec in db.PlaylistRecordings on recording.Id equals plRec.RecordingId
-                 select plRec).Distinct();
-
-            db.PlaylistRecordings.RemoveRange(targetPlaylistRecordings);
-
-            db.Recordings.RemoveRange(recordings);
-            db.SaveChanges();
         }
     }
 }

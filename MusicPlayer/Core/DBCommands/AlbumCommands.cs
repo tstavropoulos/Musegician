@@ -265,7 +265,10 @@ namespace Musegician.Core.DBCommands
 
             album.Image = System.IO.File.ReadAllBytes(path);
 
-            foreach (Recording recording in album.Tracks.OrderBy(x => x.TrackNumber).Select(x => x.Recording))
+            foreach (Recording recording in album.Tracks
+                .OrderBy(x => x.DiscNumber)
+                .ThenBy(x => x.TrackNumber)
+                .Select(x => x.Recording))
             {
                 //Update the first song on the album (whose id3 tag points to the album) with the art
                 TagLib.File audioFile = TagLib.File.Create(recording.Filename);

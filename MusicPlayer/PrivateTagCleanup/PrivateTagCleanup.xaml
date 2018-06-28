@@ -1,0 +1,49 @@
+﻿<UserControl x:Class="Musegician.PrivateTagCleanup.PrivateTagCleanup"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Musegician.PrivateTagCleanup"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="300"
+             d:DataContext="{d:DesignInstance Type=local:PrivateTagMockTree, IsDesignTimeCreatable=True}">
+  <UserControl.Resources>
+    <Style x:Key="PrivateTagContainerStyle" 
+           TargetType="{x:Type TreeViewItem}" 
+           BasedOn="{StaticResource {x:Type TreeViewItem}}">
+      <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+      <Setter Property="FontWeight" Value="Normal" />
+      <Style.Triggers>
+        <Trigger Property="IsSelected" Value="True">
+          <Setter Property="FontWeight" Value="Bold" />
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <HierarchicalDataTemplate DataType="{x:Type local:PrivateTagViewModel}">
+      <StackPanel Orientation="Horizontal" Background="Transparent">
+        <CheckBox VerticalAlignment="Center" Margin="0,0,5,0" IsChecked="{Binding IsChecked}"/>
+        <TextBlock Text="{Binding Name}" FontSize="14" VerticalAlignment="Center"/>
+      </StackPanel>
+    </HierarchicalDataTemplate>
+  </UserControl.Resources>
+  <DockPanel>
+    <DockPanel DockPanel.Dock="Top" Margin="5">
+      <Button DockPanel.Dock="Left" Padding="2"
+              Content="Find Tags" Click="PrivateTag_FindMatches"/>
+      <StackPanel/>
+    </DockPanel>
+    <Grid DockPanel.Dock="Bottom" Margin="2">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+        <ColumnDefinition/>
+      </Grid.ColumnDefinitions>
+      <Button Grid.Column="0" Content="Remove Selected" Click="PrivateTag_CullSelected"/>
+    </Grid>
+    <TreeView ItemsSource="{Binding ViewModels}"
+              ItemContainerStyle="{StaticResource PrivateTagContainerStyle}"/>
+  </DockPanel>
+</UserControl>

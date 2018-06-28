@@ -36,7 +36,9 @@ namespace Musegician.Library
     {
         Play = 0,
         Add,
-        Edit
+        Edit,
+        Lyrics,
+        Tags
     }
 
     public enum SearchChoices
@@ -99,6 +101,7 @@ namespace Musegician.Library
         public delegate void ContextMenuIDRequest(Album album);
         public delegate void ContextMenuMultiIDRequest(IEnumerable<BaseData> data);
 
+        public event ContextMenuMultiIDRequest ContextMenu_MultiPushTags;
         public event ContextMenuMultiIDRequest ContextMenu_MultiEdit;
         public event ContextMenuIDRequest ContextMenu_EditArt;
 
@@ -391,7 +394,7 @@ namespace Musegician.Library
         private void OpenLyrics(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
-            BaseData data = ExtractContextAndData(MenuAction.Edit).FirstOrDefault();
+            BaseData data = ExtractContextAndData(MenuAction.Lyrics).FirstOrDefault();
 
             if (data is Recording recording)
             {
@@ -443,6 +446,18 @@ namespace Musegician.Library
                 {
                     throw new Exception("Unexpected LibraryViewModel: " + model.GetType());
                 }
+            }
+        }
+
+        private void PushTags(object sender, RoutedEventArgs e)
+        {
+            var data = ExtractContextAndData(MenuAction.Tags);
+
+            if (data.Count() > 0)
+            {
+                e.Handled = true;
+
+                ContextMenu_MultiPushTags?.Invoke(data);
             }
         }
 
@@ -504,20 +519,13 @@ namespace Musegician.Library
             }
         }
 
-        private void LibraryRequestHandler_Rebuild(object sender, EventArgs e)
-        {
-            Rebuild();
-        }
+        private void LibraryRequestHandler_Rebuild(object sender, EventArgs e) => Rebuild();
 
-        private void LibraryControl_Loaded(object sender, RoutedEventArgs e)
-        {
+        private void LibraryControl_Loaded(object sender, RoutedEventArgs e) =>
             LibraryRequestHandler.RebuildNotifier += LibraryRequestHandler_Rebuild;
-        }
 
-        private void LibraryControl_Unloaded(object sender, RoutedEventArgs e)
-        {
+        private void LibraryControl_Unloaded(object sender, RoutedEventArgs e) =>
             LibraryRequestHandler.RebuildNotifier -= LibraryRequestHandler_Rebuild;
-        }
 
         #endregion View Callbacks
         #region Keyboard Callbacks
@@ -637,7 +645,7 @@ namespace Musegician.Library
             {
                 return true;
             }
-            
+
             return false;
         }
 
@@ -691,6 +699,8 @@ namespace Musegician.Library
                         case MenuAction.Add:
                             context = LibraryContext.Song;
                             break;
+                        case MenuAction.Lyrics:
+                        case MenuAction.Tags:
                         case MenuAction.Edit:
                             if (song.Track != null)
                             {

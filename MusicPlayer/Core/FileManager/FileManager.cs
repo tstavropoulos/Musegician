@@ -215,10 +215,10 @@ namespace Musegician
         }
 
         public void AddDirectoryToLibrary(
-            string path,
             IProgress<string> textSetter,
             IProgress<int> limitSetter,
-            IProgress<int> progressSetter)
+            IProgress<int> progressSetter,
+            string path)
         {
             List<string> newMusic = new List<string>();
             HashSet<string> loadedFilenames = new HashSet<string>();
@@ -253,7 +253,7 @@ namespace Musegician
                         lookups: lookups,
                         skipDB: skipDB);
                 }
-                
+
 
                 db.SaveChanges();
             }
@@ -771,16 +771,64 @@ namespace Musegician
             return live;
         }
 
-        public void PushMusegicianTagsToFiles(
+        public void PushMusegicianTagsToFile(
             IProgress<string> textSetter,
             IProgress<int> limitSetter,
-            IProgress<int> progressSetter)
+            IProgress<int> progressSetter,
+            IEnumerable<BaseData> data = null)
         {
-            limitSetter.Report(db.Recordings.Count());
-            textSetter.Report("Loading Recordings...");
+            textSetter.Report("Searching Recordings...");
+
+            IEnumerable<Recording> recordings = null;
+
+            if (data == null)
+            {
+                data = db.Recordings;
+            }
+
+            BaseData firstDatum = data.FirstOrDefault();
+
+            if (firstDatum is Recording)
+            {
+                recordings = data.Select(x => x as Recording)
+                    .Distinct();
+            }
+            else if (firstDatum is Song)
+            {
+                recordings = data.Select(x => x as Song)
+                    .SelectMany(x => x.Recordings)
+                    .Distinct();
+            }
+            else if (firstDatum is Album)
+            {
+                recordings = data.Select(x => x as Album)
+                    .SelectMany(x => x.Tracks)
+                    .Select(x => x.Recording)
+                    .Distinct();
+            }
+            else if (firstDatum is Artist)
+            {
+                recordings = data.Select(x => x as Artist)
+                    .SelectMany(x => x.Recordings)
+                    .Distinct();
+            }
+            else if (firstDatum is Track)
+            {
+                recordings = data.Select(x => x as Track)
+                    .Select(x => x.Recording)
+                    .Distinct();
+            }
+            else
+            {
+                throw new ArgumentException($"Unexpected DataType {firstDatum}");
+            }
+
+
+            limitSetter.Report(recordings.Count());
+            textSetter.Report("Updating Tags...");
 
             int i = 0;
-            foreach (Recording recording in db.Recordings)
+            foreach (Recording recording in recordings)
             {
                 progressSetter.Report(i++);
                 MusegicianTag musegicianTag = null;
@@ -840,10 +888,10 @@ namespace Musegician
                         {
                             file.Mode = TagLib.File.AccessMode.Write;
 
-                            StringWriter data = new StringWriter(new StringBuilder());
-                            serializer.Serialize(data, musegicianTag);
+                            StringWriter stringData = new StringWriter(new StringBuilder());
+                            serializer.Serialize(stringData, musegicianTag);
 
-                            frame.PrivateData = Encoding.Unicode.GetBytes(data.ToString());
+                            frame.PrivateData = Encoding.Unicode.GetBytes(stringData.ToString());
 
                             file.Save();
                         }
@@ -854,6 +902,319 @@ namespace Musegician
                     }
                 }
             }
+        }
+
+        public void PushID3TagsToFile(
+            IProgress<string> textSetter,
+            IProgress<int> limitSetter,
+            IProgress<int> progressSetter,
+            IEnumerable<BaseData> data = null)
+        {
+            textSetter.Report("Searching Recordings...");
+
+            IEnumerable<Recording> recordings = null;
+
+            if (data == null)
+            {
+                data = db.Recordings;
+            }
+
+            BaseData firstDatum = data.FirstOrDefault();
+
+            if (firstDatum is Recording)
+            {
+                recordings = data.Select(x => x as Recording)
+                    .Distinct();
+            }
+            else if (firstDatum is Song)
+            {
+                recordings = data.Select(x => x as Song)
+                    .SelectMany(x => x.Recordings)
+                    .Distinct();
+            }
+            else if (firstDatum is Album)
+            {
+                recordings = data.Select(x => x as Album)
+                    .SelectMany(x => x.Tracks)
+                    .Select(x => x.Recording)
+                    .Distinct();
+            }
+            else if (firstDatum is Artist)
+            {
+                recordings = data.Select(x => x as Artist)
+                    .SelectMany(x => x.Recordings)
+                    .Distinct();
+            }
+            else if (firstDatum is Track)
+            {
+                recordings = data.Select(x => x as Track)
+                    .Select(x => x.Recording)
+                    .Distinct();
+            }
+            else
+            {
+                throw new ArgumentException($"Unexpected DataType {firstDatum}");
+            }
+
+
+            limitSetter.Report(recordings.Count());
+            textSetter.Report("Updating Tags...");
+
+            int i = 0;
+            foreach (Recording recording in recordings)
+            {
+                progressSetter.Report(i++);
+
+                try
+                {
+                    using (TagLib.File file = TagLib.File.Create(recording.Filename))
+                    {
+                        bool write = false;
+                        if (file.Tag.Performers.Length == 0 || file.Tag.Performers[0] != recording.Artist.Name)
+                        {
+                            write = true;
+                            file.Tag.Performers = new string[] { recording.Artist.Name };
+                        }
+
+                        if (file.Tag.AlbumArtists.Length == 0 || file.Tag.AlbumArtists[0] != recording.Artist.Name)
+                        {
+                            write = true;
+                            file.Tag.AlbumArtists = new string[] { recording.Artist.Name };
+                        }
+
+                        Track firstTrack = recording.Tracks.First();
+
+                        if (file.Tag.Album != firstTrack.Album.Title)
+                        {
+                            write = true;
+                            file.Tag.Album = firstTrack.Album.Title;
+                        }
+
+                        if (file.Tag.Title != firstTrack.Title)
+                        {
+                            write = true;
+                            file.Tag.Title = firstTrack.Title;
+                        }
+
+                        if (file.Tag.Year != firstTrack.Album.Year)
+                        {
+                            write = true;
+                            file.Tag.Year = (uint)firstTrack.Album.Year;
+                        }
+
+                        if (file.Tag.Track != firstTrack.TrackNumber)
+                        {
+                            write = true;
+                            file.Tag.Track = (uint)firstTrack.TrackNumber;
+                        }
+
+                        if (file.Tag.Disc != firstTrack.DiscNumber)
+                        {
+                            write = true;
+                            file.Tag.Disc = (uint)firstTrack.DiscNumber;
+                        }
+
+                        if (write)
+                        {
+                            file.Mode = TagLib.File.AccessMode.Write;
+                            file.Save();
+                        }
+                    }
+                }
+                catch (TagLib.UnsupportedFormatException)
+                {
+                    Console.WriteLine("Skipping UNSUPPORTED FILE: " + recording.Filename);
+                    Console.WriteLine(String.Empty);
+                    Console.WriteLine("---------------------------------------");
+                    Console.WriteLine(String.Empty);
+                    continue;
+                }
+                catch (TagLib.CorruptFileException)
+                {
+                    Console.WriteLine("Skipping CORRUPT FILE: " + recording.Filename);
+                    Console.WriteLine(String.Empty);
+                    Console.WriteLine("---------------------------------------");
+                    Console.WriteLine(String.Empty);
+                    continue;
+                }
+                catch (IOException)
+                {
+                    Console.WriteLine("Skipping FILE IN USE: " + recording.Filename);
+                    Console.WriteLine(String.Empty);
+                    Console.WriteLine("---------------------------------------");
+                    Console.WriteLine(String.Empty);
+                    continue;
+                }
+            }
+        }
+
+        public void PushMusegicianAlbumArtToFile(
+            IProgress<string> textSetter,
+            IProgress<int> limitSetter,
+            IProgress<int> progressSetter,
+            IEnumerable<BaseData> data = null)
+        {
+            if (data == null)
+            {
+                data = db.Albums;
+            }
+
+            limitSetter.Report(data.Count());
+            textSetter.Report("Searching Albums...");
+
+
+            int i = 0;
+            foreach (Album album in data.OfType<Album>().Distinct())
+            {
+                progressSetter.Report(i++);
+
+                foreach (Recording recording in album.Tracks
+                    .OrderBy(x => x.DiscNumber)
+                    .ThenBy(x => x.TrackNumber)
+                    .Select(x => x.Recording))
+                {
+                    //Update the first song on the album (whose id3 tag points to the album) with the art
+                    try
+                    {
+                        using (TagLib.File audioFile = TagLib.File.Create(recording.Filename))
+                        {
+
+                            string tagName = audioFile.Tag.Album?.ToLowerInvariant() ?? "undefined";
+                            string lowerAlbumTitle = album.Title.ToLowerInvariant();
+
+                            if (tagName != lowerAlbumTitle && !tagName.Contains(lowerAlbumTitle))
+                            {
+                                Console.WriteLine($"Album Title doesn't match. Skipping : {album.Title} / {tagName}");
+                                continue;
+                            }
+
+                            if (album.Image == null || album.Image.Length == 0)
+                            {
+                                //See if any of the tracks have an image
+                                if (audioFile.Tag.Pictures != null && audioFile.Tag.Pictures.Length > 0)
+                                {
+                                    if (LoadImage(audioFile.Tag.Pictures[0].Data.Data) != null)
+                                    {
+                                        album.Image = audioFile.Tag.Pictures[0].Data.Data;
+
+                                        break;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //See if the first matching track has the image stored
+                                if (audioFile.Tag.Pictures == null ||
+                                    audioFile.Tag.Pictures.Length == 0 ||
+                                    audioFile.Tag.Pictures[0].Data.Data.Length != album.Image.Length)
+                                {
+                                    //No picture Or Mismatched Picture - Create/Update
+                                    audioFile.Mode = TagLib.File.AccessMode.Write;
+                                    audioFile.Tag.Pictures = new TagLib.IPicture[1] { new TagLib.Picture(album.Image) };
+                                    audioFile.Save();
+
+                                    break;
+                                }
+
+                            }
+                        }
+                    }
+                    catch (TagLib.UnsupportedFormatException)
+                    {
+                        Console.WriteLine("Skipping UNSUPPORTED FILE: " + recording.Filename);
+                        Console.WriteLine(String.Empty);
+                        Console.WriteLine("---------------------------------------");
+                        Console.WriteLine(String.Empty);
+                        continue;
+                    }
+                    catch (TagLib.CorruptFileException)
+                    {
+                        Console.WriteLine("Skipping CORRUPT FILE: " + recording.Filename);
+                        Console.WriteLine(String.Empty);
+                        Console.WriteLine("---------------------------------------");
+                        Console.WriteLine(String.Empty);
+                        continue;
+                    }
+                    catch (IOException)
+                    {
+                        Console.WriteLine("Skipping FILE IN USE: " + recording.Filename);
+                        Console.WriteLine(String.Empty);
+                        Console.WriteLine("---------------------------------------");
+                        Console.WriteLine(String.Empty);
+                        continue;
+                    }
+                }
+
+            }
+        }
+
+        public void CleanChildlessRecords()
+        {
+            db.Songs.RemoveRange(
+                from song in db.Songs
+                where song.Recordings.Count == 0
+                select song);
+
+            db.Artists.RemoveRange(
+                from artist in db.Artists
+                where artist.Recordings.Count == 0
+                select artist);
+
+            db.Albums.RemoveRange(
+                from album in db.Albums
+                where album.Tracks.Count == 0
+                select album);
+
+            db.PlaylistSongs.RemoveRange(
+                from plSong in db.PlaylistSongs
+                where plSong.PlaylistRecordings.Count == 0
+                select plSong);
+
+            db.Playlists.RemoveRange(
+                from playlist in db.Playlists
+                where playlist.PlaylistSongs.Count == 0
+                select playlist);
+
+            db.SaveChanges();
+        }
+
+        public void CleanupMissingFiles(
+            IProgress<string> textSetter,
+            IProgress<int> limitSetter,
+            IProgress<int> progressSetter)
+        {
+            limitSetter.Report(db.Recordings.Count());
+            textSetter.Report("Finding Missing Recordings...");
+
+            List<Recording> missingRecordings = new List<Recording>();
+
+            int i = 0;
+            foreach (Recording recording in db.Recordings)
+            {
+                progressSetter.Report(i++);
+
+                if (!File.Exists(recording.Filename))
+                {
+                    missingRecordings.Add(recording);
+                }
+            }
+
+            if (missingRecordings.Count == 0)
+            {
+                return;
+            }
+
+            textSetter.Report($"Removing {missingRecordings.Count} Missing Recordings...");
+
+            db.PlaylistRecordings.RemoveRange(
+                (from recording in missingRecordings
+                 join plRec in db.PlaylistRecordings on recording.Id equals plRec.RecordingId
+                 select plRec).Distinct());
+
+            db.Recordings.RemoveRange(missingRecordings);
+            db.SaveChanges();
+
+            CleanChildlessRecords();
         }
 
         #region IDisposable Support

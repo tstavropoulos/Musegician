@@ -41,7 +41,12 @@
       <MenuItem Header="Add Artist To Playlist (Deep)" Click="Add_Deep"/>
       <MenuItem Header="Play Artist" Click="Play_Shallow"/>
       <MenuItem Header="Play Artist (Deep)" Click="Play_Deep"/>
+      <Separator/>
       <MenuItem Header="Edit Artist Information" Click="Edit"/>
+      <Separator/>
+      <MenuItem Header="Other">
+        <MenuItem Header="Push Tags To Files" Click="PushTags"/>
+      </MenuItem>
     </ContextMenu>
 
     <ContextMenu x:Key="AlbumCM">
@@ -49,8 +54,13 @@
       <MenuItem Header="Add Album To Playlist (Deep)" Click="Add_Deep"/>
       <MenuItem Header="Play Album" Click="Play_Shallow"/>
       <MenuItem Header="Play Album (Deep)" Click="Play_Deep"/>
+      <Separator/>
       <MenuItem Header="Edit Album Information" Click="Edit"/>
       <MenuItem Header="Update Album Art" Click="EditArt"/>
+      <Separator/>
+      <MenuItem Header="Other">
+        <MenuItem Header="Push Tags To Files" Click="PushTags"/>
+      </MenuItem>
     </ContextMenu>
 
     <ContextMenu x:Key="SongCM">
@@ -58,18 +68,27 @@
       <MenuItem Header="Add Song To Playlist (Deep)" Click="Add_Deep"/>
       <MenuItem Header="Play Song" Click="Play_Shallow"/>
       <MenuItem Header="Play Song (Deep)" Click="Play_Deep"/>
+      <Separator/>
       <MenuItem Header="Edit Song Information" Click="Edit"/>
+      <Separator/>
+      <MenuItem Header="Other">
+        <MenuItem Header="Push Tags To Files" Click="PushTags"/>
+      </MenuItem>
     </ContextMenu>
 
     <ContextMenu x:Key="RecordingCM">
       <MenuItem Header="Add Recording To Playlist" Click="Add_Shallow"/>
       <MenuItem Header="Play Recording" Click="Play_Shallow"/>
-      <MenuItem Header="Edit Recording Information" Click="Edit"/>
-      <MenuItem Header="Delete Recording Information" Click="Delete"/>
       <Separator/>
       <MenuItem Header="View Lyrics" Click="OpenLyrics"/>
+      <MenuItem Header="Edit Recording Information" Click="Edit"/>
       <Separator/>
-      <MenuItem Header="Open Explorer To File" Click="Explore"/>
+      <MenuItem Header="Other">
+        <MenuItem Header="Push Tags To Files" Click="PushTags"/>
+        <MenuItem Header="Open Explorer To File" Click="Explore"/>
+        <Separator/>
+        <MenuItem Header="Delete Recording Information" Click="Delete"/>
+      </MenuItem>
     </ContextMenu>
 
     <ContextMenu x:Key="DirectoryCM">

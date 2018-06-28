@@ -210,6 +210,8 @@ namespace Musegician.Library
                         case MenuAction.Add:
                             context = LibraryContext.Song;
                             break;
+                        case MenuAction.Lyrics:
+                        case MenuAction.Tags:
                         case MenuAction.Edit:
                             context = LibraryContext.Track;
                             break;
