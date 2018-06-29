@@ -118,7 +118,7 @@ namespace Musegician.Playlist
             }
         }
 
-        private static object m_lock = new object();
+        private static readonly object m_lock = new object();
         private static volatile PlaylistManager _instance;
         public static PlaylistManager Instance
         {

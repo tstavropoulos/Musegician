@@ -1,20 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Musegician.Database;
 
 namespace Musegician.PrivateTagCleanup
 {
@@ -25,9 +14,9 @@ namespace Musegician.PrivateTagCleanup
     {
         #region Data
 
-        IPrivateTagCleanupRequestHandler RequestHandler => FileManager.Instance;
+        private IPrivateTagCleanupRequestHandler RequestHandler => FileManager.Instance;
 
-        PrivateTagViewTree _viewTree;
+        private PrivateTagViewTree _viewTree;
 
         #endregion Data
         #region Constructor
@@ -58,7 +47,7 @@ namespace Musegician.PrivateTagCleanup
             }
         }
 
-        private async void PrivateTag_CullSelected(object sender, RoutedEventArgs e)
+        private void PrivateTag_CullSelected(object sender, RoutedEventArgs e)
         {
             List<string> owners = new List<string>();
 
@@ -73,7 +62,7 @@ namespace Musegician.PrivateTagCleanup
             if (owners.Count > 0)
             {
                 _viewTree.Clear();
-                await LoadingDialog.LoadingDialog.ArgBuilder(RequestHandler.CullPrivateTagsByOwner, owners);
+                LoadingDialog.LoadingDialog.ArgBuilder(RequestHandler.CullPrivateTagsByOwner, owners);
             }
         }
 

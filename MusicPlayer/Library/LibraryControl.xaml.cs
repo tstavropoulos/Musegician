@@ -78,10 +78,10 @@ namespace Musegician.Library
     {
         #region Data
 
-        MusicTreeViewModel _musicTree;
+        private MusicTreeViewModel _musicTree;
 
-        ILibraryRequestHandler LibraryRequestHandler => FileManager.Instance;
-        IPlaylistTransferRequestHandler PlaylistTransferRequestHandler => FileManager.Instance;
+        private ILibraryRequestHandler LibraryRequestHandler => FileManager.Instance;
+        private IPlaylistTransferRequestHandler PlaylistTransferRequestHandler => FileManager.Instance;
 
         #endregion Data
         #region Inner Enumerations

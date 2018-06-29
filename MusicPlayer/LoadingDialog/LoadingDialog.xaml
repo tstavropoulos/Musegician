@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Musegician.LoadingDialog"
         mc:Ignorable="d"
-        Title="Loading..." Height="120" Width="400"
+        Title="Loading..." Height="140" Width="400"
         Icon="/Musegician;component/Resources/logoHat.png"
         Style="{StaticResource CustomLoadingDialogStyle}">
   <DockPanel>
-    <Label x:Name="DialogText"  HorizontalAlignment="Center" DockPanel.Dock="Top">Loading</Label>
-    <ProgressBar x:Name="ProgressBar"  IsIndeterminate="True" Margin="20"/>
+    <ProgressBar x:Name="ProgressBar" DockPanel.Dock="Bottom" IsIndeterminate="True" Margin="20,0,20,20" Height="20"/>
+    <Label x:Name="DialogSubtitle" HorizontalAlignment="Center" Margin="10">Loading...</Label>
   </DockPanel>
 </Window>

@@ -6,25 +6,37 @@ using System.Linq;
 using Musegician.Database;
 using IPrivateTagCleanupRequestHandler = Musegician.PrivateTagCleanup.IPrivateTagCleanupRequestHandler;
 
+using LoadingUpdater = Musegician.LoadingDialog.LoadingDialog.LoadingUpdater;
+using Stopwatch = System.Diagnostics.Stopwatch;
+
 namespace Musegician
 {
     public partial class FileManager : IPrivateTagCleanupRequestHandler
     {
-        IEnumerable<string> IPrivateTagCleanupRequestHandler.GetAllPrivateTagOwners(
-            IProgress<string> textSetter,
-            IProgress<int> limitSetter,
-            IProgress<int> progressSetter)
+        IEnumerable<string> IPrivateTagCleanupRequestHandler.GetAllPrivateTagOwners(LoadingUpdater updater)
         {
-            textSetter.Report("Searching Tags...");
-            limitSetter.Report(db.Recordings.Count());
+            updater.SetTitle("Searching All Files For Private Tag Owners");
+            int count = db.Recordings.Count();
+            updater.SetSubtitle($"Scanning Recording Tags...  (0/{count})");
+
+            updater.SetLimit(count);
 
             HashSet<string> owners = new HashSet<string>();
 
             int i = 0;
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             foreach (Recording recording in db.Recordings)
             {
-                progressSetter.Report(i++);
+                i++;
+                if (stopwatch.ElapsedMilliseconds > Settings.BarUpdatePeriod)
+                {
+                    updater.SetProgress(i);
 
+                    updater.SetSubtitle($"Scanning Recording Tags...  ({i}/{count})");
+                    stopwatch.Restart();
+                }
+                
                 try
                 {
                     using (TagLib.File file = TagLib.File.Create(recording.Filename))
@@ -71,20 +83,35 @@ namespace Musegician
         }
 
         void IPrivateTagCleanupRequestHandler.CullPrivateTagsByOwner(
-            IProgress<string> textSetter,
-            IProgress<int> limitSetter,
-            IProgress<int> progressSetter,
+            LoadingUpdater updater,
             IEnumerable<string> tagOwners)
         {
-            textSetter.Report("Writing Tags...");
-            limitSetter.Report(db.Recordings.Count());
+            updater.SetTitle("Deleting Selected Private Tags");
+            int count = db.Recordings.Count();
+            updater.SetSubtitle($"Scanning and Updating Recordings...  (0/{count})\n");
+            updater.SetLimit(count);
 
             HashSet<string> owners = new HashSet<string>(tagOwners);
 
             int i = 0;
+            int modifiedCount = 0;
+            string modifiedString = "";
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             foreach (Recording recording in db.Recordings)
             {
-                progressSetter.Report(i++);
+                i++;
+                if (stopwatch.ElapsedMilliseconds > Settings.BarUpdatePeriod)
+                {
+                    updater.SetProgress(i);
+                    if (modifiedCount > 0)
+                    {
+                        modifiedString = $"Modified {modifiedCount} Files.";
+                    }
+
+                    updater.SetSubtitle($"Scanning and Updating Recordings...  ({i}/{count})\n{modifiedString}");
+                    stopwatch.Restart();
+                }
 
                 try
                 {
@@ -110,6 +137,8 @@ namespace Musegician
                             {
                                 file.Mode = TagLib.File.AccessMode.Write;
                                 file.Save();
+
+                                modifiedCount++;
                             }
                         }
                     }

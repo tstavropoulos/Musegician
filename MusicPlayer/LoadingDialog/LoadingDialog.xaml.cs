@@ -2,104 +2,173 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Musegician.LoadingDialog
 {
     public partial class LoadingDialog : Window
     {
+        #region Progress Setters
+
+        private readonly LoadingUpdater updater;
+
+        #endregion Progress Setters
+        #region Constructor
+
         public LoadingDialog()
         {
             InitializeComponent();
+
+            updater = new LoadingUpdater(this);
         }
 
-        public static async Task VoidBuilder(
-            Action<IProgress<string>, IProgress<int>, IProgress<int>> callback)
+        #endregion Constructor
+        #region Public Factory Methods
+
+        /// <summary>
+        /// Creates and displays the indefinite loading progress bar, while running the workMethod asynchronously.
+        /// Only returns when the work task is finished, and does not lock down UI thread.
+        /// </summary>
+        public static void VoidBuilder(
+            Action workMethod,
+            string title)
         {
-            LoadingDialog loadingDiag = new LoadingDialog();
-            Task work = loadingDiag.VoidBuilderTask(callback);
-            loadingDiag.ShowDialog();
-            await work;
+            LoadingDialog dialog = new LoadingDialog();
+
+            dialog.SetTitle(title);
+
+            //Execute the work asynchronously
+            Task.Run(() =>
+            {
+                workMethod();
+                //Dispatch call to appropriate UI Thread to close the modal dialog and resume execution
+                dialog.updater.CloseDialog();
+            });
+
+            //Display window as a Modal Dialog
+            //Execution pauses on this call until the dialog is closed
+            dialog.ShowDialog();
         }
 
+        /// <summary>
+        /// Creates and displays the loading progress bar, while running the workMethod asynchronously.
+        /// Creates Progress objects and passes them into the work method.
+        /// Only returns when the work task is finished, and does not lock down UI thread.
+        /// </summary>
+        public static void VoidBuilder(
+            Action<LoadingUpdater> workMethod)
+        {
+            LoadingDialog dialog = new LoadingDialog();
+            
+            //Execute the work asynchronously
+            Task.Run(() =>
+            {
+                workMethod(dialog.updater);
+                //Dispatch call to appropriate UI Thread to close the modal dialog and resume execution
+                dialog.updater.CloseDialog();
+            });
+
+            //Display window as a Modal Dialog
+            //Execution pauses on this call until the dialog is closed
+            dialog.ShowDialog();
+        }
+
+        /// <summary>
+        /// Creates and displays the loading progress bar, while running the workMethod asynchronously.
+        /// Creates Progress objects and passes them into the work method.
+        /// Only returns when the work task is finished, and does not lock down UI thread.
+        /// </summary>
+        public static void ArgBuilder<T>(
+            Action<LoadingUpdater, T> workMethod,
+            T workArgument = default)
+        {
+            LoadingDialog dialog = new LoadingDialog();
+
+            //Execute the work asynchronously
+            Task.Run(() =>
+            {
+                workMethod(dialog.updater, workArgument);
+                //Dispatch call to appropriate UI Thread to close the modal dialog and resume execution
+                dialog.updater.CloseDialog();
+            });
+
+            //Display window as a Modal Dialog
+            //Execution pauses on this call until the dialog is closed
+            dialog.ShowDialog();
+        }
+
+        /// <summary>
+        /// Creates and displays the loading progress bar, while running the workMethod asynchronously.
+        /// Creates Progress objects and passes them into the work method.
+        /// Returns the result only when the work task is finished, and does not lock down UI thread.
+        /// </summary>
         public static async Task<T> ReturnBuilder<T>(
-            Func<IProgress<string>, IProgress<int>, IProgress<int>, T> callback)
+            Func<LoadingUpdater, T> workMethod)
         {
-            LoadingDialog loadingDiag = new LoadingDialog();
-            Task<T> work = loadingDiag.ReturnBuilderTask(callback);
-            loadingDiag.ShowDialog();
+            LoadingDialog dialog = new LoadingDialog();
+
+            //Execute the work asynchronously
+            Task<T> work = Task.Run(() =>
+            {
+                T result = workMethod(dialog.updater);
+                //Dispatch call to appropriate UI Thread to close the modal dialog and resume execution
+                dialog.updater.CloseDialog();
+                return result;
+            });
+
+            //Display window as a Modal Dialog
+            //Execution pauses on this call until the dialog is closed
+            dialog.ShowDialog();
+
+            //Return the result of the work (which will already be finished)
             return await work;
         }
 
-        public static async Task ArgBuilder<T>(
-            Action<IProgress<string>, IProgress<int>, IProgress<int>, T> callback,
-            T data = default)
+        #endregion Public Factory Methods
+        #region UI Update Methods
+
+        public void SetTitle(string text) => Title = text;
+        public void SetSubtitle(string text) => DialogSubtitle.Content = text;
+        public void SetBarProgress(int value) => ProgressBar.Value = value;
+
+        public void SetBarLimit(int limit)
         {
-            LoadingDialog loadingDiag = new LoadingDialog();
-            Task work = loadingDiag.ArgBuilderTask(callback, data);
-            loadingDiag.ShowDialog();
-            await work;
-        }
-
-        private async Task VoidBuilderTask(
-            Action<IProgress<string>, IProgress<int>, IProgress<int>> callback)
-        {
-            IProgress<string> textSetter = new Progress<string>(value => SetText(value));
-            IProgress<int> limitSetter = new Progress<int>(value => SetFileCount(value));
-            IProgress<int> progressSetter = new Progress<int>(value => SetProgress(value));
-
-            await Task.Run(() => callback(textSetter, limitSetter, progressSetter));
-
-            Close();
-        }
-
-        private async Task<T> ReturnBuilderTask<T>(
-            Func<IProgress<string>, IProgress<int>, IProgress<int>, T> callback)
-        {
-            IProgress<string> textSetter = new Progress<string>(value => SetText(value));
-            IProgress<int> limitSetter = new Progress<int>(value => SetFileCount(value));
-            IProgress<int> progressSetter = new Progress<int>(value => SetProgress(value));
-
-            T result = await Task.Run(() => callback(textSetter, limitSetter, progressSetter));
-
-            Close();
-
-            return result;
-        }
-
-        private async Task ArgBuilderTask<T>(
-            Action<IProgress<string>, IProgress<int>, IProgress<int>, T> callback,
-            T argument)
-        {
-            IProgress<string> textSetter = new Progress<string>(value => SetText(value));
-            IProgress<int> limitSetter = new Progress<int>(value => SetFileCount(value));
-            IProgress<int> progressSetter = new Progress<int>(value => SetProgress(value));
-
-            await Task.Run(() => callback(textSetter, limitSetter, progressSetter, argument));
-
-            Close();
-        }
-
-        public void SetFileCount(int count)
-        {
-            if (count > 0)
+            if (limit > 0)
             {
-                ProgressBar.Maximum = count;
+                ProgressBar.Maximum = limit;
                 ProgressBar.IsIndeterminate = false;
             }
             else
             {
+                //Overloaded method to set the bar to indefinite if the argument isn't meaningful
                 ProgressBar.IsIndeterminate = true;
             }
         }
 
-        public void SetProgress(int value)
+        #endregion UI Update Methods
+        #region LoadingUpdater InnerClass
+
+        /// <summary>
+        /// Class to construct and contain Progress objects which dispatch UI updates for LoadingDialog class
+        /// </summary>
+        public class LoadingUpdater
         {
-            ProgressBar.Value = value;
+            private readonly LoadingDialog dialog;
+
+            public LoadingUpdater(LoadingDialog dialog)
+            {
+                this.dialog = dialog;
+            }
+
+            public void SetTitle(string title) => dialog.Dispatcher.InvokeAsync(() => dialog.SetTitle(title));
+            public void SetSubtitle(string subtitle) => dialog.Dispatcher.InvokeAsync(() => dialog.SetSubtitle(subtitle));
+            public void SetLimit(int limit) => dialog.Dispatcher.InvokeAsync(() => dialog.SetBarLimit(limit));
+            public void SetProgress(int progress) => dialog.Dispatcher.InvokeAsync(() => dialog.SetBarProgress(progress));
+            public void SetBarIndefinite() => dialog.Dispatcher.InvokeAsync(() => dialog.SetBarLimit(0));
+
+            public void CloseDialog() => dialog.Dispatcher.InvokeAsync(dialog.Close);
         }
 
-        public void SetText(string text)
-        {
-            DialogText.Content = text;
-        }
+        #endregion LoadingUpdater InnerClass
     }
 }

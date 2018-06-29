@@ -13,7 +13,7 @@ namespace Musegician
     /// </summary>
     public partial class MainWindow : Window
     {
-        FileManager FileMan => FileManager.Instance;
+        private FileManager FileMan => FileManager.Instance;
 
         public MainWindow()
         {
@@ -49,8 +49,8 @@ namespace Musegician
             }
         }
 
-        private async void Library_Request_PushTags(IEnumerable<BaseData> data) =>
-            await LoadingDialog.LoadingDialog.ArgBuilder(FileMan.PushMusegicianTagsToFile, data);
+        private void Library_Request_PushTags(IEnumerable<BaseData> data) =>
+            LoadingDialog.LoadingDialog.ArgBuilder(FileMan.PushMusegicianTagsToFile, data);
 
         #region Menu Callbacks
 
@@ -68,12 +68,12 @@ namespace Musegician
         private void Menu_OpenSpatializer(object sender, RoutedEventArgs e) => SpatializerPopup.IsOpen = true;
         private void Menu_CleanupChildlessDBRecords(object sender, RoutedEventArgs e) => FileMan.CleanChildlessRecords();
 
-        private async void Menu_PushID3Tags(object sender, RoutedEventArgs e) =>
-            await LoadingDialog.LoadingDialog.ArgBuilder<IEnumerable<BaseData>>(FileMan.PushID3TagsToFile);
-        private async void Menu_PushMusegicianTags(object sender, RoutedEventArgs e) =>
-            await LoadingDialog.LoadingDialog.ArgBuilder<IEnumerable<BaseData>>(FileMan.PushMusegicianTagsToFile);
-        private async void Menu_PushAlbumArt(object sender, RoutedEventArgs e) =>
-            await LoadingDialog.LoadingDialog.ArgBuilder<IEnumerable<BaseData>>(FileMan.PushMusegicianAlbumArtToFile);
+        private void Menu_PushID3Tags(object sender, RoutedEventArgs e) =>
+            LoadingDialog.LoadingDialog.ArgBuilder<IEnumerable<BaseData>>(FileMan.PushID3TagsToFile);
+        private void Menu_PushMusegicianTags(object sender, RoutedEventArgs e) =>
+            LoadingDialog.LoadingDialog.ArgBuilder<IEnumerable<BaseData>>(FileMan.PushMusegicianTagsToFile);
+        private void Menu_PushAlbumArt(object sender, RoutedEventArgs e) =>
+            LoadingDialog.LoadingDialog.ArgBuilder<IEnumerable<BaseData>>(FileMan.PushMusegicianAlbumArtToFile);
 
         private void Menu_QuitClick(object sender, RoutedEventArgs e)
         {
@@ -81,7 +81,7 @@ namespace Musegician
             Application.Current.Shutdown();
         }
 
-        private async void Menu_OpenClick(object sender, RoutedEventArgs e)
+        private void Menu_OpenClick(object sender, RoutedEventArgs e)
         {
             e.Handled = true;
 
@@ -103,15 +103,15 @@ namespace Musegician
 
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                await LoadingDialog.LoadingDialog.ArgBuilder(FileMan.AddDirectoryToLibrary, dialog.FileName);
+                LoadingDialog.LoadingDialog.ArgBuilder(FileMan.AddDirectoryToLibrary, dialog.FileName);
                 libraryControl.Rebuild();
             }
         }
 
 
-        private async void Menu_CleanupMissingFiles(object sender, RoutedEventArgs e)
+        private void Menu_CleanupMissingFiles(object sender, RoutedEventArgs e)
         {
-            await LoadingDialog.LoadingDialog.VoidBuilder(FileMan.CleanupMissingFiles);
+            LoadingDialog.LoadingDialog.VoidBuilder(FileMan.CleanupMissingFiles);
             //Rebuild library to reflect deleted records
             libraryControl.Rebuild();
         }

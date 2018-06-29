@@ -26,30 +26,22 @@ namespace Musegician
             }
         }
 
-        public double LiveWeight => Math.Min(2.0 * WeightParameter, 1.0);
-        public double StudioWeight => Math.Min(2.0 * (1.0 - WeightParameter), 1.0);
-
-        private static object m_lock = new object();
-        private static volatile Settings _instance;
-        public static Settings Instance
+        private bool _createMusegicianTags = true;
+        public bool CreateMusegicianTags
         {
-            get
+            get => _createMusegicianTags;
+            set
             {
-                if (_instance == null)
+                if (_createMusegicianTags != value)
                 {
-                    lock (m_lock)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new Settings();
-                        }
-                    }
+                    _createMusegicianTags = value;
+                    OnPropertyChanged("CreateMusegicianTags");
                 }
-                return _instance;
             }
         }
 
-        private Settings() { }
+        public double LiveWeight => Math.Min(2.0 * WeightParameter, 1.0);
+        public double StudioWeight => Math.Min(2.0 * (1.0 - WeightParameter), 1.0);
 
         private int _fontSize = 14;
         public int FontSize
@@ -64,6 +56,31 @@ namespace Musegician
                 }
             }
         }
+
+        private static readonly object _lock = new object();
+        private static volatile Settings _instance;
+
+        public static Settings Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    lock (_lock)
+                    {
+                        if (_instance == null)
+                        {
+                            _instance = new Settings();
+                        }
+                    }
+                }
+                return _instance;
+            }
+        }
+
+        public static long BarUpdatePeriod => 16L;
+
+        private Settings() { }
 
         #region INotifyPropertyChanged
 

@@ -1,23 +1,15 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Musegician.Database;
+
+using LoadingUpdater = Musegician.LoadingDialog.LoadingDialog.LoadingUpdater;
 
 namespace Musegician.PrivateTagCleanup
 {
     public interface IPrivateTagCleanupRequestHandler
     {
-        IEnumerable<string> GetAllPrivateTagOwners(
-            IProgress<string> textSetter,
-            IProgress<int> limitSetter,
-            IProgress<int> progressSetter);
+        IEnumerable<string> GetAllPrivateTagOwners(LoadingUpdater updater);
 
-        void CullPrivateTagsByOwner(
-            IProgress<string> textSetter,
-            IProgress<int> limitSetter,
-            IProgress<int> progressSetter,
-            IEnumerable<string> tagOwners);
+        void CullPrivateTagsByOwner(LoadingUpdater updater, IEnumerable<string> tagOwners);
     }
 }

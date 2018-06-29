@@ -51,7 +51,7 @@ public class DepletableBag<T> : IDepletable<T>
             else
             {
                 Console.WriteLine("Bag is empty and you tried to pull out an element.");
-                return default(T);
+                return default;
             }
         }
 
@@ -80,7 +80,7 @@ public class DepletableBag<T> : IDepletable<T>
             }
             else
             {
-                value = default(T);
+                value = default;
                 return false;
             }
         }

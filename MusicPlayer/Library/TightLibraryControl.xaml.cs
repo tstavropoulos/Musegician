@@ -17,10 +17,10 @@ namespace Musegician.Library
     {
         #region Data
 
-        MusicTreeViewModel _musicTree;
+        private MusicTreeViewModel _musicTree;
 
-        ILibraryRequestHandler LibraryRequestHandler => FileManager.Instance;
-        IPlaylistTransferRequestHandler PlaylistTransferRequestHandler => FileManager.Instance;
+        private ILibraryRequestHandler LibraryRequestHandler => FileManager.Instance;
+        private IPlaylistTransferRequestHandler PlaylistTransferRequestHandler => FileManager.Instance;
 
         #endregion Data
         #region Constructor
@@ -38,8 +38,10 @@ namespace Musegician.Library
                 Loaded += LibraryControl_Loaded;
                 Unloaded += LibraryControl_Unloaded;
 
-                _musicTree = new MusicTreeViewModel(LibraryRequestHandler);
-                _musicTree.CurrentViewMode = ViewMode.Classic;
+                _musicTree = new MusicTreeViewModel(LibraryRequestHandler)
+                {
+                    CurrentViewMode = ViewMode.Classic
+                };
             }
 
             DataContext = _musicTree;

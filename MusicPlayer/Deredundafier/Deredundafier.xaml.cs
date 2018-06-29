@@ -25,11 +25,11 @@ namespace Musegician.Deredundafier
     {
         #region Data
 
-        DeredundancyMode mode = DeredundancyMode.Song;
-        IDeredundancyRequestHandler RequestHandler => FileManager.Instance;
-        Playlist.IPlaylistTransferRequestHandler PlaylistTransferRequestHandler => FileManager.Instance;
-
-        DeredundafierViewTree _viewTree;
+        private DeredundancyMode mode = DeredundancyMode.Song;
+        private IDeredundancyRequestHandler RequestHandler => FileManager.Instance;
+        private Playlist.IPlaylistTransferRequestHandler PlaylistTransferRequestHandler => FileManager.Instance;
+        
+        private DeredundafierViewTree _viewTree;
 
         #endregion Data
         #region Enum

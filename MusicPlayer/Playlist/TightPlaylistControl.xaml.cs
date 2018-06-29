@@ -23,9 +23,9 @@ namespace Musegician.Playlist
     /// </summary>
     public sealed partial class TightPlaylistControl : UserControl, IPlaylistUpdateListener
     {
-        PlaylistTreeViewModel _playlistTree;
+        private PlaylistTreeViewModel _playlistTree;
 
-        PlaylistManager PlaylistMan => PlaylistManager.Instance;
+        private PlaylistManager PlaylistMan => PlaylistManager.Instance;
 
         private PlaylistSongViewModel _playingSong;
         private PlaylistSongViewModel PlayingSong
