@@ -12,6 +12,7 @@ namespace Musegician.Core.DBCommands
 {
     public class AlbumCommands
     {
+        private readonly string consoleDiv = "---------------------------------------";
         MusegicianData db = null;
 
         public AlbumCommands(MusegicianData db)
@@ -271,19 +272,39 @@ namespace Musegician.Core.DBCommands
                 .Select(x => x.Recording))
             {
                 //Update the first song on the album (whose id3 tag points to the album) with the art
-                TagLib.File audioFile = TagLib.File.Create(recording.Filename);
-
-                string tagName = audioFile.Tag.Album.ToLowerInvariant();
-                string lowerAlbumTitle = album.Title.ToLowerInvariant();
-
-                if (tagName != lowerAlbumTitle && !tagName.Contains(lowerAlbumTitle))
+                try
                 {
-                    Console.WriteLine($"Album Title doesn't match. Skipping : {album.Title} / {tagName}");
+                    using (TagLib.File audioFile = TagLib.File.Create(recording.Filename))
+                    {
+                        string tagName = audioFile.Tag.Album.ToLowerInvariant();
+                        string lowerAlbumTitle = album.Title.ToLowerInvariant();
+
+                        if (tagName != lowerAlbumTitle && !tagName.Contains(lowerAlbumTitle))
+                        {
+                            Console.WriteLine($"Album Title doesn't match. Skipping : {album.Title} / {tagName}");
+                            continue;
+                        }
+
+                        audioFile.Mode = TagLib.File.AccessMode.Write;
+                        audioFile.Tag.Pictures = new IPicture[1] { new Picture(album.Image) };
+                        audioFile.Save();
+                    }
+                }
+                catch (UnsupportedFormatException)
+                {
+                    Console.WriteLine($"{consoleDiv}\nSkipping UNSUPPORTED FILE: {recording.Filename}\n");
                     continue;
                 }
-
-                audioFile.Tag.Pictures = new IPicture[1] { new Picture(album.Image) };
-                audioFile.Save();
+                catch (CorruptFileException)
+                {
+                    Console.WriteLine($"{consoleDiv}\nSkipping CORRUPT FILE: {recording.Filename}\n");
+                    continue;
+                }
+                catch (IOException)
+                {
+                    Console.WriteLine($"{consoleDiv}\nSkipping Writing Tag To FILE IN USE: {recording.Filename}\n");
+                    continue;
+                }
 
                 break;
             }

@@ -168,7 +168,6 @@ namespace Musegician
                 db.Configuration.AutoDetectChangesEnabled = true;
             }
 
-
             db.SaveChanges();
 
             return artistData;
