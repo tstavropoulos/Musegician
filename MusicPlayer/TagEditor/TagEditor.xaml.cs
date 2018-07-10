@@ -54,6 +54,12 @@ namespace Musegician.TagEditor
     /// </summary>
     public partial class TagEditor : Window
     {
+        #region Data
+
+        private readonly string consoleDiv = "---------------------------------------";
+
+        #endregion Data
+
         private IEnumerable<BaseData> Data { get; }
         public IEnumerable<TagData> Tags { get; }
 
@@ -124,36 +130,54 @@ namespace Musegician.TagEditor
 
                     foreach (string path in paths)
                     {
-                        TagLib.File file = null;
-
                         try
                         {
-                            file = TagLib.File.Create(path);
-                            file.Mode = TagLib.File.AccessMode.Write;
+                            using (TagLib.File file = TagLib.File.Create(path))
+                            {
+
+                                file.Mode = TagLib.File.AccessMode.Write;
+
+                                UpdateTags(file, Tags);
+
+                                file.Save();
+                            }
                         }
                         catch (TagLib.UnsupportedFormatException)
                         {
-                            Console.WriteLine("UNSUPPORTED FILE: " + path);
-                            Console.WriteLine(String.Empty);
-                            Console.WriteLine("---------------------------------------");
-                            Console.WriteLine(String.Empty);
+                            Console.WriteLine($"{consoleDiv}\nSkipping UNSUPPORTED FILE: {path}\n");
+                            continue;
+                        }
+                        catch (TagLib.CorruptFileException)
+                        {
+                            Console.WriteLine($"{consoleDiv}\nSkipping CORRUPT FILE: {path}\n");
                             continue;
                         }
                         catch (System.IO.IOException)
                         {
-                            file.Mode = TagLib.File.AccessMode.Closed;
-                            file.Dispose();
-                            Console.WriteLine("FILE IN USE: " + path);
-                            Console.WriteLine("SKIPPING");
-                            Console.WriteLine(String.Empty);
-                            Console.WriteLine("---------------------------------------");
-                            Console.WriteLine(String.Empty);
+                            Console.WriteLine($"{consoleDiv}\nSkipping Writing Tag To FILE IN USE: {path}\n");
                             continue;
                         }
+                        catch (Exception ex)
+                        {
+                            Exception excp = ex;
+                            StringBuilder errorMessage = new StringBuilder();
+                            while (excp != null)
+                            {
+                                errorMessage.Append(excp.Message);
+                                excp = excp.InnerException;
+                                if (excp != null)
+                                {
+                                    errorMessage.Append("\n\t");
+                                }
+                            }
 
-                        UpdateTags(file, Tags);
+                            Console.WriteLine($"{consoleDiv}\nUnanticipated Exception for file: {path}\n{errorMessage.ToString()}\n");
 
-                        file.Save();
+                            MessageBox.Show(
+                                messageBoxText: $"Unanticipated Exception for file: {path}\n{consoleDiv}\n{errorMessage.ToString()}",
+                                caption: "Unanticipated Exception");
+                            continue;
+                        }
                     }
                 }
             }

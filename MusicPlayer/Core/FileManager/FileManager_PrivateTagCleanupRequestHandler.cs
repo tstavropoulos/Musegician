@@ -8,6 +8,7 @@ using IPrivateTagCleanupRequestHandler = Musegician.PrivateTagCleanup.IPrivateTa
 
 using LoadingUpdater = Musegician.LoadingDialog.LoadingDialog.LoadingUpdater;
 using Stopwatch = System.Diagnostics.Stopwatch;
+using System.Text;
 
 namespace Musegician
 {
@@ -36,7 +37,7 @@ namespace Musegician
                     updater.SetSubtitle($"Scanning Recording Tags...  ({i}/{count})");
                     stopwatch.Restart();
                 }
-                
+
                 try
                 {
                     using (TagLib.File file = TagLib.File.Create(recording.Filename))
@@ -55,26 +56,33 @@ namespace Musegician
                 }
                 catch (TagLib.UnsupportedFormatException)
                 {
-                    Console.WriteLine("Skipping UNSUPPORTED FILE: " + recording.Filename);
-                    Console.WriteLine(String.Empty);
-                    Console.WriteLine("---------------------------------------");
-                    Console.WriteLine(String.Empty);
+                    Console.WriteLine($"{consoleDiv}\nSkipping UNSUPPORTED FILE: {recording.Filename}\n");
                     continue;
                 }
                 catch (TagLib.CorruptFileException)
                 {
-                    Console.WriteLine("Skipping CORRUPT FILE: " + recording.Filename);
-                    Console.WriteLine(String.Empty);
-                    Console.WriteLine("---------------------------------------");
-                    Console.WriteLine(String.Empty);
+                    Console.WriteLine($"{consoleDiv}\nSkipping CORRUPT FILE: {recording.Filename}\n");
                     continue;
                 }
-                catch (IOException)
+                catch (Exception e)
                 {
-                    Console.WriteLine("Skipping FILE IN USE: " + recording.Filename);
-                    Console.WriteLine(String.Empty);
-                    Console.WriteLine("---------------------------------------");
-                    Console.WriteLine(String.Empty);
+                    Exception excp = e;
+                    StringBuilder errorMessage = new StringBuilder();
+                    while (excp != null)
+                    {
+                        errorMessage.Append(excp.Message);
+                        excp = excp.InnerException;
+                        if (excp != null)
+                        {
+                            errorMessage.Append("\n\t");
+                        }
+                    }
+                    Console.WriteLine(
+                        $"{consoleDiv}\nUnanticipated Exception for file: {recording.Filename}\n{errorMessage.ToString()}\n");
+
+                    System.Windows.MessageBox.Show(
+                        messageBoxText: $"Unanticipated Exception for file: {recording.Filename}\n{consoleDiv}\n{errorMessage.ToString()}",
+                        caption: "Unanticipated Exception");
                     continue;
                 }
             }
@@ -145,26 +153,38 @@ namespace Musegician
                 }
                 catch (TagLib.UnsupportedFormatException)
                 {
-                    Console.WriteLine("Skipping UNSUPPORTED FILE: " + recording.Filename);
-                    Console.WriteLine(String.Empty);
-                    Console.WriteLine("---------------------------------------");
-                    Console.WriteLine(String.Empty);
+                    Console.WriteLine($"{consoleDiv}\nSkipping UNSUPPORTED FILE: {recording.Filename}\n");
                     continue;
                 }
                 catch (TagLib.CorruptFileException)
                 {
-                    Console.WriteLine("Skipping CORRUPT FILE: " + recording.Filename);
-                    Console.WriteLine(String.Empty);
-                    Console.WriteLine("---------------------------------------");
-                    Console.WriteLine(String.Empty);
+                    Console.WriteLine($"{consoleDiv}\nSkipping CORRUPT FILE: {recording.Filename}\n");
                     continue;
                 }
                 catch (IOException)
                 {
-                    Console.WriteLine("Skipping FILE IN USE: " + recording.Filename);
-                    Console.WriteLine(String.Empty);
-                    Console.WriteLine("---------------------------------------");
-                    Console.WriteLine(String.Empty);
+                    Console.WriteLine($"{consoleDiv}\nSkipping Writing Tag To FILE IN USE: {recording.Filename}\n");
+                    continue;
+                }
+                catch (Exception e)
+                {
+                    Exception excp = e;
+                    StringBuilder errorMessage = new StringBuilder();
+                    while (excp != null)
+                    {
+                        errorMessage.Append(excp.Message);
+                        excp = excp.InnerException;
+                        if (excp != null)
+                        {
+                            errorMessage.Append("\n\t");
+                        }
+                    }
+                    Console.WriteLine(
+                        $"{consoleDiv}\nUnanticipated Exception for file: {recording.Filename}\n{errorMessage.ToString()}\n");
+
+                    System.Windows.MessageBox.Show(
+                        messageBoxText: $"Unanticipated Exception for file: {recording.Filename}\n{consoleDiv}\n{errorMessage.ToString()}",
+                        caption: "Unanticipated Exception");
                     continue;
                 }
             }
