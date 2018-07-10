@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using Musegician.Database;
 using Microsoft.Win32;
 using System.Threading.Tasks;
+
+using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 
 namespace Musegician
 {
@@ -85,25 +86,17 @@ namespace Musegician
         {
             e.Handled = true;
 
-            CommonOpenFileDialog dialog = new CommonOpenFileDialog()
+            FolderBrowserDialog dialog = new FolderBrowserDialog()
             {
-                Title = "Select Directory to add to Library",
-                IsFolderPicker = true,
-                InitialDirectory = "C:\\",
-
-                AddToMostRecentlyUsedList = false,
-                AllowNonFileSystemItems = false,
-                DefaultDirectory = "C:\\",
-                EnsureFileExists = true,
-                EnsurePathExists = true,
-                EnsureValidNames = true,
-                Multiselect = false,
-                ShowPlacesList = true
+                Description = "Select Directory to add to Library",
+                ShowNewFolderButton = false,
+                RootFolder = Environment.SpecialFolder.MyComputer,
+                SelectedPath = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic)
             };
 
-            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                LoadingDialog.LoadingDialog.ArgBuilder(FileMan.AddDirectoryToLibrary, dialog.FileName);
+                LoadingDialog.LoadingDialog.ArgBuilder(FileMan.AddDirectoryToLibrary, dialog.SelectedPath);
                 libraryControl.Rebuild();
             }
         }

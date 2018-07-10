@@ -114,6 +114,8 @@ namespace Musegician
         public FileManager()
         {
             db = new MusegicianData();
+            
+            db.Database.CreateIfNotExists();
 
             recordingCommands = new RecordingCommands(db);
             trackCommands = new TrackCommands(db);
@@ -645,7 +647,7 @@ namespace Musegician
             }
             catch (TagLib.UnsupportedFormatException)
             {
-                Console.WriteLine("Skipping UNSUPPORTED FILE: " + path);
+                Console.WriteLine($"Skipping UNSUPPORTED FILE: {path}");
                 Console.WriteLine(String.Empty);
                 Console.WriteLine("---------------------------------------");
                 Console.WriteLine(String.Empty);
@@ -653,7 +655,7 @@ namespace Musegician
             }
             catch (TagLib.CorruptFileException)
             {
-                Console.WriteLine("Skipping CORRUPT FILE: " + path);
+                Console.WriteLine($"Skipping CORRUPT FILE: {path}");
                 Console.WriteLine(String.Empty);
                 Console.WriteLine("---------------------------------------");
                 Console.WriteLine(String.Empty);
@@ -661,10 +663,23 @@ namespace Musegician
             }
             catch (IOException)
             {
-                Console.WriteLine("Skipping Writing Tag To FILE IN USE: " + path);
+                Console.WriteLine($"Skipping Writing Tag To FILE IN USE: {path}");
                 Console.WriteLine(String.Empty);
                 Console.WriteLine("---------------------------------------");
                 Console.WriteLine(String.Empty);
+                return;
+            }
+            catch (Exception excp)
+            {
+                Console.WriteLine($"Unanticipated Exception for file: {path}");
+                Console.WriteLine(excp.Message);
+                Console.WriteLine(String.Empty);
+                Console.WriteLine("---------------------------------------");
+                Console.WriteLine(String.Empty);
+
+                System.Windows.MessageBox.Show(
+                    messageBoxText: $"Unanticipated Exception for file: {path}\n{excp.Message}",
+                    caption: "Unanticipated Exception");
                 return;
             }
             finally

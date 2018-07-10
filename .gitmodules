@@ -1,0 +1,3 @@
+[submodule "taglib-sharp"]
+	path = taglib-sharp
+	url = https://github.com/tstavropoulos/taglib-sharp

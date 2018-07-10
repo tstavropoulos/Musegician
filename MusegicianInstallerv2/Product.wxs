@@ -49,20 +49,9 @@
         <File Id="CSCoreDLL" Name="CSCore.dll" Source="$(var.Musegician.TargetDir)CSCore.dll" KeyPath="yes"/>
       </Component>
 
-      <!--Microsoft.WindowsAPICodePack-->
-      <Component Id="MSCodePack" Guid="202267CB-0F0C-4DE0-800F-FBF771D31DCF">
-        <File Id="MSCodePackDLL" Name="Microsoft.WindowsAPICodePack.dll" Source="$(var.Musegician.TargetDir)Microsoft.WindowsAPICodePack.dll" KeyPath="yes"/>
-      </Component>
-
-      <!--Microsoft.WindowsAPICodePack.Shell-->
-      <Component Id="MSCodePackShell" Guid="AD27FB50-E8A6-4641-9D66-A2EC7811BC56">
-        <File Id="MSCodePackShellDLL" Name="Microsoft.WindowsAPICodePack.Shell.dll" Source="$(var.Musegician.TargetDir)Microsoft.WindowsAPICodePack.Shell.dll" KeyPath="yes"/>
-      </Component>
-
       <!--taglib-sharp-->
-      <Component Id="TagLib" Guid="6D31EEC3-0FE8-44C5-A51E-B492D7D99BAF">
-        <File Id="TagLibDLL" Name="taglib-sharp.dll" Source="$(var.Musegician.TargetDir)taglib-sharp.dll" KeyPath="yes"/>
-        <File Id="TagLibPolicyDLL" Name="policy.2.0.taglib-sharp.dll" Source="$(var.Musegician.TargetDir)policy.2.0.taglib-sharp.dll"/>
+      <Component Id="NewTagLib" Guid="7A0D0F5D-B5F3-4C6D-A22E-9AC99EF4EAF3">
+        <File Id="NewTagLibDLL" Name="taglib-sharp.dll" Source="$(var.Musegician.TargetDir)taglib-sharp.dll" KeyPath="yes"/>
       </Component>
 
       <!--RibbonControlsLibrary-->

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Possible fix here: https://social.technet.microsoft.com/Forums/WINDOWS/en-US/3e9e48d4-ab33-4b75-95e2-2a6678ee02b9/sql-server-2016-express-localdb-bootstrapper-package-download-fails?forum=sqlexpress -->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+	<Fragment>
+    <util:RegistrySearch Root="HKLM"
+                         Key="SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL13E.LOCALDB\MSSQLServer\CurrentVersion"
+                         Value="CurrentVersion"
+                         Variable="LocalDB"/>
+    <util:RegistrySearch Root="HKLM"
+                         Key="SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL13E.LOCALDB\MSSQLServer\CurrentVersion"
+                         Value="CurrentVersion"
+                         Variable="LocalDBx64"
+                         Win64="yes"/>
+    <PackageGroup Id="LOCALDB">
+      <MsiPackage  Id="LOCALDB"
+                  DisplayName="Microsoft SQL Server 2016 LocalDB"
+                  Permanent="yes"
+                  Visible="yes"
+                  DisplayInternalUI="yes"
+                  SourceFile="Redist\SqlLocalDB.msi"
+                  InstallCondition="NOT LocalDB AND NOT LocalDBx64">
+      </MsiPackage>
+    </PackageGroup>
+	</Fragment>
+</Wix>
