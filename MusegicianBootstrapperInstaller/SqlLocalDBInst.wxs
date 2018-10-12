@@ -3,23 +3,30 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 	<Fragment>
-    <util:RegistrySearch Root="HKLM"
-                         Key="SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL13E.LOCALDB\MSSQLServer\CurrentVersion"
-                         Value="CurrentVersion"
-                         Variable="LocalDB"/>
-    <util:RegistrySearch Root="HKLM"
-                         Key="SOFTWARE\Microsoft\Microsoft SQL Server\MSSQL13E.LOCALDB\MSSQLServer\CurrentVersion"
-                         Value="CurrentVersion"
-                         Variable="LocalDBx64"
+    <util:RegistrySearch Id="Sql32"
+                         Root="HKLM"
+                         Key="SOFTWARE\Microsoft\Microsoft SQL Server Local DB\Installed Versions\13.0"
+                         Value="ParentInstance"
+                         Result="exists"
+                         Variable="Sql32"/>
+    <util:RegistrySearch Id="Sql64"
+                         Root="HKLM"
+                         Key="SOFTWARE\Microsoft\Microsoft SQL Server Local DB\Installed Versions\13.0"
+                         Value="ParentInstance"
+                         Result="exists"
+                         Variable="Sql64"
                          Win64="yes"/>
     <PackageGroup Id="LOCALDB">
-      <MsiPackage  Id="LOCALDB"
+      <MsiPackage Id="LOCALDB"
                   DisplayName="Microsoft SQL Server 2016 LocalDB"
                   Permanent="yes"
-                  Visible="yes"
-                  DisplayInternalUI="yes"
+                  Visible="no"
+                  Vital="yes" 
+                  DisplayInternalUI="no"
                   SourceFile="Redist\SqlLocalDB.msi"
-                  InstallCondition="NOT LocalDB AND NOT LocalDBx64">
+                  ForcePerMachine="yes"
+                  InstallCondition="NOT (Sql32) AND NOT (Sql64)">
+        <MsiProperty Name="IACCEPTSQLLOCALDBLICENSETERMS" Value="YES"/>
       </MsiPackage>
     </PackageGroup>
 	</Fragment>
