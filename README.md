@@ -2,11 +2,11 @@
 
 Pronouced like a portmanteau of Magician and Musician - the name _Musegician_ was designed to feel like extruding a mouthful of gravel through gritted teeth.
 
-The goal of this project is to provide a relatively lightweight and zippy musicplayer with more intelligent playlists.  Where appropriate and discernable, live recordings will end up nested under their associated studio recording, and the "song" itself is added to playlists.  There will be a modifiable, global probability when playing a given song that a live recording will be substituted in its place, and this weighting value will be individually modifiable.  Additionally, songs themselves will have modifiable global- and playlist-specific weights allowing you to tune the distributions without needing to actually cull songs from your music collection.
+The initial goal of this project was to provide a relatively lightweight musicplayer with more intelligent shuffle behavior.  On initially importing a music library, some simple heuristics will attempt to determine unique songs and artists, and identify live recordings, though there is an expanding set of tools available to manually update this data.  Live recordings end up nested under their associated song, along with the studio recording, and the "song" itself can be added to playlists.  There is a modifiable, global default probability when playing a given song that a live recording will be substituted in its place, and this weighting value is also individually modifiable.  Additionally, songs themselves have modifiable global- and playlist-specific weights allowing you to tune the distributions without needing to actually cull songs from your music collection.
 
-If you're interested in giving it a try, just grab it from [The Releases Page](https://github.com/tstavropoulos/Musegician/releases).  Unfortunately, because of the framework it was developed in, only Windows is supported at this time.
+If you're interested in giving it a try, just grab it from [The Releases Page](https://github.com/tstavropoulos/Musegician/releases).  Unfortunately, because the UI framework it was developed in (WPF) is only supported on Windows, it is limited to that platform at this time.  The Automated installer is still under active development, and may have somewhat inconsistent results in settings up the dependencies.  You may need to manually install [SQL Server 2017 Express](https://go.microsoft.com/fwlink/?linkid=853017), and make sure you check the box to install SqlLocalDB.
 
-This scheme implicitly depends on good quality metadata tags, and as such I am working on a good scheme for updating them.
+The intelligent import scheme implicitly depends on good quality metadata tags, but there exist a number of tools at this point to administer the data once it has been imported.
 
 ## Features
 
