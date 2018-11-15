@@ -160,7 +160,7 @@ namespace Musegician
 
             db.SaveChanges();
 
-            newSongList.Sort((a, b) => b.Number.CompareTo(a.Number));
+            newSongList.Sort((a, b) => a.Number.CompareTo(b.Number));
 
             return newSongList;
         }

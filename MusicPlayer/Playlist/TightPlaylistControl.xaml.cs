@@ -593,28 +593,21 @@ namespace Musegician.Playlist
         #endregion Drag Handling
         #region IPlaylistUpdateListener
 
-        void IPlaylistUpdateListener.Rebuild(IEnumerable<PlaylistSong> songs)
-        {
-            Rebuild(songs);
-        }
+        void IPlaylistUpdateListener.Rebuild(IEnumerable<PlaylistSong> songs) => Rebuild(songs);
 
-        void IPlaylistUpdateListener.AddBack(IEnumerable<PlaylistSong> songs)
-        {
+        void IPlaylistUpdateListener.AddBack(IEnumerable<PlaylistSong> songs) =>
             _playlistTree.Add(songs);
-        }
 
-        void IPlaylistUpdateListener.InsertSongs(int index, IEnumerable<PlaylistSong> songs)
-        {
+        void IPlaylistUpdateListener.InsertSongs(int index, IEnumerable<PlaylistSong> songs) =>
             _playlistTree.InsertRange(index, songs);
-        }
 
         void IPlaylistUpdateListener.RemoveIndices(IEnumerable<int> indices)
         {
-            List<int> indexCopy = new List<int>(indices);
+            List<int> reverseSortedIndexes = new List<int>(indices);
 
-            indexCopy.Sort((a, b) => b.CompareTo(a));
+            reverseSortedIndexes.Sort((a, b) => b.CompareTo(a));
 
-            foreach (int index in indexCopy)
+            foreach (int index in reverseSortedIndexes)
             {
                 _playlistTree.PlaylistViewModels.RemoveAt(index);
             }

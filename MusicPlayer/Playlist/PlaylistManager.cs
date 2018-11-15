@@ -9,6 +9,8 @@ using System.Windows;
 using System.Windows.Controls;
 using Musegician.Database;
 using Musegician.Core;
+using TASAgency.Collections.Generic;
+using TASAgency.Math;
 
 namespace Musegician.Playlist
 {
@@ -20,7 +22,7 @@ namespace Musegician.Playlist
 
     public class PlaylistManager : INotifyPropertyChanged
     {
-        private Random random = new Random();
+        private Random Random => ThreadSafeRandom.Rand;
         private readonly List<PlaylistSong> PlaylistSongs = new List<PlaylistSong>();
         private DepletableBag<PlaylistSong> shuffleSet;
 
@@ -140,7 +142,7 @@ namespace Musegician.Playlist
 
         private PlaylistManager()
         {
-            shuffleSet = new DepletableBag<PlaylistSong>(random);
+            shuffleSet = new DepletableBag<PlaylistSong>(Random);
         }
 
         public void Initialize()
@@ -642,7 +644,7 @@ namespace Musegician.Playlist
                 cumulativeWeight += GetWeight(recording);
             }
 
-            cumulativeWeight *= random.NextDouble();
+            cumulativeWeight *= Random.NextDouble();
 
             foreach (PlaylistRecording recording in song.PlaylistRecordings)
             {
@@ -726,7 +728,7 @@ namespace Musegician.Playlist
                 return false;
             }
 
-            return random.NextDouble() <= weight;
+            return Random.NextDouble() <= weight;
         }
 
         public void BatchRearrangeSongs(IEnumerable<int> sourceIndices, int targetIndex)
@@ -758,6 +760,41 @@ namespace Musegician.Playlist
             foreach (IPlaylistUpdateListener listener in GetValidListeners())
             {
                 listener.Rearrange(sourceIndices, targetIndex);
+            }
+        }
+
+        public void SortPlaylistSongs(SortMethod method)
+        {
+            switch (method)
+            {
+                case SortMethod.Alphabetical:
+                    PlaylistSongs.Sort((x, y) => x.Title.CompareTo(y.Title));
+                    break;
+                case SortMethod.Random:
+                    PlaylistSongs.Shuffle();
+                    break;
+                case SortMethod.MAX:
+                default:
+                    throw new ArgumentException($"Unexpected SortMethod: {method}");
+            }
+
+            ForceRenumbering();
+
+            SaveDBChanges();
+
+            foreach (IPlaylistUpdateListener listener in GetValidListeners())
+            {
+                listener.Rebuild(PlaylistSongs);
+
+                if (CurrentIndex != -1)
+                {
+                    listener.MarkIndex(CurrentIndex);
+                }
+
+                if (LastRecording != null)
+                {
+                    listener.MarkRecording(LastRecording);
+                }
             }
         }
 

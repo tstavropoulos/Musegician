@@ -78,6 +78,7 @@ namespace Musegician.Player
                     _audioSessionControl = new AudioSessionControl(_audioClient);
                     _audioSessionControl.SimpleVolumeChanged += AudioSessionControl_SimpleVolumeChanged;
 
+
                     Volume = _simpleAudioVolume.MasterVolume;
                     Muted = _simpleAudioVolume.IsMuted;
                 }

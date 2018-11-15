@@ -1,246 +1,253 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using TASAgency.Math;
 
-/// <summary>
-/// An unstable-sort set structure that acts as a select-without-replace bag.
-/// </summary>
-[Serializable]
-public class DepletableBag<T> : IDepletable<T>
+namespace TASAgency.Collections.Generic
 {
-    protected List<T> values;
-    protected int availableCount;
-
-    Random randomizer = null;
-
-    public DepletableBag(Random randomizer = null)
+    /// <summary>
+    /// An unstable-sort set structure that acts as a select-without-replace bag.
+    /// </summary>
+    [Serializable]
+    public class DepletableBag<T> : IDepletable<T>
     {
-        values = new List<T>();
-        availableCount = 0;
+        protected List<T> values;
+        protected int availableCount;
 
-        if (randomizer == null)
+        Random _randomizer = null;
+
+        Random Randomizer => _randomizer ?? ThreadSafeRandom.Rand;
+
+        public DepletableBag(Random randomizer = null)
         {
-            randomizer = new Random();
+            values = new List<T>();
+            availableCount = 0;
+
+            if (randomizer == null)
+            {
+                randomizer = new Random();
+            }
+
+            _randomizer = randomizer;
         }
 
-        this.randomizer = randomizer;
-    }
-
-    public DepletableBag(IEnumerable<T> values, bool autoRefill = false, Random randomizer = null)
-    {
-        this.values = new List<T>(values);
-        AutoRefill = autoRefill;
-        availableCount = this.values.Count;
-
-        this.randomizer = randomizer;
-    }
-
-    #region IDepletable<T>
-
-    public bool AutoRefill { get; set; }
-    public int TotalCount => values.Count;
-
-    public T PopNext()
-    {
-        if (availableCount == 0)
+        public DepletableBag(IEnumerable<T> values, bool autoRefill = false, Random randomizer = null)
         {
-            if (AutoRefill)
-            {
-                availableCount = values.Count;
-            }
-            else
-            {
-                Console.WriteLine("Bag is empty and you tried to pull out an element.");
-                return default;
-            }
+            this.values = new List<T>(values);
+            AutoRefill = autoRefill;
+            availableCount = this.values.Count;
+
+            _randomizer = randomizer;
         }
 
-        int index = randomizer.Next(0, availableCount);
-        T temp = values[index];
+        #region IDepletable<T>
 
-        //Swap the position of the highest available value with the randomly chosen index.
-        values[index] = values[availableCount - 1];
-        values[availableCount - 1] = temp;
+        public bool AutoRefill { get; set; }
+        public int TotalCount => values.Count;
 
-        //Decrement availableCount. Now that we have swapped those values,
-        //all unusedValues will be below unusedCount.
-        availableCount--;
-
-        //return our chosen value.
-        return temp;
-    }
-
-    public bool TryPopNext(out T value)
-    {
-        if (availableCount == 0)
+        public T PopNext()
         {
-            if (AutoRefill)
+            if (availableCount == 0)
             {
-                availableCount = values.Count;
+                if (AutoRefill)
+                {
+                    availableCount = values.Count;
+                }
+                else
+                {
+                    Console.WriteLine("Bag is empty and you tried to pull out an element.");
+                    return default;
+                }
             }
-            else
+
+            int index = _randomizer.Next(0, availableCount);
+            T temp = values[index];
+
+            //Swap the position of the highest available value with the randomly chosen index.
+            values[index] = values[availableCount - 1];
+            values[availableCount - 1] = temp;
+
+            //Decrement availableCount. Now that we have swapped those values,
+            //all unusedValues will be below unusedCount.
+            availableCount--;
+
+            //return our chosen value.
+            return temp;
+        }
+
+        public bool TryPopNext(out T value)
+        {
+            if (availableCount == 0)
             {
-                value = default;
+                if (AutoRefill)
+                {
+                    availableCount = values.Count;
+                }
+                else
+                {
+                    value = default;
+                    return false;
+                }
+            }
+
+            int index = _randomizer.Next(0, availableCount);
+            value = values[index];
+
+            //Swap the position of the highest available value with the randomly chosen index.
+            values[index] = values[availableCount - 1];
+            values[availableCount - 1] = value;
+
+            //Decrement availableCount. Now that we have swapped those values,
+            //all unusedValues will be below unusedCount.
+            availableCount--;
+
+            //return our chosen value.
+            return true;
+        }
+
+        /// <summary>
+        /// Fills the bag back up.
+        /// </summary>
+        public void Reset()
+        {
+            availableCount = values.Count;
+        }
+
+        public bool DepleteValue(T value)
+        {
+            const int NOT_FOUND = -1;
+            int index = NOT_FOUND;
+
+            for (int i = 0; i < availableCount; i++)
+            {
+                if (values[i].Equals(value))
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index == NOT_FOUND)
+            {
                 return false;
             }
+
+            T temp = values[index];
+
+            values[index] = values[availableCount - 1];
+            values[availableCount - 1] = temp;
+
+            availableCount--;
+
+            return true;
         }
 
-        int index = randomizer.Next(0, availableCount);
-        value = values[index];
-
-        //Swap the position of the highest available value with the randomly chosen index.
-        values[index] = values[availableCount - 1];
-        values[availableCount - 1] = value;
-
-        //Decrement availableCount. Now that we have swapped those values,
-        //all unusedValues will be below unusedCount.
-        availableCount--;
-
-        //return our chosen value.
-        return true;
-    }
-
-    /// <summary>
-    /// Fills the bag back up.
-    /// </summary>
-    public void Reset()
-    {
-        availableCount = values.Count;
-    }
-
-    public bool DepleteValue(T value)
-    {
-        const int NOT_FOUND = -1;
-        int index = NOT_FOUND;
-
-        for (int i = 0; i < availableCount; i++)
+        public bool DepleteAllValue(T value)
         {
-            if (values[i].Equals(value))
+            bool success = false;
+
+            while (DepleteValue(value))
             {
-                index = i;
-                break;
+                success = true;
+            }
+
+            return success;
+        }
+
+        public bool ContainsAnywhere(T value) => values.Contains(value);
+        public IList<T> GetAvailable() => values.GetRange(0, availableCount);
+
+        public void CopyAllTo(T[] array, int arrayIndex)
+        {
+            values.CopyTo(
+                index: 0,
+                array: array,
+                arrayIndex: arrayIndex,
+                count: System.Math.Min(values.Count, array.Length - arrayIndex));
+        }
+
+        public void AddRange(IEnumerable<T> values)
+        {
+            foreach (T value in values)
+            {
+                Add(value);
             }
         }
 
-        if (index == NOT_FOUND)
+        #endregion IDepletable<T>
+        #region ICollection<T>
+
+        public int Count => availableCount;
+
+        bool ICollection<T>.IsReadOnly => false;
+
+        public void Add(T value)
         {
+            if (availableCount < values.Count)
+            {
+                values.Add(values[availableCount]);
+                values[availableCount] = value;
+            }
+            else
+            {
+                values.Add(value);
+            }
+            availableCount++;
+        }
+
+        public void Clear()
+        {
+            values.Clear();
+            availableCount = 0;
+        }
+
+        public bool Contains(T value)
+        {
+            for (int i = 0; i < availableCount; i++)
+            {
+                if (values[i].Equals(value))
+                {
+                    return true;
+                }
+            }
+
             return false;
         }
 
-        T temp = values[index];
-
-        values[index] = values[availableCount - 1];
-        values[availableCount - 1] = temp;
-
-        availableCount--;
-
-        return true;
-    }
-
-    public bool DepleteAllValue(T value)
-    {
-        bool success = false;
-
-        while (DepleteValue(value))
+        public void CopyTo(T[] dest, int destIndex)
         {
-            success = true;
+            values.CopyTo(
+                index: 0,
+                array: dest,
+                arrayIndex: destIndex,
+                count: System.Math.Min(availableCount, dest.Length - destIndex));
         }
 
-        return success;
-    }
-
-    public bool ContainsAnywhere(T value) => values.Contains(value);
-    public IList<T> GetAvailable() => values.GetRange(0, availableCount);
-
-    public void CopyAllTo(T[] array, int arrayIndex)
-    {
-        values.CopyTo(
-            index: 0,
-            array: array,
-            arrayIndex: arrayIndex,
-            count: Math.Min(values.Count, array.Length - arrayIndex));
-    }
-
-    public void AddRange(IEnumerable<T> values)
-    {
-        foreach (T value in values)
+        public bool Remove(T item)
         {
-            Add(value);
-        }
-    }
+            int index = values.IndexOf(item);
 
-    #endregion IDepletable<T>
-    #region ICollection<T>
-
-    public int Count => availableCount;
-
-    bool ICollection<T>.IsReadOnly => false;
-
-    public void Add(T value)
-    {
-        if (availableCount < values.Count)
-        {
-            values.Add(values[availableCount]);
-            values[availableCount] = value;
-        }
-        else
-        {
-            values.Add(value);
-        }
-        availableCount++;
-    }
-
-    public void Clear()
-    {
-        values.Clear();
-        availableCount = 0;
-    }
-
-    public bool Contains(T value)
-    {
-        for (int i = 0; i < availableCount; i++)
-        {
-            if (values[i].Equals(value))
+            if (index > -1)
             {
-                return true;
-            }
-        }
+                values.RemoveAt(index);
 
-        return false;
-    }
+                if (index < availableCount)
+                {
+                    availableCount--;
+                }
 
-    public void CopyTo(T[] dest, int destIndex)
-    {
-        values.CopyTo(
-            index: 0,
-            array: dest,
-            arrayIndex: destIndex,
-            count: Math.Min(availableCount, dest.Length - destIndex));
-    }
-
-    public bool Remove(T item)
-    {
-        int index = values.IndexOf(item);
-
-        if (index > -1)
-        {
-            values.RemoveAt(index);
-
-            if (index < availableCount)
-            {
-                availableCount--;
             }
 
+            return index != -1;
         }
 
-        return index != -1;
+        #endregion ICollection<T>
+        #region IEnumerable<T>
+
+        public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)values).GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)values).GetEnumerator();
+
+        #endregion IEnumerable<T>
     }
 
-    #endregion ICollection<T>
-    #region IEnumerable<T>
-
-    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)values).GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)values).GetEnumerator();
-
-    #endregion IEnumerable<T>
 }

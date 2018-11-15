@@ -62,6 +62,10 @@
         <MenuItem Header="_Playlist">
           <MenuItem Header="_Save Playlist" Click="Menu_SavePlaylist"/>
           <MenuItem Header="_Load Playlist" Click="Menu_LoadPlaylist"/>
+          <MenuItem Header="Sor_t Playlist">
+            <MenuItem Header="_Alphabetical" Click="Menu_SortPlaylist_Alpha"/>
+            <MenuItem Header="_Shuffle" Click="Menu_SortPlaylist_Shuffle"/>
+          </MenuItem>
           <Separator/>
           <MenuItem Header="Shu_ffle Playlist"
                     IsCheckable="True"

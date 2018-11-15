@@ -59,6 +59,13 @@ namespace Musegician
         private void Menu_LoadPlaylist(object sender, RoutedEventArgs e) => playlistToolbar.Toolbar_LoadPlaylist(sender, e);
         private void Menu_SavePlaylist(object sender, RoutedEventArgs e) => playlistToolbar.Toolbar_SavePlaylist(sender, e);
 
+
+        private void Menu_SortPlaylist_Alpha(object sender, RoutedEventArgs e) => 
+            Playlist.PlaylistManager.Instance.SortPlaylistSongs(Playlist.SortMethod.Alphabetical);
+
+        private void Menu_SortPlaylist_Shuffle(object sender, RoutedEventArgs e) =>
+            Playlist.PlaylistManager.Instance.SortPlaylistSongs(Playlist.SortMethod.Random);
+
         private void Menu_CondensedView(object sender, RoutedEventArgs e) => SwapToWindow(new TinyPlayer.TinyPlayer());
         private void Menu_MusicDriller(object sender, RoutedEventArgs e) => SwapToWindow(new Driller.DrillerWindow());
 
@@ -167,5 +174,6 @@ namespace Musegician
         private Window GetWindow(object sender) => ((sender as FrameworkElement).TemplatedParent as Window);
 
         #endregion Helper Methods
+
     }
 }

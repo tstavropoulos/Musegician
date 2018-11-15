@@ -632,11 +632,11 @@ namespace Musegician.Playlist
 
         void IPlaylistUpdateListener.RemoveIndices(IEnumerable<int> indices)
         {
-            List<int> indexCopy = new List<int>(indices);
+            List<int> reverseSortedIndexCopy = new List<int>(indices);
 
-            indexCopy.Sort((a, b) => b.CompareTo(a));
+            reverseSortedIndexCopy.Sort((a, b) => b.CompareTo(a));
 
-            foreach (int index in indexCopy)
+            foreach (int index in reverseSortedIndexCopy)
             {
                 _playlistTree.PlaylistViewModels.RemoveAt(index);
             }
