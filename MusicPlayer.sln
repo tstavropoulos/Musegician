@@ -5,6 +5,7 @@ VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musegician", "MusicPlayer\Musegician.csproj", "{ECA191D8-A68D-438C-A94A-5958D7D83834}"
 	ProjectSection(ProjectDependencies) = postProject
+		{14D2843A-B10E-4357-8F7C-534287695F33} = {14D2843A-B10E-4357-8F7C-534287695F33}
 		{2C4CF582-73D3-4736-9040-78817A7B26A4} = {2C4CF582-73D3-4736-9040-78817A7B26A4}
 	EndProjectSection
 EndProject
@@ -13,6 +14,8 @@ EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "MusegicianBootstrapperInstaller", "MusegicianBootstrapperInstaller\MusegicianBootstrapperInstaller.wixproj", "{53C1B044-0E1B-4213-A900-A254A8DE5976}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "taglib-sharp", "taglib-sharp\src\taglib-sharp.csproj", "{2C4CF582-73D3-4736-9040-78817A7B26A4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NVorbis", "NVorbis\NVorbis\NVorbis.csproj", "{14D2843A-B10E-4357-8F7C-534287695F33}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -80,6 +83,22 @@ Global
 		{2C4CF582-73D3-4736-9040-78817A7B26A4}.Release|x64.Build.0 = Release|Any CPU
 		{2C4CF582-73D3-4736-9040-78817A7B26A4}.Release|x86.ActiveCfg = Release|Any CPU
 		{2C4CF582-73D3-4736-9040-78817A7B26A4}.Release|x86.Build.0 = Release|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Debug|ARM.Build.0 = Debug|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Debug|x64.Build.0 = Debug|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Debug|x86.Build.0 = Debug|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Release|ARM.ActiveCfg = Release|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Release|ARM.Build.0 = Release|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Release|x64.ActiveCfg = Release|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Release|x64.Build.0 = Release|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Release|x86.ActiveCfg = Release|Any CPU
+		{14D2843A-B10E-4357-8F7C-534287695F33}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

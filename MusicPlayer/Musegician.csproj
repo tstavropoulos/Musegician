@@ -156,6 +156,7 @@
     <Compile Include="AlbumArtPicker\AlbumViewModel.cs" />
     <Compile Include="AlbumArtPicker\IAlbumArtPickerRequestHandler.cs" />
     <Compile Include="AlbumArtPicker\SelectorViewModel.cs" />
+    <Compile Include="AudioUtilities\NVorbisSource.cs" />
     <Compile Include="AudioUtilities\SpatializerStream.cs" />
     <Compile Include="AudioUtilities\SpectralPowerStream.cs" />
     <Compile Include="Core\DBCommands\PlaylistCommands.cs" />
@@ -624,6 +625,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NVorbis\NVorbis\NVorbis.csproj">
+      <Project>{14d2843a-b10e-4357-8f7c-534287695f33}</Project>
+      <Name>NVorbis</Name>
+    </ProjectReference>
     <ProjectReference Include="..\taglib-sharp\src\taglib-sharp.csproj">
       <Project>{2c4cf582-73d3-4736-9040-78817a7b26a4}</Project>
       <Name>taglib-sharp</Name>

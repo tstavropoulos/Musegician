@@ -627,7 +627,7 @@ namespace Musegician.Player
 
             _spatializer = null;
             _equalizer = null;
-
+            
             ISampleSource sampleSource = CodecFactory.Instance.GetCodec(playData.recording.Filename)
                 .ToSampleSource()
                 .ToStereo();

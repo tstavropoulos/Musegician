@@ -5,6 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using CSCore;
+using CSCore.Codecs;
+using Musegician.Sources;
 
 namespace Musegician
 {
@@ -13,6 +16,9 @@ namespace Musegician
         [STAThread]
         static void Main()
         {
+            //Register our custom ogg reader
+            CodecFactory.Instance.Register("ogg-vorbis", new CodecFactoryEntry(s => new NVorbisSource(s).ToWaveSource(), ".ogg"));
+
             using (FileManager.Instance = new FileManager())
             using (Player.MusicManager.Instance = new Player.MusicManager())
             using (KeyboardHook hook = new KeyboardHook(Player.MusicManager.GetHookKeys()))
