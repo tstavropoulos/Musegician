@@ -644,14 +644,20 @@ namespace Musegician.Player
                 sampleSource = sampleSource.AppendSource(CSCoreEq.Create10BandEqualizer, out _equalizer);
             }
 
-
             if (sampleSource.WaveFormat.SampleRate >= 16_000)
             {
                 sampleSource = sampleSource.AppendSource(
                     SpatializerStream.CreateSpatializerStream,
                     out _spatializer);
-            }
 
+                PhaseVocoderStream phaseStream;
+
+                sampleSource = sampleSource.AppendSource(
+                    PhaseVocoderStream.CreatePhaseVocodedStream,
+                    out phaseStream);
+
+                phaseStream.Speed = 0.95f;
+            }
 
             _waveSource = sampleSource.ToWaveSource();
 
@@ -680,6 +686,8 @@ namespace Musegician.Player
                 Latency = 100,
                 Device = Device
             };
+
+            
 
             _soundOut.Initialize(_waveSource);
             _soundOut.Stopped += SongFinished;
@@ -1028,7 +1036,7 @@ namespace Musegician.Player
                     break;
                 case KeyboardAction.MAX:
                 default:
-                    throw new Exception("Unexpected KeyboardAction: " + action);
+                    throw new Exception($"Unexpected KeyboardAction: {action}");
             }
         }
 

@@ -157,6 +157,7 @@
     <Compile Include="AlbumArtPicker\IAlbumArtPickerRequestHandler.cs" />
     <Compile Include="AlbumArtPicker\SelectorViewModel.cs" />
     <Compile Include="AudioUtilities\NVorbisSource.cs" />
+    <Compile Include="AudioUtilities\PhaseVocoderStream.cs" />
     <Compile Include="AudioUtilities\SpatializerStream.cs" />
     <Compile Include="AudioUtilities\SpectralPowerStream.cs" />
     <Compile Include="Core\DBCommands\PlaylistCommands.cs" />
