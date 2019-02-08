@@ -306,7 +306,7 @@ namespace Musegician.Player
                     return "Musegician";
                 }
 
-                return "Musegician: " + SongLabel;
+                return $"Musegician: {SongLabel}";
             }
         }
 
@@ -542,7 +542,7 @@ namespace Musegician.Player
                         }
                         break;
                     default:
-                        throw new Exception("Unexpeted playbackState: " + _soundOut.PlaybackState);
+                        throw new Exception($"Unexpeted playbackState: {_soundOut.PlaybackState}");
                 }
             }
 
@@ -650,13 +650,13 @@ namespace Musegician.Player
                     SpatializerStream.CreateSpatializerStream,
                     out _spatializer);
 
-                PhaseVocoderStream phaseStream;
+                //PhaseVocoderStream phaseStream;
 
-                sampleSource = sampleSource.AppendSource(
-                    PhaseVocoderStream.CreatePhaseVocodedStream,
-                    out phaseStream);
+                //sampleSource = sampleSource.AppendSource(
+                //    PhaseVocoderStream.CreatePhaseVocodedStream,
+                //    out phaseStream);
 
-                phaseStream.Speed = 0.95f;
+                //phaseStream.Speed = 1.0f;
             }
 
             _waveSource = sampleSource.ToWaveSource();
@@ -812,7 +812,7 @@ namespace Musegician.Player
                     break;
                 case PlayerState.MAX:
                 default:
-                    throw new Exception("Unexpected MusicManager State: " + State);
+                    throw new Exception($"Unexpected MusicManager State: {State}");
             }
         }
 
@@ -839,7 +839,7 @@ namespace Musegician.Player
                     break;
                 case PlayerState.MAX:
                 default:
-                    throw new Exception("Unexpected MusicManager State: " + State);
+                    throw new Exception($"Unexpected MusicManager State: {State}");
             }
         }
 
@@ -859,7 +859,7 @@ namespace Musegician.Player
                     break;
                 case PlayerState.MAX:
                 default:
-                    throw new Exception("Unexpected MusicManager State: " + State);
+                    throw new Exception($"Unexpected MusicManager State: {State}");
             }
         }
 
@@ -884,7 +884,7 @@ namespace Musegician.Player
                     break;
                 case PlayerState.MAX:
                 default:
-                    throw new Exception("Unexpected MusicManager State: " + State);
+                    throw new Exception($"Unexpected MusicManager State: {State}");
             }
         }
 

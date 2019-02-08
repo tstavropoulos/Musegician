@@ -26,27 +26,27 @@ namespace Musegician.AudioUtilities
         /// </summary>
         private float[] cachedSampleBuffer;
 
-        private int _baseFFTSamples;
-        private int _sampleOffset;
-
-        private Complex[,] phasors;
-        private Complex[][] inputBuffers;
-        private Complex[][] expandedBuffers;
-        private int[] windowCounts;
-        private int[] inputWindowPowers;
-        private int[] outputWindowPowers;
-        private int[] freqIndices;
-
-
-        private float _speed = 1f;
+        private readonly int _halfFFTSamples;
+        private readonly int _baseFFTSamples;
+        private readonly int _expandedFFTSamples;
 
         private readonly int _channels;
 
-        private const int BASE_FFT_SIZE = 12;
+        private readonly int _stepSize;
+        private readonly int _overlap;
+
+        private Complex[] phasors;
+        private Complex[][] inputBuffers;
+        private Complex[] fftBuffer;
+        private Complex[] ifftBuffer;
+        private float[] outputAccumulation;
+
+        private float _speed = 1f;
+
+
+        private const int BASE_FFT_SIZE = 11;
         private const int EXPANDED_FFT_SIZE = BASE_FFT_SIZE + 1;
-        private const int PARTITION_COUNT = BASE_FFT_SIZE - 3;
-        private const int INPUT_FFT_SIZE = 4;
-        private const int INPUT_SIZE = 16;
+        private const int OVERLAP_FACTOR = 32;
 
         private int _bufferIndex = 0;
         private int _bufferCount = 0;
@@ -88,47 +88,35 @@ namespace Musegician.AudioUtilities
             {
                 throw new ArgumentNullException("source");
             }
-            
+
             _channels = source.WaveFormat.Channels;
 
-            lock (_bufferLock)
+            _baseFFTSamples = (int)Math.Pow(2, BASE_FFT_SIZE);
+            _expandedFFTSamples = 2 * _baseFFTSamples;
+            _halfFFTSamples = _baseFFTSamples / 2;
+
+            _stepSize = _baseFFTSamples / OVERLAP_FACTOR;
+            _overlap = _baseFFTSamples - _stepSize;
+
+            localSampleBuffer = new float[_channels * _stepSize];
+            cachedSampleBuffer = new float[2 * _channels * _stepSize];
+
+            phasors = new Complex[_halfFFTSamples + 1];
+            inputBuffers = new Complex[_channels][];
+            outputAccumulation = new float[_channels * _expandedFFTSamples];
+
+            fftBuffer = new Complex[_baseFFTSamples];
+            ifftBuffer = new Complex[_expandedFFTSamples];
+
+            for (int i = 0; i < _channels; i++)
             {
-                _baseFFTSamples = (int)Math.Pow(2, BASE_FFT_SIZE);
+                inputBuffers[i] = new Complex[_baseFFTSamples];
+            }
 
-                int readSamples = _channels * _baseFFTSamples;
-
-                localSampleBuffer = new float[readSamples];
-                cachedSampleBuffer = new float[2 * readSamples];
-
-                phasors = new Complex[PARTITION_COUNT, 4];
-
-                inputBuffers = new Complex[PARTITION_COUNT][];
-                expandedBuffers = new Complex[PARTITION_COUNT][];
-                windowCounts = new int[PARTITION_COUNT];
-                inputWindowPowers = new int[PARTITION_COUNT];
-                outputWindowPowers = new int[PARTITION_COUNT];
-                freqIndices = new int[PARTITION_COUNT + 1];
-                freqIndices[0] = 4;
-
-                for (int i = 0; i < PARTITION_COUNT; i++)
-                {
-                    inputWindowPowers[i] = BASE_FFT_SIZE - i;
-                    outputWindowPowers[i] = EXPANDED_FFT_SIZE - i;
-
-                    freqIndices[i + 1] = (int)Math.Pow(2, 3 + i);
-                    inputBuffers[i] = new Complex[(int)Math.Pow(2, inputWindowPowers[i])];
-                    expandedBuffers[i] = new Complex[(int)Math.Pow(2, outputWindowPowers[i])];
-
-                    windowCounts[i] = (int)Math.Pow(2, i);
-
-                    for (int j = 0; j < 4; j++)
-                    {
-                        //Initialize phasors to 2 so that it doubles the amplitudes on copy and rotation
-                        phasors[i, j] = new Complex(2f, 0f);
-                    }
-                }
-
-                _sampleOffset = (int)((INPUT_SIZE / 2) * (Math.Pow(2, EXPANDED_FFT_SIZE - BASE_FFT_SIZE) - 1));
+            for (int j = 0; j <= _halfFFTSamples; j++)
+            {
+                //Initialize phasors to 2 so that it doubles the amplitudes on copy and rotation
+                phasors[j] = new Complex(2f, 0f);
             }
         }
 
@@ -150,7 +138,7 @@ namespace Musegician.AudioUtilities
             //Copy samples left from prior pulls
             int samplesWritten = ReadBody(buffer, offset, count);
 
-            while (count > samplesWritten)
+            while (samplesWritten < count)
             {
                 int read = base.Read(localSampleBuffer, 0, localSampleBuffer.Length);
 
@@ -167,68 +155,87 @@ namespace Musegician.AudioUtilities
 
                 lock (_bufferLock)
                 {
+                    //We have used all of our cachedSamples, so clear them
                     Array.Clear(cachedSampleBuffer, 0, cachedSampleBuffer.Length);
 
-                    float requestedOutputSamples = _baseFFTSamples / Speed;
-                    int smallestWindowOutputSamples = (int)Math.Round(requestedOutputSamples / windowCounts[PARTITION_COUNT - 1]);
-                    int outputSampleCount = windowCounts[PARTITION_COUNT - 1] * smallestWindowOutputSamples;
-                    _bufferCount = _channels * outputSampleCount;
+                    int outputSamples = (int)(_baseFFTSamples / Speed);
+                    int realStep = outputSamples / OVERLAP_FACTOR;
+
+                    float effectiveSpeed = _baseFFTSamples / (float)outputSamples;
                     _bufferIndex = 0;
+                    _bufferCount = _channels * realStep;
 
-                    int additionalSamples = outputSampleCount - _baseFFTSamples;
-
-                    float effectiveSpeed = _baseFFTSamples / (float)outputSampleCount;
-                    for (int partition = 0; partition < PARTITION_COUNT; partition++)
+                    for (int channel = 0; channel < _channels; channel++)
                     {
-                        int inputSamplesPerWindow = _baseFFTSamples / windowCounts[partition];
-                        int outputSamplesPerWindow = outputSampleCount / windowCounts[partition];
-                        int additionalSamplesPerWindow = outputSamplesPerWindow - inputSamplesPerWindow;
-                        for (int window = 0; window < windowCounts[partition]; window++)
+                        //Slide input samples over
+                        Array.Copy(
+                            sourceArray: inputBuffers[channel],
+                            sourceIndex: _stepSize,
+                            destinationArray: inputBuffers[channel],
+                            destinationIndex: 0,
+                            length: _overlap);
+
+                        //Copy into buffer
+                        for (int i = 0; i < localSampleBuffer.Length / _channels; i++)
                         {
-                            int inputStartSample = _channels * window * inputSamplesPerWindow;
-                            int outputStartSample = _channels * window * outputSamplesPerWindow;
-                            for (int channel = 0; channel < _channels; channel++)
-                            {
-                                //Copy to buffer
-                                for (int i = 0; i < inputBuffers[partition].Length; i++)
-                                {
-                                    inputBuffers[partition][i].Real = 
-                                        Hamming(i, inputBuffers[partition].Length) *
-                                        localSampleBuffer[inputStartSample + _channels * i + channel];
-
-                                    inputBuffers[partition][i].Imaginary = 0f;
-                                }
-
-                                //FFT
-                                FastFourierTransformation.Fft(inputBuffers[partition], inputWindowPowers[partition], FftMode.Forward);
-
-                                //Clear IFFT Buffer
-                                Array.Clear(expandedBuffers[partition], 0, expandedBuffers[partition].Length);
-
-                                //Copy values into IFFT Buffer
-                                for (int i = 0; i < 4; i++)
-                                {
-                                    expandedBuffers[partition][2*(i + 4)] = inputBuffers[partition][i + 4].Times(phasors[partition, i]);
-                                }
-
-                                //IFFT
-                                FastFourierTransformation.Fft(expandedBuffers[partition], outputWindowPowers[partition], FftMode.Backward);
-
-                                //Accumualte the window samples
-                                for (int i = 0; i < outputSamplesPerWindow; i++)
-                                {
-                                    cachedSampleBuffer[outputStartSample + _channels * i + channel] += expandedBuffers[partition][i].Real;
-                                }
-                            }
-
-                            //Advance phasor
-                            for (int i = 0; i < 4; i++)
-                            {
-                                phasors[partition, i] = phasors[partition, i].Times(GetPhasor(2*(4 + i), effectiveSpeed));
-                            }
+                            inputBuffers[channel][_overlap + i].Real = localSampleBuffer[_channels * i + channel];
+                            inputBuffers[channel][i].Imaginary = 0f;
                         }
 
+                        //Copy and Window into fftbuffer
+                        for (int i = 0; i < _halfFFTSamples; i++)
+                        {
+                            fftBuffer[i].Real = inputBuffers[channel][i].Real * Hamming(i, inputBuffers[channel].Length);
+                            fftBuffer[i].Imaginary = 0f;
+                        }
+
+                        //Clear negatives
+                        Array.Clear(fftBuffer, _halfFFTSamples, _halfFFTSamples);
+
+                        //FFT
+                        FastFourierTransformation.Fft(fftBuffer, BASE_FFT_SIZE, FftMode.Forward);
+
+                        //Clear IFFT Buffer
+                        Array.Clear(ifftBuffer, 0, ifftBuffer.Length);
+
+                        //Copy values into IFFT Buffer
+                        for (int i = 0; i <= _halfFFTSamples; i++)
+                        {
+                            ifftBuffer[2 * i] = fftBuffer[i].Times(phasors[i]);
+                        }
+
+                        //IFFT
+                        FastFourierTransformation.Fft(ifftBuffer, EXPANDED_FFT_SIZE, FftMode.Backward);
+
+                        //Accumualte the window samples
+                        for (int i = 0; i < _expandedFFTSamples; i++)
+                        {
+                            outputAccumulation[_channels * i + channel] += Hamming(i, _expandedFFTSamples) * ifftBuffer[i].Real;
+                        }
                     }
+
+                    //Advance phasor
+                    for (int i = 0; i <= _halfFFTSamples; i++)
+                    {
+                        phasors[i] = phasors[i].Times(GetPhasor(i, effectiveSpeed));
+                    }
+
+                    //Copy output samples to output buffer
+                    Array.Copy(
+                        sourceArray: outputAccumulation,
+                        destinationArray: cachedSampleBuffer,
+                        length: _bufferCount);
+
+                    //Slide down output accumulation
+                    Array.Copy(
+                        sourceArray: outputAccumulation,
+                        sourceIndex: _bufferCount,
+                        destinationArray: outputAccumulation,
+                        destinationIndex: 0,
+                        length: outputAccumulation.Length - _bufferCount);
+
+                    //Clear empty output accumulation region
+                    Array.Clear(outputAccumulation, outputAccumulation.Length - _bufferCount, _bufferCount);
                 }
 
                 samplesWritten += ReadBody(buffer, offset + samplesWritten, count - samplesWritten);
@@ -257,16 +264,19 @@ namespace Musegician.AudioUtilities
             lock (_bufferLock)
             {
                 //Reset Phasors
-                for (int i = 0; i < PARTITION_COUNT; i++)
+                for (int i = 0; i < _channels; i++)
                 {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        //Initialize phasors to 2 so that it doubles the amplitudes on copy and rotation
-                        phasors[i, j] = new Complex(2f, 0f);
-                    }
+                    Array.Clear(inputBuffers[i], 0, _baseFFTSamples);
+                }
+
+                for (int j = 0; j <= _halfFFTSamples; j++)
+                {
+                    //Initialize phasors to 2 so that it doubles the amplitudes on copy and rotation
+                    phasors[j] = new Complex(2f, 0f);
                 }
 
                 //Clear output cache
+                Array.Clear(outputAccumulation, 0, outputAccumulation.Length);
                 Array.Clear(cachedSampleBuffer, 0, cachedSampleBuffer.Length);
             }
         }
@@ -294,7 +304,7 @@ namespace Musegician.AudioUtilities
             (index, width) => (float)(0.54 - 0.46 * Math.Cos((2 * Math.PI * index) / (width - 1)));
 
         private Complex GetPhasor(int freqSample, float speed) =>
-            GetRotator(-freqSample * 2 * (float)Math.PI * (1 - speed) / speed);
+            GetRotator(-freqSample * 2 * (float)Math.PI * (1 - speed) / (speed * OVERLAP_FACTOR));
 
         private Complex GetRotator(float theta) => new Complex((float)Math.Cos(theta), (float)Math.Sin(theta));
 
