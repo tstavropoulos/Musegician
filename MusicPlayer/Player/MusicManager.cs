@@ -39,6 +39,7 @@ namespace Musegician.Player
         private IWaveSource _waveSource;
         private CSCoreEq _equalizer;
         private SpatializerStream _spatializer;
+        private PhaseVocoderStream _phaseStream;
 
         #endregion Current Stream
         #region Audio System References
@@ -126,7 +127,6 @@ namespace Musegician.Player
                 if (_deviceIdentifier != value)
                 {
                     _deviceIdentifier = value;
-
                 }
             }
         }
@@ -466,6 +466,27 @@ namespace Musegician.Player
             remove => _RecordingStarted -= value;
         }
 
+        private float speed = 1.0f;
+        public float Speed
+        {
+            get => speed;
+            set
+            {
+                if (speed != value)
+                {
+                    speed = value;
+
+                    if (_phaseStream != null)
+                    {
+                        _phaseStream.Speed = value;
+                        _phaseStream.Enabled = speed < 1f;
+                    }
+
+                    OnPropertyChanged("Speed");
+                }
+            }
+        }
+
         #region Constructor
 
         public MusicManager()
@@ -627,7 +648,8 @@ namespace Musegician.Player
 
             _spatializer = null;
             _equalizer = null;
-            
+            _phaseStream = null;
+
             ISampleSource sampleSource = CodecFactory.Instance.GetCodec(playData.recording.Filename)
                 .ToSampleSource()
                 .ToStereo();
@@ -650,13 +672,14 @@ namespace Musegician.Player
                     SpatializerStream.CreateSpatializerStream,
                     out _spatializer);
 
-                //PhaseVocoderStream phaseStream;
 
-                //sampleSource = sampleSource.AppendSource(
-                //    PhaseVocoderStream.CreatePhaseVocodedStream,
-                //    out phaseStream);
 
-                //phaseStream.Speed = 1.0f;
+                sampleSource = sampleSource.AppendSource(
+                    PhaseVocoderStream.CreatePhaseVocodedStream,
+                    out _phaseStream);
+
+                _phaseStream.Speed = Speed;
+                _phaseStream.Enabled = Speed != 1.0f;
             }
 
             _waveSource = sampleSource.ToWaveSource();
@@ -687,7 +710,7 @@ namespace Musegician.Player
                 Device = Device
             };
 
-            
+
 
             _soundOut.Initialize(_waveSource);
             _soundOut.Stopped += SongFinished;
@@ -737,6 +760,12 @@ namespace Musegician.Player
             {
                 _spatializer.Dispose();
                 _spatializer = null;
+            }
+
+            if (_phaseStream != null)
+            {
+                _phaseStream.Dispose();
+                _phaseStream = null;
             }
         }
 
@@ -803,6 +832,7 @@ namespace Musegician.Player
                 case PlayerState.Stopped:
                     //Do Nothing
                     break;
+
                 case PlayerState.Playing:
                 case PlayerState.Paused:
                     //Stop
@@ -810,6 +840,7 @@ namespace Musegician.Player
                     NonFeedbackPosition = -1.0;
                     _soundOut.Stop();
                     break;
+
                 case PlayerState.MAX:
                 default:
                     throw new Exception($"Unexpected MusicManager State: {State}");
@@ -823,20 +854,24 @@ namespace Musegician.Player
                 case PlayerState.NotLoaded:
                     //Do Nothing
                     break;
+
                 case PlayerState.Playing:
                     //Pause
                     State = PlayerState.Paused;
                     _soundOut.Pause();
                     break;
+
                 case PlayerState.Paused:
                     //Play
                     State = PlayerState.Playing;
                     _soundOut.Play();
                     break;
+
                 case PlayerState.Stopped:
                     //Play last
                     PlaySong(lastPlay);
                     break;
+
                 case PlayerState.MAX:
                 default:
                     throw new Exception($"Unexpected MusicManager State: {State}");
@@ -852,11 +887,13 @@ namespace Musegician.Player
                 case PlayerState.Stopped:
                     //Do Nothing
                     break;
+
                 case PlayerState.Playing:
                     //Pause
                     State = PlayerState.Paused;
                     _soundOut.Pause();
                     break;
+
                 case PlayerState.MAX:
                 default:
                     throw new Exception($"Unexpected MusicManager State: {State}");
@@ -877,11 +914,13 @@ namespace Musegician.Player
                 case PlayerState.NotLoaded:
                     //Do nothing
                     break;
+
                 case PlayerState.Stopped:
                 case PlayerState.Playing:
                 case PlayerState.Paused:
                     _waveSource.SetPosition(TimeSpan.FromSeconds(time));
                     break;
+
                 case PlayerState.MAX:
                 default:
                     throw new Exception($"Unexpected MusicManager State: {State}");
@@ -909,30 +948,15 @@ namespace Musegician.Player
         {
             switch (key)
             {
-                case Key.Pause:
-                    return KeyboardAction.Pause;
+                case Key.Pause: return KeyboardAction.Pause;
                 case Key.Escape:
-                case Key.MediaStop:
-                    return KeyboardAction.Stop;
+                case Key.MediaStop: return KeyboardAction.Stop;
                 case Key.Space:
                 case Key.MediaPlayPause:
-                case Key.Play:
-                    return KeyboardAction.PlayFlipFlop;
-                /*
-                 * Disabling these - relying on the OS instead
-                case Key.VolumeMute:
-                    return KeyboardAction.Mute;
-                case Key.VolumeDown:
-                    return KeyboardAction.VolumeDown;
-                case Key.VolumeUp:
-                    return KeyboardAction.VolumeUp;
-                */
-                case Key.MediaNextTrack:
-                    return KeyboardAction.Next;
-                case Key.MediaPreviousTrack:
-                    return KeyboardAction.Back;
-                default:
-                    return KeyboardAction.None;
+                case Key.Play: return KeyboardAction.PlayFlipFlop;
+                case Key.MediaNextTrack: return KeyboardAction.Next;
+                case Key.MediaPreviousTrack: return KeyboardAction.Back;
+                default: return KeyboardAction.None;
             }
         }
 
@@ -1010,30 +1034,39 @@ namespace Musegician.Player
                 case KeyboardAction.None:
                     //Do nothing
                     return;
+
                 case KeyboardAction.PlayFlipFlop:
                     PlayPause();
                     break;
+
                 case KeyboardAction.Pause:
                     Pause();
                     break;
+
                 case KeyboardAction.Stop:
                     Stop();
                     break;
+
                 case KeyboardAction.Next:
                     Next();
                     break;
+
                 case KeyboardAction.Back:
                     Back();
                     break;
+
                 case KeyboardAction.Mute:
                     MuteUnMutePlayer();
                     break;
+
                 case KeyboardAction.VolumeUp:
                     VolumeUp();
                     break;
+
                 case KeyboardAction.VolumeDown:
                     VolumeDown();
                     break;
+
                 case KeyboardAction.MAX:
                 default:
                     throw new Exception($"Unexpected KeyboardAction: {action}");
@@ -1094,6 +1127,12 @@ namespace Musegician.Player
                     {
                         _spatializer.Dispose();
                         _spatializer = null;
+                    }
+
+                    if (_phaseStream != null)
+                    {
+                        _phaseStream.Dispose();
+                        _phaseStream = null;
                     }
 
                     if (_waveSource != null)

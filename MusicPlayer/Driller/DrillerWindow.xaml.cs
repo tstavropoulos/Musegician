@@ -48,6 +48,7 @@ namespace Musegician.Driller
         private void DrillerWindow_Unloaded(object sender, RoutedEventArgs e)
         {
             Player.MusicManager.Instance.PlayerStateChanged -= PlayerStateChanged;
+            Player.MusicManager.Instance.Speed = 1f;
 
             LoadPlaylistPopup.Opened -= PlaylistManControl.Popup_Opened;
             LoadPlaylistPopup.Closed -= PlaylistManControl.Popup_Closed;

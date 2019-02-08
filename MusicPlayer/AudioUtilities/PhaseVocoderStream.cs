@@ -78,6 +78,25 @@ namespace Musegician.AudioUtilities
             }
         }
 
+        private bool _enabled = true;
+        public bool Enabled
+        {
+            get => _enabled;
+            set
+            {
+                if (_enabled != value)
+                {
+                    if (value)
+                    {
+                        //Clear the buffers when we reenable it
+                        ClearBuffers();
+                    }
+
+                    _enabled = value;
+                }
+            }
+        }
+
         #endregion
         #region Constructor
 
@@ -128,10 +147,9 @@ namespace Musegician.AudioUtilities
 
         public override int Read(float[] buffer, int offset, int count)
         {
-            bool enabled = true;
-
-            if (!enabled)
+            if (!Enabled)
             {
+                //Passthrough when disabled
                 return base.Read(buffer, offset, count);
             }
 
@@ -249,7 +267,7 @@ namespace Musegician.AudioUtilities
             get => (long)Math.Ceiling(base.Position / Speed);
             set
             {
-                FlushBuffers();
+                ClearBuffers();
                 base.Position = Math.Min((long)Math.Floor(value * Speed), base.Length);
             }
         }
@@ -259,7 +277,7 @@ namespace Musegician.AudioUtilities
         #endregion SampleAggregatorBase Overrides
         #region Helper Methods
 
-        private void FlushBuffers()
+        private void ClearBuffers()
         {
             lock (_bufferLock)
             {

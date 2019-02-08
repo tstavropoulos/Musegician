@@ -83,6 +83,12 @@
         </DataTrigger>
       </Style.Triggers>
     </Style>
+
+    <Style x:Key="UIFontStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
+      <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
+      <Setter Property="TextAlignment" Value="Center"/>
+      <Setter Property="FontSize" Value="14"/>
+    </Style>
   </UserControl.Resources>
 
   <Grid Background="{StaticResource ButtonBackground}">
@@ -93,6 +99,7 @@
       <ColumnDefinition />
     </Grid.ColumnDefinitions>
     <Grid.RowDefinitions>
+      <RowDefinition />
       <RowDefinition />
       <RowDefinition />
       <RowDefinition />
@@ -144,5 +151,15 @@
     <Button ToolTip="Set Stop Marker" Grid.Column="4" Grid.Row="3" Margin="0"
             Click="OnSetStopClick"
             Content="↤" Style="{StaticResource PlayerButtons}"/>
+    
+    <!-- Row 4 -->
+    <StackPanel Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="5,2,0,2">
+      <TextBlock Text="⌛" VerticalAlignment="Center" Foreground="White"
+                   Style="{StaticResource UIFontStyle}"/>
+      <Slider Orientation="Horizontal" VerticalAlignment="Center" Width="100"
+                Minimum="0.5" Maximum="1.0"
+                LargeChange="0.1" SmallChange="0.02"
+                Value="{Binding Source={x:Static player:MusicManager.Instance}, Path=Speed, Mode=TwoWay}"/>
+    </StackPanel>
   </Grid>
 </UserControl>
