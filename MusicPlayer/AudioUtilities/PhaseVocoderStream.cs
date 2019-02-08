@@ -36,7 +36,7 @@ namespace Musegician.AudioUtilities
         private readonly int _overlap;
 
         private Complex[] phasors;
-        private Complex[][] inputBuffers;
+        private float[][] inputBuffers;
         private Complex[] fftBuffer;
         private Complex[] ifftBuffer;
         private float[] outputAccumulation;
@@ -121,7 +121,7 @@ namespace Musegician.AudioUtilities
             cachedSampleBuffer = new float[2 * _channels * _stepSize];
 
             phasors = new Complex[_halfFFTSamples + 1];
-            inputBuffers = new Complex[_channels][];
+            inputBuffers = new float[_channels][];
             outputAccumulation = new float[_channels * _expandedFFTSamples];
 
             fftBuffer = new Complex[_baseFFTSamples];
@@ -129,7 +129,7 @@ namespace Musegician.AudioUtilities
 
             for (int i = 0; i < _channels; i++)
             {
-                inputBuffers[i] = new Complex[_baseFFTSamples];
+                inputBuffers[i] = new float[_baseFFTSamples];
             }
 
             for (int j = 0; j <= _halfFFTSamples; j++)
@@ -194,17 +194,15 @@ namespace Musegician.AudioUtilities
                             length: _overlap);
 
                         //Copy new samples into buffer
-                        for (int i = 0; i < localSampleBuffer.Length / _channels; i++)
+                        for (int i = 0; i < _stepSize; i++)
                         {
-                            inputBuffers[channel][_overlap + i].Real = localSampleBuffer[_channels * i + channel];
-                            inputBuffers[channel][i].Imaginary = 0f;
+                            inputBuffers[channel][_overlap + i] = localSampleBuffer[_channels * i + channel];
                         }
 
                         //Copy and Window into fftbuffer
                         for (int i = 0; i < _baseFFTSamples; i++)
                         {
-                            fftBuffer[i].Real = inputBuffers[channel][i].Real * Hamming(i, _baseFFTSamples);
-                            fftBuffer[i].Imaginary = 0f;
+                            fftBuffer[i] = new Complex(inputBuffers[channel][i] * WindowInput(i, _baseFFTSamples));
                         }
 
                         //FFT
@@ -223,20 +221,15 @@ namespace Musegician.AudioUtilities
                         FastFourierTransformation.Fft(ifftBuffer, EXPANDED_FFT_SIZE, FftMode.Backward);
 
                         //Accumualte the window samples
-                        //for (int i = 0; i < outputSamples; i++)
-                        for (int i = 0; i < _expandedFFTSamples; i++)
+                        for (int i = 0; i < outputSamples; i++)
                         {
-                            //outputAccumulation[_channels * i + channel] += Hamming(i, _expandedFFTSamples) * ifftBuffer[i].Real;
-                            //outputAccumulation[_channels * i + channel] += Hamming(i, outputSamples) * ifftBuffer[i].Real;
-                            outputAccumulation[_channels * i + channel] += Hamming(i, _expandedFFTSamples) * ifftBuffer[i].Real;
-                            //outputAccumulation[_channels * i + channel] += ifftBuffer[i].Real;
+                            outputAccumulation[_channels * i + channel] += WindowOutput(i, outputSamples) * ifftBuffer[i].Real;
                         }
                     }
 
                     //Advance phasor
                     for (int i = 0; i <= _halfFFTSamples; i++)
                     {
-                        //phasors[i] = phasors[i].Times(GetPhasor(i, effectiveSpeed));
                         phasors[i] = phasors[i].Times(GetPhasor2(i, realStep - _stepSize));
                     }
 
@@ -320,13 +313,14 @@ namespace Musegician.AudioUtilities
 
         public delegate float WindowFunction(int index, int width);
 
-        public static readonly WindowFunction Hamming =
-            (index, width) => (float)(0.54 - 0.46 * Math.Cos((2 * Math.PI * index) / (width - 1)));
+        public static readonly WindowFunction Hamming = (index, width) => (float)(0.54 - 0.46 * Math.Cos((2.0 * Math.PI * index) / (width - 1)));
+        public static readonly WindowFunction Cosine = (index, width) => (float)(0.5 - 0.5 * Math.Cos((2.0 * Math.PI * index) / (width - 1)));
+        public static readonly WindowFunction Square = (index, width) => index >= 0 && index < width ? 1f : 0f;
 
-        //private Complex GetPhasor(int freqSample, float speed) =>
-        //    GetRotator(-freqSample * 2 * (float)Math.PI * (1 - speed) / (speed * OVERLAP_FACTOR));
-        private Complex GetPhasor2(int freqSample, int extraSamples) =>
-            GetRotator(-freqSample * 2f * (float)Math.PI * extraSamples / OVERLAP_FACTOR);
+        public static readonly WindowFunction WindowInput = Cosine;
+        public static readonly WindowFunction WindowOutput = Square;
+
+        private Complex GetPhasor2(int freqSample, int extraSamples) => GetRotator(-freqSample * extraSamples * 2f * (float)Math.PI / _baseFFTSamples);
 
         private Complex GetRotator(float theta) => new Complex((float)Math.Cos(theta), (float)Math.Sin(theta));
 
