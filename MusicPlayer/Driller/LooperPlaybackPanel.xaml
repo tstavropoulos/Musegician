@@ -8,7 +8,7 @@
              xmlns:player="clr-namespace:Musegician.Player"
              xmlns:equalizer="clr-namespace:Musegician.Equalizer"
              mc:Ignorable="d"
-             Height="100" d:DesignWidth="300"
+             Height="140" d:DesignWidth="300"
              x:Name="LooperPlaybackControl">
   <UserControl.Resources>
     <DataTemplate x:Key="UIFontButton" DataType="{x:Type sys:String}">
@@ -153,7 +153,7 @@
             Content="↤" Style="{StaticResource PlayerButtons}"/>
     
     <!-- Row 4 -->
-    <StackPanel Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="5,2,0,2">
+    <StackPanel Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="4" Orientation="Horizontal" Margin="5,2,0,2">
       <TextBlock Text="⌛" VerticalAlignment="Center" Foreground="White"
                    Style="{StaticResource UIFontStyle}"/>
       <Slider Orientation="Horizontal" VerticalAlignment="Center" Width="100"

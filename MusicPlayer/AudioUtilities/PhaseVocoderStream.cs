@@ -44,7 +44,7 @@ namespace Musegician.AudioUtilities
         private float _speed = 1f;
 
 
-        private const int BASE_FFT_SIZE = 11;
+        private const int BASE_FFT_SIZE = 12;
         private const int EXPANDED_FFT_SIZE = BASE_FFT_SIZE + 1;
         private const int OVERLAP_FACTOR = 32;
 
@@ -193,7 +193,7 @@ namespace Musegician.AudioUtilities
                             destinationIndex: 0,
                             length: _overlap);
 
-                        //Copy into buffer
+                        //Copy new samples into buffer
                         for (int i = 0; i < localSampleBuffer.Length / _channels; i++)
                         {
                             inputBuffers[channel][_overlap + i].Real = localSampleBuffer[_channels * i + channel];
@@ -201,14 +201,11 @@ namespace Musegician.AudioUtilities
                         }
 
                         //Copy and Window into fftbuffer
-                        for (int i = 0; i < _halfFFTSamples; i++)
+                        for (int i = 0; i < _baseFFTSamples; i++)
                         {
-                            fftBuffer[i].Real = inputBuffers[channel][i].Real * Hamming(i, inputBuffers[channel].Length);
+                            fftBuffer[i].Real = inputBuffers[channel][i].Real * Hamming(i, _baseFFTSamples);
                             fftBuffer[i].Imaginary = 0f;
                         }
-
-                        //Clear negatives
-                        Array.Clear(fftBuffer, _halfFFTSamples, _halfFFTSamples);
 
                         //FFT
                         FastFourierTransformation.Fft(fftBuffer, BASE_FFT_SIZE, FftMode.Forward);
@@ -226,16 +223,21 @@ namespace Musegician.AudioUtilities
                         FastFourierTransformation.Fft(ifftBuffer, EXPANDED_FFT_SIZE, FftMode.Backward);
 
                         //Accumualte the window samples
+                        //for (int i = 0; i < outputSamples; i++)
                         for (int i = 0; i < _expandedFFTSamples; i++)
                         {
+                            //outputAccumulation[_channels * i + channel] += Hamming(i, _expandedFFTSamples) * ifftBuffer[i].Real;
+                            //outputAccumulation[_channels * i + channel] += Hamming(i, outputSamples) * ifftBuffer[i].Real;
                             outputAccumulation[_channels * i + channel] += Hamming(i, _expandedFFTSamples) * ifftBuffer[i].Real;
+                            //outputAccumulation[_channels * i + channel] += ifftBuffer[i].Real;
                         }
                     }
 
                     //Advance phasor
                     for (int i = 0; i <= _halfFFTSamples; i++)
                     {
-                        phasors[i] = phasors[i].Times(GetPhasor(i, effectiveSpeed));
+                        //phasors[i] = phasors[i].Times(GetPhasor(i, effectiveSpeed));
+                        phasors[i] = phasors[i].Times(GetPhasor2(i, realStep - _stepSize));
                     }
 
                     //Copy output samples to output buffer
@@ -321,8 +323,10 @@ namespace Musegician.AudioUtilities
         public static readonly WindowFunction Hamming =
             (index, width) => (float)(0.54 - 0.46 * Math.Cos((2 * Math.PI * index) / (width - 1)));
 
-        private Complex GetPhasor(int freqSample, float speed) =>
-            GetRotator(-freqSample * 2 * (float)Math.PI * (1 - speed) / (speed * OVERLAP_FACTOR));
+        //private Complex GetPhasor(int freqSample, float speed) =>
+        //    GetRotator(-freqSample * 2 * (float)Math.PI * (1 - speed) / (speed * OVERLAP_FACTOR));
+        private Complex GetPhasor2(int freqSample, int extraSamples) =>
+            GetRotator(-freqSample * 2f * (float)Math.PI * extraSamples / OVERLAP_FACTOR);
 
         private Complex GetRotator(float theta) => new Complex((float)Math.Cos(theta), (float)Math.Sin(theta));
 
