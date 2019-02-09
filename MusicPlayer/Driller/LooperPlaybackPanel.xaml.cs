@@ -58,6 +58,20 @@ namespace Musegician.Driller
         private void OnSetStartClick(object sender, RoutedEventArgs e) => progressSlider.LowerValue = progressSlider.Value;
         private void OnSetStopClick(object sender, RoutedEventArgs e) => progressSlider.UpperValue = progressSlider.Value;
 
+        private void OnWalkBackClick(object sender, RoutedEventArgs e)
+        {
+            double temp = progressSlider.LowerValue;
+            progressSlider.LowerValue -= progressSlider.UpperValue - progressSlider.LowerValue;
+            progressSlider.UpperValue = temp;
+        }
+
+        private void OnWalkForwardClick(object sender, RoutedEventArgs e)
+        {
+            double temp = progressSlider.UpperValue;
+            progressSlider.UpperValue += temp - progressSlider.LowerValue;
+            progressSlider.LowerValue = temp;
+        }
+
         private void PlayerStateChanged(PlayerState newState) => State = newState;
 
         private void progressSlider_BoundsChanged(object sender, BoundsChangedEventArgs e)
@@ -88,5 +102,6 @@ namespace Musegician.Driller
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         #endregion INotifyPropertyChanged
+
     }
 }

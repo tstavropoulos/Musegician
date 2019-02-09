@@ -48,6 +48,8 @@ namespace Musegician.AudioUtilities
         private const int EXPANDED_FFT_SIZE = BASE_FFT_SIZE + 1;
         private const int OVERLAP_FACTOR = 32;
 
+        private const float COMBINE_FACTOR = 1f / OVERLAP_FACTOR;
+
         private int _bufferIndex = 0;
         private int _bufferCount = 0;
 
@@ -179,7 +181,6 @@ namespace Musegician.AudioUtilities
                     int outputSamples = (int)(_baseFFTSamples / Speed);
                     int realStep = outputSamples / OVERLAP_FACTOR;
 
-                    float effectiveSpeed = _baseFFTSamples / (float)outputSamples;
                     _bufferIndex = 0;
                     _bufferCount = _channels * realStep;
 
@@ -223,7 +224,7 @@ namespace Musegician.AudioUtilities
                         //Accumualte the window samples
                         for (int i = 0; i < outputSamples; i++)
                         {
-                            outputAccumulation[_channels * i + channel] += WindowOutput(i, outputSamples) * ifftBuffer[i].Real;
+                            outputAccumulation[_channels * i + channel] += COMBINE_FACTOR * WindowOutput(i, outputSamples) * ifftBuffer[i].Real;
                         }
                     }
 
@@ -259,15 +260,15 @@ namespace Musegician.AudioUtilities
 
         public override long Position
         {
-            get => (long)Math.Ceiling(base.Position / Speed);
+            get => base.Position;
             set
             {
                 ClearBuffers();
-                base.Position = Math.Min((long)Math.Floor(value * Speed), base.Length);
+                base.Position = Math.Min(value, base.Length);
             }
         }
 
-        public override long Length => (long)Math.Ceiling(base.Length / Speed);
+        public override long Length => base.Length;
 
         #endregion SampleAggregatorBase Overrides
         #region Helper Methods

@@ -148,12 +148,12 @@
     <Button ToolTip="Loopback" Grid.Column="1" Grid.Row="3" Margin="0"
             Click="OnLoopbackClick"
             Content="↻" Style="{StaticResource PlayerButtons}"/>
-    <Button ToolTip="Set Stop Marker" Grid.Column="4" Grid.Row="3" Margin="0"
+    <Button ToolTip="Set Stop Marker" Grid.Column="2" Grid.Row="3" Margin="0"
             Click="OnSetStopClick"
             Content="↤" Style="{StaticResource PlayerButtons}"/>
     
     <!-- Row 4 -->
-    <StackPanel Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="4" Orientation="Horizontal" Margin="5,2,0,2">
+    <StackPanel Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="5,2,0,2">
       <TextBlock Text="⌛" VerticalAlignment="Center" Foreground="White"
                    Style="{StaticResource UIFontStyle}"/>
       <Slider Orientation="Horizontal" VerticalAlignment="Center" Width="100"
@@ -161,5 +161,11 @@
                 LargeChange="0.1" SmallChange="0.02"
                 Value="{Binding Source={x:Static player:MusicManager.Instance}, Path=Speed, Mode=TwoWay}"/>
     </StackPanel>
+    <Button ToolTip="Walk Region Backwards" Grid.Column="2" Grid.Row="4" Margin="0"
+            Click="OnWalkBackClick"
+            Content="⇇" Style="{StaticResource PlayerButtons}"/>
+    <Button ToolTip="Walk Region Forward" Grid.Column="3" Grid.Row="4" Margin="0"
+            Click="OnWalkForwardClick"
+            Content="⇉" Style="{StaticResource PlayerButtons}"/>
   </Grid>
 </UserControl>
