@@ -630,12 +630,13 @@ namespace Musegician.Player
 
         public void PlaySong(PlayData playData, bool preserveLoopBounds = false)
         {
-            lastPlay = playData;
-
-            if (string.IsNullOrEmpty(playData.recording.Filename))
+            if (playData.recording is null ||
+                string.IsNullOrEmpty(playData.recording.Filename))
             {
                 return;
             }
+
+            lastPlay = playData;
 
             SongLabel = $"{playData.artistName} - {playData.songTitle}";
 
