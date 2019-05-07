@@ -27,7 +27,9 @@
       <Button Grid.Column="4" Content="Cancel" Click="Click_Cancel"/>
     </Grid>
     <ListView Name="tagView" HorizontalContentAlignment="Stretch" Margin="10"
-              Style="{StaticResource ListViewWithGridViewStyle}">
+              Style="{StaticResource ListViewWithGridViewStyle}"
+              d:DataContext="{d:DesignInstance Type=local:TagMockData, IsDesignTimeCreatable=True}"
+              ItemsSource="{Binding TagData}">
       <ListView.Resources>
         <DataTemplate x:Key="BoolEditorTemplate" DataType="{x:Type data:TagDataBool}">
           <CheckBox IsChecked="{Binding NewValue, Mode=TwoWay}"

@@ -16,12 +16,12 @@ namespace Musegician.Core
 
             foreach (string name in EnumerateApplications())
             {
-                Console.WriteLine("name:" + name);
+                Console.WriteLine($"name: {name}");
                 if (name == app)
                 {
                     // display mute state & volume level (% of master)
-                    Console.WriteLine("Mute:" + GetApplicationMute(app));
-                    Console.WriteLine("Volume:" + GetApplicationVolume(app));
+                    Console.WriteLine($"Mute: {GetApplicationMute(app)}");
+                    Console.WriteLine($"Volume: {GetApplicationVolume(app)}");
 
                     // mute the application
                     SetApplicationMute(app, true);

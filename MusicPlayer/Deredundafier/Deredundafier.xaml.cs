@@ -83,7 +83,7 @@ namespace Musegician.Deredundafier
                         newMode = DeredundancyMode.CompositeArtist;
                         break;
                     default:
-                        throw new Exception("Unexpected tabItem.Header: " + tabItem.Header);
+                        throw new Exception($"Unexpected tabItem.Header: {tabItem.Header}");
                 }
 
                 if (mode != newMode)
@@ -125,7 +125,7 @@ namespace Musegician.Deredundafier
                     break;
                 case DeredundancyMode.MAX:
                 default:
-                    throw new Exception("Unexpected DeredundancyMode: " + mode);
+                    throw new Exception($"Unexpected DeredundancyMode: {mode}");
             }
 
             _viewTree.Clear();
@@ -175,7 +175,7 @@ namespace Musegician.Deredundafier
                             break;
                         case DeredundancyMode.MAX:
                         default:
-                            throw new Exception("Unexpected DeredundancyMode: " + mode);
+                            throw new Exception($"Unexpected DeredundancyMode: {mode}");
                     }
 
                 }

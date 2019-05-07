@@ -68,6 +68,7 @@ namespace Musegician.Library
                         }
                     }
                     break;
+
                 case ViewMode.Simple:
                     if (!simpleLoaded)
                     {
@@ -81,6 +82,7 @@ namespace Musegician.Library
 
                     }
                     break;
+
                 case ViewMode.Album:
                     if (!albumLoaded)
                     {
@@ -94,6 +96,7 @@ namespace Musegician.Library
 
                     }
                     break;
+
                 case ViewMode.Directory:
                     if (!directoryLoaded)
                     {
@@ -106,9 +109,10 @@ namespace Musegician.Library
                         }
                     }
                     break;
+
                 case ViewMode.MAX:
                 default:
-                    throw new Exception("Unexpected ViewMode: " + mode);
+                    throw new Exception($"Unexpected ViewMode: {mode}");
             }
         }
 
@@ -164,9 +168,8 @@ namespace Musegician.Library
                     switch (_currentViewMode)
                     {
                         case ViewMode.Classic:
-                            {
-                            }
                             break;
+
                         case ViewMode.Simple:
                             //Album search is invalid in Simple Mode
                             if (SearchChoice == SearchChoices.Album)
@@ -174,6 +177,7 @@ namespace Musegician.Library
                                 SearchChoice = SearchChoices.All;
                             }
                             break;
+
                         case ViewMode.Album:
                             //Artist search is invalid in Album mode
                             if (SearchChoice == SearchChoices.Artist)
@@ -181,12 +185,14 @@ namespace Musegician.Library
                                 SearchChoice = SearchChoices.All;
                             }
                             break;
+
                         case ViewMode.Directory:
                             SearchChoice = SearchChoices.All;
                             break;
+
                         case ViewMode.MAX:
                         default:
-                            throw new Exception("Unexpected ViewMode: " + _currentViewMode);
+                            throw new Exception($"Unexpected ViewMode: {_currentViewMode}");
                     }
                 }
             }
@@ -293,17 +299,13 @@ namespace Musegician.Library
             {
                 switch (CurrentViewMode)
                 {
-                    case ViewMode.Classic:
-                        return ClassicArtistViewModels;
-                    case ViewMode.Simple:
-                        return SimpleViewModels;
-                    case ViewMode.Album:
-                        return AlbumViewModels;
-                    case ViewMode.Directory:
-                        return DirectoryViewModels;
-                    case ViewMode.MAX:
+                    case ViewMode.Classic: return ClassicArtistViewModels;
+                    case ViewMode.Simple: return SimpleViewModels;
+                    case ViewMode.Album: return AlbumViewModels;
+                    case ViewMode.Directory: return DirectoryViewModels;
+
                     default:
-                        throw new Exception("Unexpected ViewMode: " + CurrentViewMode);
+                        throw new Exception($"Unexpected ViewMode: {CurrentViewMode}");
                 }
             }
         }
@@ -385,7 +387,7 @@ namespace Musegician.Library
                 throw new Exception("Unexpected: RecordingViewModel.");
             }
 
-            throw new Exception("Unsupported LibraryViewModel: " + model.GetType().ToString());
+            throw new Exception($"Unsupported LibraryViewModel: {model.GetType().ToString()}");
         }
 
         bool SearchChildren(LibraryViewModel model)
@@ -450,18 +452,20 @@ namespace Musegician.Library
                             yield return song;
                         }
                         break;
+
                     case LibraryContext.Recording:
                         if (model is RecordingViewModel recording && recording.Data == e.data)
                         {
                             yield return recording;
                         }
                         break;
+
                     case LibraryContext.Artist:
                     case LibraryContext.Album:
                     case LibraryContext.Track:
                     case LibraryContext.MAX:
                     default:
-                        throw new ArgumentException("Unexpected LibraryContext: " + context);
+                        throw new ArgumentException($"Unexpected LibraryContext: {context}");
                 }
 
                 //Can't lazy-load children if we need to search through them

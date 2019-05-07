@@ -19,7 +19,7 @@ using Musegician.Database;
 namespace Musegician.AlbumArtPicker
 {
     /// <summary>
-    /// Interaction logic for Deredundafier.xaml
+    /// Interaction logic for AlbumArtPicker.xaml
     /// </summary>
     public partial class AlbumArtPicker : UserControl
     {

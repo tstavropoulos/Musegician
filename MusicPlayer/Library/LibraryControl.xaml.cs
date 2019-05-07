@@ -10,6 +10,7 @@ using System.Windows.Media;
 using Musegician.Core;
 using Musegician.Database;
 using Musegician.DataStructures;
+
 using IPlaylistTransferRequestHandler = Musegician.Playlist.IPlaylistTransferRequestHandler;
 
 namespace Musegician.Library
@@ -119,8 +120,9 @@ namespace Musegician.Library
                     case ViewMode.Album:
                     case ViewMode.Directory:
                         return GetTreeView(_musicTree.CurrentViewMode);
+
                     default:
-                        throw new Exception("Unexpected ViewMode: " + _musicTree.CurrentViewMode);
+                        throw new Exception($"Unexpected ViewMode: {_musicTree.CurrentViewMode}");
                 }
             }
         }
@@ -444,7 +446,7 @@ namespace Musegician.Library
                 }
                 else
                 {
-                    throw new Exception("Unexpected LibraryViewModel: " + model.GetType());
+                    throw new Exception($"Unexpected LibraryViewModel: {model.GetType()}");
                 }
             }
         }
@@ -491,17 +493,21 @@ namespace Musegician.Library
                     case "Classic":
                         _musicTree.CurrentViewMode = ViewMode.Classic;
                         break;
+
                     case "Simple":
                         _musicTree.CurrentViewMode = ViewMode.Simple;
                         break;
+
                     case "Album":
                         _musicTree.CurrentViewMode = ViewMode.Album;
                         break;
+
                     case "Directories":
                         _musicTree.CurrentViewMode = ViewMode.Directory;
                         break;
+
                     default:
-                        throw new Exception("Unexpected tabItem.Header: " + tabItem.Header);
+                        throw new Exception($"Unexpected tabItem.Header: {tabItem.Header}");
                 }
 
                 //Disable ArtistSearch for Album view
@@ -552,16 +558,19 @@ namespace Musegician.Library
                         case KeyboardActions.WeightUp:
                             model.Weight = Math.Min(model.Weight + 0.05, 1.0);
                             break;
+
                         case KeyboardActions.WeightDown:
                             model.Weight = Math.Max(model.Weight - 0.05, 0.0);
                             break;
+
                         case KeyboardActions.Play:
                             //play thing
                             return;
+
                         case KeyboardActions.None:
                         case KeyboardActions.MAX:
                         default:
-                            throw new Exception("Unexpected KeyboardAction: " + action);
+                            throw new Exception($"Unexpected KeyboardAction: {action}");
                     }
                 }
 
@@ -699,6 +708,7 @@ namespace Musegician.Library
                         case MenuAction.Add:
                             context = LibraryContext.Song;
                             break;
+
                         case MenuAction.Lyrics:
                         case MenuAction.Tags:
                         case MenuAction.Edit:
@@ -711,8 +721,9 @@ namespace Musegician.Library
                                 context = LibraryContext.Song;
                             }
                             break;
+
                         default:
-                            throw new ArgumentException("Unexpected MenuAction: " + option);
+                            throw new ArgumentException($"Unexpected MenuAction: {option}");
                     }
                 }
                 else if (firstSelectedItem is RecordingViewModel recording)
@@ -754,18 +765,14 @@ namespace Musegician.Library
         {
             switch (mode)
             {
-                case ViewMode.Classic:
-                    return ClassicTreeView;
-                case ViewMode.Simple:
-                    return SimpleTreeView;
-                case ViewMode.Album:
-                    return AlbumTreeView;
-                case ViewMode.Directory:
-                    return DirectoryTreeView;
-                case ViewMode.MAX:
-                    return CurrentTreeView;
+                case ViewMode.Classic: return ClassicTreeView;
+                case ViewMode.Simple: return SimpleTreeView;
+                case ViewMode.Album: return AlbumTreeView;
+                case ViewMode.Directory: return DirectoryTreeView;
+                case ViewMode.MAX: return CurrentTreeView;
+
                 default:
-                    throw new Exception("Unexpected ViewMode: " + mode);
+                    throw new Exception($"Unexpected ViewMode: {mode}");
             }
         }
 
@@ -773,16 +780,13 @@ namespace Musegician.Library
         {
             switch (key)
             {
-                case Key.Return:
-                    return KeyboardActions.Play;
+                case Key.Return: return KeyboardActions.Play;
                 case Key.Add:
-                case Key.OemPlus:
-                    return KeyboardActions.WeightUp;
+                case Key.OemPlus: return KeyboardActions.WeightUp;
                 case Key.Subtract:
-                case Key.OemMinus:
-                    return KeyboardActions.WeightDown;
-                default:
-                    return KeyboardActions.None;
+                case Key.OemMinus: return KeyboardActions.WeightDown;
+
+                default: return KeyboardActions.None;
             }
         }
 

@@ -34,7 +34,7 @@ namespace Musegician.TagEditor
                 return ViewableTemplate;
             }
 
-            Console.WriteLine("Unidentified DataTempate: " + obj.ToString());
+            Console.WriteLine($"Unidentified DataTempate: {obj.ToString()}");
             return ViewableTemplate;
         }
     }

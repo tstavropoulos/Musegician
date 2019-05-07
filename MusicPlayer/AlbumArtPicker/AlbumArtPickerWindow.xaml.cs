@@ -15,7 +15,7 @@ using System.Windows.Shapes;
 namespace Musegician.AlbumArtPicker
 {
     /// <summary>
-    /// Interaction logic for DeredundafierWindow.xaml
+    /// Interaction logic for AlbumArtPickerWindow.xaml
     /// </summary>
     public partial class AlbumArtPickerWindow : Window
     {

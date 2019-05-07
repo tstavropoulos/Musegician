@@ -90,12 +90,12 @@ namespace Musegician.Spatializer
                 }
                 else
                 {
-                    throw new ArgumentException("Unexpected callback argument: " + e.AddedItems);
+                    throw new ArgumentException($"Unexpected callback argument: {e.AddedItems}");
                 }
             }
             else
             {
-                throw new ArgumentException("Unexpected callback argument: " + e.AddedItems);
+                throw new ArgumentException($"Unexpected callback argument: {e.AddedItems}");
             }
         }
 
@@ -145,59 +145,34 @@ namespace Musegician.Spatializer
         {
             switch (position)
             {
-                case IR_Position.IR_0:
-                    return 0f;
-                case IR_Position.IR_p5:
-                    return 5f;
-                case IR_Position.IR_n5:
-                    return -5f;
-                case IR_Position.IR_p10:
-                    return 10f;
-                case IR_Position.IR_n10:
-                    return -10f;
-                case IR_Position.IR_p15:
-                    return 15f;
-                case IR_Position.IR_n15:
-                    return -15f;
-                case IR_Position.IR_p20:
-                    return 20f;
-                case IR_Position.IR_n20:
-                    return -20f;
-                case IR_Position.IR_p25:
-                    return 25f;
-                case IR_Position.IR_n25:
-                    return -25f;
-                case IR_Position.IR_p30:
-                    return 30f;
-                case IR_Position.IR_n30:
-                    return -30f;
-                case IR_Position.IR_p35:
-                    return 35f;
-                case IR_Position.IR_n35:
-                    return -35f;
-                case IR_Position.IR_p40:
-                    return 40f;
-                case IR_Position.IR_n40:
-                    return -40f;
-                case IR_Position.IR_p45:
-                    return 45f;
-                case IR_Position.IR_n45:
-                    return -45f;
-                case IR_Position.IR_p55:
-                    return 55f;
-                case IR_Position.IR_n55:
-                    return -55f;
-                case IR_Position.IR_p65:
-                    return 65f;
-                case IR_Position.IR_n65:
-                    return -65f;
-                case IR_Position.IR_p80:
-                    return 80f;
-                case IR_Position.IR_n80:
-                    return -80f;
-                case IR_Position.MAX:
+                case IR_Position.IR_0: return 0f;
+                case IR_Position.IR_p5: return 5f;
+                case IR_Position.IR_n5: return -5f;
+                case IR_Position.IR_p10: return 10f;
+                case IR_Position.IR_n10: return -10f;
+                case IR_Position.IR_p15: return 15f;
+                case IR_Position.IR_n15: return -15f;
+                case IR_Position.IR_p20: return 20f;
+                case IR_Position.IR_n20: return -20f;
+                case IR_Position.IR_p25: return 25f;
+                case IR_Position.IR_n25: return -25f;
+                case IR_Position.IR_p30: return 30f;
+                case IR_Position.IR_n30: return -30f;
+                case IR_Position.IR_p35: return 35f;
+                case IR_Position.IR_n35: return -35f;
+                case IR_Position.IR_p40: return 40f;
+                case IR_Position.IR_n40: return -40f;
+                case IR_Position.IR_p45: return 45f;
+                case IR_Position.IR_n45: return -45f;
+                case IR_Position.IR_p55: return 55f;
+                case IR_Position.IR_n55: return -55f;
+                case IR_Position.IR_p65: return 65f;
+                case IR_Position.IR_n65: return -65f;
+                case IR_Position.IR_p80: return 80f;
+                case IR_Position.IR_n80: return -80f;
+
                 default:
-                    throw new Exception("Unexpected IR_Position" + position);
+                    throw new Exception($"Unexpected IR_Position: {position}");
             }
         }
 

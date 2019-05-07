@@ -26,10 +26,14 @@ namespace Musegician
 
         private void Quitting() => Player.MusicManager.Instance.CleanUp();
 
-        private void MainWindow_Loaded(object sender, RoutedEventArgs e) => PlaylistControl.LookupRequest += libraryControl.LookupRequest;
-        private void MainWindow_Unloaded(object sender, RoutedEventArgs e) => PlaylistControl.LookupRequest -= libraryControl.LookupRequest;
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e) =>
+            PlaylistControl.LookupRequest += libraryControl.LookupRequest;
 
-        private void Library_Request_Edit(IEnumerable<BaseData> data) => new TagEditor.TagEditor(data).Show();
+        private void MainWindow_Unloaded(object sender, RoutedEventArgs e) =>
+            PlaylistControl.LookupRequest -= libraryControl.LookupRequest;
+
+        private void Library_Request_Edit(IEnumerable<BaseData> data) =>
+            new TagEditor.TagEditor(data).Show();
 
         private void Library_Request_Edit_Art(Album data)
         {
@@ -55,33 +59,57 @@ namespace Musegician
 
         #region Menu Callbacks
 
-        private void Menu_ClearPlaylist(object sender, RoutedEventArgs e) => Playlist.PlaylistManager.Instance.ClearPlaylist();
-        private void Menu_LoadPlaylist(object sender, RoutedEventArgs e) => playlistToolbar.Toolbar_LoadPlaylist(sender, e);
-        private void Menu_SavePlaylist(object sender, RoutedEventArgs e) => playlistToolbar.Toolbar_SavePlaylist(sender, e);
+        private void Menu_ClearPlaylist(object sender, RoutedEventArgs e) =>
+            Playlist.PlaylistManager.Instance.ClearPlaylist();
+
+        private void Menu_LoadPlaylist(object sender, RoutedEventArgs e) =>
+            playlistToolbar.Toolbar_LoadPlaylist(sender, e);
+
+        private void Menu_SavePlaylist(object sender, RoutedEventArgs e) =>
+            playlistToolbar.Toolbar_SavePlaylist(sender, e);
 
 
-        private void Menu_SortPlaylist_Alpha(object sender, RoutedEventArgs e) => 
+        private void Menu_SortPlaylist_Alpha(object sender, RoutedEventArgs e) =>
             Playlist.PlaylistManager.Instance.SortPlaylistSongs(Playlist.SortMethod.Alphabetical);
 
         private void Menu_SortPlaylist_Shuffle(object sender, RoutedEventArgs e) =>
             Playlist.PlaylistManager.Instance.SortPlaylistSongs(Playlist.SortMethod.Random);
 
-        private void Menu_CondensedView(object sender, RoutedEventArgs e) => SwapToWindow(new TinyPlayer.TinyPlayer());
-        private void Menu_MusicDriller(object sender, RoutedEventArgs e) => SwapToWindow(new Driller.DrillerWindow());
+        private void Menu_CondensedView(object sender, RoutedEventArgs e) =>
+            SwapToWindow(new TinyPlayer.TinyPlayer());
 
-        private void Menu_Deredundafier(object sender, RoutedEventArgs e) => new Deredundafier.DeredundafierWindow().Show();
-        private void Menu_AlbumArtPicker(object sender, RoutedEventArgs e) => new AlbumArtPicker.AlbumArtPickerWindow().Show();
-        private void Menu_PrivateTagCleanup(object sender, RoutedEventArgs e) => new PrivateTagCleanup.PrivateTagCleanupWindow().Show();
+        private void Menu_MusicDriller(object sender, RoutedEventArgs e) =>
+            SwapToWindow(new Driller.DrillerWindow());
 
-        private void Menu_OpenSpatializer(object sender, RoutedEventArgs e) => SpatializerPopup.IsOpen = true;
-        private void Menu_CleanupChildlessDBRecords(object sender, RoutedEventArgs e) => FileMan.CleanChildlessRecords();
+
+        private void Menu_Deredundafier(object sender, RoutedEventArgs e) =>
+            new Deredundafier.DeredundafierWindow().Show();
+
+        private void Menu_AlbumArtPicker(object sender, RoutedEventArgs e) =>
+            new AlbumArtPicker.AlbumArtPickerWindow().Show();
+
+        private void Menu_PrivateTagCleanup(object sender, RoutedEventArgs e) =>
+            new PrivateTagCleanup.PrivateTagCleanupWindow().Show();
+
+        private void Menu_OpenSpatializer(object sender, RoutedEventArgs e) =>
+            SpatializerPopup.IsOpen = true;
+
+
+        private void Menu_CleanupChildlessDBRecords(object sender, RoutedEventArgs e) =>
+            FileMan.CleanChildlessRecords();
+
 
         private void Menu_PushID3Tags(object sender, RoutedEventArgs e) =>
             LoadingDialog.LoadingDialog.ArgBuilder<IEnumerable<BaseData>>(FileMan.PushID3TagsToFile);
+
         private void Menu_PushMusegicianTags(object sender, RoutedEventArgs e) =>
             LoadingDialog.LoadingDialog.ArgBuilder<IEnumerable<BaseData>>(FileMan.PushMusegicianTagsToFile);
+
         private void Menu_PushAlbumArt(object sender, RoutedEventArgs e) =>
             LoadingDialog.LoadingDialog.ArgBuilder<IEnumerable<BaseData>>(FileMan.PushMusegicianAlbumArtToFile);
+
+        private void Menu_FileReorganizer(object sender, RoutedEventArgs e) =>
+            new Reorganizer.FileReorganizerWindow().Show();
 
         private void Menu_QuitClick(object sender, RoutedEventArgs e)
         {
@@ -108,7 +136,6 @@ namespace Musegician
             }
         }
 
-
         private void Menu_CleanupMissingFiles(object sender, RoutedEventArgs e)
         {
             LoadingDialog.LoadingDialog.VoidBuilder(FileMan.CleanupMissingFiles);
@@ -132,11 +159,13 @@ namespace Musegician
                     FileMan.DropDB();
                     libraryControl.Rebuild();
                     break;
+
                 case MessageBoxResult.No:
                     //Do nothing
                     break;
+
                 default:
-                    Console.WriteLine("Unexpected MessageBoxResult: " + response + ".  Likely Error.");
+                    Console.WriteLine($"Unexpected MessageBoxResult: {response}.  Likely Error.");
                     break;
             }
         }

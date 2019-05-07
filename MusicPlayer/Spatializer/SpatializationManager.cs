@@ -364,11 +364,13 @@ namespace Musegician.Spatializer
                 case AudioChannel.Left:
                     dict = leftIRFs;
                     break;
+
                 case AudioChannel.Right:
                     dict = rightIRFs;
                     break;
+
                 default:
-                    throw new ArgumentException("Unexpected AudioChannel: " + channel);
+                    throw new ArgumentException($"Unexpected AudioChannel: {channel}");
             }
 
             return dict[Positions[(int)speaker, (int)channel]];

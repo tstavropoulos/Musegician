@@ -171,6 +171,7 @@
     <Compile Include="Core\DoubleComparisonExtension.cs" />
     <Compile Include="Core\EnumBoolConverter.cs" />
     <Compile Include="Core\FileManager\FileManager_DeredundancyRequestHandler.cs" />
+    <Compile Include="Core\FileManager\FileManager_FileReorganizerRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_LibraryRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_PrivateTagCleanupRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_LyricsHandler.cs" />
@@ -309,6 +310,17 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+    <Compile Include="Reorganizer\FileReorganizerDTO.cs" />
+    <Compile Include="Reorganizer\FileReorganizerViewModel.cs" />
+    <Compile Include="Reorganizer\FileReorganizerViewTree.cs" />
+    <Compile Include="Reorganizer\FileReorganizationPicker.xaml.cs">
+      <DependentUpon>FileReorganizationPicker.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Reorganizer\FileReorganizerMockTree.cs" />
+    <Compile Include="Reorganizer\FileReorganizerWindow.xaml.cs">
+      <DependentUpon>FileReorganizerWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Reorganizer\IFileReorganizerRequestHandler.cs" />
     <Compile Include="Resources\WindowStyle.xaml.cs">
       <DependentUpon>WindowStyle.xaml</DependentUpon>
       <Generator>MSBuild:Compile</Generator>
@@ -323,6 +335,7 @@
     <Compile Include="Spatializer\SpeakerVisualization.xaml.cs">
       <DependentUpon>SpeakerVisualization.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TagEditor\TagMockData.cs" />
     <Compile Include="TagEditor\ITagRequestHandler.cs" />
     <Compile Include="TagEditor\TagEditor.xaml.cs">
       <DependentUpon>TagEditor.xaml</DependentUpon>
@@ -423,6 +436,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="PrivateTagCleanup\PrivateTagCleanupWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Reorganizer\FileReorganizationPicker.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Reorganizer\FileReorganizerWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

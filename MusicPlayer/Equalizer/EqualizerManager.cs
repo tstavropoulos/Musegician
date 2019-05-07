@@ -184,7 +184,7 @@ namespace Musegician.Equalizer
         {
             if (index < 0 || index > EqualizerFilterData.Count)
             {
-                throw new ArgumentException("Invalid requested Channel: " + index);
+                throw new ArgumentException($"Invalid requested Channel: {index}");
             }
 
             return EqualizerFilterData[index].Gain;
@@ -199,7 +199,7 @@ namespace Musegician.Equalizer
 
             if (gain.Length != EqualizerFilterData.Count)
             {
-                throw new ArgumentException("Invalid submitted gain array length: " + gain.Length);
+                throw new ArgumentException($"Invalid submitted gain array length: {gain.Length}");
             }
 
             blockUpdate = true;
@@ -268,7 +268,7 @@ namespace Musegician.Equalizer
         {
             if (index < 0 || index >= EqualizerFilterData.Count)
             {
-                throw new ArgumentException("Unexpected Gain Index: " + index);
+                throw new ArgumentException($"Unexpected Gain Index: {index}");
             }
 
             if (EqualizerFilterData[index].Gain != value)
@@ -281,7 +281,7 @@ namespace Musegician.Equalizer
         {
             if (index < 0 || index >= EqualizerFilterData.Count)
             {
-                throw new ArgumentException("Unexpected Gain Index: " + index);
+                throw new ArgumentException($"Unexpected Gain Index: {index}");
             }
 
             EqualizerChanged?.Invoke(this, new EqualizerChangedArgs(index));

@@ -1237,6 +1237,12 @@ namespace Musegician
 
         public void CleanChildlessRecords()
         {
+            //Remove orphaned recordings
+            db.Recordings.RemoveRange(
+                from recording in db.Recordings
+                where recording.Tracks.Count == 0
+                select recording);
+
             db.Songs.RemoveRange(
                 from song in db.Songs
                 where song.Recordings.Count == 0

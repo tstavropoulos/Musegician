@@ -2,16 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using System.Text.RegularExpressions;
+using System.ComponentModel;
 using Musegician.Database;
 using Musegician.DataStructures;
 
@@ -109,10 +103,10 @@ namespace Musegician.TagEditor
                             rebuild = true;
                             UpdateRecord(tag.recordType, tag);
                             break;
+
                         case MusicRecord.Filename:
-                        case MusicRecord.MAX:
                         default:
-                            throw new Exception("Unexpected MusicRecord value: " + tag.recordType);
+                            throw new Exception($"Unexpected MusicRecord value: {tag.recordType}");
                     }
                 }
 
@@ -221,34 +215,31 @@ namespace Musegician.TagEditor
                 case MusicRecord.AlbumTitle:
                 case MusicRecord.TrackTitle:
                 case MusicRecord.Filename:
+                    if (tag is TagDataString stringTagData)
                     {
-                        if (tag is TagDataString data)
-                        {
-                            RequestHandler.UpdateRecord(Data, record, data.NewValue);
-                        }
+                        RequestHandler.UpdateRecord(Data, record, stringTagData.NewValue);
                     }
                     break;
+
                 case MusicRecord.AlbumYear:
                 case MusicRecord.TrackNumber:
                 case MusicRecord.DiscNumber:
+                    if (tag is TagDataInt intTagData)
                     {
-                        if (tag is TagDataInt data)
-                        {
-                            RequestHandler.UpdateRecord(Data, record, data.NewInt);
-                        }
+                        RequestHandler.UpdateRecord(Data, record, intTagData.NewInt);
                     }
                     break;
+
                 case MusicRecord.Live:
+                    if (tag is TagDataBool liveTagData)
                     {
-                        if (tag is TagDataBool data)
-                        {
-                            RequestHandler.UpdateRecord(Data, record, data.NewValue);
-                        }
+                        RequestHandler.UpdateRecord(Data, record, liveTagData.NewValue);
                     }
                     break;
+
                 case MusicRecord.MAX:
                 default:
-                    throw new Exception("Invalid MusicRecord for Updating: " + record);
+                    throw new Exception($"Invalid MusicRecord for Updating: {record}");
             }
         }
 
@@ -261,68 +252,58 @@ namespace Musegician.TagEditor
                     switch (tag.tagType)
                     {
                         case ID3TagType.Title:
+                            if (tag is TagDataString titleTagData)
                             {
-                                if (tag is TagDataString data)
-                                {
-                                    file.Tag.Title = data.NewValue;
-                                }
+                                file.Tag.Title = titleTagData.NewValue;
                             }
                             break;
+
                         case ID3TagType.Performer:
+                            if (tag is TagDataString performerTagData)
                             {
-                                if (tag is TagDataString data)
-                                {
-                                    file.Tag.Performers = new string[] { data.NewValue };
-                                }
+                                file.Tag.Performers = new string[] { performerTagData.NewValue };
                             }
                             break;
+
                         case ID3TagType.AlbumArtist:
+                            if (tag is TagDataString albumArtistTagData)
                             {
-                                if (tag is TagDataString data)
-                                {
-                                    file.Tag.AlbumArtists = new string[] { data.NewValue };
-                                }
+                                file.Tag.AlbumArtists = new string[] { albumArtistTagData.NewValue };
                             }
                             break;
+
                         case ID3TagType.Album:
+                            if (tag is TagDataString albumTagData)
                             {
-                                if (tag is TagDataString data)
-                                {
-                                    file.Tag.Album = data.NewValue;
-                                }
+                                file.Tag.Album = albumTagData.NewValue;
                             }
                             break;
+
                         case ID3TagType.Year:
+                            if (tag is TagDataInt yearTagData)
                             {
-                                if (tag is TagDataInt data)
-                                {
-                                    file.Tag.Year = (uint)data.NewInt;
-                                }
+                                file.Tag.Year = (uint)yearTagData.NewInt;
                             }
                             break;
+
                         case ID3TagType.Track:
+                            if (tag is TagDataInt trackTagData)
                             {
-                                if (tag is TagDataInt data)
-                                {
-                                    file.Tag.Track = (uint)data.NewInt;
-                                }
+                                file.Tag.Track = (uint)trackTagData.NewInt;
                             }
                             break;
+
                         case ID3TagType.Disc:
+                            if (tag is TagDataInt discTagData)
                             {
-                                if (tag is TagDataInt data)
-                                {
-                                    file.Tag.Disc = (uint)data.NewInt;
-                                }
+                                file.Tag.Disc = (uint)discTagData.NewInt;
                             }
                             break;
 
                         case ID3TagType.NotEditable:
                         case ID3TagType.MAX:
                         default:
-                            {
-                                throw new Exception("Unexpected ID3TagTypes value: " + tag.tagType);
-                            }
+                            throw new Exception($"Unexpected ID3TagTypes value: {tag.tagType}");
                     }
                 }
             }

@@ -261,7 +261,7 @@ namespace Musegician.Core.DBCommands
         {
             if (!System.IO.File.Exists(path))
             {
-                throw new IOException("File not found: " + path);
+                throw new IOException($"File not found: {path}");
             }
 
             album.Image = System.IO.File.ReadAllBytes(path);

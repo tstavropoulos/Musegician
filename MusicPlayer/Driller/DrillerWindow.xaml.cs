@@ -79,6 +79,7 @@ namespace Musegician.Driller
                         }
                     }
                     break;
+
                 case PlayerState.NotLoaded:
                 case PlayerState.Stopped:
                     {
@@ -91,8 +92,9 @@ namespace Musegician.Driller
                         }
                     }
                     break;
+
                 default:
-                    Console.WriteLine("Unrecognized PlayerState: " + newState);
+                    Console.WriteLine($"Unrecognized PlayerState: {newState}");
                     break;
             }
         }

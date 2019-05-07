@@ -1,15 +1,15 @@
-﻿<Window x:Class="Musegician.PrivateTagCleanup.PrivateTagCleanupWindow"
+﻿<Window x:Class="Musegician.Reorganizer.FileReorganizerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Musegician.PrivateTagCleanup"
+        xmlns:local="clr-namespace:Musegician.Reorganizer"
         mc:Ignorable="d"
-        Title="Private Tag Cleanup" Height="600" Width="400"
+        Title="File Reorganizer" Height="600" Width="800"
         Icon="/Musegician;component/Resources/logoHat.png"
         Style="{StaticResource CustomOtherWindowStyle}">
   <Grid Background="{StaticResource DarkInsetPanel}">
-    <local:PrivateTagCleanup
-        d:DataContext="{d:DesignInstance Type=local:PrivateTagMockTree, IsDesignTimeCreatable=True}"/>
+    <local:FileReorganizationPicker
+        d:DataContext="{d:DesignInstance Type=local:FileReorganizerMockTree, IsDesignTimeCreatable=True}"/>
   </Grid>
 </Window>

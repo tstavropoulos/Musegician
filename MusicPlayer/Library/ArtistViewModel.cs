@@ -44,25 +44,23 @@ namespace Musegician.Library
             switch (mode)
             {
                 case ViewMode.Classic:
+                    foreach (Album album in dataManager.GenerateArtistAlbumList(_artist))
                     {
-                        foreach (Album album in dataManager.GenerateArtistAlbumList(_artist))
-                        {
-                            Children.Add(new AlbumViewModel(album, this));
-                        }
+                        Children.Add(new AlbumViewModel(album, this));
                     }
                     break;
+
                 case ViewMode.Simple:
+                    foreach (Song song in dataManager.GenerateArtistSongList(_artist))
                     {
-                        foreach (Song song in dataManager.GenerateArtistSongList(_artist))
-                        {
-                            Children.Add(new SongViewModel(song, this));
-                        }
+                        Children.Add(new SongViewModel(song, this));
                     }
                     break;
+
                 case ViewMode.Album:
                 case ViewMode.MAX:
                 default:
-                    throw new Exception("Inappropriate view mode for an ArtistViewModel: " + mode);
+                    throw new Exception($"Inappropriate view mode for an ArtistViewModel: {mode}");
             }
         }
 

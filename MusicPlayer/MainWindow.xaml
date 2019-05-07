@@ -55,7 +55,9 @@
             <MenuItem Header="Remove _Missing Files" Click="Menu_CleanupMissingFiles"/>
             <MenuItem Header="Remove C_hildless DB Records" Click="Menu_CleanupChildlessDBRecords"/>
             <Separator />
-            <MenuItem Header="_Clear Library" Click="Menu_ClearLibraryClick"/>
+            <MenuItem Header="_Reorganize Files" Click="Menu_FileReorganizer"/>
+            <Separator />
+            <MenuItem Header="C_lear Library" Click="Menu_ClearLibraryClick"/>
           </MenuItem>
           
         </MenuItem>

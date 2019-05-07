@@ -6,76 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Musegician.Database;
 
+using MusicRecord = Musegician.TagEditor.MusicRecord;
+using ID3TagType = Musegician.TagEditor.ID3TagType;
+
 namespace Musegician.DataStructures
 {
-    //public struct ArtistData
-    //{
-    //    public long artistID;
-    //    public string artistName;
-    //}
-
-    //public struct AlbumData
-    //{
-    //    public long albumID;
-    //    public string albumTitle;
-    //    public long albumYear;
-    //}
-
-    //public struct ArtData
-    //{
-    //    public long albumArtID;
-    //    public long albumID;
-    //    public byte[] image;
-    //}
-
-    //public struct SongData
-    //{
-    //    public long songID;
-    //    public string songTitle;
-    //}
-
-    //public struct TrackData
-    //{
-    //    public long trackID;
-    //    public long albumID;
-    //    public long recordingID;
-    //    public string trackTitle;
-    //    public long trackNumber;
-    //    public long discNumber;
-    //    public double weight;
-    //}
-
-    //public struct RecordingData
-    //{
-    //    public static RecordingData Invalid
-    //    {
-    //        get
-    //        {
-    //            return new RecordingData()
-    //            {
-    //                recordingID = -1,
-    //                artistID = -1,
-    //                songID = -1,
-    //                filename = "",
-    //                live = false,
-    //                valid = false
-    //            };
-    //        }
-    //    }
-
-    //    public bool RecordFound()
-    //    {
-    //        return recordingID != -1;
-    //    }
-
-    //    public long recordingID;
-    //    public long artistID;
-    //    public long songID;
-    //    public string filename;
-    //    public bool live;
-    //    public bool valid;
-    //}
-
     public struct PlayData
     {
         public string songTitle;
@@ -87,19 +22,19 @@ namespace Musegician.DataStructures
     {
         public string TagName => recordType.ToString();
         public abstract string CurrentValue { get; }
-        public TagEditor.MusicRecord recordType;
-        public TagEditor.ID3TagType tagType = TagEditor.ID3TagType.NotEditable;
+        public MusicRecord recordType;
+        public ID3TagType tagType = ID3TagType.NotEditable;
         public int tagTypeIndex = -1;
 
-        public bool Pushable => tagType != TagEditor.ID3TagType.NotEditable;
+        public bool Pushable => tagType != ID3TagType.NotEditable;
 
-        private bool _push = false;
+        private bool _push = true;
         public bool Push
         {
-            get => TagModified && _push;
+            get => TagModified && _push && Pushable;
             set
             {
-                if (tagType == TagEditor.ID3TagType.NotEditable)
+                if (tagType == ID3TagType.NotEditable)
                 {
                     return;
                 }
@@ -161,6 +96,19 @@ namespace Musegician.DataStructures
 
         public override bool TagModified => _currentValue != _newValue;
 
+        public TagDataBool() { }
+
+        public TagDataBool(
+            bool currentValue,
+            MusicRecord recordType,
+            ID3TagType tagType = ID3TagType.NotEditable)
+        {
+            _currentValue = currentValue;
+            _newValue = currentValue;
+            this.recordType = recordType;
+            this.tagType = tagType;
+        }
+
         public override void Reset() => NewValue = _currentValue;
     }
 
@@ -187,6 +135,21 @@ namespace Musegician.DataStructures
         }
 
         public override bool TagModified => _currentValue != NewValue;
+
+        //public TagDataString() { }
+
+        public TagDataString(
+            string currentValue,
+            MusicRecord recordType,
+            ID3TagType tagType = ID3TagType.NotEditable,
+            int tagTypeIndex = -1)
+        {
+            _currentValue = currentValue;
+            _newValue = currentValue;
+            this.recordType = recordType;
+            this.tagType = tagType;
+            this.tagTypeIndex = tagTypeIndex;
+        }
 
         public override void Reset() => NewValue = _currentValue;
     }
@@ -242,15 +205,34 @@ namespace Musegician.DataStructures
 
         public override bool TagModified => _currentValue != _newValue;
 
+        public TagDataInt(
+            int currentValue,
+            MusicRecord recordType,
+            ID3TagType tagType = ID3TagType.NotEditable)
+        {
+            _currentValue = currentValue;
+            _newValue = currentValue;
+            this.recordType = recordType;
+            this.tagType = tagType;
+        }
+
         public override void Reset() => NewInt = _currentValue;
     }
 
     public class TagViewable : TagData
     {
-        public string _CurrentValue { get; set; }
-        public override string CurrentValue => _CurrentValue.ToString();
+        public override string CurrentValue { get; }
 
         public override bool TagModified => false;
+
+        public TagViewable(
+            string currentValue,
+            MusicRecord recordType)
+        {
+            CurrentValue = currentValue;
+            this.recordType = recordType;
+        }
+
         public override void Reset() { }
 
     }

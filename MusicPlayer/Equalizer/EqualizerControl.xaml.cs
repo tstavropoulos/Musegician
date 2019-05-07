@@ -69,12 +69,12 @@ namespace Musegician.Equalizer
                 }
                 else
                 {
-                    throw new ArgumentException("Unexpected callback argument: " + e.AddedItems);
+                    throw new ArgumentException($"Unexpected callback argument: {e.AddedItems}");
                 }
             }
             else
             {
-                throw new ArgumentException("Unexpected callback argument: " + e.AddedItems);
+                throw new ArgumentException($"Unexpected callback argument: {e.AddedItems}");
             }
         }
 

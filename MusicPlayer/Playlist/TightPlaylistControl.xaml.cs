@@ -329,7 +329,7 @@ namespace Musegician.Playlist
 
         private void Tree_KeyDown(object sender, KeyEventArgs e)
         {
-            if (sender is TreeView tree)
+            if (sender is TreeView)
             {
 
                 KeyboardActions action = TranslateKey(e.Key);
@@ -339,25 +339,23 @@ namespace Musegician.Playlist
                     case KeyboardActions.None:
                         //Do nothing
                         return;
+
                     case KeyboardActions.WeightUp:
                     case KeyboardActions.WeightDown:
-                        {
-                            e.Handled = true;
-                            UpdateWeights(action);
-                        }
+                        e.Handled = true;
+                        UpdateWeights(action);
                         break;
+
                     case KeyboardActions.Play:
+                        e.Handled = true;
+                        if (PlaylistTree.SelectedItem is PlaylistViewModel model)
                         {
-                            e.Handled = true;
-                            if (PlaylistTree.SelectedItem is PlaylistViewModel model)
-                            {
-                                _Play(model);
-                            }
+                            _Play(model);
                         }
                         break;
-                    case KeyboardActions.MAX:
+
                     default:
-                        throw new Exception("Unexpected KeyboardAction: " + action);
+                        throw new Exception($"Unexpected KeyboardAction: {action}");
                 }
             }
         }
@@ -374,11 +372,13 @@ namespace Musegician.Playlist
                     case KeyboardActions.WeightUp:
                         model.Weight = MathExt.Clamp(model.Weight + 0.05, 0.0, 1.0);
                         break;
+
                     case KeyboardActions.WeightDown:
                         model.Weight = MathExt.Clamp(model.Weight - 0.05, 0.0, 1.0);
                         break;
+
                     default:
-                        throw new Exception("Unexpected KeyboardAction: " + action);
+                        throw new Exception($"Unexpected KeyboardAction: {action}");
                 }
             }
         }

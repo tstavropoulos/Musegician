@@ -44,7 +44,7 @@ namespace Musegician
                     continue;
                 }
 
-                string artistNames = String.Join(", ", album.Tracks.Select(x => x.Recording.Artist).Distinct().Select(x=>x.Name));
+                string artistNames = string.Join(", ", album.Tracks.Select(x => x.Recording.Artist).Distinct().Select(x=>x.Name));
 
                 AlbumArtAlbumDTO albumDTO = new AlbumArtAlbumDTO()
                 {

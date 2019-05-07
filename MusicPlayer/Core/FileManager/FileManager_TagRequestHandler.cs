@@ -13,301 +13,113 @@ namespace Musegician
 
         IEnumerable<TagData> ITagRequestHandler.GetTagData(BaseData data)
         {
-            List<TagData> tagList = new List<TagData>();
-
             if (data is Artist artist)
             {
-                tagList.Add(new TagDataString
+                return new TagData[]
                 {
-                    _currentValue = artist.Name,
-                    NewValue = artist.Name,
-                    recordType = MusicRecord.ArtistName,
-                    tagType = ID3TagType.Performer,
-                    tagTypeIndex = 0
-                });
+                    new TagDataString(artist.Name, MusicRecord.ArtistName, ID3TagType.Performer, 0)
+                };
             }
             else if (data is Album album)
             {
-                tagList.Add(new TagDataString
+                return new TagData[]
                 {
-                    _currentValue = album.Title,
-                    NewValue = album.Title,
-                    recordType = MusicRecord.AlbumTitle,
-                    tagType = ID3TagType.Album
-                });
-
-                tagList.Add(new TagDataInt
-                {
-                    _currentValue = album.Year,
-                    _newValue = album.Year,
-                    recordType = MusicRecord.AlbumYear,
-                    tagType = ID3TagType.Year
-                });
+                    new TagDataString(album.Title, MusicRecord.AlbumTitle, ID3TagType.Album),
+                    new TagDataInt(album.Year, MusicRecord.AlbumYear, ID3TagType.Year)
+                };
             }
             else if (data is Song song)
             {
-                tagList.Add(new TagDataString
+                return new TagData[]
                 {
-                    _currentValue = song.Title,
-                    NewValue = song.Title,
-                    recordType = MusicRecord.SongTitle
-                });
+                    new TagDataString(song.Title, MusicRecord.SongTitle)
+                };
             }
             else if (data is Track track)
             {
-                tagList.Add(new TagViewable()
+                return new TagData[]
                 {
-                    _CurrentValue = track.Recording.Filename,
-                    recordType = MusicRecord.Filename
-                });
-
-                tagList.Add(new TagDataBool()
-                {
-                    _currentValue = track.Recording.Live,
-                    NewValue = track.Recording.Live,
-                    recordType = MusicRecord.Live
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = track.Title,
-                    NewValue = track.Title,
-                    recordType = MusicRecord.TrackTitle,
-                    tagType = ID3TagType.Title
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = track.Recording.Song.Title,
-                    NewValue = track.Recording.Song.Title,
-                    recordType = MusicRecord.SongTitle
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = track.Album.Title,
-                    NewValue = track.Album.Title,
-                    recordType = MusicRecord.AlbumTitle,
-                    tagType = ID3TagType.Album
-                });
-
-                tagList.Add(new TagDataInt
-                {
-                    _currentValue = track.TrackNumber,
-                    _newValue = track.TrackNumber,
-                    recordType = MusicRecord.TrackNumber,
-                    tagType = ID3TagType.Track
-                });
-
-                tagList.Add(new TagDataInt
-                {
-                    _currentValue = track.DiscNumber,
-                    _newValue = track.DiscNumber,
-                    recordType = MusicRecord.DiscNumber,
-                    tagType = ID3TagType.Disc
-                });
-
-                tagList.Add(new TagDataInt
-                {
-                    _currentValue = track.Album.Year,
-                    _newValue = track.Album.Year,
-                    recordType = MusicRecord.AlbumYear,
-                    tagType = ID3TagType.Year
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = track.Recording.Artist.Name,
-                    NewValue = track.Recording.Artist.Name,
-                    recordType = MusicRecord.ArtistName,
-                    tagType = ID3TagType.Performer,
-                    tagTypeIndex = 0
-                });
+                    new TagViewable(track.Recording.Filename, MusicRecord.Filename),
+                    new TagDataBool(track.Recording.Live, MusicRecord.Live),
+                    new TagDataString(track.Title, MusicRecord.TrackTitle, ID3TagType.Title),
+                    new TagDataString(track.Recording.Song.Title, MusicRecord.SongTitle),
+                    new TagDataString(track.Album.Title, MusicRecord.AlbumTitle, ID3TagType.Album),
+                    new TagDataInt(track.TrackNumber, MusicRecord.TrackNumber, ID3TagType.Track),
+                    new TagDataInt(track.DiscNumber, MusicRecord.DiscNumber, ID3TagType.Disc),
+                    new TagDataInt(track.Album.Year, MusicRecord.AlbumYear, ID3TagType.Year),
+                    new TagDataString(track.Recording.Artist.Name, MusicRecord.ArtistName, ID3TagType.Performer, 0)
+                };
             }
             else if (data is Recording recording)
             {
-                tagList.Add(new TagViewable()
+                return new TagData[]
                 {
-                    _CurrentValue = recording.Filename,
-                    recordType = MusicRecord.Filename
-                });
-
-                tagList.Add(new TagDataBool()
-                {
-                    _currentValue = recording.Live,
-                    NewValue = recording.Live,
-                    recordType = MusicRecord.Live
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = recording.Song.Title,
-                    NewValue = recording.Song.Title,
-                    recordType = MusicRecord.SongTitle
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = recording.Artist.Name,
-                    NewValue = recording.Artist.Name,
-                    recordType = MusicRecord.ArtistName,
-                    tagType = ID3TagType.Performer,
-                    tagTypeIndex = 0
-                });
+                    new TagViewable(recording.Filename, MusicRecord.Filename),
+                    new TagDataBool(recording.Live, MusicRecord.Live),
+                    new TagDataString(recording.Song.Title, MusicRecord.SongTitle),
+                    new TagDataString(recording.Artist.Name, MusicRecord.ArtistName, ID3TagType.Performer, 0)
+                };
             }
 
-            return tagList;
+            Console.WriteLine($"Error: Operation not defined for data: {data}");
+            return null;
         }
 
 
         IEnumerable<TagData> ITagRequestHandler.GetTagData(IEnumerable<BaseData> data)
         {
-            List<TagData> tagList = new List<TagData>();
-
             BaseData firstDatum = data.First();
 
             if (firstDatum is Artist artist)
             {
-                tagList.Add(new TagDataString
+                return new TagData[]
                 {
-                    _currentValue = artist.Name,
-                    NewValue = artist.Name,
-                    recordType = MusicRecord.ArtistName,
-                    tagType = ID3TagType.Performer,
-                    tagTypeIndex = 0
-                });
+                    new TagDataString(artist.Name, MusicRecord.ArtistName, ID3TagType.Performer, 0)
+                };
             }
             else if (firstDatum is Album album)
             {
-                tagList.Add(new TagDataString
+                return new TagData[]
                 {
-                    _currentValue = album.Title,
-                    NewValue = album.Title,
-                    recordType = MusicRecord.AlbumTitle,
-                    tagType = ID3TagType.Album
-                });
-
-                tagList.Add(new TagDataInt
-                {
-                    _currentValue = album.Year,
-                    _newValue = album.Year,
-                    recordType = MusicRecord.AlbumYear,
-                    tagType = ID3TagType.Year
-                });
+                    new TagDataString(album.Title, MusicRecord.AlbumTitle, ID3TagType.Album),
+                    new TagDataInt(album.Year, MusicRecord.AlbumYear, ID3TagType.Year)
+                };
             }
             else if (firstDatum is Song song)
             {
-                tagList.Add(new TagDataString
+                return new TagData[]
                 {
-                    _currentValue = song.Title,
-                    NewValue = song.Title,
-                    recordType = MusicRecord.SongTitle
-                });
+                    new TagDataString(song.Title, MusicRecord.SongTitle)
+                };
             }
             else if (firstDatum is Track track)
             {
-                tagList.Add(new TagViewable()
+                return new TagData[]
                 {
-                    _CurrentValue = track.Recording.Filename,
-                    recordType = MusicRecord.Filename
-                });
-
-                tagList.Add(new TagDataBool()
-                {
-                    _currentValue = track.Recording.Live,
-                    NewValue = track.Recording.Live,
-                    recordType = MusicRecord.Live
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = track.Title,
-                    NewValue = track.Title,
-                    recordType = MusicRecord.TrackTitle,
-                    tagType = ID3TagType.Title
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = track.Recording.Song.Title,
-                    NewValue = track.Recording.Song.Title,
-                    recordType = MusicRecord.SongTitle
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = track.Album.Title,
-                    NewValue = track.Album.Title,
-                    recordType = MusicRecord.AlbumTitle,
-                    tagType = ID3TagType.Album
-                });
-
-                tagList.Add(new TagDataInt
-                {
-                    _currentValue = track.TrackNumber,
-                    _newValue = track.TrackNumber,
-                    recordType = MusicRecord.TrackNumber,
-                    tagType = ID3TagType.Track
-                });
-
-                tagList.Add(new TagDataInt
-                {
-                    _currentValue = track.DiscNumber,
-                    _newValue = track.DiscNumber,
-                    recordType = MusicRecord.DiscNumber,
-                    tagType = ID3TagType.Disc
-                });
-
-                tagList.Add(new TagDataInt
-                {
-                    _currentValue = track.Album.Year,
-                    _newValue = track.Album.Year,
-                    recordType = MusicRecord.AlbumYear,
-                    tagType = ID3TagType.Year
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = track.Recording.Artist.Name,
-                    NewValue = track.Recording.Artist.Name,
-                    recordType = MusicRecord.ArtistName,
-                    tagType = ID3TagType.Performer,
-                    tagTypeIndex = 0
-                });
+                    new TagViewable(track.Recording.Filename, MusicRecord.Filename),
+                    new TagDataBool(track.Recording.Live, MusicRecord.Live),
+                    new TagDataString(track.Title, MusicRecord.TrackTitle, ID3TagType.Title),
+                    new TagDataString(track.Recording.Song.Title, MusicRecord.SongTitle),
+                    new TagDataString(track.Album.Title, MusicRecord.AlbumTitle, ID3TagType.Album),
+                    new TagDataInt(track.TrackNumber, MusicRecord.TrackNumber, ID3TagType.Track),
+                    new TagDataInt(track.DiscNumber, MusicRecord.DiscNumber, ID3TagType.Disc),
+                    new TagDataInt(track.Album.Year, MusicRecord.AlbumYear, ID3TagType.Year),
+                    new TagDataString(track.Recording.Artist.Name, MusicRecord.ArtistName, ID3TagType.Performer, 0)
+                };
             }
             else if (firstDatum is Recording recording)
             {
-                tagList.Add(new TagViewable()
+                return new TagData[]
                 {
-                    _CurrentValue = recording.Filename,
-                    recordType = MusicRecord.Filename
-                });
-
-                tagList.Add(new TagDataBool()
-                {
-                    _currentValue = recording.Live,
-                    NewValue = recording.Live,
-                    recordType = MusicRecord.Live
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = recording.Song.Title,
-                    NewValue = recording.Song.Title,
-                    recordType = MusicRecord.SongTitle
-                });
-
-                tagList.Add(new TagDataString
-                {
-                    _currentValue = recording.Artist.Name,
-                    NewValue = recording.Artist.Name,
-                    recordType = MusicRecord.ArtistName,
-                    tagType = ID3TagType.Performer,
-                    tagTypeIndex = 0
-                });
+                    new TagViewable(recording.Filename, MusicRecord.Filename),
+                    new TagDataBool(recording.Live, MusicRecord.Live),
+                    new TagDataString(recording.Song.Title, MusicRecord.SongTitle),
+                    new TagDataString(recording.Artist.Name, MusicRecord.ArtistName, ID3TagType.Performer, 0)
+                };
             }
 
-            return tagList;
+            Console.WriteLine($"Error: Operation not defined for data: {data}");
+            return null;
         }
 
         /// <summary>
@@ -336,8 +148,7 @@ namespace Musegician
                 return new string[] { recording.Filename };
             }
 
-            Console.WriteLine("Unable to identify BaseData Type: " + data);
-
+            Console.WriteLine($"Error: Operation not defined for data: {data}");
             return null;
         }
 
@@ -368,8 +179,7 @@ namespace Musegician
                 return data.Select(x => (x as Recording).Filename);
             }
 
-            Console.WriteLine("Unable to identify BaseData Type: " + firstDatum);
-
+            Console.WriteLine($"Error: Operation not defined for data: {firstDatum}");
             return null;
         }
 
