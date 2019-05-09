@@ -15,30 +15,30 @@ namespace Musegician.AudioUtilities
     {
         #region Data
 
-        private float[] freqs;
-        private int[] freqIndices;
+        private readonly float[] freqs;
+        private readonly int[] freqIndices;
 
-        private int[] freqBandLB;
-        private int[] freqBandUB;
+        private readonly int[] freqBandLB;
+        private readonly int[] freqBandUB;
 
-        private RingBuffer<Complex> bufferL;
-        private RingBuffer<Complex> bufferR;
-        private Complex[] fftBufferL;
-        private Complex[] fftBufferR;
+        private readonly RingBuffer<Complex> bufferL;
+        private readonly RingBuffer<Complex> bufferR;
+        private readonly Complex[] fftBufferL;
+        private readonly Complex[] fftBufferR;
 
-        private double powerCoeff;
+        private readonly double powerCoeff;
 
         private static readonly float[] defaultFrequencies = new float[]
         {
             32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000
         };
 
-        private int samplesToProcess;
+        private readonly int samplesToProcess;
         //2^12 = 4096
         private const int FFT_EXP_MIN = 12;
         private const int MIN_PERIOD = 4;
         private const int SAMPLE_STRIDE = 2;
-        private int _fftSize = 12;
+        private readonly int _fftSize = 12;
 
         private int _blocksToProcess = 0;
         private int _blocksProcessed = 0;

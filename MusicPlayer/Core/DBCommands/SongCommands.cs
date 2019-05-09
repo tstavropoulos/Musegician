@@ -10,7 +10,7 @@ namespace Musegician.Core.DBCommands
 {
     public class SongCommands
     {
-        MusegicianData db = null;
+        private readonly MusegicianData db;
 
         public SongCommands(MusegicianData db)
         {
@@ -140,7 +140,7 @@ namespace Musegician.Core.DBCommands
                     {
                         selector.Children.Add(new DeredundafierDTO()
                         {
-                            Name = $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}",
+                            Name = $"{recording.Artist.Name} - {recording.Album.Title} - {recording.Title}",
                             Data = recording
                         });
                     }
@@ -192,7 +192,7 @@ namespace Musegician.Core.DBCommands
                     {
                         selector.Children.Add(new DeredundafierDTO()
                         {
-                            Name = $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}",
+                            Name = $"{recording.Artist.Name} - {recording.Album.Title} - {recording.Title}",
                             Data = recording
                         });
                     }
@@ -205,7 +205,7 @@ namespace Musegician.Core.DBCommands
 
         public void Merge(IEnumerable<BaseData> data)
         {
-            List<Song> songsCopy = new List<Song>(data.Select(x => x as Song).Distinct());
+            List<Song> songsCopy = new List<Song>(data.Cast<Song>().Distinct());
 
             Song matchingSong = songsCopy[0];
             songsCopy.RemoveAt(0);

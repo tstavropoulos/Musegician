@@ -17,8 +17,7 @@ namespace Musegician.Library
                    lazyLoadChildren: false)
         {
             _isHome = isHome;
-            Track effectiveTrack = recording.Tracks.First();
-            _name = $"{recording.Artist.Name} - {effectiveTrack.Album.Title} - {effectiveTrack.Title}";
+            _name = $"{recording.Artist.Name} - {recording.Album.Title} - {recording.Title}";
         }
 
         public RecordingViewModel(Recording recording, DirectoryViewModel directory)
@@ -27,8 +26,7 @@ namespace Musegician.Library
                    lazyLoadChildren: false)
         {
             _isHome = true;
-            Track effectiveTrack = recording.Tracks.First();
-            _name = $"{recording.Artist.Name} - {effectiveTrack.Album.Title} - {effectiveTrack.Title}";
+            _name = $"{recording.Artist.Name} - {recording.Album.Title} - {recording.Title}";
         }
 
         #endregion Constructors
@@ -46,8 +44,8 @@ namespace Musegician.Library
 
         protected override double WeightValue
         {
-            get => _recording.Tracks.First().Weight;
-            set => _recording.Tracks.First().Weight = value;
+            get => _recording.Weight;
+            set => _recording.Weight = value;
         }
 
         #endregion Properties

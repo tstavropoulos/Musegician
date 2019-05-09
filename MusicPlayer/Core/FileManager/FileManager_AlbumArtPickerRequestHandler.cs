@@ -28,7 +28,7 @@ namespace Musegician
 
             foreach (Album album in albumSearch)
             {
-                Recording firstRecording = album.Tracks.OrderBy(x => x.TrackNumber).First().Recording;
+                Recording firstRecording = album.Recordings.OrderBy(x => x.TrackNumber).First();
 
                 string directory = Path.GetDirectoryName(firstRecording.Filename);
 
@@ -44,7 +44,7 @@ namespace Musegician
                     continue;
                 }
 
-                string artistNames = string.Join(", ", album.Tracks.Select(x => x.Recording.Artist).Distinct().Select(x=>x.Name));
+                string artistNames = string.Join(", ", album.Recordings.Select(x => x.Artist).Distinct().Select(x=>x.Name));
 
                 AlbumArtAlbumDTO albumDTO = new AlbumArtAlbumDTO()
                 {

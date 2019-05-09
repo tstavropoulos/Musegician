@@ -9,33 +9,29 @@ namespace TASAgency.Collections.Generic
     /// An unstable-sort set structure that acts as a select-without-replace bag.
     /// </summary>
     [Serializable]
-    public class DepletableBag<T> : IDepletable<T>
+    public sealed class DepletableBag<T> : IDepletable<T>
     {
-        protected List<T> values;
-        protected int availableCount;
-
-        Random _randomizer = null;
+        private readonly List<T> values;
+        private readonly Random _randomizer = null;
 
         Random Randomizer => _randomizer ?? ThreadSafeRandom.Rand;
 
         public DepletableBag(Random randomizer = null)
         {
             values = new List<T>();
-            availableCount = 0;
-
-            if (randomizer == null)
-            {
-                randomizer = new Random();
-            }
+            Count = 0;
 
             _randomizer = randomizer;
         }
 
-        public DepletableBag(IEnumerable<T> values, bool autoRefill = false, Random randomizer = null)
+        public DepletableBag(
+            IEnumerable<T> values,
+            bool autoRefill = false,
+            Random randomizer = null)
         {
             this.values = new List<T>(values);
             AutoRefill = autoRefill;
-            availableCount = this.values.Count;
+            Count = this.values.Count;
 
             _randomizer = randomizer;
         }
@@ -47,11 +43,11 @@ namespace TASAgency.Collections.Generic
 
         public T PopNext()
         {
-            if (availableCount == 0)
+            if (Count == 0)
             {
                 if (AutoRefill)
                 {
-                    availableCount = values.Count;
+                    Count = values.Count;
                 }
                 else
                 {
@@ -60,16 +56,16 @@ namespace TASAgency.Collections.Generic
                 }
             }
 
-            int index = _randomizer.Next(0, availableCount);
+            int index = Randomizer.Next(0, Count);
             T temp = values[index];
 
             //Swap the position of the highest available value with the randomly chosen index.
-            values[index] = values[availableCount - 1];
-            values[availableCount - 1] = temp;
+            values[index] = values[Count - 1];
+            values[Count - 1] = temp;
 
-            //Decrement availableCount. Now that we have swapped those values,
+            //Decrement Count. Now that we have swapped those values,
             //all unusedValues will be below unusedCount.
-            availableCount--;
+            Count--;
 
             //return our chosen value.
             return temp;
@@ -77,11 +73,11 @@ namespace TASAgency.Collections.Generic
 
         public bool TryPopNext(out T value)
         {
-            if (availableCount == 0)
+            if (Count == 0)
             {
                 if (AutoRefill)
                 {
-                    availableCount = values.Count;
+                    Count = values.Count;
                 }
                 else
                 {
@@ -90,16 +86,16 @@ namespace TASAgency.Collections.Generic
                 }
             }
 
-            int index = _randomizer.Next(0, availableCount);
+            int index = Randomizer.Next(0, Count);
             value = values[index];
 
             //Swap the position of the highest available value with the randomly chosen index.
-            values[index] = values[availableCount - 1];
-            values[availableCount - 1] = value;
+            values[index] = values[Count - 1];
+            values[Count - 1] = value;
 
-            //Decrement availableCount. Now that we have swapped those values,
+            //Decrement Count. Now that we have swapped those values,
             //all unusedValues will be below unusedCount.
-            availableCount--;
+            Count--;
 
             //return our chosen value.
             return true;
@@ -110,7 +106,7 @@ namespace TASAgency.Collections.Generic
         /// </summary>
         public void Reset()
         {
-            availableCount = values.Count;
+            Count = values.Count;
         }
 
         public bool DepleteValue(T value)
@@ -118,7 +114,7 @@ namespace TASAgency.Collections.Generic
             const int NOT_FOUND = -1;
             int index = NOT_FOUND;
 
-            for (int i = 0; i < availableCount; i++)
+            for (int i = 0; i < Count; i++)
             {
                 if (values[i].Equals(value))
                 {
@@ -134,10 +130,10 @@ namespace TASAgency.Collections.Generic
 
             T temp = values[index];
 
-            values[index] = values[availableCount - 1];
-            values[availableCount - 1] = temp;
+            values[index] = values[Count - 1];
+            values[Count - 1] = temp;
 
-            availableCount--;
+            Count--;
 
             return true;
         }
@@ -154,8 +150,49 @@ namespace TASAgency.Collections.Generic
             return success;
         }
 
+        public bool ReplenishValue(T value)
+        {
+            const int NOT_FOUND = -1;
+            int index = NOT_FOUND;
+
+            for (int i = Count; i < TotalCount; i++)
+            {
+                if (values[i].Equals(value))
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index == NOT_FOUND)
+            {
+                return false;
+            }
+
+            T temp = values[index];
+
+            values[index] = values[Count];
+            values[Count] = temp;
+
+            Count++;
+
+            return true;
+        }
+
+        public bool ReplenishAllValue(T value)
+        {
+            bool success = false;
+
+            while (ReplenishValue(value))
+            {
+                success = true;
+            }
+
+            return success;
+        }
+
         public bool ContainsAnywhere(T value) => values.Contains(value);
-        public IList<T> GetAvailable() => values.GetRange(0, availableCount);
+        public IList<T> GetAvailable() => values.GetRange(0, Count);
 
         public void CopyAllTo(T[] array, int arrayIndex)
         {
@@ -177,33 +214,33 @@ namespace TASAgency.Collections.Generic
         #endregion IDepletable<T>
         #region ICollection<T>
 
-        public int Count => availableCount;
+        public int Count { get; private set; } = 0;
 
         bool ICollection<T>.IsReadOnly => false;
 
         public void Add(T value)
         {
-            if (availableCount < values.Count)
+            if (Count < values.Count)
             {
-                values.Add(values[availableCount]);
-                values[availableCount] = value;
+                values.Add(values[Count]);
+                values[Count] = value;
             }
             else
             {
                 values.Add(value);
             }
-            availableCount++;
+            Count++;
         }
 
         public void Clear()
         {
             values.Clear();
-            availableCount = 0;
+            Count = 0;
         }
 
         public bool Contains(T value)
         {
-            for (int i = 0; i < availableCount; i++)
+            for (int i = 0; i < Count; i++)
             {
                 if (values[i].Equals(value))
                 {
@@ -220,7 +257,7 @@ namespace TASAgency.Collections.Generic
                 index: 0,
                 array: dest,
                 arrayIndex: destIndex,
-                count: System.Math.Min(availableCount, dest.Length - destIndex));
+                count: System.Math.Min(Count, dest.Length - destIndex));
         }
 
         public bool Remove(T item)
@@ -231,9 +268,9 @@ namespace TASAgency.Collections.Generic
             {
                 values.RemoveAt(index);
 
-                if (index < availableCount)
+                if (index < Count)
                 {
-                    availableCount--;
+                    Count--;
                 }
 
             }

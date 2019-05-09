@@ -7,7 +7,7 @@ namespace Musegician.Core.DBCommands
 {
     public class PlaylistCommands
     {
-        MusegicianData db = null;
+        private readonly MusegicianData db;
 
         public PlaylistCommands(MusegicianData db)
         {

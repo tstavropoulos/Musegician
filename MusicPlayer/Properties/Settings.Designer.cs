@@ -12,7 +12,7 @@ namespace Musegician.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.7.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "16.1.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -31,6 +31,18 @@ namespace Musegician.Properties {
         public string Musegician_MusegicianDataConnectionString {
             get {
                 return ((string)(this["Musegician_MusegicianDataConnectionString"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\Users\\Trevor Stavropoulos" +
+            "\\Documents\\Musegician.MusegicianData.mdf\";Integrated Security=True;Connect Timeo" +
+            "ut=30")]
+        public string Musegician_MusegicianDataConnectionString1 {
+            get {
+                return ((string)(this["Musegician_MusegicianDataConnectionString1"]));
             }
         }
     }

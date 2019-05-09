@@ -51,7 +51,7 @@ namespace Musegician.Library
         {
             _musicTree = new MusicTreeViewModel(LibraryRequestHandler);
             DataContext = _musicTree;
-            
+
             //Trigger the loading of the current view mode
             _musicTree.CurrentViewMode = ViewMode.Classic;
         }
@@ -62,14 +62,14 @@ namespace Musegician.Library
         private void Add(IEnumerable<BaseData> data, bool deep, int position = -1)
         {
             List<PlaylistSong> songs = new List<PlaylistSong>();
-            
+
             foreach (BaseData datum in data)
             {
                 if (datum is Artist artist)
                 {
                     songs.AddRange(PlaylistTransferRequestHandler.GetArtistData(artist, deep));
                 }
-                else if(datum is Album album)
+                else if (datum is Album album)
                 {
                     songs.AddRange(PlaylistTransferRequestHandler.GetAlbumData(album, deep));
                 }
@@ -77,11 +77,7 @@ namespace Musegician.Library
                 {
                     songs.AddRange(PlaylistTransferRequestHandler.GetSongData(song));
                 }
-                else if(datum is Track track)
-                {
-                    songs.AddRange(PlaylistTransferRequestHandler.GetSongData(track.Recording));
-                }
-                else if(datum is Recording recording)
+                else if (datum is Recording recording)
                 {
                     songs.AddRange(PlaylistTransferRequestHandler.GetSongData(recording));
                 }
@@ -196,15 +192,15 @@ namespace Musegician.Library
             {
                 LibraryViewModel firstSelectedItem = selectedItems.First();
 
-                if (firstSelectedItem is ArtistViewModel artist)
+                if (firstSelectedItem is ArtistViewModel)
                 {
                     context = LibraryContext.Artist;
                 }
-                else if (firstSelectedItem is AlbumViewModel album)
+                else if (firstSelectedItem is AlbumViewModel)
                 {
                     context = LibraryContext.Album;
                 }
-                else if (firstSelectedItem is SongViewModel song)
+                else if (firstSelectedItem is SongViewModel)
                 {
                     switch (option)
                     {
@@ -223,14 +219,14 @@ namespace Musegician.Library
                             throw new ArgumentException($"Unexpected MenuAction: {option}");
                     }
                 }
-                else if (firstSelectedItem is RecordingViewModel recording)
+                else if (firstSelectedItem is RecordingViewModel)
                 {
                     context = LibraryContext.Recording;
                 }
-                
-                if(context == LibraryContext.Track)
+
+                if (context == LibraryContext.Track)
                 {
-                    return selectedItems.Select(x => (x as SongViewModel).Track);
+                    return selectedItems.Cast<SongViewModel>().Select(x => x.Recording);
                 }
                 else
                 {

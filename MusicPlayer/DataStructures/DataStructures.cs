@@ -11,11 +11,18 @@ using ID3TagType = Musegician.TagEditor.ID3TagType;
 
 namespace Musegician.DataStructures
 {
-    public struct PlayData
+    public readonly struct PlayData
     {
-        public string songTitle;
-        public string artistName;
-        public Recording recording;
+        public readonly string songTitle;
+        public readonly string artistName;
+        public readonly Recording recording;
+
+        public PlayData(string songTitle, string artistName, Recording recording)
+        {
+            this.songTitle = songTitle;
+            this.artistName = artistName;
+            this.recording = recording;
+        }
     }
 
     public abstract class TagData : INotifyPropertyChanged

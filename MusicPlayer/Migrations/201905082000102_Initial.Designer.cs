@@ -13,7 +13,7 @@ namespace Musegician.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201806062016535_Initial"; }
+            get { return "201905082000102_Initial"; }
         }
         
         string IMigrationMetadata.Source

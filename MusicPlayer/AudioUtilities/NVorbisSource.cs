@@ -66,10 +66,6 @@ namespace Musegician.Sources
             {
                 _vorbisReader.Dispose();
             }
-            else
-            {
-                throw new ObjectDisposedException("NVorbisSource");
-            }
 
             _disposed = true;
         }

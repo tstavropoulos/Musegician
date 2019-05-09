@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Musegician.Core
 {
@@ -8,7 +9,7 @@ namespace Musegician.Core
     /// Statically-sized ring buffer container.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class RingBuffer<T> : ICollection<T>
+    public class RingBuffer<T> : IEnumerable<T>, ICollection<T>
     {
         private T[] values = null;
         private int headIndex = -1;
@@ -44,7 +45,12 @@ namespace Musegician.Core
         /// <summary>
         /// Returns the head (the most recent) element.
         /// </summary>
-        public T Top => this[0];
+        public T Head => this[0];
+
+        /// <summary>
+        /// Returns the element at the Tail (the oldest).
+        /// </summary>
+        public T Tail => this[Count - 1];
 
         /// <summary>
         /// Construct an empty ring buffer supporting bufferSize elements
@@ -67,13 +73,18 @@ namespace Musegician.Core
         /// </summary>
         /// <param name="values"></param>
         /// <param name="bufferSize"></param>
-        public RingBuffer(ICollection<T> values, int bufferSize = -1)
+        public RingBuffer(IEnumerable<T> values, int bufferSize = -1)
         {
+            if (values == null)
+            {
+                throw new ArgumentNullException(nameof(values));
+            }
+
             if (bufferSize == -1)
             {
-                bufferSize = values.Count;
+                bufferSize = values.Count();
             }
-            
+
             if (bufferSize <= 0)
             {
                 throw new ArgumentException($"Attempted to initialize RingBuffer with size {bufferSize}.");
@@ -81,7 +92,7 @@ namespace Musegician.Core
 
             this.values = new T[bufferSize];
 
-            Count = Math.Min(bufferSize, values.Count);
+            Count = Math.Min(bufferSize, values.Count());
             headIndex = Count - 1;
 
             //Iterate over collection, up to availableCount, and add items
@@ -102,10 +113,7 @@ namespace Musegician.Core
         /// Replaces the oldest member if at capacity.
         /// </summary>
         /// <param name="newValue"></param>
-        public void Push(T newValue)
-        {
-            Add(newValue);
-        }
+        public void Push(T newValue) => Add(newValue);
 
         /// <summary>
         /// Add newValue to the end of the ringbuffer.
@@ -120,6 +128,46 @@ namespace Musegician.Core
         }
 
         /// <summary>
+        /// Add newValues to the end of the ringbuffer.
+        /// Replaces the oldest members if at capacity.
+        /// </summary>
+        public void AddRange(IEnumerable<T> newValues)
+        {
+            Count = Math.Min(Count + newValues.Count(), Size);
+
+            foreach (T newValue in newValues)
+            {
+                headIndex = (headIndex + 1) % Size;
+                values[headIndex] = newValue;
+            }
+        }
+
+        /// <summary>
+        /// Clears the RingBuffer and fills it with optional <paramref name="count"/> default elements.
+        /// If <paramref name="count"/> is -1, then the RingBuffer is completely filled.
+        /// </summary>
+        /// <param name="count">The number of default elements to provide.  If this is -1, the buffer is filled</param>
+        public void ZeroOut(int count = -1)
+        {
+            if (count == -1)
+            {
+                count = Size;
+            }
+
+            if (count < 0 || count > Size)
+            {
+                throw new ArgumentException($"Called ZeroOut on RingBuffer with invalid count: {count}.",
+                    paramName: nameof(count));
+            }
+
+            //Clear already sets the values to zero
+            Clear();
+
+            Count = count;
+            headIndex = count - 1;
+        }
+
+        /// <summary>
         /// Clear the current items in the ring buffer.
         /// Doesn't resize or release buffer memory.
         /// Does release item handles.
@@ -131,7 +179,7 @@ namespace Musegician.Core
 
             for (int i = 0; i < Size; i++)
             {
-                values[i] = default(T);
+                values[i] = default;
             }
         }
 
@@ -140,10 +188,7 @@ namespace Musegician.Core
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public bool Contains(T value)
-        {
-            return GetIndex(value) != -1;
-        }
+        public bool Contains(T value) => GetIndex(value) != -1;
 
         /// <summary>
         /// Get the index of the argument value if it's present.  Otherwise returns -1.
@@ -203,8 +248,13 @@ namespace Musegician.Core
                 {
                     this[i] = this[i - 1];
                 }
-                
-                --headIndex;
+
+                //Clear the copy of the last remaining element
+                //We don't want to retain references to dead elements
+                this[0] = default;
+
+                //Cyclically decrement headIndex
+                headIndex = (Size + headIndex - 1) % Size;
             }
             else
             {
@@ -212,6 +262,10 @@ namespace Musegician.Core
                 {
                     this[i] = this[i + 1];
                 }
+
+                //Clear the copy of the last remaining element
+                //We don't want to retain references to dead elements
+                this[Count - 1] = default;
             }
 
             --Count;
@@ -243,6 +297,18 @@ namespace Musegician.Core
             RemoveAt(Count - 1);
             return temp;
         }
+
+        /// <summary>
+        /// Returns the element at the head (the newest).
+        /// </summary>
+        /// <returns>The element at the head</returns>
+        public T PeekHead() => this[0];
+
+        /// <summary>
+        /// Returns the element at the tail (the oldest).
+        /// </summary>
+        /// <returns>The element at the tail</returns>
+        public T PeekTail() => this[Count - 1];
 
         /// <summary>
         /// Returns the number of elements whose value match the argument.
@@ -309,20 +375,11 @@ namespace Musegician.Core
             Count = newItemCount;
         }
 
-        public RingBufferEnum<T> GetRingEnumerator()
-        {
-            return new RingBufferEnum<T>(values, Count, headIndex);
-        }
+        public RingBufferEnum<T> GetRingEnumerator() => new RingBufferEnum<T>(values, Count, headIndex);
 
-        public IEnumerator<T> GetEnumerator()
-        {
-        return GetRingEnumerator() as IEnumerator<T>;
-        }
+        public IEnumerator<T> GetEnumerator() => GetRingEnumerator() as IEnumerator<T>;
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
     /// <summary>

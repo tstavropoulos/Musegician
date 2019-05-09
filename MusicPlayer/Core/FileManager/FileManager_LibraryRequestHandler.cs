@@ -29,16 +29,15 @@ namespace Musegician
         IEnumerable<Album> ILibraryRequestHandler.GenerateArtistAlbumList(Artist artist)
         {
             return (from recording in artist.Recordings
-                    from track in recording.Tracks
-                    orderby track.Album.Year ascending
-                    select track.Album).Distinct();
+                    orderby recording.Album.Year ascending
+                    select recording.Album).Distinct();
         }
 
-        IEnumerable<Track> ILibraryRequestHandler.GenerateAlbumTrackList(Album album)
+        IEnumerable<Recording> ILibraryRequestHandler.GenerateAlbumRecordingList(Album album)
         {
-            return (from track in album.Tracks
-                    orderby track.DiscNumber ascending, track.TrackNumber ascending
-                    select track);
+            return (from recording in album.Recordings
+                    orderby recording.DiscNumber ascending, recording.TrackNumber ascending
+                    select recording);
         }
 
         IEnumerable<Recording> ILibraryRequestHandler.GenerateSongRecordingList(Song song)

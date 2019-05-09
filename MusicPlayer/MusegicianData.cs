@@ -18,8 +18,7 @@ namespace Musegician.Database
         public DbSet<Recording> Recordings { get; set; }
         public DbSet<Artist> Artists { get; set; }
         public DbSet<Song> Songs { get; set; }
-        public DbSet<Track> Tracks { get; set; }
-        
+
         public DbSet<CompositeArtist> CompositeArtists { get; set; }
 
         public DbSet<Playlist> Playlists { get; set; }
@@ -62,40 +61,39 @@ namespace Musegician.Database
         public int Year { get; set; }
         public override double Weight { get; set; }
         public byte[] Image { get; set; }
+        public byte[] Thumbnail { get; set; }
         public Guid AlbumGuid { get; set; }
 
         public Album()
         {
-            Tracks = new HashSet<Track>();
+            Recordings = new HashSet<Recording>();
         }
 
-        public virtual ICollection<Track> Tracks { get; set; }
+        public virtual ICollection<Recording> Recordings { get; set; }
     }
 
     public class Recording : BaseData
     {
         public long ArtistId { get; set; }
+        public long AlbumId { get; set; }
         public long SongId { get; set; }
         public string Filename { get; set; }
+
+        public string Title { get; set; }
+
+        public int TrackNumber { get; set; }
+        public int DiscNumber { get; set; }
+
         public bool Live { get; set; }
 
-        public Recording()
-        {
-            Tracks = new HashSet<Track>();
-        }
+        public Recording() { }
 
+        public virtual Album Album { get; set; }
         public virtual Artist Artist { get; set; }
         public virtual Song Song { get; set; }
         public override double DefaultWeight => Live ? Settings.Instance.LiveWeight : Settings.Instance.StudioWeight;
-        
-        [NotMapped]
-        public override double Weight
-        {
-            get => throw new Exception("Recordings Have No Weight:Get");
-            set => throw new Exception("Recordings Have No Weight:Set");
-        }
 
-        public virtual ICollection<Track> Tracks { get; set; }
+        public override double Weight { get; set; }
     }
 
     public class Artist : BaseData
@@ -130,19 +128,6 @@ namespace Musegician.Database
         }
 
         public virtual ICollection<Recording> Recordings { get; set; }
-    }
-
-    public class Track : BaseData
-    {
-        public long AlbumId { get; set; }
-        public long RecordingId { get; set; }
-        public string Title { get; set; }
-        public int TrackNumber { get; set; }
-        public int DiscNumber { get; set; }
-        public override double Weight { get; set; }
-
-        public virtual Album Album { get; set; }
-        public virtual Recording Recording { get; set; }
     }
 
     public class CompositeArtist

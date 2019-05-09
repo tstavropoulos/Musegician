@@ -6,6 +6,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 
+using LowLevelKeyboardProc = Musegician.Core.NativeMethods.LowLevelKeyboardProc;
+
 namespace Musegician.Core
 {
     /// <summary>
@@ -16,14 +18,14 @@ namespace Musegician.Core
     {
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
-        private LowLevelKeyboardProc keyboardProc;
-        private IntPtr hookId = IntPtr.Zero;
+        private readonly LowLevelKeyboardProc keyboardProc;
+        private readonly IntPtr hookId = IntPtr.Zero;
 
-        const UInt32 SWP_NOSIZE = 0x0001;
-        const UInt32 SWP_NOMOVE = 0x0002;
-        const UInt32 SWP_SHOWWINDOW = 0x0040;
+        //const UInt32 SWP_NOSIZE = 0x0001;
+        //const UInt32 SWP_NOMOVE = 0x0002;
+        //const UInt32 SWP_SHOWWINDOW = 0x0040;
 
-        private HashSet<Key> SelectedKeys;
+        private readonly HashSet<Key> SelectedKeys;
 
         public KeyboardHook(ICollection<Key> keys)
         {
@@ -31,11 +33,6 @@ namespace Musegician.Core
             hookId = SetHook(keyboardProc);
 
             SelectedKeys = new HashSet<Key>(keys);
-        }
-
-        public void Dispose()
-        {
-            UnhookWindowsHookEx(hookId);
         }
 
         public event EventHandler<Key> RegisteredKeyPressed;
@@ -50,15 +47,13 @@ namespace Musegician.Core
             using (Process curProcess = Process.GetCurrentProcess())
             using (ProcessModule curModule = curProcess.MainModule)
             {
-                return SetWindowsHookEx(
+                return NativeMethods.SetWindowsHookEx(
                     idHook: WH_KEYBOARD_LL,
                     lpfn: proc,
-                    hMod: GetModuleHandle(curModule.ModuleName),
+                    hMod: NativeMethods.GetModuleHandle(curModule.ModuleName),
                     dwThreadId: 0);
             }
         }
-
-        private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
         private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
@@ -74,29 +69,31 @@ namespace Musegician.Core
                     OnRegisteredKeyPressed(keyPressed);
                 }
             }
-            return CallNextHookEx(hookId, nCode, wParam, lParam);
+            return NativeMethods.CallNextHookEx(hookId, nCode, wParam, lParam);
         }
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr SetWindowsHookEx(
-            int idHook,
-            LowLevelKeyboardProc lpfn,
-            IntPtr hMod,
-            uint dwThreadId);
+        #region IDisposable Support
+        private bool disposedValue = false;
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+        void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    NativeMethods.UnhookWindowsHookEx(hookId);
+                    GC.SuppressFinalize(this);
+                }
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr CallNextHookEx(
-            IntPtr hhk,
-            int nCode,
-            IntPtr wParam,
-            IntPtr lParam);
+                disposedValue = true;
+            }
+        }
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr GetModuleHandle(string lpModuleName);
+        public void Dispose()
+        {
+            Dispose(true);
+        }
 
+        #endregion IDisposable Support
     }
 }

@@ -25,8 +25,7 @@ namespace Musegician
             List<FileReorganizerDTO> reorgTargets = new List<FileReorganizerDTO>();
             foreach (Recording recording in db.Recordings)
             {
-                Track track = recording.Tracks.First();
-                Album album = track.Album;
+                Album album = recording.Album;
 
                 //
                 // Filename
@@ -36,13 +35,13 @@ namespace Musegician
                 string currentFileName = Path.GetFileNameWithoutExtension(recording.Filename);
 
                 string properFileName;
-                if (track.TrackNumber == 0)
+                if (recording.TrackNumber == 0)
                 {
-                    properFileName = $"{recording.Artist.Name} - {track.Title}";
+                    properFileName = $"{recording.Artist.Name} - {recording.Title}";
                 }
                 else
                 {
-                    properFileName = $"{track.TrackNumber:D2}. {recording.Artist.Name} - {track.Title}";
+                    properFileName = $"{recording.TrackNumber:D2}. {recording.Artist.Name} - {recording.Title}";
                 }
 
                 properFileName = SanitizeFileName(properFileName);

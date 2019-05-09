@@ -12,11 +12,14 @@ using System.Text;
 using MusegicianTag = Musegician.Core.MusegicianTag;
 using LoadingUpdater = Musegician.LoadingDialog.LoadingDialog.LoadingUpdater;
 using Stopwatch = System.Diagnostics.Stopwatch;
+using System.Drawing.Imaging;
+using System.Drawing;
 
 namespace Musegician
 {
     #region Exceptions
 
+    [Serializable]
     public class LibraryContextException : Exception
     {
         public LibraryContextException(string message) : base(message) { }
@@ -28,7 +31,7 @@ namespace Musegician
     {
         #region Data
 
-        private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3", "*.flac", "*.ogg" };
+        private readonly List<string> supportedFileTypes = new List<string>() { "*.mp3", "*.flac", "*.ogg", "*.m4a" };
         private readonly string[] songNameDelimiter = new string[] { " - " };
         private readonly string consoleDiv = "---------------------------------------";
 
@@ -73,18 +76,20 @@ namespace Musegician
 
         #endregion RegEx
 
-        private RecordingCommands recordingCommands = null;
-        private TrackCommands trackCommands = null;
-        private SongCommands songCommands = null;
-        private AlbumCommands albumCommands = null;
-        private ArtistCommands artistCommands = null;
+        private readonly RecordingCommands recordingCommands = null;
+        private readonly SongCommands songCommands = null;
+        private readonly AlbumCommands albumCommands = null;
+        private readonly ArtistCommands artistCommands = null;
 
-        private PlaylistCommands playlistCommands = null;
+        private readonly PlaylistCommands playlistCommands = null;
 
         /// <summary>
         /// A long-running Database reference
         /// </summary>
-        private MusegicianData db = null;
+        private readonly MusegicianData db = null;
+
+        private static ImageCodecInfo thumbnailEncoder = null;
+        private static EncoderParameters thumbnailEncoderParameters = null;
 
         #endregion Data
         #region Event RebuildNotifier
@@ -119,7 +124,6 @@ namespace Musegician
             db.Database.CreateIfNotExists();
 
             recordingCommands = new RecordingCommands(db);
-            trackCommands = new TrackCommands(db);
             songCommands = new SongCommands(db);
             albumCommands = new AlbumCommands(db);
             artistCommands = new ArtistCommands(db);
@@ -139,7 +143,6 @@ namespace Musegician
                 albumCommands._DropTable();
                 songCommands._DropTable();
                 recordingCommands._DropTable();
-                trackCommands._DropTable();
 
                 playlistCommands._DropTable();
             }
@@ -211,8 +214,8 @@ namespace Musegician
             }
 
             foreach (var set in (from album in db.Albums
-                                 join track in db.Tracks on album.Id equals track.AlbumId
-                                 select new { track.Recording.Artist, Album = album }).Distinct())
+                                 join recording in db.Recordings on album.Id equals recording.AlbumId
+                                 select new { recording.Artist, Album = album }).Distinct())
             {
                 if (!lookups.AlbumNameLookup.ContainsKey((set.Artist, set.Album.Title.ToLowerInvariant())))
                 {
@@ -238,14 +241,8 @@ namespace Musegician
                 PopulateFilenameHashtable(loadedFilenames);
                 AddMusicDirectory(path, newMusic, loadedFilenames, updater);
 
-                //Lookup loading is FAST - skipDB threshold is therefore low
-                bool skipDB = newMusic.Count >= 10;
-
-                if (skipDB)
-                {
-                    updater.SetSubtitle("Reading Database...");
-                    PopulateLookups(lookups);
-                }
+                updater.SetSubtitle("Reading Database...");
+                PopulateLookups(lookups);
 
                 int count = newMusic.Count;
                 updater.SetSubtitle($"Loading New Files...  (0/{count})");
@@ -266,8 +263,7 @@ namespace Musegician
 
                     LoadFileData(
                         path: songFilename,
-                        lookups: lookups,
-                        skipDB: skipDB);
+                        lookups: lookups);
                 }
 
 
@@ -281,8 +277,7 @@ namespace Musegician
 
         private void LoadFileData(
             string path,
-            Lookups lookups,
-            bool skipDB)
+            Lookups lookups)
         {
             TagLib.File file = null;
 
@@ -337,20 +332,6 @@ namespace Musegician
                     {
                         artist = lookups.ArtistGuidLookup[musegicianTag.ArtistGuid];
                     }
-
-                    //Find in DB by Guid
-                    if (artist == null && !skipDB)
-                    {
-                        artist = db.Artists
-                            .Where(x => x.ArtistGuid == musegicianTag.ArtistGuid)
-                            .FirstOrDefault();
-
-                        if (artist != null)
-                        {
-                            //If we found it, add it to the lookup
-                            lookups.ArtistGuidLookup.Add(musegicianTag.ArtistGuid, artist);
-                        }
-                    }
                 }
                 else
                 {
@@ -359,20 +340,6 @@ namespace Musegician
                     if (lookups.ArtistNameLookup.ContainsKey(artistName.ToLowerInvariant()))
                     {
                         artist = lookups.ArtistNameLookup[artistName.ToLowerInvariant()];
-                    }
-
-                    //Find in DB by name
-                    if (artist == null && !skipDB)
-                    {
-                        artist = db.Artists
-                            .Where(x => x.Name == artistName)
-                            .FirstOrDefault();
-
-                        if (artist != null)
-                        {
-                            //If we found it, add it to the lookup
-                            lookups.ArtistNameLookup.Add(artistName.ToLowerInvariant(), artist);
-                        }
                     }
 
                     //If artist was found, populate ArtistGuid into tag
@@ -435,20 +402,6 @@ namespace Musegician
                         song = lookups.SongGuidLookup[musegicianTag.SongGuid];
                     }
 
-                    //Find in DB by Guid
-                    if (song == null && !skipDB)
-                    {
-                        song = db.Songs
-                            .Where(x => x.SongGuid == musegicianTag.SongGuid)
-                            .FirstOrDefault();
-
-                        if (song != null)
-                        {
-                            //If we found it, add it to the lookup
-                            lookups.SongGuidLookup.Add(song.SongGuid, song);
-                        }
-                    }
-
                     if (song == null)
                     {
                         //Clean up title for record creation
@@ -466,23 +419,6 @@ namespace Musegician
                     {
                         song = lookups.SongNameLookup[(artist, songTitle.ToLowerInvariant())];
                     }
-
-                    if (song == null && !skipDB)
-                    {
-                        //Find in db by name, matching artist
-                        song = db.Recordings.Where(x => x.ArtistId == artist.Id)
-                            .Select(x => x.Song)
-                            .Distinct()
-                            .Where(x => x.Title == songTitle)
-                            .FirstOrDefault();
-
-                        if (song != null)
-                        {
-                            //If we found it, add it to the lookup
-                            lookups.SongNameLookup.Add((artist, songTitle), song);
-                        }
-                    }
-
 
                     musegicianTag.SongGuid = song?.SongGuid ?? Guid.NewGuid();
                 }
@@ -529,20 +465,6 @@ namespace Musegician
                         album = lookups.AlbumGuidLookup[musegicianTag.AlbumGuid];
                     }
 
-                    if (album == null && !skipDB)
-                    {
-                        //Find in DB by Guid
-                        album = db.Albums
-                            .Where(x => x.AlbumGuid == musegicianTag.AlbumGuid)
-                            .FirstOrDefault();
-
-                        if (album != null)
-                        {
-                            //If we found it, add it to the lookup
-                            lookups.AlbumGuidLookup.Add(album.AlbumGuid, album);
-                        }
-                    }
-
                     if (album == null)
                     {
                         //Clean up title for record creation
@@ -560,22 +482,6 @@ namespace Musegician
                     {
                         album = lookups.AlbumNameLookup[(artist, cleanAlbumTitle.ToLowerInvariant())];
                     }
-
-                    if (album == null && !skipDB)
-                    {
-                        //Search in db for albums featuring artist, with matching name
-                        album = db.Tracks.Where(x => x.Recording.ArtistId == artist.Id)
-                            .Select(x => x.Album)
-                            .Distinct()
-                            .Where(x => x.Title == cleanAlbumTitle).FirstOrDefault();
-
-                        if (album != null)
-                        {
-                            //If we found it, add it to the lookup
-                            lookups.AlbumNameLookup.Add((artist, cleanAlbumTitle.ToLowerInvariant()), album);
-                        }
-                    }
-
 
                     musegicianTag.AlbumGuid = album?.AlbumGuid ?? Guid.NewGuid();
                 }
@@ -602,9 +508,14 @@ namespace Musegician
                 if (tag.Pictures.Length > 0 && album.Image == null)
                 {
                     //Try to open it
-                    if (LoadImage(file.Tag.Pictures[0].Data.Data) != null)
+                    using (Bitmap loadedBitmap = LoadBitmap(file.Tag.Pictures[0].Data.Data))
                     {
-                        album.Image = file.Tag.Pictures[0].Data.Data;
+                        //If image can be loaded...
+                        if (loadedBitmap != null)
+                        {
+                            album.Image = file.Tag.Pictures[0].Data.Data;
+                            album.Thumbnail = CreateThumbnail(loadedBitmap);
+                        }
                     }
                 }
 
@@ -612,21 +523,15 @@ namespace Musegician
                 {
                     Artist = artist,
                     Song = song,
-                    Filename = path,
-                    Live = musegicianTag.Live
-                };
-                db.Recordings.Add(recording);
-
-                Track track = new Track()
-                {
                     Album = album,
-                    Recording = recording,
+                    Filename = path,
                     Title = trackTitle,
                     TrackNumber = (int)tag.Track,
                     DiscNumber = discNumber,
+                    Live = musegicianTag.Live,
                     Weight = -1.0
                 };
-                db.Tracks.Add(track);
+                db.Recordings.Add(recording);
 
                 if (newMusegicianTag && Settings.Instance.CreateMusegicianTags)
                 {
@@ -688,15 +593,9 @@ namespace Musegician
             }
         }
 
-        public void SetAlbumArt(Album album, string path)
-        {
-            albumCommands.SetAlbumArt(album, path);
-        }
+        public void SetAlbumArt(Album album, string path) => albumCommands.SetAlbumArt(album, path);
 
-        public BitmapImage GetAlbumArtForRecording(Recording recording)
-        {
-            return LoadImage(recording.Tracks.First().Album.Image);
-        }
+        public BitmapImage GetAlbumArtForRecording(Recording recording) => LoadImage(recording.Album.Image);
 
         public static BitmapImage LoadImage(byte[] imageData)
         {
@@ -726,6 +625,75 @@ namespace Musegician
             {
                 Console.WriteLine("Failed to load image.  Skipping.");
             }
+            return null;
+        }
+
+        public static Bitmap LoadBitmap(byte[] imageData)
+        {
+            if (imageData == null || imageData.Length == 0)
+            {
+                return null;
+            }
+
+            try
+            {
+                Bitmap image;
+                using (MemoryStream mem = new MemoryStream(imageData))
+                {
+                    mem.Position = 0;
+                    image = new Bitmap(mem);
+                }
+
+                return image;
+            }
+            catch (NotSupportedException)
+            {
+                Console.WriteLine("Failed to load image.  Skipping.");
+            }
+            catch (ArgumentException)
+            {
+                Console.WriteLine("Failed to load image.  Skipping.");
+            }
+
+            return null;
+        }
+
+        public static byte[] CreateThumbnail(Bitmap sourceImage)
+        {
+            if (thumbnailEncoder == null || thumbnailEncoderParameters == null)
+            {
+                thumbnailEncoder = ImageCodecInfo.GetImageDecoders()
+                    .Where(x => x.FormatID == ImageFormat.Jpeg.Guid)
+                    .First();
+
+                thumbnailEncoderParameters = new EncoderParameters(1);
+                thumbnailEncoderParameters.Param[0] = new EncoderParameter(
+                    encoder: System.Drawing.Imaging.Encoder.Quality,
+                    value: 10L);
+            }
+
+            try
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    ms.Position = 0;
+                    using (Bitmap thumbnailBitmap = new Bitmap(sourceImage, 100, 100))
+                    {
+                        thumbnailBitmap.Save(
+                            stream: ms,
+                            encoder: thumbnailEncoder,
+                            encoderParams: thumbnailEncoderParameters);
+                    }
+
+
+                    return ms.ToArray();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Exception when trying to create thumbnail stream: {e}");
+            }
+
             return null;
         }
 
@@ -829,32 +797,25 @@ namespace Musegician
 
             if (firstDatum is Recording)
             {
-                recordings = data.Select(x => x as Recording)
+                recordings = data.Cast<Recording>()
                     .Distinct();
             }
             else if (firstDatum is Song)
             {
-                recordings = data.Select(x => x as Song)
+                recordings = data.Cast<Song>()
                     .SelectMany(x => x.Recordings)
                     .Distinct();
             }
             else if (firstDatum is Album)
             {
-                recordings = data.Select(x => x as Album)
-                    .SelectMany(x => x.Tracks)
-                    .Select(x => x.Recording)
+                recordings = data.Cast<Album>()
+                    .SelectMany(x => x.Recordings)
                     .Distinct();
             }
             else if (firstDatum is Artist)
             {
-                recordings = data.Select(x => x as Artist)
+                recordings = data.Cast<Artist>()
                     .SelectMany(x => x.Recordings)
-                    .Distinct();
-            }
-            else if (firstDatum is Track)
-            {
-                recordings = data.Select(x => x as Track)
-                    .Select(x => x.Recording)
                     .Distinct();
             }
             else
@@ -921,10 +882,10 @@ namespace Musegician
                             musegicianTag.ArtistGuid = recording.Artist.ArtistGuid;
                         }
 
-                        if (musegicianTag.AlbumGuid != recording.Tracks.First().Album.AlbumGuid)
+                        if (musegicianTag.AlbumGuid != recording.Album.AlbumGuid)
                         {
                             write = true;
-                            musegicianTag.AlbumGuid = recording.Tracks.First().Album.AlbumGuid;
+                            musegicianTag.AlbumGuid = recording.Album.AlbumGuid;
                         }
 
                         if (musegicianTag.SongGuid != recording.Song.SongGuid)
@@ -979,32 +940,25 @@ namespace Musegician
 
             if (firstDatum is Recording)
             {
-                recordings = data.Select(x => x as Recording)
+                recordings = data.Cast<Recording>()
                     .Distinct();
             }
             else if (firstDatum is Song)
             {
-                recordings = data.Select(x => x as Song)
+                recordings = data.Cast<Song>()
                     .SelectMany(x => x.Recordings)
                     .Distinct();
             }
             else if (firstDatum is Album)
             {
-                recordings = data.Select(x => x as Album)
-                    .SelectMany(x => x.Tracks)
-                    .Select(x => x.Recording)
+                recordings = data.Cast<Album>()
+                    .SelectMany(x => x.Recordings)
                     .Distinct();
             }
             else if (firstDatum is Artist)
             {
-                recordings = data.Select(x => x as Artist)
+                recordings = data.Cast<Artist>()
                     .SelectMany(x => x.Recordings)
-                    .Distinct();
-            }
-            else if (firstDatum is Track)
-            {
-                recordings = data.Select(x => x as Track)
-                    .Select(x => x.Recording)
                     .Distinct();
             }
             else
@@ -1043,7 +997,7 @@ namespace Musegician
                         bool write = false;
                         if (file.Tag.Performers.Length == 0 ||
                             (file.Tag.Performers.Length == 1 && file.Tag.Performers[0] != recording.Artist.Name) ||
-                            (file.Tag.Performers.Length > 1 && String.Join("/", file.Tag.Performers) != recording.Artist.Name))
+                            (file.Tag.Performers.Length > 1 && string.Join("/", file.Tag.Performers) != recording.Artist.Name))
                         {
                             write = true;
                             file.Tag.Performers = new string[] { recording.Artist.Name };
@@ -1051,42 +1005,40 @@ namespace Musegician
 
                         if (file.Tag.AlbumArtists.Length == 0 ||
                             (file.Tag.AlbumArtists.Length == 1 && file.Tag.AlbumArtists[0] != recording.Artist.Name) ||
-                            (file.Tag.AlbumArtists.Length > 1 && String.Join("/", file.Tag.AlbumArtists) != recording.Artist.Name))
+                            (file.Tag.AlbumArtists.Length > 1 && string.Join("/", file.Tag.AlbumArtists) != recording.Artist.Name))
                         {
                             write = true;
                             file.Tag.AlbumArtists = new string[] { recording.Artist.Name };
                         }
 
-                        Track firstTrack = recording.Tracks.First();
-
-                        if (file.Tag.Album != firstTrack.Album.Title)
+                        if (file.Tag.Album != recording.Album.Title)
                         {
                             write = true;
-                            file.Tag.Album = firstTrack.Album.Title;
+                            file.Tag.Album = recording.Album.Title;
                         }
 
-                        if (file.Tag.Title != firstTrack.Title)
+                        if (file.Tag.Title != recording.Title)
                         {
                             write = true;
-                            file.Tag.Title = firstTrack.Title;
+                            file.Tag.Title = recording.Title;
                         }
 
-                        if (file.Tag.Year != firstTrack.Album.Year)
+                        if (file.Tag.Year != recording.Album.Year)
                         {
                             write = true;
-                            file.Tag.Year = (uint)firstTrack.Album.Year;
+                            file.Tag.Year = (uint)recording.Album.Year;
                         }
 
-                        if (file.Tag.Track != firstTrack.TrackNumber)
+                        if (file.Tag.Track != recording.TrackNumber)
                         {
                             write = true;
-                            file.Tag.Track = (uint)firstTrack.TrackNumber;
+                            file.Tag.Track = (uint)recording.TrackNumber;
                         }
 
-                        if (file.Tag.Disc != firstTrack.DiscNumber)
+                        if (file.Tag.Disc != recording.DiscNumber)
                         {
                             write = true;
-                            file.Tag.Disc = (uint)firstTrack.DiscNumber;
+                            file.Tag.Disc = (uint)recording.DiscNumber;
                         }
 
                         if (write)
@@ -1160,10 +1112,9 @@ namespace Musegician
                     stopwatch.Restart();
                 }
 
-                foreach (Recording recording in album.Tracks
+                foreach (Recording recording in album.Recordings
                     .OrderBy(x => x.DiscNumber)
-                    .ThenBy(x => x.TrackNumber)
-                    .Select(x => x.Recording))
+                    .ThenBy(x => x.TrackNumber))
                 {
                     //Update the first song on the album (whose id3 tag points to the album) with the art
                     try
@@ -1185,13 +1136,18 @@ namespace Musegician
                                 //See if any of the tracks have an image
                                 if (audioFile.Tag.Pictures != null && audioFile.Tag.Pictures.Length > 0)
                                 {
-                                    if (LoadImage(audioFile.Tag.Pictures[0].Data.Data) != null)
+                                    using (Bitmap loadedBitmap = LoadBitmap(audioFile.Tag.Pictures[0].Data.Data))
                                     {
-                                        album.Image = audioFile.Tag.Pictures[0].Data.Data;
+                                        //If image can be loaded...
+                                        if (loadedBitmap != null)
+                                        {
+                                            album.Image = audioFile.Tag.Pictures[0].Data.Data;
+                                            album.Thumbnail = CreateThumbnail(loadedBitmap);
 
-                                        modifiedRecords++;
+                                            modifiedRecords++;
 
-                                        break;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -1235,14 +1191,69 @@ namespace Musegician
             }
         }
 
+        public void UpdateAlbumArtThumbnails(
+            LoadingUpdater updater,
+            IEnumerable<BaseData> data = null)
+        {
+            if (data == null)
+            {
+                data = db.Albums;
+            }
+
+            updater.SetTitle("Updating Album Art Thumbnails");
+            int count = data.Count();
+            updater.SetSubtitle($"Comparing and Updating Albums...  (0/{count})\n");
+
+            updater.SetLimit(count);
+
+
+            int i = 0;
+            int modifiedFiles = 0;
+            int modifiedRecords = 0;
+            string modifiedString = "";
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            foreach (Album album in data.OfType<Album>().Distinct())
+            {
+                i++;
+                if (stopwatch.ElapsedMilliseconds > Settings.BarUpdatePeriod)
+                {
+                    updater.SetProgress(i);
+                    if (modifiedRecords > 0 && modifiedFiles > 0)
+                    {
+                        modifiedString = $"Modified {modifiedFiles} Files and {modifiedRecords} Records.";
+                    }
+                    else if (modifiedFiles > 0)
+                    {
+                        modifiedString = $"Modified {modifiedFiles} Files.";
+                    }
+                    else if (modifiedRecords > 0)
+                    {
+                        modifiedString = $"Modified {modifiedRecords} Records.";
+                    }
+
+                    updater.SetSubtitle($"Comparing and Updating Albums...  ({i}/{count})\n{modifiedString}");
+                    stopwatch.Restart();
+                }
+
+                if (album.Image != null && album.Image.Length > 0)
+                {
+                    using (Bitmap loadedBitmap = LoadBitmap(album.Image))
+                    {
+                        //If image can be loaded...
+                        if (loadedBitmap != null)
+                        {
+                            album.Thumbnail = CreateThumbnail(loadedBitmap);
+                        }
+                    }
+                }
+            }
+
+            db.SaveChanges();
+        }
+
         public void CleanChildlessRecords()
         {
-            //Remove orphaned recordings
-            db.Recordings.RemoveRange(
-                from recording in db.Recordings
-                where recording.Tracks.Count == 0
-                select recording);
-
             db.Songs.RemoveRange(
                 from song in db.Songs
                 where song.Recordings.Count == 0
@@ -1255,7 +1266,7 @@ namespace Musegician
 
             db.Albums.RemoveRange(
                 from album in db.Albums
-                where album.Tracks.Count == 0
+                where album.Recordings.Count == 0
                 select album);
 
             db.PlaylistSongs.RemoveRange(
@@ -1334,14 +1345,7 @@ namespace Musegician
         {
             if (!disposedValue)
             {
-                if (disposing)
-                {
-                    db?.Dispose();
-                    db = null;
-                }
-
-                // TODO: set large fields to null.
-
+                db.Dispose();
                 disposedValue = true;
             }
         }

@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CSCore;
 using CSCore.DSP;
-using CSCore.Streams.Effects;
 using CSCore.Utils;
-using Musegician.Spatializer;
-using System.IO;
 
 namespace Musegician.AudioUtilities
 {
@@ -19,12 +12,12 @@ namespace Musegician.AudioUtilities
         /// <summary>
         /// Holds samples from underlying stream
         /// </summary>
-        private float[] localSampleBuffer;
+        private readonly float[] localSampleBuffer;
 
         /// <summary>
         /// Store computed samples ready to deliver
         /// </summary>
-        private float[] cachedSampleBuffer;
+        private readonly float[] cachedSampleBuffer;
 
         private readonly int _halfFFTSamples;
         private readonly int _baseFFTSamples;
@@ -35,11 +28,11 @@ namespace Musegician.AudioUtilities
         private readonly int _stepSize;
         private readonly int _overlap;
 
-        private Complex[] phasors;
-        private float[][] inputBuffers;
-        private Complex[] fftBuffer;
-        private Complex[] ifftBuffer;
-        private float[] outputAccumulation;
+        private readonly Complex[] phasors;
+        private readonly float[][] inputBuffers;
+        private readonly Complex[] fftBuffer;
+        private readonly Complex[] ifftBuffer;
+        private readonly float[] outputAccumulation;
 
         private float _speed = 1f;
 

@@ -201,10 +201,6 @@ namespace Musegician.Library
                 {
                     songs.AddRange(PlaylistTransferRequestHandler.GetSongData(song));
                 }
-                else if (datum is Track track)
-                {
-                    songs.AddRange(PlaylistTransferRequestHandler.GetSongData(track.Recording));
-                }
                 else if (datum is Recording recording)
                 {
                     songs.AddRange(PlaylistTransferRequestHandler.GetSongData(recording));
@@ -252,10 +248,6 @@ namespace Musegician.Library
                 else if (datum is Song song)
                 {
                     songs.AddRange(PlaylistTransferRequestHandler.GetSongData(song));
-                }
-                else if (datum is Track track)
-                {
-                    songs.AddRange(PlaylistTransferRequestHandler.GetSongData(track.Recording));
                 }
                 else if (datum is Recording recording)
                 {
@@ -387,7 +379,7 @@ namespace Musegician.Library
             {
                 e.Handled = true;
 
-                LibraryRequestHandler.Delete(data.Select(x => x as Recording));
+                LibraryRequestHandler.Delete(data.Cast<Recording>());
 
                 Rebuild();
             }
@@ -422,7 +414,7 @@ namespace Musegician.Library
 
             e.Handled = true;
 
-            ContextMenu_EditArt?.Invoke(data.First() as Album);
+            ContextMenu_EditArt?.Invoke(data.Cast<Album>().First());
         }
 
         private void Explore(object sender, RoutedEventArgs e)
@@ -568,7 +560,6 @@ namespace Musegician.Library
                             return;
 
                         case KeyboardActions.None:
-                        case KeyboardActions.MAX:
                         default:
                             throw new Exception($"Unexpected KeyboardAction: {action}");
                     }
@@ -712,7 +703,7 @@ namespace Musegician.Library
                         case MenuAction.Lyrics:
                         case MenuAction.Tags:
                         case MenuAction.Edit:
-                            if (song.Track != null)
+                            if (song.Recording != null)
                             {
                                 context = LibraryContext.Track;
                             }
@@ -733,7 +724,7 @@ namespace Musegician.Library
 
                 if (context == LibraryContext.Track)
                 {
-                    return selectedItems.Select(x => (x as SongViewModel).Track);
+                    return selectedItems.Cast<SongViewModel>().Select(x => x.Recording);
                 }
                 else
                 {

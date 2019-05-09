@@ -13,7 +13,7 @@ namespace Musegician.Library
     {
         IEnumerable<Artist> GenerateArtistList();
         IEnumerable<Album> GenerateArtistAlbumList(Artist artist);
-        IEnumerable<Track> GenerateAlbumTrackList(Album album);
+        IEnumerable<Recording> GenerateAlbumRecordingList(Album album);
         IEnumerable<Recording> GenerateSongRecordingList(Song song);
 
         IEnumerable<Album> GenerateAlbumList();

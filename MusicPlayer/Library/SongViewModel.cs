@@ -23,20 +23,20 @@ namespace Musegician.Library
                 parent: parent,
                 lazyLoadChildren: true)
         {
-            Track = null;
+            Recording = null;
         }
 
         /// <summary>
         /// ClassicView & AlbumView Constructor
         /// </summary>
-        public SongViewModel(Track track, bool isHome, LibraryViewModel parent)
+        public SongViewModel(Recording recording, bool isHome, LibraryViewModel parent)
             : base(
-                data: track.Recording.Song,
+                data: recording.Song,
                 parent: parent,
                 lazyLoadChildren: true)
         {
             _isHome = isHome;
-            Track = track;
+            Recording = recording;
         }
 
         #endregion Constructor
@@ -44,9 +44,9 @@ namespace Musegician.Library
 
         public Song _song => Data as Song;
         public string SearchableName => _song.Title;
-        public Track Track { get; }
+        public Recording Recording { get; }
         public override string Name =>
-            Track == null ? _song.Title : $"{Track.TrackNumber}. {Track.Title}";
+            Recording == null ? _song.Title : $"{Recording.TrackNumber}. {Recording.Title}";
 
         private readonly bool _isHome = true;
 
@@ -59,7 +59,7 @@ namespace Musegician.Library
         {
             base.LoadChildren(dataManager);
 
-            if (Track == null)
+            if (Recording == null)
             {
                 //SimpleView
                 Artist artist = Parent.Data as Artist;
@@ -74,7 +74,7 @@ namespace Musegician.Library
                 //ClassicView & AlbumView
                 foreach (Recording recording in dataManager.GenerateSongRecordingList(_song))
                 {
-                    Children.Add(new RecordingViewModel(recording, Track.Recording == recording, this));
+                    Children.Add(new RecordingViewModel(recording, Recording == recording, this));
                 }
 
             }

@@ -34,7 +34,7 @@ namespace Musegician.AlbumArtPicker
 
             parent = new AlbumArtAlbumDTO {
                 Name = "Test 4 - Collapsed With Image",
-                Album = new Database.Album() { Image = LoadImage(@"MockDBResources\0.jpg") }
+                Album = new Database.Album() { Image = LoadImage(@"MockDBResources\0.jpg"), Thumbnail = LoadImage(@"MockDBResources\0.jpg") }
             };
             parent.Children.Add(new AlbumArtArtDTO() { IsChecked = false, Image = LoadImage(@"MockDBResources\0.jpg"), Name = @"MockDBResources\0.jpg" });
             parent.Children.Add(new AlbumArtArtDTO() { IsChecked = false, Image = LoadImage(@"MockDBResources\1.jpg"), Name = @"MockDBResources\1.jpg" });

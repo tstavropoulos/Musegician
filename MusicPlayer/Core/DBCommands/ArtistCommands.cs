@@ -10,7 +10,7 @@ namespace Musegician.Core.DBCommands
 {
     public class ArtistCommands
     {
-        MusegicianData db = null;
+        private readonly MusegicianData db;
 
         public ArtistCommands(MusegicianData db)
         {
@@ -125,7 +125,7 @@ namespace Musegician.Core.DBCommands
                     {
                         selector.Children.Add(new DeredundafierDTO()
                         {
-                            Name = $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}",
+                            Name = $"{recording.Artist.Name} - {recording.Album.Title} - {recording.Title}",
                             Data = recording
                         });
                     }
@@ -167,7 +167,7 @@ namespace Musegician.Core.DBCommands
                     {
                         selector.Children.Add(new DeredundafierDTO()
                         {
-                            Name = $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}",
+                            Name = $"{recording.Artist.Name} - {recording.Album.Title} - {recording.Title}",
                             Data = recording
                         });
                     }
@@ -218,7 +218,7 @@ namespace Musegician.Core.DBCommands
                     }
                 }
 
-                foreach(Artist artist in kvp.Key.GroupOf.Select(x=>x.Member).Distinct())
+                foreach (Artist artist in kvp.Key.GroupOf.Select(x => x.Member).Distinct())
                 {
                     matchingArtists.Add(artist);
                 }
@@ -254,7 +254,7 @@ namespace Musegician.Core.DBCommands
 
         public void Merge(IEnumerable<BaseData> data)
         {
-            List<Artist> artistsCopy = new List<Artist>(data.Select(x => x as Artist).Distinct());
+            List<Artist> artistsCopy = new List<Artist>(data.Cast<Artist>().Distinct());
 
             Artist matchingArtist = artistsCopy[0];
             artistsCopy.RemoveAt(0);

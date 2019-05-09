@@ -7,13 +7,14 @@ using System.IO;
 using TagLib;
 using Musegician.Deredundafier;
 using Musegician.Database;
+using System.Drawing;
 
 namespace Musegician.Core.DBCommands
 {
     public class AlbumCommands
     {
         private readonly string consoleDiv = "---------------------------------------";
-        MusegicianData db = null;
+        private readonly MusegicianData db;
 
         public AlbumCommands(MusegicianData db)
         {
@@ -26,6 +27,7 @@ namespace Musegician.Core.DBCommands
 
         public IEnumerable<DeredundafierDTO> GetDeepDeredundancyTargets()
         {
+            //Map of Album Titles to lists of albums with this title
             Dictionary<string, List<Album>> map = new Dictionary<string, List<Album>>();
 
             foreach (Album album in db.Albums)
@@ -71,7 +73,7 @@ namespace Musegician.Core.DBCommands
 
                 foreach (Album album in albumSet.Value)
                 {
-                    List<Artist> artists = album.Tracks.Select(t => t.Recording.Artist).Distinct().ToList();
+                    List<Artist> artists = album.Recordings.Select(t => t.Artist).Distinct().ToList();
 
                     string artistName;
 
@@ -98,12 +100,12 @@ namespace Musegician.Core.DBCommands
 
                     target.Children.Add(selector);
 
-                    foreach (Track track in album.Tracks)
+                    foreach (Recording recording in album.Recordings)
                     {
                         selector.Children.Add(new DeredundafierDTO()
                         {
-                            Name = $"{track.Recording.Artist.Name} - {track.Title}",
-                            Data = track.Recording
+                            Name = $"{recording.Artist.Name} - {recording.Title}",
+                            Data = recording
                         });
                     }
                 }
@@ -133,7 +135,7 @@ namespace Musegician.Core.DBCommands
 
                 foreach (Album album in albumSet)
                 {
-                    List<Artist> artists = album.Tracks.Select(t => t.Recording.Artist).Distinct().ToList();
+                    List<Artist> artists = album.Recordings.Select(t => t.Artist).Distinct().ToList();
 
                     string artistName;
 
@@ -160,12 +162,12 @@ namespace Musegician.Core.DBCommands
 
                     target.Children.Add(selector);
 
-                    foreach (Track track in album.Tracks)
+                    foreach (Recording recording in album.Recordings)
                     {
                         selector.Children.Add(new DeredundafierDTO()
                         {
-                            Name = $"{track.Recording.Artist.Name} - {track.Title}",
-                            Data = track.Recording
+                            Name = $"{recording.Artist.Name} - {recording.Title}",
+                            Data = recording
                         });
                     }
                 }
@@ -178,10 +180,10 @@ namespace Musegician.Core.DBCommands
         {
             List<Album> albumsCopy = new List<Album>(albums);
 
-            //First, find out if the new album exists
-            Album matchingAlbum = db.Albums.SelectMany(x => x.Tracks)
-                .SelectMany(x => x.Recording.Artist.Recordings)
-                .SelectMany(x => x.Tracks)
+            //First, find out if the new album exists in a limited pool
+            Album matchingAlbum = albumsCopy.SelectMany(x => x.Recordings)
+                .Select(x => x.Artist).Distinct()
+                .SelectMany(x => x.Recordings)
                 .Select(x => x.Album).Distinct()
                 .Where(x => x.Title == newAlbumTitle).FirstOrDefault();
 
@@ -199,12 +201,12 @@ namespace Musegician.Core.DBCommands
 
             if (albumsCopy.Count > 0)
             {
-                foreach (Track track in
+                foreach (Recording recording in
                     (from album in albumsCopy
-                     join track in db.Tracks on album.Id equals track.AlbumId
-                     select track))
+                     join recording in db.Recordings on album.Id equals recording.AlbumId
+                     select recording))
                 {
-                    track.Album = matchingAlbum;
+                    recording.Album = matchingAlbum;
                 }
 
                 //Delete orphans
@@ -226,18 +228,18 @@ namespace Musegician.Core.DBCommands
 
         public void Merge(IEnumerable<BaseData> data)
         {
-            List<Album> albumsCopy = new List<Album>(data.Select(x => x as Album).Distinct());
+            List<Album> albumsCopy = new List<Album>(data.Cast<Album>().Distinct());
 
             Album matchingAlbum = albumsCopy[0];
             albumsCopy.RemoveAt(0);
 
             //For the remaining artists, Remap foreign keys
-            foreach (Track track in
+            foreach (Recording recording in
                 (from album in albumsCopy
-                 join track in db.Tracks on album.Id equals track.AlbumId
-                 select track))
+                 join recording in db.Recordings on album.Id equals recording.AlbumId
+                 select recording))
             {
-                track.Album = matchingAlbum;
+                recording.Album = matchingAlbum;
             }
 
             //Now, delete any old artists with no remaining recordings
@@ -264,12 +266,28 @@ namespace Musegician.Core.DBCommands
                 throw new IOException($"File not found: {path}");
             }
 
-            album.Image = System.IO.File.ReadAllBytes(path);
+            try
+            {
+                using (Bitmap loadedBitmap = new Bitmap(path))
+                {
+                    //If image can be loaded...
+                    if (loadedBitmap != null)
+                    {
+                        album.Image = System.IO.File.ReadAllBytes(path);
+                        album.Thumbnail = FileManager.CreateThumbnail(loadedBitmap);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Exception when trying to load Bitmap stream: {e}");
 
-            foreach (Recording recording in album.Tracks
+                return;
+            }
+
+            foreach (Recording recording in album.Recordings
                 .OrderBy(x => x.DiscNumber)
-                .ThenBy(x => x.TrackNumber)
-                .Select(x => x.Recording))
+                .ThenBy(x => x.TrackNumber))
             {
                 //Update the first song on the album (whose id3 tag points to the album) with the art
                 try

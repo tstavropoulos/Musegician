@@ -108,6 +108,9 @@ namespace Musegician
         private void Menu_PushAlbumArt(object sender, RoutedEventArgs e) =>
             LoadingDialog.LoadingDialog.ArgBuilder<IEnumerable<BaseData>>(FileMan.PushMusegicianAlbumArtToFile);
 
+        private void Menu_UpdateAlbumThumbnails(object sender, RoutedEventArgs e) =>
+            LoadingDialog.LoadingDialog.ArgBuilder<IEnumerable<BaseData>>(FileMan.UpdateAlbumArtThumbnails);
+
         private void Menu_FileReorganizer(object sender, RoutedEventArgs e) =>
             new Reorganizer.FileReorganizerWindow().Show();
 
@@ -203,6 +206,5 @@ namespace Musegician
         private Window GetWindow(object sender) => ((sender as FrameworkElement).TemplatedParent as Window);
 
         #endregion Helper Methods
-
     }
 }

@@ -7,13 +7,13 @@ namespace Musegician.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.2.0-61023")]
-    public sealed partial class AddingGuids : IMigrationMetadata
+    public sealed partial class AddThumbnail : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddingGuids));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddThumbnail));
         
         string IMigrationMetadata.Id
         {
-            get { return "201806081720219_AddingGuids"; }
+            get { return "201905082234137_AddThumbnail"; }
         }
         
         string IMigrationMetadata.Source

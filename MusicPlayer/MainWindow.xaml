@@ -48,6 +48,7 @@
 
           <MenuItem Header="_Other Clean Up">
             <MenuItem Header="Push _Album Art To Files" Click="Menu_PushAlbumArt"/>
+            <MenuItem Header="Update Album _Thumbnails" Click="Menu_UpdateAlbumThumbnails"/>
             <MenuItem Header="Push _ID3 Tags To Files" Click="Menu_PushID3Tags"/>
             <MenuItem Header="Push _Custom Tags To Files" Click="Menu_PushMusegicianTags"/>
             <Separator />

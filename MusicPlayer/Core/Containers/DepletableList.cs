@@ -7,12 +7,12 @@ namespace TASAgency.Collections.Generic
     /// <summary>
     /// A depletable/refillable set with an underlying list and defined order.
     /// </summary>
-    public class DepletableList<T> : IDepletable<T>
+    public sealed class DepletableList<T> : IDepletable<T>
     {
-        protected List<T> values;
-        protected List<bool> valueDepleted;
+        private readonly List<T> values;
+        private readonly List<bool> valueDepleted;
 
-        protected int currentIndex;
+        private int currentIndex;
 
         public DepletableList()
         {
@@ -152,6 +152,43 @@ namespace TASAgency.Collections.Generic
             bool success = false;
 
             while (DepleteValue(value))
+            {
+                success = true;
+            }
+
+            return success;
+        }
+
+        public bool ReplenishValue(T value)
+        {
+            const int NOT_FOUND = -1;
+            int index = NOT_FOUND;
+
+            for (int i = currentIndex - 1; i >= 0; i--)
+            {
+                if (values[i].Equals(value))
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index == NOT_FOUND)
+            {
+                return false;
+            }
+
+            valueDepleted[index] = false;
+            //Jump the currentIndex back to the restored value
+            currentIndex = index;
+            return true;
+        }
+
+        public bool ReplenishAllValue(T value)
+        {
+            bool success = false;
+
+            while (ReplenishValue(value))
             {
                 success = true;
             }

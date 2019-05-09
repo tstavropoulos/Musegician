@@ -36,7 +36,7 @@ namespace Musegician.Library
             {
                 if (_image == null)
                 {
-                    _image = FileManager.LoadImage(_album.Image);
+                    _image = FileManager.LoadImage(_album.Thumbnail);
                 }
 
                 return _image;
@@ -53,9 +53,9 @@ namespace Musegician.Library
             if (Parent == null)
             {
                 //Album View
-                foreach (Track track in dataManager.GenerateAlbumTrackList(_album))
+                foreach (Recording recording in dataManager.GenerateAlbumRecordingList(_album))
                 {
-                    Children.Add(new SongViewModel(track, true, this));
+                    Children.Add(new SongViewModel(recording, true, this));
                 }
 
             }
@@ -63,9 +63,9 @@ namespace Musegician.Library
             {
                 Artist artist = Parent.Data as Artist;
                 //Classic View
-                foreach (Track track in dataManager.GenerateAlbumTrackList(_album))
+                foreach (Recording recording in dataManager.GenerateAlbumRecordingList(_album))
                 {
-                    Children.Add(new SongViewModel(track, track.Recording.Artist == artist, this));
+                    Children.Add(new SongViewModel(recording, recording.Artist == artist, this));
                 }
 
             }

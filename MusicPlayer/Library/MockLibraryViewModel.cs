@@ -81,7 +81,6 @@ namespace Musegician.Library
         private List<Album> Albums { get; } = new List<Album>();
         private List<Song> Songs { get; } = new List<Song>();
         private List<Recording> Recordings { get; } = new List<Recording>();
-        private List<Track> Tracks { get; } = new List<Track>();
 
         #endregion Data
         #region Constructor
@@ -91,7 +90,6 @@ namespace Musegician.Library
             int artistID = 0;
             int albumID = 0;
             int songID = 0;
-            int trackID = 0;
             int recordingID = 0;
 
             //Aerosmith
@@ -114,9 +112,9 @@ namespace Musegician.Library
                 };
                 Albums.Add(permanentVacation);
 
-                AddSimple("Heart's Done Time", 1, aerosmith, permanentVacation, songID++, recordingID++, trackID++);
-                AddSimple("Magic Touch", 2, aerosmith, permanentVacation, songID++, recordingID++, trackID++);
-                AddSimple("Rag Doll", 3, aerosmith, permanentVacation, songID++, recordingID++, trackID++);
+                AddSimple("Heart's Done Time", 1, aerosmith, permanentVacation, songID++, recordingID++);
+                AddSimple("Magic Touch", 2, aerosmith, permanentVacation, songID++, recordingID++);
+                AddSimple("Rag Doll", 3, aerosmith, permanentVacation, songID++, recordingID++);
 
                 Album toysInTheAttic = new Album()
                 {
@@ -128,9 +126,9 @@ namespace Musegician.Library
                 };
                 Albums.Add(toysInTheAttic);
 
-                AddSimple("Toys In The Attic", 1, aerosmith, toysInTheAttic, songID++, recordingID++, trackID++);
-                AddSimple("Uncle Salty", 2, aerosmith, toysInTheAttic, songID++, recordingID++, trackID++);
-                AddSimple("Adam's Apple", 3, aerosmith, toysInTheAttic, songID++, recordingID++, trackID++);
+                AddSimple("Toys In The Attic", 1, aerosmith, toysInTheAttic, songID++, recordingID++);
+                AddSimple("Uncle Salty", 2, aerosmith, toysInTheAttic, songID++, recordingID++);
+                AddSimple("Adam's Apple", 3, aerosmith, toysInTheAttic, songID++, recordingID++);
             }
 
             //Billy Joel
@@ -153,10 +151,10 @@ namespace Musegician.Library
                 };
                 Albums.Add(stormFront);
 
-                AddSimple("Storm Front", 1, billyJoel, stormFront, songID++, recordingID++, trackID++);
-                Song fireSong = AddSimple("We Didn't Start The Fire", 2, billyJoel, stormFront, songID++, recordingID++, trackID++);
-                AddSimple("Leningrad", 3, billyJoel, stormFront, songID++, recordingID++, trackID++);
-                AddSimple("State of Grace", 4, billyJoel, stormFront, songID++, recordingID++, trackID++);
+                AddSimple("Storm Front", 1, billyJoel, stormFront, songID++, recordingID++);
+                Song fireSong = AddSimple("We Didn't Start The Fire", 2, billyJoel, stormFront, songID++, recordingID++);
+                AddSimple("Leningrad", 3, billyJoel, stormFront, songID++, recordingID++);
+                AddSimple("State of Grace", 4, billyJoel, stormFront, songID++, recordingID++);
 
                 Album songsInTheAttic = new Album()
                 {
@@ -167,8 +165,8 @@ namespace Musegician.Library
                     Year = 1981
                 };
                 Albums.Add(stormFront);
-                AddExisting("We Didn't Start The Fire (Live)", 1, fireSong, billyJoel, songsInTheAttic, recordingID++, trackID++, true);
-                AddSimple("A Matter Of Trust", 2, billyJoel, songsInTheAttic, songID++, recordingID++, trackID++, true);
+                AddExisting("We Didn't Start The Fire (Live)", 1, fireSong, billyJoel, songsInTheAttic, recordingID++, true);
+                AddSimple("A Matter Of Trust", 2, billyJoel, songsInTheAttic, songID++, recordingID++, true);
             }
 
             //Steely Dan
@@ -191,15 +189,15 @@ namespace Musegician.Library
                 };
                 Albums.Add(twoAgainstNature);
 
-                AddSimple("Gaslighting Abbie", 1, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
-                AddSimple("What A Shame", 2, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
-                AddSimple("Two Against Nature", 3, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
-                AddSimple("Janie Runaway", 4, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
-                AddSimple("Almost Gothic", 5, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
-                AddSimple("Jack of Speed", 6, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
-                AddSimple("Cousin Dupree", 7, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
-                AddSimple("Negative Girl", 8, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
-                AddSimple("West of Hollywood", 9, steelyDan, twoAgainstNature, songID++, recordingID++, trackID++);
+                AddSimple("Gaslighting Abbie", 1, steelyDan, twoAgainstNature, songID++, recordingID++);
+                AddSimple("What A Shame", 2, steelyDan, twoAgainstNature, songID++, recordingID++);
+                AddSimple("Two Against Nature", 3, steelyDan, twoAgainstNature, songID++, recordingID++);
+                AddSimple("Janie Runaway", 4, steelyDan, twoAgainstNature, songID++, recordingID++);
+                AddSimple("Almost Gothic", 5, steelyDan, twoAgainstNature, songID++, recordingID++);
+                AddSimple("Jack of Speed", 6, steelyDan, twoAgainstNature, songID++, recordingID++);
+                AddSimple("Cousin Dupree", 7, steelyDan, twoAgainstNature, songID++, recordingID++);
+                AddSimple("Negative Girl", 8, steelyDan, twoAgainstNature, songID++, recordingID++);
+                AddSimple("West of Hollywood", 9, steelyDan, twoAgainstNature, songID++, recordingID++);
 
             }
 
@@ -216,19 +214,18 @@ namespace Musegician.Library
                     select album);
         }
 
-        IEnumerable<Track> ILibraryRequestHandler.GenerateAlbumTrackList(Album album)
+        IEnumerable<Recording> ILibraryRequestHandler.GenerateAlbumRecordingList(Album album)
         {
-            return (from track in album.Tracks
-                    orderby track.DiscNumber ascending, track.TrackNumber ascending
-                    select track);
+            return (from recording in album.Recordings
+                    orderby recording.DiscNumber ascending, recording.TrackNumber ascending
+                    select recording);
         }
 
         IEnumerable<Album> ILibraryRequestHandler.GenerateArtistAlbumList(Artist artist)
         {
             return (from recording in artist.Recordings
-                    from track in recording.Tracks
-                    orderby track.Album.Year ascending
-                    select track.Album).Distinct();
+                    orderby recording.Album.Year ascending
+                    select recording.Album).Distinct();
         }
 
         IEnumerable<Artist> ILibraryRequestHandler.GenerateArtistList()
@@ -318,9 +315,9 @@ namespace Musegician.Library
                     newPlaylistSong.PlaylistRecordings.Add(
                         new PlaylistRecording(
                             recording,
-                            $"{recording.Artist.Name} - {recording.Tracks.First().Album.Title} - {recording.Tracks.First().Title}")
+                            $"{recording.Artist.Name} - {recording.Album.Title} - {recording.Title}")
                         {
-                            Weight = recording.Tracks.First().Weight
+                            Weight = recording.Weight
                         });
                 }
 
@@ -351,7 +348,6 @@ namespace Musegician.Library
             Album album,
             int songID,
             int recordingID,
-            int trackID,
             bool live = false)
         {
             Song simpleSong = new Song()
@@ -367,29 +363,21 @@ namespace Musegician.Library
             {
                 Id = recordingID,
                 Filename = "",
+                Title = title,
                 Live = live,
                 Artist = artist,
-                Song = simpleSong
+                Song = simpleSong,
+                Album = album,
+                TrackNumber = trackNum,
+                DiscNumber = 1,
+                Weight = -1.0
             };
             simpleSong.Recordings.Add(simpleRecording);
             artist.Recordings.Add(simpleRecording);
 
             Recordings.Add(simpleRecording);
 
-            Track simpleTrack = new Track()
-            {
-                Id = trackID,
-                Title = title,
-                TrackNumber = trackNum,
-                DiscNumber = 1,
-                Album = album,
-                Recording = simpleRecording,
-                Weight = -1.0
-            };
-            simpleRecording.Tracks.Add(simpleTrack);
-            album.Tracks.Add(simpleTrack);
-
-            Tracks.Add(simpleTrack);
+            album.Recordings.Add(simpleRecording);
 
             return simpleSong;
         }
@@ -402,7 +390,6 @@ namespace Musegician.Library
             Artist artist,
             Album album,
             int recordingID,
-            int trackID,
             bool live = false)
         {
             Recording simpleRecording = new Recording()
@@ -410,28 +397,20 @@ namespace Musegician.Library
                 Id = recordingID,
                 Filename = "",
                 Live = live,
+                Title = title,
                 Artist = artist,
-                Song = song
+                Song = song,
+                Album = album,
+                TrackNumber = trackNum,
+                DiscNumber = 1,
+                Weight = -1.0
             };
             song.Recordings.Add(simpleRecording);
             artist.Recordings.Add(simpleRecording);
 
             Recordings.Add(simpleRecording);
 
-            Track simpleTrack = new Track()
-            {
-                Id = trackID,
-                Title = title,
-                TrackNumber = trackNum,
-                DiscNumber = 1,
-                Album = album,
-                Recording = simpleRecording,
-                Weight = -1.0
-            };
-            simpleRecording.Tracks.Add(simpleTrack);
-            album.Tracks.Add(simpleTrack);
-
-            Tracks.Add(simpleTrack);
+            album.Recordings.Add(simpleRecording);
         }
 
 

@@ -41,6 +41,16 @@ namespace TASAgency.Collections.Generic
         bool DepleteAllValue(T value);
 
         /// <summary>
+        /// Mark the first depleted instance of the value as available
+        /// </summary>
+        bool ReplenishValue(T value);
+
+        /// <summary>
+        /// Mark all instances of the value as available
+        /// </summary>
+        bool ReplenishAllValue(T value);
+
+        /// <summary>
         /// Returns a list of available items
         /// </summary>
         IList<T> GetAvailable();

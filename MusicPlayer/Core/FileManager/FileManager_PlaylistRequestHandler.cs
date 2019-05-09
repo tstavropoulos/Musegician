@@ -183,12 +183,10 @@ namespace Musegician
 
         PlayData IPlaylistRequestHandler.GetRecordingPlayData(Recording recording)
         {
-            return new PlayData()
-            {
-                artistName = recording.Artist.Name,
-                songTitle = recording.Tracks.First().Title,
-                recording = recording
-            };
+            return new PlayData(
+                artistName: recording.Artist.Name,
+                songTitle: recording.Title,
+                recording: recording);
         }
 
         void IPlaylistRequestHandler.NotifyDBChanged()
