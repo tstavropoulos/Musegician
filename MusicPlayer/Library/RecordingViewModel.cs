@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Musegician.Core;
 using Musegician.Database;
 
 namespace Musegician.Library
@@ -33,8 +34,8 @@ namespace Musegician.Library
         #region Properties
 
         public Recording _recording => Data as Recording;
-        public string LiveString => Live ? "🎤" : "";
-        public bool Live => _recording.Live;
+        public string TypeLabel => RecordingType.ToLabel();
+        public RecordingType RecordingType => _recording.RecordingType;
 
         private readonly string _name;
         public override string Name => _name;

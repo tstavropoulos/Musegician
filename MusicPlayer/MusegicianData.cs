@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
-using System.Linq;
+
+using Settings = Musegician.Core.Settings;
+using RecordingType = Musegician.Core.RecordingType;
 
 namespace Musegician.Database
 {
-
     public class MusegicianData : DbContext
     {
         public MusegicianData()
@@ -63,6 +63,7 @@ namespace Musegician.Database
         public byte[] Image { get; set; }
         public byte[] Thumbnail { get; set; }
         public Guid AlbumGuid { get; set; }
+        public long AlbumGuidTimestamp { get; set; }
 
         public Album()
         {
@@ -84,14 +85,14 @@ namespace Musegician.Database
         public int TrackNumber { get; set; }
         public int DiscNumber { get; set; }
 
-        public bool Live { get; set; }
+        public RecordingType RecordingType { get; set; }
 
         public Recording() { }
 
         public virtual Album Album { get; set; }
         public virtual Artist Artist { get; set; }
         public virtual Song Song { get; set; }
-        public override double DefaultWeight => Live ? Settings.Instance.LiveWeight : Settings.Instance.StudioWeight;
+        public override double DefaultWeight => Settings.Instance.GetDefaultWeight(RecordingType);
 
         public override double Weight { get; set; }
     }
@@ -101,6 +102,7 @@ namespace Musegician.Database
         public string Name { get; set; }
         public override double Weight { get; set; }
         public Guid ArtistGuid { get; set; }
+        public long ArtistGuidTimestamp { get; set; }
 
         public Artist()
         {
@@ -121,6 +123,7 @@ namespace Musegician.Database
         public string Title { get; set; }
         public override double Weight { get; set; }
         public Guid SongGuid { get; set; }
+        public long SongGuidTimestamp { get; set; }
 
         public Song()
         {

@@ -18,7 +18,7 @@ namespace Musegician.TagEditor
         AlbumTitle,
         AlbumYear,
         TrackNumber,
-        Live,
+        RecordingType,
         DiscNumber,
         TrackTitle,
         Filename,
@@ -97,7 +97,7 @@ namespace Musegician.TagEditor
                         case MusicRecord.AlbumTitle:
                         case MusicRecord.AlbumYear:
                         case MusicRecord.TrackNumber:
-                        case MusicRecord.Live:
+                        case MusicRecord.RecordingType:
                         case MusicRecord.TrackTitle:
                         case MusicRecord.DiscNumber:
                             rebuild = true;
@@ -230,10 +230,10 @@ namespace Musegician.TagEditor
                     }
                     break;
 
-                case MusicRecord.Live:
-                    if (tag is TagDataBool liveTagData)
+                case MusicRecord.RecordingType:
+                    if (tag is TagDataEnum recordingTypeTagData)
                     {
-                        RequestHandler.UpdateRecord(Data, record, liveTagData.NewValue);
+                        RequestHandler.UpdateRecord(Data, record, recordingTypeTagData.NewInt);
                     }
                     break;
 

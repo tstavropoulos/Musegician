@@ -56,7 +56,8 @@ namespace Musegician.Core.DBCommands
                 {
                     Title = newTitle,
                     Weight = -1.0,
-                    SongGuid = Guid.NewGuid()
+                    SongGuid = Guid.NewGuid(),
+                    SongGuidTimestamp = Epoch.Time
                 };
 
                 db.Songs.Add(matchingSong);
@@ -124,7 +125,8 @@ namespace Musegician.Core.DBCommands
                 {
                     Name = newArtistName,
                     Weight = -1.0,
-                    ArtistGuid = Guid.NewGuid()
+                    ArtistGuid = Guid.NewGuid(),
+                    ArtistGuidTimestamp = Epoch.Time
                 };
 
                 db.Artists.Add(matchingArtist);
@@ -184,7 +186,8 @@ namespace Musegician.Core.DBCommands
                     Title = newAlbumTitle,
                     Weight = -1.0,
                     Year = 0,
-                    AlbumGuid = Guid.NewGuid()
+                    AlbumGuid = Guid.NewGuid(),
+                    AlbumGuidTimestamp = Epoch.Time
                 };
 
                 db.Albums.Add(matchingAlbum);
@@ -204,11 +207,11 @@ namespace Musegician.Core.DBCommands
             db.SaveChanges();
         }
 
-        public void UpdateLive(IEnumerable<Recording> recordings, bool newLiveValue)
+        public void UpdateRecordingType(IEnumerable<Recording> recordings, RecordingType newRecordingType)
         {
             foreach (Recording recording in recordings)
             {
-                recording.Live = newLiveValue;
+                recording.RecordingType = newRecordingType;
             }
 
             db.SaveChanges();

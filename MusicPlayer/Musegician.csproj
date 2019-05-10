@@ -169,6 +169,7 @@
     <Compile Include="Core\Containers\DepletableList.cs" />
     <Compile Include="Core\DoubleComparisonExtension.cs" />
     <Compile Include="Core\EnumBoolConverter.cs" />
+    <Compile Include="Core\Epoch.cs" />
     <Compile Include="Core\FileManager\FileManager_DeredundancyRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_FileReorganizerRequestHandler.cs" />
     <Compile Include="Core\FileManager\FileManager_LibraryRequestHandler.cs" />
@@ -186,8 +187,10 @@
     </Compile>
     <Compile Include="Core\MathExtension.cs" />
     <Compile Include="Core\MusegicianTag.cs" />
+    <Compile Include="Core\MusegicianTagV2.cs" />
     <Compile Include="Core\NativeMethods.cs" />
     <Compile Include="Core\OSInterop.cs" />
+    <Compile Include="Core\RecordingType.cs" />
     <Compile Include="Core\RingBuffer.cs" />
     <Compile Include="Core\ThreadSafeRandom.cs" />
     <Compile Include="Core\TwoValueVisualizerSlider.cs" />
@@ -266,6 +269,14 @@
     <Compile Include="Migrations\201905082234137_AddThumbnail.cs" />
     <Compile Include="Migrations\201905082234137_AddThumbnail.Designer.cs">
       <DependentUpon>201905082234137_AddThumbnail.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201905091733372_SupportingNewTag.cs" />
+    <Compile Include="Migrations\201905091733372_SupportingNewTag.Designer.cs">
+      <DependentUpon>201905091733372_SupportingNewTag.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201905091934305_RemovingLiveBool.cs" />
+    <Compile Include="Migrations\201905091934305_RemovingLiveBool.Designer.cs">
+      <DependentUpon>201905091934305_RemovingLiveBool.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="MusegicianData.cs" />
@@ -647,6 +658,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201905082234137_AddThumbnail.resx">
       <DependentUpon>201905082234137_AddThumbnail.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201905091733372_SupportingNewTag.resx">
+      <DependentUpon>201905091733372_SupportingNewTag.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201905091934305_RemovingLiveBool.resx">
+      <DependentUpon>201905091934305_RemovingLiveBool.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

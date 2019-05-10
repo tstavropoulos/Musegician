@@ -35,6 +35,11 @@
           <CheckBox IsChecked="{Binding NewValue, Mode=TwoWay}"
                     VerticalAlignment="Center"/>
         </DataTemplate>
+        <DataTemplate x:Key="EnumEditorTemplate" DataType="{x:Type data:TagDataEnum}">
+          <ComboBox ItemsSource="{Binding EnumValues}"
+                    SelectedItem="{Binding NewValue, Mode=TwoWay}"
+                    VerticalAlignment="Center"/>
+        </DataTemplate>
         <DataTemplate x:Key="StringGridCellTemplate" DataType="{x:Type data:TagDataString}">
           <TextBox Text="{Binding NewValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                    HorizontalAlignment="Stretch"
@@ -61,6 +66,7 @@
         </DataTemplate>
         <local:TagTemplateSelector x:Key="TagEditorSelector"
                                    BoolTemplate="{StaticResource BoolEditorTemplate}"
+                                   EnumTemplate="{StaticResource EnumEditorTemplate}"
                                    StringTemplate="{StaticResource StringGridCellTemplate}"
                                    IntTemplate="{StaticResource LongGridCellTemplate}"
                                    ViewableTemplate="{StaticResource ViewableGridCellTemplate}"/>

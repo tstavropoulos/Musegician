@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Musegician.Core;
 using Musegician.Database;
 using Musegician.DataStructures;
 using Musegician.TagEditor;
@@ -47,7 +48,7 @@ namespace Musegician
                     new TagDataInt(recording.Album.Year, MusicRecord.AlbumYear, ID3TagType.Year),
                     new TagDataInt(recording.TrackNumber, MusicRecord.TrackNumber, ID3TagType.Track),
                     new TagDataInt(recording.DiscNumber, MusicRecord.DiscNumber, ID3TagType.Disc),
-                    new TagDataBool(recording.Live, MusicRecord.Live),
+                    new TagDataEnum((int)recording.RecordingType, MusicRecord.RecordingType, GetRecordingTypeLabels()),
                 };
             }
 
@@ -94,7 +95,7 @@ namespace Musegician
                     new TagDataInt(recording.Album.Year, MusicRecord.AlbumYear, ID3TagType.Year),
                     new TagDataInt(recording.TrackNumber, MusicRecord.TrackNumber, ID3TagType.Track),
                     new TagDataInt(recording.DiscNumber, MusicRecord.DiscNumber, ID3TagType.Disc),
-                    new TagDataBool(recording.Live, MusicRecord.Live),
+                    new TagDataEnum((int)recording.RecordingType, MusicRecord.RecordingType, GetRecordingTypeLabels()),
                 };
             }
 
@@ -311,6 +312,19 @@ namespace Musegician
                     }
                     break;
 
+                case MusicRecord.RecordingType:
+                    if (firstDatum is Recording)
+                    {
+                        //Update RecordingType
+                        recordingCommands.UpdateRecordingType(data.Cast<Recording>(), (RecordingType)newInt);
+                    }
+                    else
+                    {
+                        throw new LibraryContextException(
+                            $"Bad Context ({firstDatum}) for RecordUpdate ({record.ToString()})");
+                    }
+                    break;
+
                 default:
                     throw new Exception(
                         $"Wrong field type submitted. Submitted {newInt.GetType().ToString()} for " +
@@ -329,23 +343,10 @@ namespace Musegician
                     $"Found 0 records to modify for MusicRecord {record.ToString()}");
             }
 
-            BaseData firstDatum = data.First();
+            //BaseData firstDatum = data.First();
 
             switch (record)
             {
-                case MusicRecord.Live:
-                    if (firstDatum is Recording)
-                    {
-                        //Update Recording Live Status
-                        recordingCommands.UpdateLive(data.Cast<Recording>(), newBool);
-                    }
-                    else
-                    {
-                        throw new LibraryContextException(
-                            $"Bad Context ({firstDatum}) for RecordUpdate ({record.ToString()})");
-                    }
-                    break;
-
                 default:
                     throw new Exception(
                         $"Wrong field type submitted. Submitted {newBool.GetType().ToString()} for " +
@@ -376,5 +377,13 @@ namespace Musegician
         }
 
         #endregion ITagRequestHandler
+
+        private static IEnumerable<string> GetRecordingTypeLabels()
+        {
+            for (RecordingType type = 0; type < RecordingType.MAX; type++)
+            {
+                yield return type.ToString();
+            }
+        }
     }
 }

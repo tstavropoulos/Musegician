@@ -1,31 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Musegician
+namespace Musegician.Core
 {
     public class Settings : INotifyPropertyChanged
     {
-        private double _weightParameter = 0.05;
-        public double WeightParameter
-        {
-            get => _weightParameter;
-            set
-            {
-                if (_weightParameter != value)
-                {
-                    _weightParameter = value;
-                    OnPropertyChanged("WeightParameter");
-                    OnPropertyChanged("LiveWeight");
-                    OnPropertyChanged("StudioWeight");
-                }
-
-            }
-        }
-
         private bool _createMusegicianTags = true;
         public bool CreateMusegicianTags
         {
@@ -40,8 +20,61 @@ namespace Musegician
             }
         }
 
-        public double LiveWeight => Math.Min(2.0 * WeightParameter, 1.0);
-        public double StudioWeight => Math.Min(2.0 * (1.0 - WeightParameter), 1.0);
+        private double _liveWeight = 0.05;
+        public double LiveWeight
+        {
+            get => _liveWeight;
+            set
+            {
+                if (_liveWeight != value)
+                {
+                    _liveWeight = value;
+                    OnPropertyChanged("LiveWeight");
+                }
+            }
+        }
+
+        private double _standardWeight = 1.0;
+        public double StandardWeight
+        {
+            get => _standardWeight;
+            set
+            {
+                if (_standardWeight != value)
+                {
+                    _standardWeight = value;
+                    OnPropertyChanged("StandardWeight");
+                }
+            }
+        }
+
+        private double _acousticWeight = 1.0;
+        public double AcousticWeight
+        {
+            get => _acousticWeight;
+            set
+            {
+                if (_acousticWeight != value)
+                {
+                    _acousticWeight = value;
+                    OnPropertyChanged("AcousticWeight");
+                }
+            }
+        }
+
+        private double _alternateWeight = 1.0;
+        public double AlternateWeight
+        {
+            get => _alternateWeight;
+            set
+            {
+                if (_alternateWeight != value)
+                {
+                    _alternateWeight = value;
+                    OnPropertyChanged("AlternateWeight");
+                }
+            }
+        }
 
         private int _fontSize = 14;
         public int FontSize
@@ -75,6 +108,20 @@ namespace Musegician
                     }
                 }
                 return _instance;
+            }
+        }
+
+        public double GetDefaultWeight(RecordingType recordingType)
+        {
+            switch (recordingType)
+            {
+                case RecordingType.Standard: return StandardWeight;
+                case RecordingType.Alternate: return AlternateWeight;
+                case RecordingType.Acoustic: return AcousticWeight;
+                case RecordingType.Live: return LiveWeight;
+
+                default:
+                    throw new ArgumentException($"Unexpected RecordingType: {recordingType}");
             }
         }
 

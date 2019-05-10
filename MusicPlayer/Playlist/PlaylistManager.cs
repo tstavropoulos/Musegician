@@ -24,18 +24,18 @@ namespace Musegician.Playlist
     {
         private Random Random => ThreadSafeRandom.Rand;
         private readonly List<PlaylistSong> PlaylistSongs = new List<PlaylistSong>();
-        private DepletableBag<PlaylistSong> shuffleSet;
+        private readonly DepletableBag<PlaylistSong> shuffleSet;
 
         /// <summary>
         /// A buffer holding the last 100 songs to play in Shuffle mode
         /// </summary>
-        private RingBuffer<PlayHistory> ringBuffer = new RingBuffer<PlayHistory>(100);
+        private readonly RingBuffer<PlayHistory> ringBuffer = new RingBuffer<PlayHistory>(100);
 
         private int bufferIndex = 0;
 
         private IPlaylistRequestHandler RequestHandler => FileManager.Instance;
 
-        private List<WeakReference<IPlaylistUpdateListener>> _playlistUpdateListeners =
+        private readonly List<WeakReference<IPlaylistUpdateListener>> _playlistUpdateListeners =
             new List<WeakReference<IPlaylistUpdateListener>>();
 
         private string _playlistName = "";
@@ -663,14 +663,7 @@ namespace Musegician.Playlist
         {
             if (recording.Weight == -1.0)
             {
-                if (recording.Recording.Live)
-                {
-                    return Settings.Instance.LiveWeight;
-                }
-                else
-                {
-                    return Settings.Instance.StudioWeight;
-                }
+                return Settings.Instance.GetDefaultWeight(recording.Recording.RecordingType);
             }
 
             return recording.Weight;

@@ -11,6 +11,7 @@ namespace Musegician.TagEditor
     public class TagTemplateSelector : DataTemplateSelector
     {
         public DataTemplate BoolTemplate { get; set; }
+        public DataTemplate EnumTemplate { get; set; }
         public DataTemplate StringTemplate { get; set; }
         public DataTemplate IntTemplate { get; set; }
         public DataTemplate ViewableTemplate { get; set; }
@@ -20,6 +21,10 @@ namespace Musegician.TagEditor
             if (obj is DataStructures.TagDataBool)
             {
                 return BoolTemplate;
+            }
+            if (obj is DataStructures.TagDataEnum)
+            {
+                return EnumTemplate;
             }
             else if (obj is DataStructures.TagDataString)
             {

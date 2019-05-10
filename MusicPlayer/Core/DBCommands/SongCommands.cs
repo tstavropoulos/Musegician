@@ -38,6 +38,9 @@ namespace Musegician.Core.DBCommands
 
             if (matchingSong == null)
             {
+                //Sort on Guid Timestamp so that the merged result uses the oldest Guid
+                songsCopy.Sort((x, y) => x.SongGuidTimestamp.CompareTo(y.SongGuidTimestamp));
+
                 matchingSong = songsCopy[0];
                 songsCopy.RemoveAt(0);
 
@@ -206,6 +209,9 @@ namespace Musegician.Core.DBCommands
         public void Merge(IEnumerable<BaseData> data)
         {
             List<Song> songsCopy = new List<Song>(data.Cast<Song>().Distinct());
+
+            //Sort on Guid Timestamp so that the merged result uses the oldest Guid
+            songsCopy.Sort((x, y) => x.SongGuidTimestamp.CompareTo(y.SongGuidTimestamp));
 
             Song matchingSong = songsCopy[0];
             songsCopy.RemoveAt(0);

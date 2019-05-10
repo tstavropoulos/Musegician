@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.IO;
 using System.Xml.Serialization;
-using System.Windows.Media.Imaging;
-using Musegician.Core.DBCommands;
-using Musegician.Database;
 using System.Text;
-
-using MusegicianTag = Musegician.Core.MusegicianTag;
-using LoadingUpdater = Musegician.LoadingDialog.LoadingDialog.LoadingUpdater;
-using Stopwatch = System.Diagnostics.Stopwatch;
+using System.Text.RegularExpressions;
 using System.Drawing.Imaging;
 using System.Drawing;
+using System.Windows.Media.Imaging;
+using Musegician.Core;
+using Musegician.Core.DBCommands;
+using Musegician.Database;
+
+using LoadingUpdater = Musegician.LoadingDialog.LoadingDialog.LoadingUpdater;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Musegician
 {
@@ -41,34 +41,46 @@ namespace Musegician
         /// Identifies text of the form (Live*) or [Live*].
         /// </summary>
         private const string livePatternA = @"(\s*?[\(\[][Ll]ive.*?[\)\]])";
+
         /// <summary>
         /// Identifies text of the form (Bootleg*) or [Bootleg*].
         /// </summary>
         private const string livePatternB = @"(\s*?[\(\[][Bb]ootleg.*?[\)\]])";
+
         /// <summary>
         /// Identifies text of the form (At The*) or [At The*].
         /// </summary>
         private const string livePatternC = @"(\s*?[\(\[][Aa]t [Tt]he.*?[\)\]])";
+
+        /// <summary>
+        /// Identifies text of the form [Unplugged] or (Unplugged).
+        /// </summary>
+        private const string unpluggedPattern = @"(\s*?[\(\[][Uu]nplugged[\)\]])";
+
         /// <summary>
         /// Identifies text of the form (Acoustic*) or [Acoustic*].
         /// Ex: Sting - A Day In The Life (Acoustic)
         /// </summary>
         private const string acousticPattern = @"(\s*?[\(\[][Aa]coustic.*?[\)\]])";
+
         /// <summary>
         /// Identifies text of the form (Explicit*) or [Explicit*].
         /// Ex: Queens of the Stone Age - Song For The Dead [Explicit]
         /// </summary>
         private const string explicitCleanupPattern = @"(\s*?[\(\[][Ee]xplicit.*?[\)\]])";
+
         /// <summary>
         /// Identifies text of the form (Album*) or [Album*].
         /// Ex: [Album Version]
         /// </summary>
         private const string albumVersionCleanupPattern = @"(\s*?[\(\[][Aa]lbum.*?[\)\]])";
+
         /// <summary>
         /// Identifies text of the form (Disc #) or [Disc #].
         /// Ex: Physical Graffiti (Disc 1)
         /// </summary>
         private const string discNumberPattern = @"(\s*?[\(\[][Dd]isc.*?\d+[\)\]])";
+
         /// <summary>
         /// Captures and extracts numbers
         /// </summary>
@@ -275,6 +287,14 @@ namespace Musegician
             }
         }
 
+        private enum TagStatus
+        {
+            Found,
+            UpdatedV1,
+            Missing,
+            MAX
+        }
+
         private void LoadFileData(
             string path,
             Lookups lookups)
@@ -285,32 +305,63 @@ namespace Musegician
             {
                 file = TagLib.File.Create(path);
 
-                MusegicianTag musegicianTag = null;
-                bool newMusegicianTag = false;
+                MusegicianTagV2 musegicianTagV2 = null;
+                TagStatus tagStatus = TagStatus.Found;
 
                 // Reading custom Musegician frame
                 if (file.GetTag(TagLib.TagTypes.Id3v2, true) is TagLib.Id3v2.Tag id3TagRead)
                 {
-                    TagLib.Id3v2.PrivateFrame frame = TagLib.Id3v2.PrivateFrame.Get(id3TagRead, "Musegician/Meta", true);
+                    MusegicianTag musegicianTag = null;
 
+                    TagLib.Id3v2.PrivateFrame frame = TagLib.Id3v2.PrivateFrame.Get(id3TagRead, "Musegician/Meta", true);
                     if (frame.PrivateData != null)
                     {
                         XmlSerializer serializer = new XmlSerializer(typeof(MusegicianTag));
                         musegicianTag = serializer.Deserialize(new MemoryStream(frame.PrivateData.Data)) as MusegicianTag;
                     }
+
+                    frame = TagLib.Id3v2.PrivateFrame.Get(id3TagRead, "Musegician/Met2", true);
+                    if (frame.PrivateData != null)
+                    {
+                        XmlSerializer serializer = new XmlSerializer(typeof(MusegicianTagV2));
+                        musegicianTagV2 = serializer.Deserialize(new MemoryStream(frame.PrivateData.Data)) as MusegicianTagV2;
+                    }
+
+                    if (musegicianTagV2 == null && musegicianTag != null)
+                    {
+                        tagStatus = TagStatus.UpdatedV1;
+
+                        //Convert old style tag
+                        musegicianTagV2 = new MusegicianTagV2()
+                        {
+                            RecordingType = RecordingType.Standard,
+                            ArtistGuid = musegicianTag.ArtistGuid,
+                            ArtistTimestamp = Epoch.Time,
+                            AlbumGuid = musegicianTag.AlbumGuid,
+                            AlbumTimestamp = Epoch.Time,
+                            SongGuid = musegicianTag.SongGuid,
+                            SongTimestamp = Epoch.Time,
+                            SongTitle = null
+                        };
+                    }
                 }
 
-                if (musegicianTag == null)
+                if (musegicianTagV2 == null)
                 {
-                    musegicianTag = new MusegicianTag()
+                    //Create new tag
+                    musegicianTagV2 = new MusegicianTagV2()
                     {
-                        Live = false,
-                        AlbumGuid = Guid.Empty,
+                        RecordingType = RecordingType.Standard,
                         ArtistGuid = Guid.Empty,
-                        SongGuid = Guid.Empty
+                        ArtistTimestamp = 0,
+                        AlbumGuid = Guid.Empty,
+                        AlbumTimestamp = 0,
+                        SongGuid = Guid.Empty,
+                        SongTimestamp = 0,
+                        SongTitle = null
                     };
 
-                    newMusegicianTag = true;
+                    tagStatus = TagStatus.Missing;
                 }
 
                 TagLib.Tag tag = file.Tag;
@@ -324,26 +375,47 @@ namespace Musegician
 
                 Artist artist = null;
 
-                if (!newMusegicianTag)
+                switch (tagStatus)
                 {
-                    //Tag was loaded
-                    //Find in lookups by Guid
-                    if (lookups.ArtistGuidLookup.ContainsKey(musegicianTag.ArtistGuid))
-                    {
-                        artist = lookups.ArtistGuidLookup[musegicianTag.ArtistGuid];
-                    }
-                }
-                else
-                {
-                    //Tag is new
-                    //Find in lookups by name
-                    if (lookups.ArtistNameLookup.ContainsKey(artistName.ToLowerInvariant()))
-                    {
-                        artist = lookups.ArtistNameLookup[artistName.ToLowerInvariant()];
-                    }
+                    case TagStatus.Found:
+                        //Find in lookups by Guid
+                        if (lookups.ArtistGuidLookup.ContainsKey(musegicianTagV2.ArtistGuid))
+                        {
+                            artist = lookups.ArtistGuidLookup[musegicianTagV2.ArtistGuid];
+                        }
+                        break;
 
-                    //If artist was found, populate ArtistGuid into tag
-                    musegicianTag.ArtistGuid = artist?.ArtistGuid ?? Guid.NewGuid();
+                    case TagStatus.UpdatedV1:
+                        //Find in lookups by Guid
+                        if (lookups.ArtistGuidLookup.ContainsKey(musegicianTagV2.ArtistGuid))
+                        {
+                            artist = lookups.ArtistGuidLookup[musegicianTagV2.ArtistGuid];
+
+                            //Update tag timestamp
+                            musegicianTagV2.ArtistTimestamp = artist.ArtistGuidTimestamp;
+                        }
+                        break;
+
+                    case TagStatus.Missing:
+                        //Find in lookups by name
+                        if (lookups.ArtistNameLookup.ContainsKey(artistName.ToLowerInvariant()))
+                        {
+                            artist = lookups.ArtistNameLookup[artistName.ToLowerInvariant()];
+
+                            //Populate ArtistGuid into tag
+                            musegicianTagV2.ArtistGuid = artist.ArtistGuid;
+                            musegicianTagV2.ArtistTimestamp = artist.ArtistGuidTimestamp;
+                        }
+                        else
+                        {
+                            //Populate ArtistGuid into tag
+                            musegicianTagV2.ArtistGuid = Guid.NewGuid();
+                            musegicianTagV2.ArtistTimestamp = Epoch.Time;
+                        }
+                        break;
+
+                    default:
+                        throw new Exception($"Unexpected TagStatus: {tagStatus}");
                 }
 
                 //Create
@@ -353,11 +425,12 @@ namespace Musegician
                     {
                         Name = artistName,
                         Weight = -1.0,
-                        ArtistGuid = musegicianTag.ArtistGuid
+                        ArtistGuid = musegicianTagV2.ArtistGuid,
+                        ArtistGuidTimestamp = musegicianTagV2.ArtistTimestamp
                     };
 
                     db.Artists.Add(artist);
-                    lookups.ArtistGuidLookup.Add(musegicianTag.ArtistGuid, artist);
+                    lookups.ArtistGuidLookup.Add(musegicianTagV2.ArtistGuid, artist);
                     lookups.ArtistNameLookup.Add(artistName.ToLowerInvariant(), artist);
                 }
 
@@ -391,36 +464,84 @@ namespace Musegician
                 }
 
                 Song song = null;
-                string songTitle = "";
 
-                if (!newMusegicianTag)
+                switch (tagStatus)
                 {
-                    //Tag was loaded
-                    //Find in lookups by Guid
-                    if (lookups.SongGuidLookup.ContainsKey(musegicianTag.SongGuid))
-                    {
-                        song = lookups.SongGuidLookup[musegicianTag.SongGuid];
-                    }
+                    case TagStatus.Found:
+                        //Find in lookups by Guid
+                        if (lookups.SongGuidLookup.ContainsKey(musegicianTagV2.SongGuid))
+                        {
+                            song = lookups.SongGuidLookup[musegicianTagV2.SongGuid];
 
-                    if (song == null)
-                    {
-                        //Clean up title for record creation
-                        CleanUpSongTitle(trackTitle, out songTitle);
-                    }
+                            if (musegicianTagV2.SongTitle != song.Title)
+                            {
+                                //Potential Conflict
+                                //Resolving in Database's favor for now
+                                musegicianTagV2.SongTitle = song.Title;
+                            }
+                        }
+                        break;
+
+                    case TagStatus.UpdatedV1:
+                        //Find in lookups by Guid
+                        if (lookups.SongGuidLookup.ContainsKey(musegicianTagV2.SongGuid))
+                        {
+                            song = lookups.SongGuidLookup[musegicianTagV2.SongGuid];
+
+                            musegicianTagV2.SongTitle = song.Title;
+                            musegicianTagV2.SongTimestamp = song.SongGuidTimestamp;
+
+                            if (musegicianTagV2.RecordingType == RecordingType.Standard)
+                            {
+                                //Only update RecordingType if the old one was the default
+                                //To avoid most cases of resetting actual user updates
+                                musegicianTagV2.RecordingType = CleanUpSongTitle(trackTitle, out _);
+                            }
+
+                        }
+                        else
+                        {
+                            //Clean up title for record creation
+                            RecordingType newRecordingType = CleanUpSongTitle(trackTitle, out string tempSongTitle);
+                            if (musegicianTagV2.RecordingType == RecordingType.Standard)
+                            {
+                                //Only update RecordingType if the old one was the default
+                                //To avoid most cases of resetting actual user updates
+                                musegicianTagV2.RecordingType = newRecordingType;
+                            }
+
+                            musegicianTagV2.SongTitle = tempSongTitle;
+                        }
+                        break;
+
+                    case TagStatus.Missing:
+                        //we must search clean up name and search
+                        musegicianTagV2.RecordingType = CleanUpSongTitle(trackTitle, out string songTitle);
+
+                        //find in lookups by (artist, name)
+                        if (lookups.SongNameLookup.ContainsKey((artist, songTitle.ToLowerInvariant())))
+                        {
+                            song = lookups.SongNameLookup[(artist, songTitle.ToLowerInvariant())];
+
+                            musegicianTagV2.SongGuid = song.SongGuid;
+                            musegicianTagV2.SongTimestamp = song.SongGuidTimestamp;
+                        }
+                        else
+                        {
+                            musegicianTagV2.SongGuid = Guid.NewGuid();
+                            musegicianTagV2.SongTimestamp = Epoch.Time;
+                        }
+                        break;
+
+                    default:
+                        throw new Exception($"Unexpected TagStatus: {tagStatus}");
                 }
-                else
+
+                //Just double check that the old data wasn't bad or incomplete...
+                if (string.IsNullOrEmpty(musegicianTagV2.SongTitle))
                 {
-                    //Tag is new
-                    //we must search clean up name and search
-                    musegicianTag.Live |= CleanUpSongTitle(trackTitle, out songTitle);
-
-                    //find in lookups by (artist, name)
-                    if (lookups.SongNameLookup.ContainsKey((artist, songTitle.ToLowerInvariant())))
-                    {
-                        song = lookups.SongNameLookup[(artist, songTitle.ToLowerInvariant())];
-                    }
-
-                    musegicianTag.SongGuid = song?.SongGuid ?? Guid.NewGuid();
+                    CleanUpSongTitle(trackTitle, out string songTitle);
+                    musegicianTagV2.SongTitle = songTitle;
                 }
 
                 if (song == null)
@@ -428,16 +549,17 @@ namespace Musegician
                     //Create the song
                     song = new Song()
                     {
-                        Title = songTitle,
+                        Title = musegicianTagV2.SongTitle,
                         Weight = -1.0,
-                        SongGuid = musegicianTag.SongGuid
+                        SongGuid = musegicianTagV2.SongGuid,
+                        SongGuidTimestamp = musegicianTagV2.SongTimestamp
                     };
 
                     db.Songs.Add(song);
-                    lookups.SongGuidLookup.Add(musegicianTag.SongGuid, song);
-                    if (!lookups.SongNameLookup.ContainsKey((artist, songTitle.ToLowerInvariant())))
+                    lookups.SongGuidLookup.Add(musegicianTagV2.SongGuid, song);
+                    if (!lookups.SongNameLookup.ContainsKey((artist, musegicianTagV2.SongTitle.ToLowerInvariant())))
                     {
-                        lookups.SongNameLookup.Add((artist, songTitle.ToLowerInvariant()), song);
+                        lookups.SongNameLookup.Add((artist, musegicianTagV2.SongTitle.ToLowerInvariant()), song);
                     }
                 }
 
@@ -456,35 +578,71 @@ namespace Musegician
 
                 string cleanAlbumTitle = "";
 
-                if (!newMusegicianTag)
+                switch (tagStatus)
                 {
-                    //Tag was loaded
-                    //Find in lookups by Guid
-                    if (lookups.AlbumGuidLookup.ContainsKey(musegicianTag.AlbumGuid))
-                    {
-                        album = lookups.AlbumGuidLookup[musegicianTag.AlbumGuid];
-                    }
+                    case TagStatus.Found:
+                        //Find in lookups by Guid
+                        if (lookups.AlbumGuidLookup.ContainsKey(musegicianTagV2.AlbumGuid))
+                        {
+                            album = lookups.AlbumGuidLookup[musegicianTagV2.AlbumGuid];
+                        }
+                        else
+                        {
+                            //Clean up title for record creation
+                            CleanUpAlbumTitle(
+                                loadedTitle: albumTitle,
+                                currentRecordingType: musegicianTagV2.RecordingType,
+                                cleanAlbumTitle: out cleanAlbumTitle,
+                                discNumber: ref discNumber);
+                        }
+                        break;
 
-                    if (album == null)
-                    {
-                        //Clean up title for record creation
-                        CleanUpAlbumTitle(albumTitle, out cleanAlbumTitle, ref discNumber);
-                    }
+                    case TagStatus.UpdatedV1:
+                        //Find in lookups by Guid
+                        if (lookups.AlbumGuidLookup.ContainsKey(musegicianTagV2.AlbumGuid))
+                        {
+                            album = lookups.AlbumGuidLookup[musegicianTagV2.AlbumGuid];
+                            musegicianTagV2.AlbumTimestamp = album.AlbumGuidTimestamp;
+                        }
+                        else
+                        {
+                            //Clean up title for record creation
+                            musegicianTagV2.RecordingType = CleanUpAlbumTitle(
+                                loadedTitle: albumTitle,
+                                currentRecordingType: musegicianTagV2.RecordingType,
+                                cleanAlbumTitle: out cleanAlbumTitle,
+                                discNumber: ref discNumber);
+                        }
+                        break;
+
+                    case TagStatus.Missing:
+                        //We must search and clean up the name
+                        musegicianTagV2.RecordingType = CleanUpAlbumTitle(
+                            loadedTitle: albumTitle,
+                            currentRecordingType: musegicianTagV2.RecordingType,
+                            cleanAlbumTitle: out cleanAlbumTitle,
+                            discNumber: ref discNumber);
+
+                        //search in lookups for (artist,albumname)
+                        if (lookups.AlbumNameLookup.ContainsKey((artist, cleanAlbumTitle.ToLowerInvariant())))
+                        {
+                            album = lookups.AlbumNameLookup[(artist, cleanAlbumTitle.ToLowerInvariant())];
+
+
+                            musegicianTagV2.AlbumGuid = album.AlbumGuid;
+                            musegicianTagV2.AlbumTimestamp = album.AlbumGuidTimestamp;
+                        }
+                        else
+                        {
+                            musegicianTagV2.AlbumGuid = Guid.NewGuid();
+                            musegicianTagV2.AlbumTimestamp = Epoch.Time;
+                        }
+                        break;
+
+                    default:
+                        throw new Exception($"Unexpected TagStatus: {tagStatus}");
                 }
-                else
-                {
-                    //Tag is new
-                    //We must search and clean up the name
-                    musegicianTag.Live |= CleanUpAlbumTitle(albumTitle, out cleanAlbumTitle, ref discNumber);
 
-                    //search in lookups for (artist,albumname)
-                    if (lookups.AlbumNameLookup.ContainsKey((artist, cleanAlbumTitle.ToLowerInvariant())))
-                    {
-                        album = lookups.AlbumNameLookup[(artist, cleanAlbumTitle.ToLowerInvariant())];
-                    }
-
-                    musegicianTag.AlbumGuid = album?.AlbumGuid ?? Guid.NewGuid();
-                }
 
                 if (album == null)
                 {
@@ -494,11 +652,12 @@ namespace Musegician
                         Year = (int)tag.Year,
                         Weight = -1.0,
                         Image = null,
-                        AlbumGuid = musegicianTag.AlbumGuid
+                        AlbumGuid = musegicianTagV2.AlbumGuid,
+                        AlbumGuidTimestamp = musegicianTagV2.AlbumTimestamp
                     };
 
                     db.Albums.Add(album);
-                    lookups.AlbumGuidLookup.Add(musegicianTag.AlbumGuid, album);
+                    lookups.AlbumGuidLookup.Add(musegicianTagV2.AlbumGuid, album);
                     if (!lookups.AlbumNameLookup.ContainsKey((artist, cleanAlbumTitle.ToLowerInvariant())))
                     {
                         lookups.AlbumNameLookup.Add((artist, cleanAlbumTitle.ToLowerInvariant()), album);
@@ -528,27 +687,42 @@ namespace Musegician
                     Title = trackTitle,
                     TrackNumber = (int)tag.Track,
                     DiscNumber = discNumber,
-                    Live = musegicianTag.Live,
+                    RecordingType = musegicianTagV2.RecordingType,
                     Weight = -1.0
                 };
                 db.Recordings.Add(recording);
 
-                if (newMusegicianTag && Settings.Instance.CreateMusegicianTags)
+                if (Settings.Instance.CreateMusegicianTags)
                 {
-                    if (file.GetTag(TagLib.TagTypes.Id3v2, true) is TagLib.Id3v2.Tag id3TagWrite)
+                    switch (tagStatus)
                     {
-                        file.Mode = TagLib.File.AccessMode.Write;
+                        case TagStatus.Found:
+                            //Do Nothing
+                            break;
 
-                        TagLib.Id3v2.PrivateFrame frame = TagLib.Id3v2.PrivateFrame.Get(id3TagWrite, "Musegician/Meta", true);
+                        case TagStatus.UpdatedV1:
+                        case TagStatus.Missing:
+                            //Create
+                            if (file.GetTag(TagLib.TagTypes.Id3v2, true) is TagLib.Id3v2.Tag id3TagWrite)
+                            {
+                                file.Mode = TagLib.File.AccessMode.Write;
 
-                        StringWriter data = new StringWriter(new StringBuilder());
-                        XmlSerializer serializer = new XmlSerializer(typeof(MusegicianTag));
-                        serializer.Serialize(data, musegicianTag);
+                                TagLib.Id3v2.PrivateFrame frame = TagLib.Id3v2.PrivateFrame.Get(id3TagWrite, "Musegician/Met2", true);
 
-                        frame.PrivateData = Encoding.Unicode.GetBytes(data.ToString());
+                                StringWriter data = new StringWriter(new StringBuilder());
+                                XmlSerializer serializer = new XmlSerializer(typeof(MusegicianTagV2));
+                                serializer.Serialize(data, musegicianTagV2);
 
-                        file.Save();
+                                frame.PrivateData = Encoding.Unicode.GetBytes(data.ToString());
+                                
+                                file.Save();
+                            }
+                            break;
+
+                        default:
+                            throw new Exception($"Unexpected TagStatus: {tagStatus}");
                     }
+
                 }
             }
             catch (TagLib.UnsupportedFormatException)
@@ -698,12 +872,12 @@ namespace Musegician
         }
 
         /// <summary>
-        /// Generates songtitle from Tracktitle, returns whether it thinks the song is a live recording
+        /// Generates songtitle from Tracktitle, returns guess at RecordingType
         /// </summary>
-        /// <returns>If the song is live</returns>
-        private static bool CleanUpSongTitle(string trackTitle, out string songTitle)
+        /// <returns>Guess of RecordingType</returns>
+        private static RecordingType CleanUpSongTitle(string trackTitle, out string songTitle)
         {
-            bool live = false;
+            RecordingType recordingType = RecordingType.Standard;
             songTitle = trackTitle;
 
             if (Regex.IsMatch(songTitle, explicitCleanupPattern))
@@ -718,55 +892,64 @@ namespace Musegician
 
             if (Regex.IsMatch(songTitle, livePatternA))
             {
-                live = true;
+                recordingType = RecordingType.Live;
                 songTitle = Regex.Replace(songTitle, livePatternA, "");
             }
 
             if (Regex.IsMatch(songTitle, livePatternB))
             {
-                live = true;
+                recordingType = RecordingType.Live;
                 songTitle = Regex.Replace(songTitle, livePatternB, "");
             }
 
             if (Regex.IsMatch(songTitle, livePatternC))
             {
-                live = true;
+                recordingType = RecordingType.Live;
                 songTitle = Regex.Replace(songTitle, livePatternC, "");
             }
 
             if (Regex.IsMatch(songTitle, acousticPattern))
             {
-                //Do we want acoustic tracks marked live?  I don't think so, in general
-                //live = true;
+                recordingType = RecordingType.Acoustic;
                 songTitle = Regex.Replace(songTitle, acousticPattern, "");
             }
 
-            return live;
+            return recordingType;
         }
 
-        private static bool CleanUpAlbumTitle(string loadedTitle, out string cleanAlbumTitle, ref int discNumber)
+        private static RecordingType CleanUpAlbumTitle(
+            string loadedTitle,
+            RecordingType currentRecordingType,
+            out string cleanAlbumTitle,
+            ref int discNumber)
         {
-            bool live = false;
             cleanAlbumTitle = loadedTitle;
             if (Regex.IsMatch(cleanAlbumTitle, livePatternA))
             {
-                live = true;
+                currentRecordingType = RecordingType.Live;
                 //Lets leave this expression in the title
                 //cleanAlbumTitle = Regex.Replace(cleanAlbumTitle, livePatternA, "");
             }
 
             if (Regex.IsMatch(cleanAlbumTitle, livePatternB))
             {
-                live = true;
+                currentRecordingType = RecordingType.Live;
                 //Lets leave this expression in the title
                 //cleanAlbumTitle = Regex.Replace(cleanAlbumTitle, livePatternB, "");
             }
 
             if (Regex.IsMatch(cleanAlbumTitle, livePatternC))
             {
-                live = true;
+                currentRecordingType = RecordingType.Live;
                 //Let's leave this expression in the album title
                 //cleanAlbumTitle = Regex.Replace(cleanAlbumTitle, livePatternC, "");
+            }
+
+            if (Regex.IsMatch(cleanAlbumTitle, unpluggedPattern))
+            {
+                currentRecordingType = RecordingType.Acoustic;
+                //Let's leave this expression in the album title
+                //cleanAlbumTitle = Regex.Replace(cleanAlbumTitle, unpluggedPattern, "");
             }
 
             if (Regex.IsMatch(cleanAlbumTitle, discNumberPattern))
@@ -776,7 +959,7 @@ namespace Musegician
                 cleanAlbumTitle = Regex.Replace(cleanAlbumTitle, discNumberPattern, "");
             }
 
-            return live;
+            return currentRecordingType;
         }
 
         public void PushMusegicianTagsToFile(
@@ -847,57 +1030,71 @@ namespace Musegician
                     stopwatch.Restart();
                 }
 
-                MusegicianTag musegicianTag = null;
                 using (TagLib.File file = TagLib.File.Create(recording.Filename))
                 {
                     if (file.GetTag(TagLib.TagTypes.Id3v2, true) is TagLib.Id3v2.Tag id3Tag)
                     {
-                        TagLib.Id3v2.PrivateFrame frame = TagLib.Id3v2.PrivateFrame.Get(id3Tag, "Musegician/Meta", true);
+                        MusegicianTagV2 musegicianTagV2 = null;
+                        XmlSerializer serializer = new XmlSerializer(typeof(MusegicianTagV2));
 
-                        XmlSerializer serializer = new XmlSerializer(typeof(MusegicianTag));
-
+                        TagLib.Id3v2.PrivateFrame frame = TagLib.Id3v2.PrivateFrame.Get(id3Tag, "Musegician/Met2", true);
                         if (frame.PrivateData != null)
                         {
-                            musegicianTag = serializer.Deserialize(new MemoryStream(frame.PrivateData.Data)) as MusegicianTag;
+                            musegicianTagV2 = serializer.Deserialize(new MemoryStream(frame.PrivateData.Data)) as MusegicianTagV2;
                         }
 
                         bool write = false;
 
-                        if (musegicianTag == null)
+                        if (musegicianTagV2 == null)
                         {
                             write = true;
 
-                            musegicianTag = new MusegicianTag()
+                            musegicianTagV2 = new MusegicianTagV2()
                             {
                                 ArtistGuid = Guid.Empty,
+                                ArtistTimestamp = 0,
                                 SongGuid = Guid.Empty,
+                                SongTimestamp = 0,
                                 AlbumGuid = Guid.Empty,
-                                Live = false
+                                AlbumTimestamp = 0,
+                                RecordingType = RecordingType.Standard
                             };
                         }
 
-                        if (musegicianTag.ArtistGuid != recording.Artist.ArtistGuid)
+                        if (musegicianTagV2.ArtistGuid != recording.Artist.ArtistGuid ||
+                            musegicianTagV2.ArtistTimestamp != recording.Artist.ArtistGuidTimestamp)
                         {
                             write = true;
-                            musegicianTag.ArtistGuid = recording.Artist.ArtistGuid;
+                            musegicianTagV2.ArtistGuid = recording.Artist.ArtistGuid;
+                            musegicianTagV2.ArtistTimestamp = recording.Artist.ArtistGuidTimestamp;
                         }
 
-                        if (musegicianTag.AlbumGuid != recording.Album.AlbumGuid)
+                        if (musegicianTagV2.AlbumGuid != recording.Album.AlbumGuid ||
+                            musegicianTagV2.AlbumTimestamp != recording.Album.AlbumGuidTimestamp)
                         {
                             write = true;
-                            musegicianTag.AlbumGuid = recording.Album.AlbumGuid;
+                            musegicianTagV2.AlbumGuid = recording.Album.AlbumGuid;
+                            musegicianTagV2.AlbumTimestamp = recording.Album.AlbumGuidTimestamp;
                         }
 
-                        if (musegicianTag.SongGuid != recording.Song.SongGuid)
+                        if (musegicianTagV2.SongGuid != recording.Song.SongGuid ||
+                            musegicianTagV2.SongTimestamp != recording.Song.SongGuidTimestamp)
                         {
                             write = true;
-                            musegicianTag.SongGuid = recording.Song.SongGuid;
+                            musegicianTagV2.SongGuid = recording.Song.SongGuid;
+                            musegicianTagV2.SongTimestamp = recording.Song.SongGuidTimestamp;
                         }
 
-                        if (musegicianTag.Live != recording.Live)
+                        if (musegicianTagV2.SongTitle != recording.Song.Title)
                         {
                             write = true;
-                            musegicianTag.Live = recording.Live;
+                            musegicianTagV2.SongTitle = recording.Song.Title;
+                        }
+
+                        if (musegicianTagV2.RecordingType != recording.RecordingType)
+                        {
+                            write = true;
+                            musegicianTagV2.RecordingType = recording.RecordingType;
                         }
 
                         if (write)
@@ -905,7 +1102,7 @@ namespace Musegician
                             file.Mode = TagLib.File.AccessMode.Write;
 
                             StringWriter stringData = new StringWriter(new StringBuilder());
-                            serializer.Serialize(stringData, musegicianTag);
+                            serializer.Serialize(stringData, musegicianTagV2);
 
                             frame.PrivateData = Encoding.Unicode.GetBytes(stringData.ToString());
 

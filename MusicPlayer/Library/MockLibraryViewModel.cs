@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
+using Musegician.Core;
 using Musegician.DataStructures;
 using Musegician.Database;
 
@@ -56,6 +54,8 @@ namespace Musegician.Library
             ClassicArtistViewModels[1].IsSelected = true;
             ClassicArtistViewModels[1].Children[0].LoadChildren(db);
             ClassicArtistViewModels[1].Children[0].IsExpanded = true;
+            ClassicArtistViewModels[1].Children[0].Children[0].LoadChildren(db);
+            ClassicArtistViewModels[1].Children[0].Children[0].IsExpanded = true;
             ClassicArtistViewModels[1].Children[0].Children[1].LoadChildren(db);
             ClassicArtistViewModels[1].Children[0].Children[1].IsExpanded = true;
         }
@@ -165,8 +165,10 @@ namespace Musegician.Library
                     Year = 1981
                 };
                 Albums.Add(stormFront);
-                AddExisting("We Didn't Start The Fire (Live)", 1, fireSong, billyJoel, songsInTheAttic, recordingID++, true);
-                AddSimple("A Matter Of Trust", 2, billyJoel, songsInTheAttic, songID++, recordingID++, true);
+                AddExisting("We Didn't Start The Fire (Live)", 1, fireSong, billyJoel, songsInTheAttic, recordingID++, RecordingType.Live);
+                AddSimple("A Matter Of Trust", 2, billyJoel, songsInTheAttic, songID++, recordingID++, RecordingType.Live);
+                AddExisting("We Didn't Start The Fire (Alternate)", 3, fireSong, billyJoel, songsInTheAttic, recordingID++, RecordingType.Alternate);
+                AddExisting("We Didn't Start The Fire (Acoustic)", 4, fireSong, billyJoel, songsInTheAttic, recordingID++, RecordingType.Acoustic);
             }
 
             //Steely Dan
@@ -245,7 +247,7 @@ namespace Musegician.Library
         IEnumerable<Recording> ILibraryRequestHandler.GenerateSongRecordingList(Song song)
         {
             return (from recording in song.Recordings
-                    orderby recording.Live
+                    orderby recording.RecordingType
                     select recording);
         }
 
@@ -278,7 +280,7 @@ namespace Musegician.Library
                     new Recording()
                     {
                         Id = 1,
-                        Live = false
+                        RecordingType = RecordingType.Standard
                     }
                 };
             }
@@ -348,7 +350,7 @@ namespace Musegician.Library
             Album album,
             int songID,
             int recordingID,
-            bool live = false)
+            RecordingType recordingType = RecordingType.Standard)
         {
             Song simpleSong = new Song()
             {
@@ -364,7 +366,7 @@ namespace Musegician.Library
                 Id = recordingID,
                 Filename = "",
                 Title = title,
-                Live = live,
+                RecordingType = recordingType,
                 Artist = artist,
                 Song = simpleSong,
                 Album = album,
@@ -390,13 +392,13 @@ namespace Musegician.Library
             Artist artist,
             Album album,
             int recordingID,
-            bool live = false)
+            RecordingType recordingType = RecordingType.Standard)
         {
             Recording simpleRecording = new Recording()
             {
                 Id = recordingID,
                 Filename = "",
-                Live = live,
+                RecordingType = recordingType,
                 Title = title,
                 Artist = artist,
                 Song = song,

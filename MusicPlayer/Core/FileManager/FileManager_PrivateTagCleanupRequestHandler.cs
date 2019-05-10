@@ -1,14 +1,14 @@
 ﻿using System;
 using System.IO;
-using System.Data.Entity;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Musegician.Core;
 using Musegician.Database;
-using IPrivateTagCleanupRequestHandler = Musegician.PrivateTagCleanup.IPrivateTagCleanupRequestHandler;
 
 using LoadingUpdater = Musegician.LoadingDialog.LoadingDialog.LoadingUpdater;
 using Stopwatch = System.Diagnostics.Stopwatch;
-using System.Text;
+using IPrivateTagCleanupRequestHandler = Musegician.PrivateTagCleanup.IPrivateTagCleanupRequestHandler;
 
 namespace Musegician
 {

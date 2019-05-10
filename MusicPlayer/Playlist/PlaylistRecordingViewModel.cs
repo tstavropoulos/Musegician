@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Musegician.Core;
 using Musegician.Database;
 
 namespace Musegician.Playlist
@@ -21,10 +16,10 @@ namespace Musegician.Playlist
         #endregion Constructor
         #region Properties
 
-        public bool Live => PlaylistRecording.Recording.Live;
-        public string LiveString => Live ? "🎤" : "";
+        public RecordingType RecordingType => PlaylistRecording.Recording.RecordingType;
+        public string TypeLabel => RecordingType.ToLabel();
 
-        public override double DefaultWeight => Live ? Settings.Instance.LiveWeight : Settings.Instance.StudioWeight;
+        public override double DefaultWeight => Settings.Instance.GetDefaultWeight(RecordingType);
 
         public PlaylistRecording PlaylistRecording => _data as PlaylistRecording;
         public PlaylistSongViewModel PlaylistSong => Parent as PlaylistSongViewModel;

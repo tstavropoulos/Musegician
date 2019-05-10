@@ -12,7 +12,8 @@ namespace Musegician.TagEditor
         public TagMockData()
         {
             TagData.Add(new TagViewable(@"C:\Test\Music\testfile.wav", MusicRecord.Filename));
-            TagData.Add(new TagDataBool(false, MusicRecord.Live) { NewValue = true });
+            TagData.Add(new TagDataBool(false, MusicRecord.RecordingType) { NewValue = true });
+            TagData.Add(new TagDataEnum(0, MusicRecord.RecordingType, new string[] { "Test1", "Test2" }) { NewInt = 1 });
             TagData.Add(new TagDataString("Test Music File", MusicRecord.TrackTitle, ID3TagType.Title));
             TagData.Add(new TagDataString("Test Music File [Live at the Apollo]", MusicRecord.SongTitle));
             TagData.Add(new TagDataString("Classic Albu", MusicRecord.AlbumTitle, ID3TagType.Album) { NewValue = "Classic Album" });

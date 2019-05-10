@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Musegician.Database;
 
 using MusicRecord = Musegician.TagEditor.MusicRecord;
@@ -80,7 +78,7 @@ namespace Musegician.DataStructures
 
     public class TagDataBool : TagData
     {
-        public bool _currentValue;
+        private readonly bool _currentValue;
         public override string CurrentValue => _currentValue ? "True" : "False";
 
 
@@ -121,7 +119,7 @@ namespace Musegician.DataStructures
 
     public class TagDataString : TagData
     {
-        public string _currentValue;
+        private readonly string _currentValue;
         public override string CurrentValue => _currentValue;
 
         private string _newValue;
@@ -163,7 +161,7 @@ namespace Musegician.DataStructures
 
     public class TagDataInt : TagData
     {
-        public int _currentValue;
+        private readonly int _currentValue;
         public override string CurrentValue => _currentValue.ToString();
 
 
@@ -219,6 +217,81 @@ namespace Musegician.DataStructures
         {
             _currentValue = currentValue;
             _newValue = currentValue;
+            this.recordType = recordType;
+            this.tagType = tagType;
+        }
+
+        public override void Reset() => NewInt = _currentValue;
+    }
+
+    public class TagDataEnum : TagData
+    {
+        private readonly int _currentValue;
+        public override string CurrentValue => EnumValues[_currentValue];
+
+        public string[] EnumValues { get; }
+
+        public int _newValue;
+        public int NewInt
+        {
+            get => _newValue;
+            set
+            {
+                if (_newValue != value)
+                {
+                    _newValue = value;
+                    OnPropertyChanged("NewValue");
+                    OnPropertyChanged("TagModified");
+                    OnPropertyChanged("ApplyChanges");
+                    OnPropertyChanged("Push");
+                }
+            }
+        }
+
+        public string NewValue
+        {
+            get => EnumValues[_newValue];
+            set
+            {
+                int temp = _newValue;
+                if (value == "")
+                {
+                    temp = 0;
+                }
+                else
+                {
+                    for (int i = 0; i < EnumValues.Length; i++)
+                    {
+                        if (EnumValues[i] == value)
+                        {
+                            temp = i;
+                            break;
+                        }
+                    }
+                }
+
+                if (_newValue != temp)
+                {
+                    _newValue = temp;
+                    OnPropertyChanged("NewValue");
+                    OnPropertyChanged("TagModified");
+                    OnPropertyChanged("ApplyChanges");
+                    OnPropertyChanged("Push");
+                }
+            }
+        }
+
+        public override bool TagModified => _currentValue != _newValue;
+
+        public TagDataEnum(
+            int currentValue,
+            MusicRecord recordType,
+            IEnumerable<string> enumValues,
+            ID3TagType tagType = ID3TagType.NotEditable)
+        {
+            _currentValue = currentValue;
+            _newValue = currentValue;
+            EnumValues = enumValues.ToArray();
             this.recordType = recordType;
             this.tagType = tagType;
         }

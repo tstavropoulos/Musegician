@@ -43,7 +43,7 @@ namespace Musegician
         IEnumerable<Recording> ILibraryRequestHandler.GenerateSongRecordingList(Song song)
         {
             return (from recording in song.Recordings
-                    orderby recording.Live
+                    orderby recording.RecordingType
                     select recording);
         }
 

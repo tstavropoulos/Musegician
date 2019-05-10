@@ -191,6 +191,9 @@ namespace Musegician.Core.DBCommands
             {
                 //Update an Album's name, because it doesn't exist
 
+                //Sort on Guid Timestamp so that the merged result uses the oldest Guid
+                albumsCopy.Sort((x, y) => x.AlbumGuidTimestamp.CompareTo(y.AlbumGuidTimestamp));
+
                 //Pop off the front
                 matchingAlbum = albumsCopy[0];
                 albumsCopy.RemoveAt(0);
@@ -229,6 +232,9 @@ namespace Musegician.Core.DBCommands
         public void Merge(IEnumerable<BaseData> data)
         {
             List<Album> albumsCopy = new List<Album>(data.Cast<Album>().Distinct());
+
+            //Sort on Guid Timestamp so that the merged result uses the oldest Guid
+            albumsCopy.Sort((x,y) => x.AlbumGuidTimestamp.CompareTo(y.AlbumGuidTimestamp));
 
             Album matchingAlbum = albumsCopy[0];
             albumsCopy.RemoveAt(0);

@@ -11,6 +11,7 @@ namespace Musegician.Core
     public sealed class MusegicianTag : ISerializable
     {
         public bool Live { get; set; }
+
         public Guid ArtistGuid { get; set; }
         public Guid AlbumGuid { get; set; }
         public Guid SongGuid { get; set; }
@@ -21,6 +22,7 @@ namespace Musegician.Core
         public MusegicianTag(SerializationInfo info, StreamingContext context)
         {
             Live = (bool)info.GetValue("Live", typeof(bool));
+
             ArtistGuid = (Guid)info.GetValue("ArtistGuid", typeof(Guid));
             AlbumGuid = (Guid)info.GetValue("AlbumGuid", typeof(Guid));
             SongGuid = (Guid)info.GetValue("SongGuid", typeof(Guid));
@@ -29,6 +31,7 @@ namespace Musegician.Core
         void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
         {
             info.AddValue("Live", Live, typeof(bool));
+
             info.AddValue("ArtistGuid", ArtistGuid, typeof(Guid));
             info.AddValue("AlbumGuid", AlbumGuid, typeof(Guid));
             info.AddValue("SongGuid", SongGuid, typeof(Guid));

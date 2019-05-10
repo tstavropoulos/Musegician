@@ -77,7 +77,7 @@
       <StackPanel Orientation="Horizontal" Background="Transparent"
                   ContextMenu="{StaticResource RecordingCM}">
         <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"/>
-        <TextBlock Text="{Binding LiveString}" Margin="5,0,0,0"
+        <TextBlock Text="{Binding TypeLabel}" Margin="5,0,0,0"
                    FontSize="14" FontFamily="Segoe UI Symbol" VerticalAlignment="Center"/>
       </StackPanel>
     </HierarchicalDataTemplate>
