@@ -75,16 +75,51 @@ Currently rather feature-light, the Music Driller lets you loop over pieces of s
 
 Ideal if you are learning an instrument and want to practice a tricky part.  Forthcomming features will expand on this functionality.
 
-### Installer
+## Installer
 
 It's packaged with an installer that will handle the installation of the requirements for you.  Just grab it from [The Releases Page](https://github.com/tstavropoulos/Musegician/releases).  Windows SmartScan will likely flag it, but clicking "More Information" on the warning that pops up will reveal a button that lets you install anyway.
+
+If it doesn't run after install, it may be that one of the dependencies failed to install.
+
+The two dependencies are:
+
+* [.Net Framework Runtime](https://dotnet.microsoft.com/download/dotnet-framework/net472)
+* [SQL Server Express LocalDB](https://github.com/tstavropoulos/Musegician/raw/master/MusegicianBootstrapperInstaller/Redist/SqlLocalDB.msi)  (A free Microsoft product.  If you want a distribution from the source, you can [download the installer here](https://www.microsoft.com/en-us/download/details.aspx?id=55994), just make sure you opt into the install of LocalDB).
+
+## Getting Started
+
+When you open Musegician for the first time, you'll be greeted with an empty Playlist (left) and an empty Library (right).
+
+### Importing Music
+
+First, you'll need to import music into Musegician.  In the menu at the top, select "Library" and choose "Add Music Directory", then in the menu that pops up, select a directory on your computer that contains some music you'd like to import.  I suggest you start with a smaller directory to test it out, as larger directories can take a little while to import, as artists and albums are cross-checked to build the proper associations.
+
+### Adding Music to a Playlist
+
+In the Classic view of the Library, music is subdivided into Artist, then Albums, then Tracks (with all recordings of the associated track being visible below that).  Drag any/all of these into the playlist window to add them, or right-click to Add or Play.  (*Deep* adding means including elements outside the current scope.  *Deep* addition of an artist will include covers of the songs by other artsits, whereas *Shallow*, eg standard, addition would not. *Shallow* addition of an album will include just the recordings on that album, whereas *Deep* would include variants and live recordings of just the songs on said album).
+
+### Cleaning Up Your Library
+
+After initial import, frequently there are many instances where matching songs weren't properly identified.  That's where the **Deredundafier** comes in.  In the menu, click on "Library > Deredundafier"
+
+Running a search in one of the given categories will find potential matches, select all that should be merged into the same record.  *Deep* searches, enabled by the checkbox, strips out all parentheticals to catch many instances of qualifiers, like "(Live At The Forum)" causing a missed match.  Check off all the tracks that should be merged into the same record (you can double-click any track from this window to play it to verify), and press "Merge Selected" at the bottom of the window.
 
 ## Development
 
 Requirements:
-* Visual Studio 2017
+
+* Visual Studio 2017 (or later)
 * .NET Framework 4.7.2 (or better)  [Available Here](https://www.microsoft.com/net/download)
 * WiX for the Installer Project.  [WiX Installer Here](https://github.com/wixtoolset/wix3/releases), and [VS2017 Extension Here](https://marketplace.visualstudio.com/items?itemName=RobMensching.WixToolsetVisualStudio2017Extension)
+
+After checking out the project, make sure to initialize and update the submodules.  Navigate to the checkout directory and run:
+
+```shell
+git submodule init
+git submodule update
+```
+
+You'll need to substitute in your own key for signing releases, or just disable binary signing.
 
 ## About The Developer
 
