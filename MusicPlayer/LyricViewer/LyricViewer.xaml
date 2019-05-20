@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Musegician.LyricViewer"
         mc:Ignorable="d"
-        Title="Tag Editor" Height="600" Width="400"
+        Title="Lyric Editor" Height="600" Width="400"
         Icon="/Musegician;component/Resources/logoHat.png"
         Style="{StaticResource CustomOtherWindowStyle}">
   <Window.Resources>
@@ -24,7 +24,7 @@
       <Button Grid.Column="2" Content="Reset" Click="Click_Reset"/>
       <Button Grid.Column="4" Content="Cancel" Click="Click_Cancel"/>
     </Grid>
-    <Label HorizontalAlignment="Center" DockPanel.Dock="Top">Lyric Viewer</Label>
+    <Label HorizontalAlignment="Center" DockPanel.Dock="Top">Lyric Editor</Label>
     <TextBox Name="lyricBox" Margin="10" 
              TextWrapping="Wrap" AcceptsReturn="True" 
              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"/>

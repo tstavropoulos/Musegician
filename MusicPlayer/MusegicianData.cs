@@ -85,6 +85,8 @@ namespace Musegician.Database
         public int TrackNumber { get; set; }
         public int DiscNumber { get; set; }
 
+        //public byte Rating { get; set; }
+
         public RecordingType RecordingType { get; set; }
 
         public Recording() { }
@@ -124,6 +126,8 @@ namespace Musegician.Database
         public override double Weight { get; set; }
         public Guid SongGuid { get; set; }
         public long SongGuidTimestamp { get; set; }
+
+        //public byte Rating { get; set; }
 
         public Song()
         {

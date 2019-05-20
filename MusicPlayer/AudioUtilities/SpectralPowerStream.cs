@@ -114,7 +114,7 @@ namespace Musegician.AudioUtilities
                 freqBandLB[i + 1] = freqBandUB[i];
             }
 
-            powerCoeff = sampleRate / (2.0 * SAMPLE_STRIDE * samplesToProcess);
+            powerCoeff = 0.75 * sampleRate / (2.0 * SAMPLE_STRIDE * samplesToProcess);
 
             Interval = 50;
         }

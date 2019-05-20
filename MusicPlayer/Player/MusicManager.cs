@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Windows;
 using System.Windows.Threading;
+using System.Windows.Input;
 using CSCore;
 using CSCore.Codecs;
 using CSCore.CoreAudioAPI;
 using CSCore.SoundOut;
-using System.ComponentModel;
-using System.Windows.Input;
-using System.Windows;
 using Musegician.AudioUtilities;
 using Musegician.Database;
 

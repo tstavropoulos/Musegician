@@ -714,7 +714,7 @@ namespace Musegician
                                 serializer.Serialize(data, musegicianTagV2);
 
                                 frame.PrivateData = Encoding.Unicode.GetBytes(data.ToString());
-                                
+
                                 file.Save();
                             }
                             break;
