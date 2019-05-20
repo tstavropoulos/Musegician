@@ -4,7 +4,7 @@ Pronouced like a portmanteau of Magician and Musician - the name _Musegician_ wa
 
 The initial goal of this project was to provide a relatively lightweight musicplayer with more intelligent shuffle behavior.  On initially importing a music library, some simple heuristics will attempt to determine unique songs and artists, and identify live recordings, though there is an expanding set of tools available to manually update this data.  Live recordings end up nested under their associated song, along with the studio recording, and the "song" itself can be added to playlists.  There is a modifiable, global default probability when playing a given song that a live recording will be substituted in its place, and this weighting value is also individually modifiable.  Additionally, songs themselves have modifiable global- and playlist-specific weights allowing you to tune the distributions without needing to actually cull songs from your music collection.
 
-If you're interested in giving it a try, just grab it from [The Releases Page](https://github.com/tstavropoulos/Musegician/releases).  Unfortunately, because the UI framework it was developed in (WPF) is only supported on Windows, it is limited to that platform at this time.  The Automated installer is still under active development, and may have somewhat inconsistent results in settings up the dependencies.  You may need to manually install [SQL Server 2017 Express](https://go.microsoft.com/fwlink/?linkid=853017), and make sure you check the box to install SqlLocalDB.
+If you're interested in giving it a try, check out [the Installer section below.](#installer)
 
 The intelligent import scheme implicitly depends on good quality metadata tags, but there exist a number of tools at this point to administer the data once it has been imported.
 
@@ -48,7 +48,6 @@ and Save Playlists.
 The TinyPlayer now even features access to the playlist!  
 ![TinyPlayer Playlists](README_Screenshots/TinyPlaylist.gif)
 
-
 ### Playback
 
 Built into the player is an Equalizer.  
@@ -73,11 +72,11 @@ This tends to sounds great on older tracks, and occasionally bizarre on more rec
 Currently rather feature-light, the Music Driller lets you loop over pieces of songs in your library.  
 ![Music Driller](README_Screenshots/MusicDriller.gif)
 
-Ideal if you are learning an instrument and want to practice a tricky part.  Forthcomming features will expand on this functionality.
+Ideal if you are learning an instrument and want to practice a tricky part.  A simple Phase Vocoder was added to allow you to slow down music by up to 50% without affecting pitch (with *small* artifacts).
 
 ## Installer
 
-It's packaged with an installer that will handle the installation of the requirements for you.  Just grab it from [The Releases Page](https://github.com/tstavropoulos/Musegician/releases).  Windows SmartScan will likely flag it, but clicking "More Information" on the warning that pops up will reveal a button that lets you install anyway.
+Musegician is packaged in an installer that should handle the installation of the requirements for you.  Unfortunately, because the UI framework Musegician was developed in (WPF) is only supported on Windows, it is limited to that platform at this time.  Just grab the most recent version from [The Releases Page](https://github.com/tstavropoulos/Musegician/releases).  Windows SmartScan will likely flag it, but clicking "More Information" on the warning that pops up will reveal a button that lets you install anyway.
 
 If it doesn't run after install, it may be that one of the dependencies failed to install.
 
@@ -103,6 +102,10 @@ In the Classic view of the Library, music is subdivided into Artist, then Albums
 After initial import, frequently there are many instances where matching songs weren't properly identified.  That's where the **Deredundafier** comes in.  In the menu, click on "Library > Deredundafier"
 
 Running a search in one of the given categories will find potential matches, select all that should be merged into the same record.  *Deep* searches, enabled by the checkbox, strips out all parentheticals to catch many instances of qualifiers, like "(Live At The Forum)" causing a missed match.  Check off all the tracks that should be merged into the same record (you can double-click any track from this window to play it to verify), and press "Merge Selected" at the bottom of the window.
+
+### Modifying Song Weights
+
+Selecting any number of songs/albums/recordings and pressing the + and - keys on your keyboard will adjust the weight, modifying the probability that it is selected in a given context.  Classic windows selection schemes apply, where holding Shift and clicking will highlight all items between your previously selected item and the new item, and holding control will add/remove the clicked item.
 
 ## Development
 
