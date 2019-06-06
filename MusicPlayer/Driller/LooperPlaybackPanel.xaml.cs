@@ -60,16 +60,28 @@ namespace Musegician.Driller
 
         private void OnWalkBackClick(object sender, RoutedEventArgs e)
         {
-            double temp = progressSlider.LowerValue;
-            progressSlider.LowerValue -= progressSlider.UpperValue - progressSlider.LowerValue;
-            progressSlider.UpperValue = temp;
+            double step = progressSlider.UpperValue - progressSlider.LowerValue;
+
+            progressSlider.LowerValue = Math.Max(
+                progressSlider.Minimum,
+                progressSlider.LowerValue - step);
+
+            progressSlider.UpperValue = Math.Min(
+                progressSlider.Maximum,
+                progressSlider.LowerValue + step);
         }
 
         private void OnWalkForwardClick(object sender, RoutedEventArgs e)
         {
-            double temp = progressSlider.UpperValue;
-            progressSlider.UpperValue += temp - progressSlider.LowerValue;
-            progressSlider.LowerValue = temp;
+            double step = progressSlider.UpperValue - progressSlider.LowerValue;
+
+            progressSlider.UpperValue = Math.Min(
+                progressSlider.Maximum,
+                progressSlider.UpperValue + step);
+
+            progressSlider.LowerValue = Math.Max(
+                progressSlider.Minimum,
+                progressSlider.UpperValue - step);
         }
 
         private void PlayerStateChanged(PlayerState newState) => State = newState;
