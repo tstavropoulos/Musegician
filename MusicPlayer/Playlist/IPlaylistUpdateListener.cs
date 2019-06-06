@@ -12,7 +12,10 @@ namespace Musegician.Playlist
         void AddBack(IEnumerable<PlaylistSong> songs);
         void InsertSongs(int index, IEnumerable<PlaylistSong> songs);
         void Rebuild(IEnumerable<PlaylistSong> songs);
-        void RemoveIndices(IEnumerable<int> indices);
+
+        void RemoveSongIndices(IEnumerable<int> indices);
+        void RemoveRecordings(IEnumerable<(int, PlaylistRecording)> recordings);
+
         void MarkIndex(int index);
         void MarkRecording(PlaylistRecording playlistRecording);
         void UnmarkAll();

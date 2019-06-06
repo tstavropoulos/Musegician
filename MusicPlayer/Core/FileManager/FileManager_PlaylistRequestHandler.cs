@@ -9,10 +9,16 @@ using IPlaylistRequestHandler = Musegician.Playlist.IPlaylistRequestHandler;
 
 namespace Musegician
 {
-    public class PlaylistTuple
+    public readonly struct PlaylistTuple
     {
-        public string title;
-        public int count;
+        public readonly string title;
+        public readonly int count;
+
+        public PlaylistTuple(string title, int count)
+        {
+            this.title = title;
+            this.count = count;
+        }
     }
 
     public partial class FileManager : IPlaylistRequestHandler
@@ -104,11 +110,7 @@ namespace Musegician
         IEnumerable<PlaylistTuple> IPlaylistRequestHandler.GetPlaylistInfo()
         {
             return db.Playlists.Where(x => x.Title != "Default")
-                .Select(x => new PlaylistTuple
-                {
-                    title = x.Title,
-                    count = x.PlaylistSongs.Count()
-                });
+                .Select(x => new PlaylistTuple(x.Title, x.PlaylistSongs.Count()));
         }
 
         void IPlaylistRequestHandler.ClearPlaylist()
@@ -187,6 +189,16 @@ namespace Musegician
                 artistName: recording.Artist.Name,
                 songTitle: recording.Title,
                 recording: recording);
+        }
+
+        void IPlaylistRequestHandler.Delete(PlaylistSong playlistSong)
+        {
+            db.PlaylistSongs.Remove(playlistSong);
+        }
+
+        void IPlaylistRequestHandler.Delete(PlaylistRecording playlistRecording)
+        {
+            db.PlaylistRecordings.Remove(playlistRecording);
         }
 
         void IPlaylistRequestHandler.NotifyDBChanged()

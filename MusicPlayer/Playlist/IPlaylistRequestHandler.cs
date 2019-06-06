@@ -17,6 +17,9 @@ namespace Musegician.Playlist
         IEnumerable<PlaylistSong> LoadPlaylist(string title);
         void DeletePlaylist(string title);
 
+        void Delete(PlaylistSong playlistSong);
+        void Delete(PlaylistRecording playlistRecording);
+
         IEnumerable<PlaylistTuple> GetPlaylistInfo();
 
         PlayData GetRecordingPlayData(Recording recording);

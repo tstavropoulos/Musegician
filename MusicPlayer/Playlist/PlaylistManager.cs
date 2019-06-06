@@ -14,10 +14,16 @@ using TASAgency.Math;
 
 namespace Musegician.Playlist
 {
-    public struct PlayHistory
+    public readonly struct PlayHistory
     {
-        public PlaylistSong song;
-        public PlaylistRecording recording;
+        public readonly PlaylistSong song;
+        public readonly PlaylistRecording recording;
+
+        public PlayHistory(PlaylistSong song, PlaylistRecording recording)
+        {
+            this.song = song;
+            this.recording = recording;
+        }
     }
 
     public class PlaylistManager : INotifyPropertyChanged
@@ -171,11 +177,7 @@ namespace Musegician.Playlist
 
                     bufferIndex = 0;
 
-                    ringBuffer.Add(new PlayHistory
-                    {
-                        song = song,
-                        recording = LastRecording
-                    });
+                    ringBuffer.Add(new PlayHistory(song, LastRecording));
                 }
 
                 PlayRecording(LastRecording.Recording);
@@ -209,11 +211,7 @@ namespace Musegician.Playlist
 
                     bufferIndex = 0;
 
-                    ringBuffer.Add(new PlayHistory
-                    {
-                        song = song,
-                        recording = recording
-                    });
+                    ringBuffer.Add(new PlayHistory(song, recording));
                 }
 
                 PlayRecording(recording.Recording);
@@ -236,11 +234,7 @@ namespace Musegician.Playlist
                         //We've moved our current song back one.
                         bufferIndex = Math.Min(bufferIndex + 1, ringBuffer.Size - 1);
 
-                        ringBuffer.Add(new PlayHistory
-                        {
-                            song = song,
-                            recording = recording
-                        });
+                        ringBuffer.Add(new PlayHistory(song, recording));
                     }
                 }
                 else
@@ -268,11 +262,7 @@ namespace Musegician.Playlist
                         //We've moved our current song back one.
                         bufferIndex = Math.Min(bufferIndex + 1, ringBuffer.Size - 1);
 
-                        ringBuffer.Add(new PlayHistory
-                        {
-                            song = recording.PlaylistSong,
-                            recording = recording
-                        });
+                        ringBuffer.Add(new PlayHistory(recording.PlaylistSong, recording));
                     }
                 }
                 else
@@ -367,11 +357,7 @@ namespace Musegician.Playlist
                     LastRecording = SelectRecording(nextSong);
 
                     //Stash 
-                    ringBuffer.Add(new PlayHistory
-                    {
-                        song = nextSong,
-                        recording = LastRecording
-                    });
+                    ringBuffer.Add(new PlayHistory(nextSong, LastRecording));
 
                     return RequestHandler.GetRecordingPlayData(LastRecording.Recording);
                 }
@@ -578,6 +564,7 @@ namespace Musegician.Playlist
         {
             if (position == -1)
             {
+                //This already calls SaveDBChanges
                 AddBack(songs);
             }
             else
@@ -605,15 +592,21 @@ namespace Musegician.Playlist
             {
                 if (songIndex < CurrentIndex)
                 {
-                    --_currentIndex;
+                    _currentIndex--;
                 }
 
-                if (shuffleSet.Contains(PlaylistSongs[songIndex]))
+                PlaylistSong song = PlaylistSongs[songIndex];
+
+                if (shuffleSet.Contains(song))
                 {
-                    shuffleSet.Remove(PlaylistSongs[songIndex]);
+                    shuffleSet.Remove(song);
                 }
 
                 PlaylistSongs.RemoveAt(songIndex);
+
+                //Remove song from its associated playlist
+                song.Playlist.PlaylistSongs.Remove(song);
+                RequestHandler.Delete(song);
             }
 
             ForceRenumbering();
@@ -621,7 +614,104 @@ namespace Musegician.Playlist
 
             foreach (IPlaylistUpdateListener listener in GetValidListeners())
             {
-                listener.RemoveIndices(songIndices);
+                listener.RemoveSongIndices(songIndices);
+            }
+        }
+
+        public void RemoveSongs(IEnumerable<PlaylistSong> songs)
+        {
+            PlaylistSong currentSong = null;
+            IEnumerable<int> indices = songs.Select(x => PlaylistSongs.IndexOf(x)).ToArray();
+
+            if (CurrentIndex != -1)
+            {
+                currentSong = PlaylistSongs[CurrentIndex];
+            }
+
+            foreach (PlaylistSong song in songs.OrderByDescending(x => PlaylistSongs.IndexOf(x)))
+            {
+                if (shuffleSet.Contains(song))
+                {
+                    shuffleSet.Remove(song);
+                }
+
+                PlaylistSongs.Remove(song);
+
+                //Remove song from its associated playlist
+                song.Playlist.PlaylistSongs.Remove(song);
+                RequestHandler.Delete(song);
+
+                if (currentSong == song)
+                {
+                    currentSong = null;
+                    _currentIndex = -1;
+                }
+            }
+
+            if (currentSong != null)
+            {
+                _currentIndex = PlaylistSongs.IndexOf(currentSong);
+            }
+
+            ForceRenumbering();
+            SaveDBChanges();
+
+            foreach (IPlaylistUpdateListener listener in GetValidListeners())
+            {
+                listener.RemoveSongIndices(indices);
+            }
+        }
+
+        public void RemoveRecordings(IEnumerable<PlaylistRecording> recordings)
+        {
+            PlaylistSong currentSong = null;
+
+            if (CurrentIndex != -1)
+            {
+                currentSong = PlaylistSongs[CurrentIndex];
+            }
+
+            IEnumerable<(int, PlaylistRecording)> indices = recordings
+                .Select(x => (PlaylistSongs.IndexOf(x.PlaylistSong), x))
+                .ToArray();
+
+            foreach (PlaylistRecording recording in recordings)
+            {
+                PlaylistSong tempSong = recording.PlaylistSong;
+
+                tempSong.PlaylistRecordings.Remove(recording);
+                RequestHandler.Delete(recording);
+
+                if (tempSong.PlaylistRecordings.Count == 0)
+                {
+                    if (shuffleSet.Contains(tempSong))
+                    {
+                        shuffleSet.Remove(tempSong);
+                    }
+
+                    PlaylistSongs.Remove(tempSong);
+                    tempSong.Playlist.PlaylistSongs.Remove(tempSong);
+                    RequestHandler.Delete(tempSong);
+
+                    if (currentSong == tempSong)
+                    {
+                        currentSong = null;
+                        _currentIndex = -1;
+                    }
+                }
+            }
+
+            if (currentSong != null)
+            {
+                _currentIndex = PlaylistSongs.IndexOf(currentSong);
+            }
+
+            ForceRenumbering();
+            SaveDBChanges();
+
+            foreach (IPlaylistUpdateListener listener in GetValidListeners())
+            {
+                listener.RemoveRecordings(indices);
             }
         }
 
@@ -750,6 +840,9 @@ namespace Musegician.Playlist
                 }
             }
 
+            ForceRenumbering();
+            SaveDBChanges();
+
             foreach (IPlaylistUpdateListener listener in GetValidListeners())
             {
                 listener.Rearrange(sourceIndices, targetIndex);
@@ -763,16 +856,16 @@ namespace Musegician.Playlist
                 case SortMethod.Alphabetical:
                     PlaylistSongs.Sort((x, y) => x.Title.CompareTo(y.Title));
                     break;
+
                 case SortMethod.Random:
                     PlaylistSongs.Shuffle();
                     break;
-                case SortMethod.MAX:
+
                 default:
                     throw new ArgumentException($"Unexpected SortMethod: {method}");
             }
 
             ForceRenumbering();
-
             SaveDBChanges();
 
             foreach (IPlaylistUpdateListener listener in GetValidListeners())

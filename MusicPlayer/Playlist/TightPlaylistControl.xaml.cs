@@ -601,15 +601,36 @@ namespace Musegician.Playlist
         void IPlaylistUpdateListener.InsertSongs(int index, IEnumerable<PlaylistSong> songs) =>
             _playlistTree.InsertRange(index, songs);
 
-        void IPlaylistUpdateListener.RemoveIndices(IEnumerable<int> indices)
+        void IPlaylistUpdateListener.RemoveSongIndices(IEnumerable<int> indices)
         {
-            List<int> reverseSortedIndexes = new List<int>(indices);
-
-            reverseSortedIndexes.Sort((a, b) => b.CompareTo(a));
-
-            foreach (int index in reverseSortedIndexes)
+            foreach (int index in indices.OrderByDescending(x=>x))
             {
                 _playlistTree.PlaylistViewModels.RemoveAt(index);
+            }
+        }
+
+        void IPlaylistUpdateListener.RemoveRecordings(IEnumerable<(int, PlaylistRecording)> recordings)
+        {
+            foreach ((int songIndex, PlaylistRecording rec) in recordings.OrderByDescending(x => x.Item1))
+            {
+                PlaylistRecordingViewModel recVM =
+                    _playlistTree.PlaylistViewModels[songIndex].Children
+                    .Cast<PlaylistRecordingViewModel>()
+                    .Where(x => x.PlaylistRecording == rec)
+                    .FirstOrDefault();
+
+                if (recVM == null)
+                {
+                    Console.WriteLine($"Failed to remove recording: {rec}");
+                    continue;
+                }
+
+                _playlistTree.PlaylistViewModels[songIndex].Children.Remove(recVM);
+
+                if (_playlistTree.PlaylistViewModels[songIndex].Children.Count == 0)
+                {
+                    _playlistTree.PlaylistViewModels.RemoveAt(songIndex);
+                }
             }
         }
 

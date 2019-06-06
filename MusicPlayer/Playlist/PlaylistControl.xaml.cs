@@ -218,7 +218,7 @@ namespace Musegician.Playlist
         {
             if (sender is MenuItem menuItem)
             {
-                if (menuItem.DataContext is PlaylistSongViewModel song)
+                if (menuItem.DataContext is PlaylistSongViewModel)
                 {
                     e.Handled = true;
 
@@ -228,10 +228,15 @@ namespace Musegician.Playlist
 
                     PlaylistMan.RemoveIndex(sourceIndices);
                 }
-                else if (menuItem.DataContext is PlaylistRecordingViewModel recording)
+                else if (menuItem.DataContext is PlaylistRecordingViewModel)
                 {
                     e.Handled = true;
-                    MessageBox.Show("Not Yet Implemented.");
+
+                    IEnumerable<PlaylistRecording> recordings =
+                        from PlaylistRecordingViewModel model in PlaylistTree.SelectedItems
+                        select model.PlaylistRecording;
+
+                    PlaylistMan.RemoveRecordings(recordings);
                 }
                 else
                 {
@@ -328,12 +333,15 @@ namespace Musegician.Playlist
             {
                 case Key.Return:
                     return KeyboardActions.Play;
+
                 case Key.Add:
                 case Key.OemPlus:
                     return KeyboardActions.WeightUp;
+
                 case Key.Subtract:
                 case Key.OemMinus:
                     return KeyboardActions.WeightDown;
+
                 default:
                     return KeyboardActions.None;
             }
@@ -366,7 +374,6 @@ namespace Musegician.Playlist
                         }
                         break;
 
-                    case KeyboardActions.MAX:
                     default:
                         throw new Exception($"Unexpected KeyboardAction: {action}");
                 }
@@ -631,15 +638,36 @@ namespace Musegician.Playlist
         void IPlaylistUpdateListener.InsertSongs(int index, IEnumerable<PlaylistSong> songs) =>
             _playlistTree.InsertRange(index, songs);
 
-        void IPlaylistUpdateListener.RemoveIndices(IEnumerable<int> indices)
+        void IPlaylistUpdateListener.RemoveSongIndices(IEnumerable<int> indices)
         {
-            List<int> reverseSortedIndexCopy = new List<int>(indices);
-
-            reverseSortedIndexCopy.Sort((a, b) => b.CompareTo(a));
-
-            foreach (int index in reverseSortedIndexCopy)
+            foreach (int index in indices.OrderByDescending(x=>x))
             {
                 _playlistTree.PlaylistViewModels.RemoveAt(index);
+            }
+        }
+
+        void IPlaylistUpdateListener.RemoveRecordings(IEnumerable<(int, PlaylistRecording)> recordings)
+        {
+            foreach ((int songIndex, PlaylistRecording rec) in recordings.OrderByDescending(x=>x.Item1))
+            {
+                PlaylistRecordingViewModel recVM =
+                    _playlistTree.PlaylistViewModels[songIndex].Children
+                    .Cast<PlaylistRecordingViewModel>()
+                    .Where(x => x.PlaylistRecording == rec)
+                    .FirstOrDefault();
+
+                if (recVM == null)
+                {
+                    Console.WriteLine($"Failed to remove recording: {rec}");
+                    continue;
+                }
+
+                _playlistTree.PlaylistViewModels[songIndex].Children.Remove(recVM);
+
+                if (_playlistTree.PlaylistViewModels[songIndex].Children.Count == 0)
+                {
+                    _playlistTree.PlaylistViewModels.RemoveAt(songIndex);
+                }
             }
         }
 
