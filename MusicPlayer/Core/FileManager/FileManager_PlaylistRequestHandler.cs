@@ -109,7 +109,7 @@ namespace Musegician
 
         IEnumerable<PlaylistTuple> IPlaylistRequestHandler.GetPlaylistInfo()
         {
-            return db.Playlists.Where(x => x.Title != "Default")
+            return db.Playlists.Where(x => x.Title != "Default").ToArray()
                 .Select(x => new PlaylistTuple(x.Title, x.PlaylistSongs.Count()));
         }
 

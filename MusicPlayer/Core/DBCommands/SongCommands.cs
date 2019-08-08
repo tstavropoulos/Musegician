@@ -151,6 +151,8 @@ namespace Musegician.Core.DBCommands
                 }
             }
 
+            targets.Sort((a, b) => a.Name.CompareTo(b.Name));
+
             return targets;
         }
 
