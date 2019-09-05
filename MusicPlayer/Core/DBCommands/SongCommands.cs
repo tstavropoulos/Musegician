@@ -74,7 +74,7 @@ namespace Musegician.Core.DBCommands
             db.SaveChanges();
         }
 
-        private const string greedyParenPattern = @"(\s*?[\(\[].*[\)\]])";
+        private static readonly Regex greedyParenPattern = new Regex(@"(\s*?[\(\[].*[\)\]])");
 
         public IList<DeredundafierDTO> GetDeepDeredundancyTargets()
         {
@@ -85,9 +85,9 @@ namespace Musegician.Core.DBCommands
                 string name = song.Title.ToLowerInvariant();
                 name.Trim();
 
-                if (Regex.IsMatch(name, greedyParenPattern))
+                if (greedyParenPattern.IsMatch(name))
                 {
-                    name = Regex.Replace(name, greedyParenPattern, "");
+                    name = greedyParenPattern.Replace(name, "");
                 }
 
                 //Reset name if this fully deletes it.

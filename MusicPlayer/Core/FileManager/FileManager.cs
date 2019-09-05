@@ -40,51 +40,51 @@ namespace Musegician
         /// <summary>
         /// Identifies text of the form (Live*) or [Live*].
         /// </summary>
-        private const string livePatternA = @"(\s*?[\(\[][Ll]ive.*?[\)\]])";
+        private readonly static Regex livePatternA = new Regex(@"(\s*?[\(\[][Ll]ive.*?[\)\]])");
 
         /// <summary>
         /// Identifies text of the form (Bootleg*) or [Bootleg*].
         /// </summary>
-        private const string livePatternB = @"(\s*?[\(\[][Bb]ootleg.*?[\)\]])";
+        private readonly static Regex livePatternB = new Regex(@"(\s*?[\(\[][Bb]ootleg.*?[\)\]])");
 
         /// <summary>
         /// Identifies text of the form (At The*) or [At The*].
         /// </summary>
-        private const string livePatternC = @"(\s*?[\(\[][Aa]t [Tt]he.*?[\)\]])";
+        private readonly static Regex livePatternC = new Regex(@"(\s*?[\(\[][Aa]t [Tt]he.*?[\)\]])");
 
         /// <summary>
         /// Identifies text of the form [Unplugged] or (Unplugged).
         /// </summary>
-        private const string unpluggedPattern = @"(\s*?[\(\[][Uu]nplugged[\)\]])";
+        private readonly static Regex unpluggedPattern = new Regex(@"(\s*?[\(\[][Uu]nplugged[\)\]])");
 
         /// <summary>
         /// Identifies text of the form (Acoustic*) or [Acoustic*].
         /// Ex: Sting - A Day In The Life (Acoustic)
         /// </summary>
-        private const string acousticPattern = @"(\s*?[\(\[][Aa]coustic.*?[\)\]])";
+        private readonly static Regex acousticPattern = new Regex(@"(\s*?[\(\[][Aa]coustic.*?[\)\]])");
 
         /// <summary>
         /// Identifies text of the form (Explicit*) or [Explicit*].
         /// Ex: Queens of the Stone Age - Song For The Dead [Explicit]
         /// </summary>
-        private const string explicitCleanupPattern = @"(\s*?[\(\[][Ee]xplicit.*?[\)\]])";
+        private readonly static Regex explicitCleanupPattern = new Regex(@"(\s*?[\(\[][Ee]xplicit.*?[\)\]])");
 
         /// <summary>
         /// Identifies text of the form (Album*) or [Album*].
         /// Ex: [Album Version]
         /// </summary>
-        private const string albumVersionCleanupPattern = @"(\s*?[\(\[][Aa]lbum.*?[\)\]])";
+        private readonly static Regex albumVersionCleanupPattern = new Regex(@"(\s*?[\(\[][Aa]lbum.*?[\)\]])");
 
         /// <summary>
         /// Identifies text of the form (Disc #) or [Disc #].
         /// Ex: Physical Graffiti (Disc 1)
         /// </summary>
-        private const string discNumberPattern = @"(\s*?[\(\[][Dd]isc.*?\d+[\)\]])";
+        private readonly static Regex discNumberPattern = new Regex(@"(\s*?[\(\[][Dd]isc.*?\d+[\)\]])");
 
         /// <summary>
         /// Captures and extracts numbers
         /// </summary>
-        private const string numberExtractor = @"(\d+)";
+        private readonly static Regex numberExtractor = new Regex(@"(\d+)");
 
         #endregion RegEx
 
@@ -880,38 +880,38 @@ namespace Musegician
             RecordingType recordingType = RecordingType.Standard;
             songTitle = trackTitle;
 
-            if (Regex.IsMatch(songTitle, explicitCleanupPattern))
+            if (explicitCleanupPattern.IsMatch(songTitle))
             {
-                songTitle = Regex.Replace(songTitle, explicitCleanupPattern, "");
+                songTitle = explicitCleanupPattern.Replace(songTitle, "");
             }
 
-            if (Regex.IsMatch(songTitle, albumVersionCleanupPattern))
+            if (albumVersionCleanupPattern.IsMatch(songTitle))
             {
-                songTitle = Regex.Replace(songTitle, albumVersionCleanupPattern, "");
+                songTitle = albumVersionCleanupPattern.Replace(songTitle, "");
             }
 
-            if (Regex.IsMatch(songTitle, livePatternA))
-            {
-                recordingType = RecordingType.Live;
-                songTitle = Regex.Replace(songTitle, livePatternA, "");
-            }
-
-            if (Regex.IsMatch(songTitle, livePatternB))
+            if (livePatternA.IsMatch(songTitle))
             {
                 recordingType = RecordingType.Live;
-                songTitle = Regex.Replace(songTitle, livePatternB, "");
+                songTitle = livePatternA.Replace(songTitle, "");
             }
 
-            if (Regex.IsMatch(songTitle, livePatternC))
+            if (livePatternB.IsMatch(songTitle))
             {
                 recordingType = RecordingType.Live;
-                songTitle = Regex.Replace(songTitle, livePatternC, "");
+                songTitle = livePatternB.Replace(songTitle, "");
             }
 
-            if (Regex.IsMatch(songTitle, acousticPattern))
+            if (livePatternC.IsMatch(songTitle))
+            {
+                recordingType = RecordingType.Live;
+                songTitle = livePatternC.Replace(songTitle, "");
+            }
+
+            if (acousticPattern.IsMatch(songTitle))
             {
                 recordingType = RecordingType.Acoustic;
-                songTitle = Regex.Replace(songTitle, acousticPattern, "");
+                songTitle = acousticPattern.Replace(songTitle, "");
             }
 
             return recordingType;
@@ -924,39 +924,39 @@ namespace Musegician
             ref int discNumber)
         {
             cleanAlbumTitle = loadedTitle;
-            if (Regex.IsMatch(cleanAlbumTitle, livePatternA))
+            if (livePatternA.IsMatch(cleanAlbumTitle))
             {
                 currentRecordingType = RecordingType.Live;
                 //Lets leave this expression in the title
-                //cleanAlbumTitle = Regex.Replace(cleanAlbumTitle, livePatternA, "");
+                //cleanAlbumTitle = livePatternA.Replace(cleanAlbumTitle, "");
             }
 
-            if (Regex.IsMatch(cleanAlbumTitle, livePatternB))
+            if (livePatternB.IsMatch(cleanAlbumTitle))
             {
                 currentRecordingType = RecordingType.Live;
                 //Lets leave this expression in the title
-                //cleanAlbumTitle = Regex.Replace(cleanAlbumTitle, livePatternB, "");
+                //cleanAlbumTitle = livePatternB.Replace(cleanAlbumTitle, "");
             }
 
-            if (Regex.IsMatch(cleanAlbumTitle, livePatternC))
+            if (livePatternC.IsMatch(cleanAlbumTitle))
             {
                 currentRecordingType = RecordingType.Live;
                 //Let's leave this expression in the album title
-                //cleanAlbumTitle = Regex.Replace(cleanAlbumTitle, livePatternC, "");
+                //cleanAlbumTitle = livePatternC.Replace(cleanAlbumTitle, "");
             }
 
-            if (Regex.IsMatch(cleanAlbumTitle, unpluggedPattern))
+            if (unpluggedPattern.IsMatch(cleanAlbumTitle))
             {
                 currentRecordingType = RecordingType.Acoustic;
                 //Let's leave this expression in the album title
-                //cleanAlbumTitle = Regex.Replace(cleanAlbumTitle, unpluggedPattern, "");
+                //cleanAlbumTitle = unpluggedPattern.Replace(cleanAlbumTitle, "");
             }
 
-            if (Regex.IsMatch(cleanAlbumTitle, discNumberPattern))
+            if (discNumberPattern.IsMatch(cleanAlbumTitle))
             {
-                string discString = Regex.Match(cleanAlbumTitle, discNumberPattern).Captures[0].ToString();
-                discNumber = int.Parse(Regex.Match(discString, numberExtractor).Captures[0].ToString());
-                cleanAlbumTitle = Regex.Replace(cleanAlbumTitle, discNumberPattern, "");
+                string discString = discNumberPattern.Match(cleanAlbumTitle).Captures[0].ToString();
+                discNumber = int.Parse(numberExtractor.Match(discString).Captures[0].ToString());
+                cleanAlbumTitle = discNumberPattern.Replace(cleanAlbumTitle, "");
             }
 
             return currentRecordingType;

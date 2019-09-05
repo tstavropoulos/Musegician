@@ -27,6 +27,8 @@ namespace Musegician
             {
                 Album album = recording.Album;
 
+                bool hasMultipleDiscs = album.Recordings.Any(x => x.DiscNumber != recording.DiscNumber);
+
                 //
                 // Filename
                 //
@@ -63,6 +65,11 @@ namespace Musegician
                 else
                 {
                     properAlbumDirectory = $"[{album.Year}] {album.Title}";
+                }
+
+                if (hasMultipleDiscs)
+                {
+                    properAlbumDirectory += $" - Disc {recording.DiscNumber}";
                 }
 
                 properAlbumDirectory = SanitizeFileName(properAlbumDirectory);

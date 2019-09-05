@@ -21,7 +21,7 @@ namespace Musegician.Core.DBCommands
             this.db = db;
         }
 
-        private const string greedyParenPattern = @"(\s*?[\(\[].*[\)\]])";
+        private static readonly Regex greedyParenPattern = new Regex(@"(\s*?[\(\[].*[\)\]])");
 
         #region High Level Commands
 
@@ -35,9 +35,9 @@ namespace Musegician.Core.DBCommands
                 string title = album.Title.ToLowerInvariant();
                 title.Trim();
 
-                if (Regex.IsMatch(title, greedyParenPattern))
+                if (greedyParenPattern.IsMatch(title))
                 {
-                    title = Regex.Replace(title, greedyParenPattern, "");
+                    title = greedyParenPattern.Replace(title, "");
                 }
 
                 //Reset name if this fully deletes it.

@@ -59,6 +59,8 @@ namespace Musegician.TagEditor
 
         private ITagRequestHandler RequestHandler => FileManager.Instance;
 
+        private static readonly Regex numberValidationRegex = new Regex(@"[^0-9]+");
+
         public TagEditor(BaseData data)
         {
             InitializeComponent();
@@ -202,8 +204,7 @@ namespace Musegician.TagEditor
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
         {
-            Regex regex = new Regex("[^0-9]+");
-            e.Handled = regex.IsMatch(e.Text);
+            e.Handled = numberValidationRegex.IsMatch(e.Text);
         }
 
         private void UpdateRecord(MusicRecord record, TagData tag)
