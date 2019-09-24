@@ -1,0 +1,256 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyName>Musegician</AssemblyName>
+    <RootNamespace>Musegician</RootNamespace>
+    <StartupObject>Musegician.EntryPoint</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\logo.ico" />
+    <None Remove="Resources\logoHat.png" />
+    <None Remove="Resources\logoInv.ico" />
+    <None Remove="Resources\logoInv.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CSCore" Version="1.2.1.2" />
+    <PackageReference Include="EntityFramework" Version="6.3.0" />
+    <PackageReference Include="Microsoft.Windows.Compatibility" Version="3.0.0" />
+    <PackageReference Include="RibbonControlsLibrary" Version="4.0.0" />
+    <PackageReference Include="WPFThemes.DarkBlend" Version="1.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NVorbis\NVorbis\NVorbis.csproj" />
+    <ProjectReference Include="..\taglib-sharp\src\TaglibSharp\TaglibSharp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Windows.Forms">
+      <HintPath>..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Windows.Forms.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\logo.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\logoHat.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\logoInv.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\logoInv.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Update="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </ApplicationDefinition>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="logoInv.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Update="Resources\IRFiles\IR_0.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n10.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n15.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n20.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n25.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n30.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n35.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n40.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n45.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n5.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n55.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n65.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_n80.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p10.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p15.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p20.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p25.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p30.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p35.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p40.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p45.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p5.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p55.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p65.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\IRFiles\IR_p80.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="AlbumArtPicker\AlbumArtPicker.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="AlbumArtPicker\AlbumArtPickerWindow.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Core\MarqueeControl.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Core\MultiSelectTree.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Core\WeightBar.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Deredundafier\Deredundafier.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Deredundafier\DeredundafierWindow.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Driller\DrillerWindow.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Driller\LooperPlaybackPanel.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Driller\LoopSlider.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Equalizer\EqualizerControl.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Equalizer\EqualizerSlider.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Equalizer\SimplePowerView.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Library\LibraryControl.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Library\TightLibraryControl.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="LoadingDialog\LoadingDialog.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="LyricViewer\LyricViewer.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="MainWindow.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Player\PlaybackPanel.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Playlist\PlaylistControl.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Playlist\PlaylistManagementControl.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Playlist\PlaylistToolBar.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Playlist\TightPlaylistControl.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="PrivateTagCleanup\PrivateTagCleanup.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="PrivateTagCleanup\PrivateTagCleanupWindow.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Reorganizer\FileReorganizationPicker.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Reorganizer\FileReorganizerWindow.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Spatializer\SpatializerControl.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Spatializer\SpeakerVisualization.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="TagEditor\TagEditor.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Themes\Generic.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="Themes\Styles.xaml">
+      <Generator></Generator>
+    </Page>
+    <Page Update="TinyPlayer\TinyPlayer.xaml">
+      <Generator></Generator>
+    </Page>
+  </ItemGroup>
+
+</Project>

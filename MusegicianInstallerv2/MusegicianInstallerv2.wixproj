@@ -22,9 +22,9 @@
     <Compile Include="Product.wxs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MusicPlayer\Musegician.csproj">
-      <Name>Musegician</Name>
-      <Project>{eca191d8-a68d-438c-a94a-5958d7d83834}</Project>
+    <ProjectReference Include="..\MusegicianCore\MusegicianCore.csproj">
+      <Name>MusegicianCore</Name>
+      <Project>{49f569da-7c53-428e-8fa4-c9e5ea1ca9b1}</Project>
       <Private>True</Private>
       <DoNotHarvest>True</DoNotHarvest>
       <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
