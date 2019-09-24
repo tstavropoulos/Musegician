@@ -15,7 +15,7 @@ namespace Musegician
     {
         [STAThread]
         static void Main()
-      {
+        {
             //Register our custom ogg reader
             CodecFactory.Instance.Register("ogg-vorbis", new CodecFactoryEntry(s => new NVorbisSource(s).ToWaveSource(), ".ogg"));
 
