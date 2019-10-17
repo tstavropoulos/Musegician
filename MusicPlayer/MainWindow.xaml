@@ -106,8 +106,7 @@
       <DockPanel Grid.Column="0" Grid.Row="0">
         <playlist:PlaylistToolBar x:Name="playlistToolbar" DockPanel.Dock="Top" TinyViewerPressed="Menu_CondensedView"/>
         <playlist:PlaylistControl x:Name="PlaylistControl"
-                                  d:DataContext="{d:DesignInstance Type=playlist:MockPlaylistViewModel,
-                                    IsDesignTimeCreatable=True}"/>
+                                  d:DataContext="{d:DesignInstance Type=playlist:MockPlaylistViewModel, IsDesignTimeCreatable=True}"/>
       </DockPanel>
       <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
       <library:LibraryControl x:Name="libraryControl" Grid.Column="2"

@@ -986,6 +986,7 @@ namespace Musegician.Player
                 return;
             }
 
+            System.Diagnostics.Debug.WriteLine($"System Press: {key}");
             ExecuteKeyboardAction(action);
         }
 
@@ -1006,6 +1007,7 @@ namespace Musegician.Player
             }
 
             e.Handled = true;
+            System.Diagnostics.Debug.WriteLine($"App Press: {action}");
             ExecuteKeyboardAction(action);
         }
 
@@ -1087,64 +1089,74 @@ namespace Musegician.Player
 
         private bool disposedValue = false; // To detect redundant calls
 
+        ~MusicManager()
+        {
+            CleanUpResources();
+        }
+
+        private void CleanUpResources()
+        {
+            if (_simpleAudioVolume != null)
+            {
+                _simpleAudioVolume.Dispose();
+                _simpleAudioVolume = null;
+            }
+
+            if (_audioSessionControl != null)
+            {
+                _audioSessionControl.SimpleVolumeChanged -= AudioSessionControl_SimpleVolumeChanged;
+                _audioSessionControl.Dispose();
+                _audioSessionControl = null;
+            }
+
+            if (_audioClient != null)
+            {
+                _audioClient.Dispose();
+                _audioClient = null;
+            }
+
+            if (_soundOut != null)
+            {
+                _soundOut.Dispose();
+                _soundOut = null;
+            }
+
+            if (_equalizer != null)
+            {
+                _equalizer.Dispose();
+                _equalizer = null;
+            }
+
+            if (_spatializer != null)
+            {
+                _spatializer.Dispose();
+                _spatializer = null;
+            }
+
+            if (_phaseStream != null)
+            {
+                _phaseStream.Dispose();
+                _phaseStream = null;
+            }
+
+            if (_waveSource != null)
+            {
+                _waveSource.Dispose();
+                _waveSource = null;
+            }
+        }
+
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
                 if (disposing)
                 {
-                    if (_simpleAudioVolume != null)
-                    {
-                        _simpleAudioVolume.Dispose();
-                        _simpleAudioVolume = null;
-                    }
-
-                    if (_audioSessionControl != null)
-                    {
-                        _audioSessionControl.SimpleVolumeChanged -= AudioSessionControl_SimpleVolumeChanged;
-                        _audioSessionControl.Dispose();
-                        _audioSessionControl = null;
-                    }
-
-                    if (_audioClient == null)
-                    {
-                        _audioClient.Dispose();
-                        _audioClient = null;
-                    }
-
-                    if (_soundOut != null)
-                    {
-                        _soundOut.Dispose();
-                        _soundOut = null;
-                    }
-
-                    if (_equalizer != null)
-                    {
-                        _equalizer.Dispose();
-                        _equalizer = null;
-                    }
-
-                    if (_spatializer != null)
-                    {
-                        _spatializer.Dispose();
-                        _spatializer = null;
-                    }
-
-                    if (_phaseStream != null)
-                    {
-                        _phaseStream.Dispose();
-                        _phaseStream = null;
-                    }
-
-                    if (_waveSource != null)
-                    {
-                        _waveSource.Dispose();
-                        _waveSource = null;
-                    }
+                    CleanUpResources();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
+                // free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // set large fields to null.
 
                 disposedValue = true;
             }
@@ -1153,10 +1165,8 @@ namespace Musegician.Player
         // This code added to correctly implement the disposable pattern.
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
 
         #endregion IDisposable

@@ -19,7 +19,7 @@ namespace Musegician.Core
         private const int WH_KEYBOARD_LL = 13;
         private const int WM_KEYDOWN = 0x0100;
         private readonly LowLevelKeyboardProc keyboardProc;
-        private readonly IntPtr hookId = IntPtr.Zero;
+        private IntPtr hookId = IntPtr.Zero;
 
         //const UInt32 SWP_NOSIZE = 0x0001;
         //const UInt32 SWP_NOMOVE = 0x0002;
@@ -69,11 +69,21 @@ namespace Musegician.Core
                     OnRegisteredKeyPressed(keyPressed);
                 }
             }
+
             return NativeMethods.CallNextHookEx(hookId, nCode, wParam, lParam);
         }
 
         #region IDisposable Support
         private bool disposedValue = false;
+
+        ~KeyboardHook()
+        {
+            if (hookId != IntPtr.Zero)
+            {
+                NativeMethods.UnhookWindowsHookEx(hookId);
+                hookId = IntPtr.Zero;
+            }
+        }
 
         void Dispose(bool disposing)
         {
@@ -81,8 +91,14 @@ namespace Musegician.Core
             {
                 if (disposing)
                 {
+                    //Free managed resources
+                }
+
+                //Free unmanaged resources
+                if (hookId != IntPtr.Zero)
+                {
                     NativeMethods.UnhookWindowsHookEx(hookId);
-                    GC.SuppressFinalize(this);
+                    hookId = IntPtr.Zero;
                 }
 
                 disposedValue = true;
@@ -92,6 +108,7 @@ namespace Musegician.Core
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion IDisposable Support
