@@ -188,7 +188,6 @@
       <DependentUpon>MarqueeControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Core\MathExtension.cs" />
-    <Compile Include="Core\MusegicianTag.cs" />
     <Compile Include="Core\MusegicianTagV2.cs" />
     <Compile Include="Core\NativeMethods.cs" />
     <Compile Include="Core\OSInterop.cs" />
