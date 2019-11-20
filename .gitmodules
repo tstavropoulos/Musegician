@@ -3,4 +3,4 @@
 	url = https://github.com/tstavropoulos/taglib-sharp
 [submodule "NVorbis"]
 	path = NVorbis
-	url = https://github.com/ioctlLR/NVorbis
+	url = https://github.com/tstavropoulos/NVorbis
