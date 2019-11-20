@@ -328,9 +328,25 @@ namespace Musegician
                 }
                 else if (file.GetTag(TagLib.TagTypes.Xiph, true) is TagLib.Ogg.XiphComment oggTag)
                 {
-                    file.Mode = TagLib.File.AccessMode.Write;
-
                     string musegicianTagData = oggTag.GetFirstField("Musegician/Met2");
+                    if (musegicianTagData != null)
+                    {
+                        XmlSerializer serializer = new XmlSerializer(typeof(MusegicianTagV2));
+                        musegicianTagV2 = serializer.Deserialize(new StringReader(musegicianTagData)) as MusegicianTagV2;
+                    }
+                }
+                else if (file.GetTag(TagLib.TagTypes.XMP, true) is TagLib.Xmp.XmpTag xmpTag)
+                {
+                    string musegicianTagData = xmpTag.GetTextNode("Musegician", "Met2");
+                    if (musegicianTagData != null)
+                    {
+                        XmlSerializer serializer = new XmlSerializer(typeof(MusegicianTagV2));
+                        musegicianTagV2 = serializer.Deserialize(new StringReader(musegicianTagData)) as MusegicianTagV2;
+                    }
+                }
+                else if (file.GetTag(TagLib.TagTypes.Apple, true) is TagLib.Mpeg4.AppleTag appleTag)
+                {
+                    string musegicianTagData = appleTag.GetDashBox("Musegician", "Met2");
                     if (musegicianTagData != null)
                     {
                         XmlSerializer serializer = new XmlSerializer(typeof(MusegicianTagV2));
@@ -664,6 +680,30 @@ namespace Musegician
                                 serializer.Serialize(data, musegicianTagV2);
 
                                 oggTag.SetField("Musegician/Met2", data.ToString());
+
+                                file.Save();
+                            }
+                            else if (file.GetTag(TagLib.TagTypes.XMP, true) is TagLib.Xmp.XmpTag xmpTag)
+                            {
+                                file.Mode = TagLib.File.AccessMode.Write;
+
+                                StringWriter data = new StringWriter(new StringBuilder());
+                                XmlSerializer serializer = new XmlSerializer(typeof(MusegicianTagV2));
+                                serializer.Serialize(data, musegicianTagV2);
+
+                                xmpTag.SetTextNode("Musegician", "Met2", data.ToString());
+
+                                file.Save();
+                            }
+                            else if (file.GetTag(TagLib.TagTypes.Apple, true) is TagLib.Mpeg4.AppleTag appleTag)
+                            {
+                                file.Mode = TagLib.File.AccessMode.Write;
+
+                                StringWriter data = new StringWriter(new StringBuilder());
+                                XmlSerializer serializer = new XmlSerializer(typeof(MusegicianTagV2));
+                                serializer.Serialize(data, musegicianTagV2);
+
+                                appleTag.SetDashBox("Musegician", "Met2", data.ToString());
 
                                 file.Save();
                             }
@@ -1032,6 +1072,36 @@ namespace Musegician
                             StringWriter stringData = new StringWriter(new StringBuilder());
                             serializer.Serialize(stringData, musegicianTagV2);
                             oggTag.SetField("Musegician/Met2", stringData.ToString());
+                        };
+                    }
+                    else if (file.GetTag(TagLib.TagTypes.XMP, true) is TagLib.Xmp.XmpTag xmpTag)
+                    {
+                        string musegicianTagData = xmpTag.GetTextNode("Musegician", "Met2");
+                        if (musegicianTagData != null)
+                        {
+                            musegicianTagV2 = serializer.Deserialize(new StringReader(musegicianTagData)) as MusegicianTagV2;
+                        }
+
+                        writeCallback = () =>
+                        {
+                            StringWriter stringData = new StringWriter(new StringBuilder());
+                            serializer.Serialize(stringData, musegicianTagV2);
+                            xmpTag.SetTextNode("Musegician", "Met2", stringData.ToString());
+                        };
+                    }
+                    else if (file.GetTag(TagLib.TagTypes.Apple, true) is TagLib.Mpeg4.AppleTag appleTag)
+                    {
+                        string musegicianTagData = appleTag.GetDashBox("Musegician", "Met2");
+                        if (musegicianTagData != null)
+                        {
+                            musegicianTagV2 = serializer.Deserialize(new StringReader(musegicianTagData)) as MusegicianTagV2;
+                        }
+
+                        writeCallback = () =>
+                        {
+                            StringWriter stringData = new StringWriter(new StringBuilder());
+                            serializer.Serialize(stringData, musegicianTagV2);
+                            appleTag.SetDashBox("Musegician", "Met2", stringData.ToString());
                         };
                     }
                     else
