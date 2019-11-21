@@ -3,11 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28902.138
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Musegician", "MusicPlayer\Musegician.csproj", "{ECA191D8-A68D-438C-A94A-5958D7D83834}"
-	ProjectSection(ProjectDependencies) = postProject
-		{14D2843A-B10E-4357-8F7C-534287695F33} = {14D2843A-B10E-4357-8F7C-534287695F33}
-	EndProjectSection
-EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "MusegicianInstallerv2", "MusegicianInstallerv2\MusegicianInstallerv2.wixproj", "{D7F20774-8E42-4966-9071-2DF41EC4556E}"
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "MusegicianBootstrapperInstaller", "MusegicianBootstrapperInstaller\MusegicianBootstrapperInstaller.wixproj", "{53C1B044-0E1B-4213-A900-A254A8DE5976}"
@@ -15,6 +10,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NVorbis", "NVorbis\NVorbis\NVorbis.csproj", "{14D2843A-B10E-4357-8F7C-534287695F33}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TaglibSharp", "taglib-sharp\src\TaglibSharp\TaglibSharp.csproj", "{F699E309-F062-4B8E-9AE1-69B99BDC60F9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musegician.Core", "MusicPlayer\Musegician.Core.csproj", "{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,22 +25,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Debug|ARM.Build.0 = Debug|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Debug|x64.Build.0 = Debug|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Debug|x86.Build.0 = Debug|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Release|ARM.ActiveCfg = Release|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Release|ARM.Build.0 = Release|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Release|x64.ActiveCfg = Release|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Release|x64.Build.0 = Release|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Release|x86.ActiveCfg = Release|Any CPU
-		{ECA191D8-A68D-438C-A94A-5958D7D83834}.Release|x86.Build.0 = Release|Any CPU
 		{D7F20774-8E42-4966-9071-2DF41EC4556E}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{D7F20774-8E42-4966-9071-2DF41EC4556E}.Debug|Any CPU.Build.0 = Debug|x86
 		{D7F20774-8E42-4966-9071-2DF41EC4556E}.Debug|ARM.ActiveCfg = Debug|x86
@@ -98,6 +79,22 @@ Global
 		{F699E309-F062-4B8E-9AE1-69B99BDC60F9}.Release|x64.Build.0 = Release|Any CPU
 		{F699E309-F062-4B8E-9AE1-69B99BDC60F9}.Release|x86.ActiveCfg = Release|Any CPU
 		{F699E309-F062-4B8E-9AE1-69B99BDC60F9}.Release|x86.Build.0 = Release|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Debug|ARM.Build.0 = Debug|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Debug|x64.Build.0 = Debug|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Debug|x86.Build.0 = Debug|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Release|ARM.ActiveCfg = Release|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Release|ARM.Build.0 = Release|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Release|x64.ActiveCfg = Release|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Release|x64.Build.0 = Release|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Release|x86.ActiveCfg = Release|Any CPU
+		{DCE4CE51-5CA2-4650-AC4E-24AF96ABBF69}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

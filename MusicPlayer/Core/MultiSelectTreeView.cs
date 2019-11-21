@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -320,31 +317,5 @@ namespace Musegician.Core
         protected override void OnSelectedItemChanged(RoutedPropertyChangedEventArgs<object> e) => base.OnSelectedItemChanged(e);
 
         #endregion Overrides
-    }
-
-    public class MultiSelectTreeViewItem : TreeViewItem
-    {
-
-        static MultiSelectTreeViewItem()
-        {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(MultiSelectTreeViewItem),
-                   new FrameworkPropertyMetadata(typeof(MultiSelectTreeViewItem)));
-        }
-
-        public bool IsAltState
-        {
-            get => (bool)GetValue(IsAltStateProperty);
-            set => SetValue(IsAltStateProperty, value);
-        }
-
-        public bool IsItemSelected => MultiSelectTreeView.GetIsItemSelected(this);
-
-        public static readonly DependencyProperty IsAltStateProperty =
-            DependencyProperty.RegisterAttached("IsAltState", typeof(bool),
-            typeof(MultiSelectTreeViewItem), new UIPropertyMetadata(false));
-
-
-        protected override DependencyObject GetContainerForItemOverride() => new MultiSelectTreeViewItem();
-        protected override bool IsItemItsOwnContainerOverride(object item) => item is MultiSelectTreeViewItem;
     }
 }

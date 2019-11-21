@@ -3,90 +3,89 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:playlist="clr-namespace:Musegician.Playlist"
              xmlns:equalizer="clr-namespace:Musegician.Equalizer"
              xmlns:core="clr-namespace:Musegician.Core"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="500"
              d:DataContext="{d:DesignInstance Type=playlist:MockPlaylistViewModel, IsDesignTimeCreatable=True}">
-  <UserControl.Resources>
-    <ContextMenu x:Key="PlaylistSongCM">
-      <MenuItem Header="Play Song" Click="Play"/>
-      <MenuItem Header="Enqueue Song" Click="Enqueue"/>
-      <MenuItem Header="Edit Song Information" Click="Edit"/>
-      <MenuItem Header="Find In Library" Click="Find"/>
-      <Separator/>
-      <MenuItem Header="Remove Song" Click="Remove"/>
-    </ContextMenu>
+    <UserControl.Resources>
+        <ContextMenu x:Key="PlaylistSongCM">
+            <MenuItem Header="Play Song" Click="Play"/>
+            <MenuItem Header="Enqueue Song" Click="Enqueue"/>
+            <MenuItem Header="Edit Song Information" Click="Edit"/>
+            <MenuItem Header="Find In Library" Click="Find"/>
+            <Separator/>
+            <MenuItem Header="Remove Song" Click="Remove"/>
+        </ContextMenu>
 
-    <ContextMenu x:Key="PlaylistRecordingCM">
-      <MenuItem Header="Play Recording" Click="Play"/>
-      <MenuItem Header="Enqueue Recording" Click="Enqueue"/>
-      <MenuItem Header="Edit Recording Information" Click="Edit"/>
-      <MenuItem Header="Find In Library" Click="Find"/>
-      <Separator/>
-      <MenuItem Header="View Lyrics" Click="OpenLyrics"/>
-      <Separator/>
-      <MenuItem Header="Remove Recording" Click="Remove"/>
-    </ContextMenu>
-    
-    <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
-    
-    <HierarchicalDataTemplate DataType="{x:Type playlist:PlaylistSongViewModel}"
+        <ContextMenu x:Key="PlaylistRecordingCM">
+            <MenuItem Header="Play Recording" Click="Play"/>
+            <MenuItem Header="Enqueue Recording" Click="Enqueue"/>
+            <MenuItem Header="Edit Recording Information" Click="Edit"/>
+            <MenuItem Header="Find In Library" Click="Find"/>
+            <Separator/>
+            <MenuItem Header="View Lyrics" Click="OpenLyrics"/>
+            <Separator/>
+            <MenuItem Header="Remove Recording" Click="Remove"/>
+        </ContextMenu>
+
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+
+        <HierarchicalDataTemplate DataType="{x:Type playlist:PlaylistSongViewModel}"
                               ItemsSource="{Binding Children}">
-      <Grid>
-        <Border BorderThickness="0,2,0,0" BorderBrush="White"
+            <Grid>
+                <Border BorderThickness="0,2,0,0" BorderBrush="White"
                 Visibility="{Binding ShowDropLine, Converter={StaticResource BoolToVisConverter}}"/>
-        <StackPanel Orientation="Horizontal" Background="Transparent"
+                <StackPanel Orientation="Horizontal" Background="Transparent"
                     ContextMenu="{StaticResource PlaylistSongCM}">
-          <core:WeightBar Margin="0,0,5,0"/>
-          <TextBlock Text="{Binding Title}" FontSize="14" VerticalAlignment="Center"/>
-        </StackPanel>
-      </Grid>
-    </HierarchicalDataTemplate>
+                    <core:WeightBar Margin="0,0,5,0"/>
+                    <TextBlock Text="{Binding Title}" FontSize="14" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </HierarchicalDataTemplate>
 
-    <HierarchicalDataTemplate DataType="{x:Type playlist:PlaylistRecordingViewModel}">
-      <StackPanel Orientation="Horizontal" Background="Transparent"
+        <HierarchicalDataTemplate DataType="{x:Type playlist:PlaylistRecordingViewModel}">
+            <StackPanel Orientation="Horizontal" Background="Transparent"
                   ContextMenu="{StaticResource PlaylistRecordingCM}">
-        <core:WeightBar Margin="0,0,5,0"/>
-        <TextBlock Text="{Binding Title}" FontSize="14" VerticalAlignment="Center"/>
-        <TextBlock Text="{Binding TypeLabel}" Margin="5,0,0,0"
+                <core:WeightBar Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding Title}" FontSize="14" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding TypeLabel}" Margin="5,0,0,0"
                    FontSize="14" FontFamily="Segoe UI Symbol" VerticalAlignment="Center"/>
-      </StackPanel>
-    </HierarchicalDataTemplate>
-  </UserControl.Resources>
-  <DockPanel>
-    <core:MultiSelectTreeView x:Name="PlaylistTree" KeyDown="Tree_KeyDown"
+            </StackPanel>
+        </HierarchicalDataTemplate>
+    </UserControl.Resources>
+    <DockPanel>
+        <core:MultiSelectTreeView x:Name="PlaylistTree" KeyDown="Tree_KeyDown"
                               ItemsSource="{Binding PlaylistViewModels}" AllowDrop="True"
                               DragEnter="Tree_DragEnter" DragLeave="Tree_DragLeave" Drop="Tree_Drop">
-      <core:MultiSelectTreeView.ItemContainerStyle>
-        <Style TargetType="core:MultiSelectTreeViewItem"
-               BasedOn="{StaticResource {x:Type core:MultiSelectTreeViewItem}}">
-          <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick"/>
-          <EventSetter Event="PreviewMouseDown" Handler="Item_PreviewMouseDown"/>
-          <EventSetter Event="MouseEnter" Handler="Item_MouseEnter"/>
-          <EventSetter Event="MouseLeave" Handler="Item_MouseLeave"/>
-          <EventSetter Event="Drop" Handler="Item_Drop"/>
-          <EventSetter Event="DragEnter" Handler="Item_DragEnter"/>
-          <EventSetter Event="DragLeave" Handler="Item_DragLeave"/>
-          <Setter Property="VerticalContentAlignment" Value="Stretch"/>
-          <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-          <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
-          <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
-          <Setter Property="IsAltState" Value="{Binding Playing}"/>
-          <Setter Property="FontWeight" Value="Normal"/>
-          <Setter Property="AllowDrop" Value="True"/>
-          <Style.Triggers>
-            <Trigger Property="IsSelected" Value="True">
-              <Setter Property="FontWeight" Value="Bold" />
-            </Trigger>
-            <DataTrigger Binding="{Binding IsDim}" Value="True">
-              <Setter Property="TextBlock.Foreground" Value="DimGray"/>
-            </DataTrigger>
-          </Style.Triggers>
-        </Style>
-      </core:MultiSelectTreeView.ItemContainerStyle>
-    </core:MultiSelectTreeView>
-  </DockPanel>
+            <core:MultiSelectTreeView.ItemContainerStyle>
+                <Style TargetType="core:MultiSelectTreeViewItem"
+                       BasedOn="{StaticResource {x:Type core:MultiSelectTreeViewItem}}">
+                    <EventSetter Event="MouseDoubleClick" Handler="OnItemMouseDoubleClick" />
+                    <EventSetter Event="PreviewMouseDown" Handler="Item_PreviewMouseDown"/>
+                    <EventSetter Event="MouseEnter" Handler="Item_MouseEnter"/>
+                    <EventSetter Event="MouseLeave" Handler="Item_MouseLeave"/>
+                    <EventSetter Event="Drop" Handler="Item_Drop"/>
+                    <EventSetter Event="DragEnter" Handler="Item_DragEnter"/>
+                    <EventSetter Event="DragLeave" Handler="Item_DragLeave"/>
+                    <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                    <Setter Property="IsAltState" Value="{Binding Playing}"/>
+                    <Setter Property="FontWeight" Value="Normal"/>
+                    <Setter Property="AllowDrop" Value="True"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="FontWeight" Value="Bold" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding IsDim}" Value="True">
+                            <Setter Property="TextBlock.Foreground" Value="DimGray"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </core:MultiSelectTreeView.ItemContainerStyle>
+        </core:MultiSelectTreeView>
+    </DockPanel>
 </UserControl>
