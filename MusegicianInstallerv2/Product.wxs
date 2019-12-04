@@ -49,14 +49,14 @@
         <File Id="CSCoreDLL" Name="CSCore.dll" Source="$(var.Musegician.TargetDir)CSCore.dll" KeyPath="yes"/>
       </Component>
 
-      <!--NVorbis-->
-      <Component Id="NVorbisLib" Guid="9ECD4CD5-4FFB-46D3-AB0E-A77C5164E4A5">
-        <File Id="NVorbisLibDLL" Name="taglib-sharp.dll" Source="$(var.Musegician.TargetDir)taglib-sharp.dll" KeyPath="yes"/>
+      <!--taglib-sharp-->
+      <Component Id="NewestTagLib" Guid="022B0B6A-A503-4E13-8869-7C74D3E93FC7">
+        <File Id="NewestTagLibDLL" Name="TagLibSharp.dll" Source="$(var.Musegician.TargetDir)TagLibSharp.dll" KeyPath="yes"/>
       </Component>
 
-      <!--taglib-sharp-->
-      <Component Id="NewTagLib" Guid="7A0D0F5D-B5F3-4C6D-A22E-9AC99EF4EAF3">
-        <File Id="NewTagLibDLL" Name="NVorbis.dll" Source="$(var.Musegician.TargetDir)NVorbis.dll" KeyPath="yes"/>
+      <!--NVorbis-->
+      <Component Id="NewestVorbis" Guid="DC0C1006-45F5-45BA-AEB8-D0AFBB4FA1E6">
+        <File Id="NewestVorbisDLL" Name="NVorbis.dll" Source="$(var.Musegician.TargetDir)NVorbis.dll" KeyPath="yes"/>
       </Component>
 
       <!--RibbonControlsLibrary-->

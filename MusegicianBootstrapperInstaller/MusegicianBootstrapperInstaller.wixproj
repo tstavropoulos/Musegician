@@ -20,7 +20,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Bundle.wxs" />
-    <Compile Include="Net472Ext.wxs" />
+    <Compile Include="Net48Ext.wxs" />
     <Compile Include="SqlLocalDBInst.wxs" />
   </ItemGroup>
   <ItemGroup>
