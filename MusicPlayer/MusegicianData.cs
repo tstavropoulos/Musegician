@@ -10,7 +10,7 @@ namespace Musegician.Database
     public class MusegicianData : DbContext
     {
         public MusegicianData()
-            : base("name=MusegicianData")
+            : base("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\tasag\\Documents\\Musegician.MusegicianData.mdf;Integrated Security=True;Connect Timeout=30")
         {
         }
 
