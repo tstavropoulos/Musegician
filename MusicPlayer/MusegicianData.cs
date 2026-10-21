@@ -9,8 +9,14 @@ namespace Musegician.Database
 {
     public class MusegicianData : DbContext
     {
+        static MusegicianData()
+        {
+            Database.SetInitializer(
+                new MigrateDatabaseToLatestVersion<MusegicianData, Musegician.Migrations.Configuration>());
+            )
+        }
         public MusegicianData()
-            : base("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=C:\\Users\\tasag\\Documents\\Musegician.MusegicianData.mdf;Integrated Security=True;Connect Timeout=30")
+            : base("name=Musegician.Properties.Settings.Musegician_MusegicianDataConnectionString")
         {
         }
 

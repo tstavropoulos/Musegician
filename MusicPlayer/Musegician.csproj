@@ -378,11 +378,6 @@
     <Compile Include="TinyPlayer\TinyPlayer.xaml.cs">
       <DependentUpon>TinyPlayer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="_Musegician_MusegicianDataDataSet.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>_Musegician_MusegicianDataDataSet.xsd</DependentUpon>
-    </Compile>
     <Page Include="AlbumArtPicker\AlbumArtPicker.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -538,17 +533,6 @@
     </Compile>
     <None Include="Properties\app.manifest" />
     <None Include="TASPvtKey.pfx" />
-    <None Include="_Musegician_MusegicianDataDataSet.xsc">
-      <DependentUpon>_Musegician_MusegicianDataDataSet.xsd</DependentUpon>
-    </None>
-    <None Include="_Musegician_MusegicianDataDataSet.xsd">
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>_Musegician_MusegicianDataDataSet.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="_Musegician_MusegicianDataDataSet.xss">
-      <DependentUpon>_Musegician_MusegicianDataDataSet.xsd</DependentUpon>
-    </None>
     <Resource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

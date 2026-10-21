@@ -133,7 +133,7 @@ namespace Musegician
         {
             db = new MusegicianData();
 
-            db.Database.CreateIfNotExists();
+            db.Database.Initialize(force:false);
 
             recordingCommands = new RecordingCommands(db);
             songCommands = new SongCommands(db);
