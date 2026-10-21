@@ -18,6 +18,9 @@ namespace Musegician
     {
         public App()
         {
+            AppDomain.CurrentDomain.SetData("DataDirectory",
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+
             SessionEnding += App_SessionEnding;
         }
 

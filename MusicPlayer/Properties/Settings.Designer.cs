@@ -26,7 +26,7 @@ namespace Musegician.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"~\\Documents\\Musegician.MusegicianData.mdf\";Integrated Security=True;Connect Timeout=30")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"|DataDirectory|\\Documents\\Musegician.MusegicianData.mdf\";Integrated Security=True;Connect Timeout=30")]
         public string Musegician_MusegicianDataConnectionString {
             get {
                 return ((string)(this["Musegician_MusegicianDataConnectionString"]));

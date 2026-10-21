@@ -12,8 +12,8 @@ namespace Musegician.Database
         static MusegicianData()
         {
             Database.SetInitializer(
-                new MigrateDatabaseToLatestVersion<MusegicianData, Musegician.Migrations.Configuration>());
-            )
+                new MigrateDatabaseToLatestVersion<MusegicianData, Musegician.Migrations.Configuration>()
+            );
         }
         public MusegicianData()
             : base("name=Musegician.Properties.Settings.Musegician_MusegicianDataConnectionString")
